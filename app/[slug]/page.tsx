@@ -1,5 +1,11 @@
 import { notFound } from "next/navigation";
-import { getAllPageSlugs, getAllPostSlugs, getPageBySlug, getPostBySlug } from "@/lib/wordpress";
+import {
+  getAllPageSlugs,
+  getAllPostSlugs,
+  getFeaturedImage,
+  getPageBySlug,
+  getPostBySlug,
+} from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -19,6 +25,8 @@ export default async function ContentPage({
 
   if (!item) notFound();
 
+  const image = getFeaturedImage(item);
+
   return (
     <article className="container">
       <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
@@ -29,6 +37,7 @@ export default async function ContentPage({
           year: "numeric",
         })}
       </time>
+      {image && <img src={image.source_url} alt={image.alt_text} />}
       <div dangerouslySetInnerHTML={{ __html: item.content.rendered }} />
     </article>
   );
