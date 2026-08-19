@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
   getAllEventSlugs,
@@ -5,6 +6,7 @@ import {
   getEventSchema,
   getFeaturedImage,
   parseEventDate,
+  stripHtml,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -12,6 +14,30 @@ export const revalidate = 3600;
 export async function generateStaticParams() {
   const slugs = await getAllEventSlugs();
   return slugs.map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const event = await getEventBySlug(slug);
+  if (!event) return {};
+
+  const title = stripHtml(event.title.rendered);
+  const description = stripHtml(event.content.rendered).slice(0, 160) || undefined;
+  const image = getFeaturedImage(event);
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: image ? [image.source_url] : undefined,
+    },
+  };
 }
 
 export default async function EventPage({
