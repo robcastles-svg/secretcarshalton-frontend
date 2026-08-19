@@ -1,9 +1,30 @@
-export default function HomePage() {
+import Link from "next/link";
+import { getPosts } from "@/lib/wordpress";
+
+export const revalidate = 3600;
+
+export default async function HomePage() {
+  const posts = await getPosts(12);
+
   return (
-    <main style={{ fontFamily: "sans-serif", padding: "3rem" }}>
-      <h1>Secret Carshalton — staging skeleton</h1>
-      <p>Pipeline check: GitHub → Vercel deploy is wired up and working.</p>
-      <p>Real pages (posts, events, directory) land here next.</p>
+    <main className="container">
+      <h1>Latest</h1>
+      <ul className="post-list">
+        {posts.map((post) => (
+          <li key={post.id}>
+            <Link href={`/${post.slug}`}>
+              <span dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
+            </Link>
+            <time dateTime={post.date}>
+              {new Date(post.date).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </time>
+          </li>
+        ))}
+      </ul>
     </main>
   );
 }
