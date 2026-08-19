@@ -3,6 +3,11 @@ const REVALIDATE_SECONDS = 3600;
 
 type WPRendered = { rendered: string };
 
+export interface WPFeaturedMedia {
+  source_url: string;
+  alt_text: string;
+}
+
 export interface WPContentItem {
   id: number;
   slug: string;
@@ -11,6 +16,10 @@ export interface WPContentItem {
   title: WPRendered;
   excerpt: WPRendered;
   content: WPRendered;
+  featured_media?: number;
+  _embedded?: {
+    "wp:featuredmedia"?: WPFeaturedMedia[];
+  };
 }
 
 export interface EventSchema {
@@ -21,6 +30,10 @@ export interface EventSchema {
     address?: { streetAddress?: string };
   }>;
   organizer?: Array<{ name?: string; url?: string }>;
+}
+
+export function getFeaturedImage(item: WPContentItem): WPFeaturedMedia | null {
+  return item._embedded?.["wp:featuredmedia"]?.[0] ?? null;
 }
 
 async function wpFetch<T>(path: string): Promise<T> {
@@ -50,17 +63,21 @@ async function getAllSlugs(postType: string): Promise<string[]> {
 
 export function getPosts(perPage = 12) {
   return wpFetch<WPContentItem[]>(
-    `/posts?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content`
+    `/posts?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
   );
 }
 
 export async function getPostBySlug(slug: string): Promise<WPContentItem | null> {
-  const posts = await wpFetch<WPContentItem[]>(`/posts?slug=${encodeURIComponent(slug)}`);
+  const posts = await wpFetch<WPContentItem[]>(
+    `/posts?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
+  );
   return posts[0] ?? null;
 }
 
 export async function getPageBySlug(slug: string): Promise<WPContentItem | null> {
-  const pages = await wpFetch<WPContentItem[]>(`/pages?slug=${encodeURIComponent(slug)}`);
+  const pages = await wpFetch<WPContentItem[]>(
+    `/pages?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
+  );
   return pages[0] ?? null;
 }
 
@@ -88,9 +105,9 @@ export function getAllEventSlugs() {
 }
 
 /**
- * EventON's date/venue meta isn't exposed via REST, but every event's
- * live page carries a schema.org Event block with exactly that data.
- * Scraping this until events are migrated to a post type we control.
+ * EventON's date/venue meta isn't exposed via REST, so it's pulled from
+ * the schema.org JSON-LD block on each event's live page instead, until
+ * events move to a post type we control directly.
  */
 export async function getEventSchema(slug: string): Promise<EventSchema | null> {
   const res = await fetch(`https://www.secretcarshalton.com/events/${slug}/`, {
