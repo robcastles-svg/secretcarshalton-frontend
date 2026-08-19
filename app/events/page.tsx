@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getEvents } from "@/lib/wordpress";
+import { getEvents, getFeaturedImage } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -10,13 +10,17 @@ export default async function EventsPage() {
     <main className="container">
       <h1>What&apos;s On</h1>
       <ul className="post-list">
-        {events.map((event) => (
-          <li key={event.id}>
-            <Link href={`/events/${event.slug}`}>
-              <span dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-            </Link>
-          </li>
-        ))}
+        {events.map((event) => {
+          const image = getFeaturedImage(event);
+          return (
+            <li key={event.id}>
+              <Link href={`/events/${event.slug}`}>
+                {image && <img src={image.source_url} alt={image.alt_text} />}
+                <span dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </main>
   );
