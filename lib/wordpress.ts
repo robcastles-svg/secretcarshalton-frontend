@@ -36,6 +36,19 @@ export function getFeaturedImage(item: WPContentItem): WPFeaturedMedia | null {
   return item._embedded?.["wp:featuredmedia"]?.[0] ?? null;
 }
 
+export function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, "")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&nbsp;/g, " ")
+    .replace(/&hellip;/g, "…")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;|&apos;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
  * EventON's startDate/endDate strings aren't valid ISO 8601 (unpadded
  * month/day, offset like "+0:00"), so `new Date()` rejects them outright.
