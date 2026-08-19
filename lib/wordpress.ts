@@ -91,12 +91,14 @@ export function getAllPageSlugs() {
 
 export function getEvents(perPage = 100) {
   return wpFetch<WPContentItem[]>(
-    `/ajde_events?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content`
+    `/ajde_events?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
   );
 }
 
 export async function getEventBySlug(slug: string): Promise<WPContentItem | null> {
-  const events = await wpFetch<WPContentItem[]>(`/ajde_events?slug=${encodeURIComponent(slug)}`);
+  const events = await wpFetch<WPContentItem[]>(
+    `/ajde_events?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
+  );
   return events[0] ?? null;
 }
 
