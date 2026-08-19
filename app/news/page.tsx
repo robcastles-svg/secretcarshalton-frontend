@@ -1,0 +1,16 @@
+import { ContentList } from "@/app/_components/ContentList";
+import { getCategoryBySlug, getPostsByCategory } from "@/lib/wordpress";
+
+export const revalidate = 3600;
+
+export default async function NewsPage() {
+  const category = await getCategoryBySlug("news");
+  const posts = category ? await getPostsByCategory(category.id) : [];
+
+  return (
+    <main className="container">
+      <h1>News</h1>
+      <ContentList items={posts} />
+    </main>
+  );
+}

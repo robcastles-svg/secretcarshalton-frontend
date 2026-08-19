@@ -166,6 +166,32 @@ export function getAllEventSlugs() {
   return getAllSlugs("ajde_events");
 }
 
+export interface WPCategory {
+  id: number;
+  slug: string;
+  name: string;
+  description: string;
+  count: number;
+  parent: number;
+}
+
+export function getCategories() {
+  return wpFetch<WPCategory[]>(`/categories?per_page=100&hide_empty=false`);
+}
+
+export async function getCategoryBySlug(slug: string): Promise<WPCategory | null> {
+  const categories = await wpFetch<WPCategory[]>(
+    `/categories?slug=${encodeURIComponent(slug)}`
+  );
+  return categories[0] ?? null;
+}
+
+export function getPostsByCategory(categoryId: number, perPage = 50) {
+  return wpFetch<WPContentItem[]>(
+    `/posts?categories=${categoryId}&per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
+  );
+}
+
 /**
  * EventON's date/venue meta isn't exposed via REST, so it's pulled from
  * the schema.org JSON-LD block on each event's live page instead, until
