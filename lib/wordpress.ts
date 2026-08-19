@@ -36,6 +36,19 @@ export function getFeaturedImage(item: WPContentItem): WPFeaturedMedia | null {
   return item._embedded?.["wp:featuredmedia"]?.[0] ?? null;
 }
 
+/**
+ * EventON's startDate/endDate strings aren't valid ISO 8601 (unpadded
+ * month/day, offset like "+0:00"), so `new Date()` rejects them outright.
+ * Read the Y-M-D-H-Min digits directly instead of relying on Date parsing.
+ */
+export function parseEventDate(raw?: string): Date | null {
+  if (!raw) return null;
+  const match = /^(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{2})/.exec(raw);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match.map(Number);
+  return new Date(year, month - 1, day, hour, minute);
+}
+
 async function wpFetch<T>(path: string): Promise<T> {
   const res = await fetch(`${WP_BASE}${path}`, {
     next: { revalidate: REVALIDATE_SECONDS },
