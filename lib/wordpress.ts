@@ -32,8 +32,15 @@ export interface EventSchema {
   organizer?: Array<{ name?: string; url?: string }>;
 }
 
+/**
+ * When featured_media points to a deleted/invalid attachment, WP's _embed
+ * still populates wp:featuredmedia — but with a WP_Error shape ({code,
+ * message, data}) instead of omitting the key. Guard on source_url so a
+ * stale reference renders as no image, not a broken <img>.
+ */
 export function getFeaturedImage(item: WPContentItem): WPFeaturedMedia | null {
-  return item._embedded?.["wp:featuredmedia"]?.[0] ?? null;
+  const media = item._embedded?.["wp:featuredmedia"]?.[0];
+  return media && "source_url" in media ? media : null;
 }
 
 export function stripHtml(html: string): string {
