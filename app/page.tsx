@@ -25,6 +25,7 @@ export default async function HomePage() {
                   year: "numeric",
                 })}
               </time>
+              <div dangerouslySetInnerHTML={{ __html: post.excerpt.rendered }} />
             </li>
           );
         })}
