@@ -69,8 +69,35 @@ export function parseEventDate(raw?: string): Date | null {
   return new Date(year, month - 1, day, hour, minute);
 }
 
+/**
+ * The WP host (SiteGround) intermittently drops connections under the
+ * sustained load of a 600+ page static build — a single ECONNRESET or
+ * connect timeout otherwise aborts the entire `next build`. Retry
+ * transient network failures and 5xx responses before giving up.
+ */
+async function fetchWithRetry(
+  url: string,
+  init: RequestInit,
+  attempts = 3
+): Promise<Response> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      const res = await fetch(url, init);
+      if (res.ok || res.status < 500) return res;
+      lastError = new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      lastError = err;
+    }
+    if (attempt < attempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));
+    }
+  }
+  throw lastError;
+}
+
 async function wpFetch<T>(path: string): Promise<T> {
-  const res = await fetch(`${WP_BASE}${path}`, {
+  const res = await fetchWithRetry(`${WP_BASE}${path}`, {
     next: { revalidate: REVALIDATE_SECONDS },
   });
   if (!res.ok) {
@@ -145,7 +172,7 @@ export function getAllEventSlugs() {
  * events move to a post type we control directly.
  */
 export async function getEventSchema(slug: string): Promise<EventSchema | null> {
-  const res = await fetch(`https://www.secretcarshalton.com/events/${slug}/`, {
+  const res = await fetchWithRetry(`https://www.secretcarshalton.com/events/${slug}/`, {
     next: { revalidate: REVALIDATE_SECONDS },
   });
   if (!res.ok) return null;
