@@ -1,5 +1,11 @@
 import { notFound } from "next/navigation";
-import { getAllEventSlugs, getEventBySlug, getEventSchema, getFeaturedImage } from "@/lib/wordpress";
+import {
+  getAllEventSlugs,
+  getEventBySlug,
+  getEventSchema,
+  getFeaturedImage,
+  parseEventDate,
+} from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -21,14 +27,15 @@ export default async function EventPage({
   const image = getFeaturedImage(event);
   const schema = await getEventSchema(slug).catch(() => null);
   const venue = schema?.location?.[0];
+  const startDate = parseEventDate(schema?.startDate);
 
   return (
     <article className="container">
       <h1 dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-      {schema?.startDate && (
+      {startDate && (
         <p>
           <strong>
-            {new Date(schema.startDate).toLocaleString("en-GB", {
+            {startDate.toLocaleString("en-GB", {
               weekday: "long",
               day: "numeric",
               month: "long",
