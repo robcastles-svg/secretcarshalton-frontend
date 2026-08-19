@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getAllEventSlugs, getEventBySlug, getEventSchema } from "@/lib/wordpress";
+import { getAllEventSlugs, getEventBySlug, getEventSchema, getFeaturedImage } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -18,6 +18,7 @@ export default async function EventPage({
 
   if (!event) notFound();
 
+  const image = getFeaturedImage(event);
   const schema = await getEventSchema(slug).catch(() => null);
   const venue = schema?.location?.[0];
 
@@ -44,6 +45,7 @@ export default async function EventPage({
           )}
         </p>
       )}
+      {image && <img src={image.source_url} alt={image.alt_text} />}
       <div dangerouslySetInnerHTML={{ __html: event.content.rendered }} />
     </article>
   );
