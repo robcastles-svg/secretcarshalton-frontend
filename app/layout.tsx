@@ -75,11 +75,49 @@ export default async function RootLayout({
             )}
           </div>
         </div>
+
+        {/*
+         * Billboard ad slot — hardcoded to today's live creative for now.
+         * Genuinely admin-manageable ad placements are Track 2 (need WP
+         * backend access); this is just the visual slot in the right spot.
+         */}
+        <a
+          className="ad-slot ad-billboard"
+          href="https://www.lazystuff.com/product-category/carshalton-main/carshaltonframedprints/"
+        >
+          <img
+            src="https://www.secretcarshalton.com/wp-content/uploads/2026/04/lazystuff-bb2.jpg"
+            alt="Carshalton Pub Crawl — own an original print, by LazyStuff"
+          />
+        </a>
+
+        <div className="quick-links-bar">
+          <div className="container quick-links-inner">
+            {QUICK_LINKS_NAV.map((item) => (
+              <Link key={item.label} href={item.href}>
+                {item.label.toUpperCase()}
+              </Link>
+            ))}
+          </div>
+        </div>
+
         <header className="site-header">
           <div className="container site-header-inner">
             <Link href="/" className="site-logo">
               Secret Carshalton
             </Link>
+            {/* Leaderboard ad slot — same caveat as the billboard above. */}
+            <a
+              className="ad-slot ad-leaderboard"
+              href="https://www.secretcarshalton.com/directory/listing/local-pub-themed-gifts-featuring-wonderful-carshalton"
+            >
+              <img
+                src="https://www.secretcarshalton.com/wp-content/uploads/2023/09/lazystuff-SC-banner.jpg"
+                alt="Carshalton Pub Gifts — LazyStuff"
+              />
+            </a>
+          </div>
+          <div className="container primary-nav-row">
             <nav className="primary-nav">
               {PRIMARY_NAV.map((item) => (
                 <Link key={item.label} href={item.href}>
@@ -90,15 +128,6 @@ export default async function RootLayout({
                 <SearchIcon />
               </Link>
             </nav>
-          </div>
-          <div className="quick-links-bar">
-            <div className="container quick-links-inner">
-              {QUICK_LINKS_NAV.map((item) => (
-                <Link key={item.label} href={item.href}>
-                  {item.label.toUpperCase()}
-                </Link>
-              ))}
-            </div>
           </div>
         </header>
 

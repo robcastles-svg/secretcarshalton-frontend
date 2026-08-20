@@ -76,7 +76,7 @@ img {
   gap: 1.5rem;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem 1rem;
 }
 
 .site-logo {
@@ -84,6 +84,11 @@ img {
   font-size: 1.4rem;
   color: #1a1a1a;
   text-decoration: none;
+}
+
+.primary-nav-row {
+  padding-top: 0;
+  padding-bottom: 0.75rem;
 }
 
 .primary-nav {
@@ -146,6 +151,37 @@ img {
 
   .quick-links-inner {
     justify-content: center;
+  }
+}
+
+/* Ad slots (billboard/leaderboard) */
+.ad-slot {
+  display: block;
+}
+
+.ad-slot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ad-billboard {
+  background: #e5e5e5;
+}
+
+.ad-billboard img {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.ad-leaderboard {
+  max-width: 340px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .ad-leaderboard {
+    max-width: 100%;
   }
 }
 
