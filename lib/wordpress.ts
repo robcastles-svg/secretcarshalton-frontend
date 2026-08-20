@@ -17,6 +17,8 @@ export interface WPContentItem {
   excerpt: WPRendered;
   content: WPRendered;
   featured_media?: number;
+  categories?: number[];
+  tags?: number[];
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
   };
@@ -120,6 +122,42 @@ export function searchPosts(query: string, perPage = 20) {
   );
 }
 
+async function getPostViewCount(postId: number): Promise<number> {
+  const res = await fetchWithRetry(
+    `https://www.secretcarshalton.com/wp-json/post-views-counter/get-post-views/${postId}`,
+    { next: { revalidate: REVALIDATE_SECONDS } }
+  );
+  if (!res.ok) return 0;
+  const count = Number(await res.text());
+  return Number.isFinite(count) ? count : 0;
+}
+
+/**
+ * The view-count plugin's REST API only accepts one post ID per call and
+ * has no "top posts" or time-windowed route — despite offering a
+ * comma-separated ID pattern, it silently returns a single aggregate
+ * number rather than a per-post breakdown. So this is all-time views,
+ * not "this week", and it costs one request per post in the pool —
+ * kept small and bounded, and never allowed to fail the page it's on.
+ */
+export async function getMostReadPosts(
+  candidatePool: WPContentItem[],
+  count: number
+): Promise<WPContentItem[]> {
+  try {
+    const counts = await mapWithConcurrency(candidatePool, 3, (post) =>
+      getPostViewCount(post.id)
+    );
+    return candidatePool
+      .map((post, i) => ({ post, views: counts[i] }))
+      .sort((a, b) => b.views - a.views)
+      .slice(0, count)
+      .map((x) => x.post);
+  } catch {
+    return [];
+  }
+}
+
 export async function getRecentPostSlugs(count: number): Promise<string[]> {
   const posts = await wpFetch<Array<{ slug: string }>>(`/posts?per_page=${count}&_fields=slug`);
   return posts.map((p) => p.slug);
@@ -177,6 +215,16 @@ export function getCategories() {
   return wpFetch<WPCategory[]>(`/categories?per_page=100&hide_empty=false`);
 }
 
+export interface WPTag {
+  id: number;
+  slug: string;
+  name: string;
+}
+
+export function getTags() {
+  return wpFetch<WPTag[]>(`/tags?per_page=100&hide_empty=false`);
+}
+
 export async function getCategoryBySlug(slug: string): Promise<WPCategory | null> {
   const categories = await wpFetch<WPCategory[]>(
     `/categories?slug=${encodeURIComponent(slug)}`
@@ -201,6 +249,14 @@ export interface WPComment {
   author_name: string;
   content: WPRendered;
   date: string;
+}
+
+/** Real (non-admin) comments on a single post, newest first. */
+export async function getCommentsForPost(postId: number, count: number): Promise<WPComment[]> {
+  const comments = await wpFetch<WPComment[]>(
+    `/comments?post=${postId}&per_page=${count * 2}&orderby=date&order=desc&_fields=id,post,author_name,content,date`
+  );
+  return comments.filter((c) => c.author_name !== "Secret Carshalton").slice(0, count);
 }
 
 /**
@@ -236,7 +292,7 @@ export async function getPostsByCategory(categoryId: number): Promise<WPContentI
   let page = 1;
   while (true) {
     const batch = await wpFetch<WPContentItem[]>(
-      `/posts?categories=${categoryId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
+      `/posts?categories=${categoryId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,_links&_embed=wp:featuredmedia`
     );
     posts.push(...batch);
     if (batch.length < 100) break;

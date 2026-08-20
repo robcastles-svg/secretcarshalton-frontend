@@ -28,7 +28,7 @@ export default async function EventsPage() {
             <li key={event.id}>
               <Link href={`/events/${event.slug}`}>
                 {image && <img src={image.source_url} alt={image.alt_text} />}
-                <span dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
+                <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
               </Link>
               {startDate && (
                 <time dateTime={startDate.toISOString()}>

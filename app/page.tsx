@@ -7,6 +7,7 @@ import {
   getFeaturedImage,
   getLatestComments,
   getLatestPostInCategories,
+  getMostReadPosts,
   getPosts,
   getCategories,
   mapWithConcurrency,
@@ -25,22 +26,23 @@ function formatDate(iso: string) {
 }
 
 export default async function HomePage() {
-  const [latestPosts, walksCategory, allCategories, events] = await Promise.all([
-    getPosts(4),
+  const [recentPosts, walksCategory, allCategories, events] = await Promise.all([
+    getPosts(20),
     getCategoryBySlug("walks"),
     getCategories(),
     getEvents(4),
   ]);
 
-  const [hero, ...cardPosts] = latestPosts;
+  const [hero, ...cardPosts] = recentPosts.slice(0, 4);
 
   const walkChildIds = walksCategory
     ? allCategories.filter((c) => c.parent === walksCategory.id).map((c) => c.id)
     : [];
-  const [latestWalk, comments, eventSchemas] = await Promise.all([
+  const [latestWalk, comments, eventSchemas, mostRead] = await Promise.all([
     getLatestPostInCategories(walkChildIds),
     getLatestComments(3),
     mapWithConcurrency(events, 4, (event) => getEventSchema(event.slug).catch(() => null)),
+    getMostReadPosts(recentPosts, 10),
   ]);
 
   if (!hero) {
@@ -155,6 +157,21 @@ export default async function HomePage() {
                 </li>
               ))}
             </ul>
+          </section>
+        )}
+
+        {mostRead.length > 0 && (
+          <section className="home-section">
+            <h2>🔥 Most read</h2>
+            <ol className="most-read-list">
+              {mostRead.map((post) => (
+                <li key={post.id}>
+                  <Link href={`/${post.slug}`}
+                    dangerouslySetInnerHTML={{ __html: post.title.rendered }}
+                  />
+                </li>
+              ))}
+            </ol>
           </section>
         )}
       </div>
