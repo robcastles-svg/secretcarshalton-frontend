@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  getAllEventSlugs,
   getEventBySlug,
   getEventSchema,
   getFeaturedImage,
@@ -11,10 +10,7 @@ import {
 
 export const revalidate = 3600;
 
-export async function generateStaticParams() {
-  const slugs = await getAllEventSlugs();
-  return slugs.map((slug) => ({ slug }));
-}
+/** See app/[slug]/page.tsx for why there's no generateStaticParams here. */
 
 export async function generateMetadata({
   params,

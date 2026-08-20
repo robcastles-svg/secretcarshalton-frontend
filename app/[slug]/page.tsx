@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import {
-  getAllPageSlugs,
-  getAllPostSlugs,
-  getFeaturedImage,
-  getPageBySlug,
-  getPostBySlug,
-  stripHtml,
-} from "@/lib/wordpress";
+import { getFeaturedImage, getPageBySlug, getPostBySlug, stripHtml } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
-export async function generateStaticParams() {
-  const [postSlugs, pageSlugs] = await Promise.all([getAllPostSlugs(), getAllPageSlugs()]);
-  const slugs = new Set([...postSlugs, ...pageSlugs]);
-  return Array.from(slugs).map((slug) => ({ slug }));
-}
+/**
+ * No generateStaticParams here on purpose: eagerly pre-rendering all
+ * ~650 posts/pages meant every deploy fired that many requests at
+ * secretcarshalton.com's shared-hosting REST API in a couple of
+ * minutes, which is what was crashing builds. Pages render on first
+ * visit instead and get cached for `revalidate` seconds (ISR) — a
+ * deploy no longer touches WordPress at all for this route.
+ */
 
 export async function generateMetadata({
   params,

@@ -70,10 +70,11 @@ export function parseEventDate(raw?: string): Date | null {
 }
 
 /**
- * The WP host (SiteGround) intermittently drops connections under the
- * sustained load of a 600+ page static build — a single ECONNRESET or
- * connect timeout otherwise aborts the entire `next build`. Retry
- * transient network failures and 5xx responses before giving up.
+ * The WP host (SiteGround shared hosting, no REST API caching layer)
+ * intermittently drops connections or stalls past the connect timeout,
+ * seemingly under its own concurrency limits — a single failure
+ * otherwise aborts the entire `next build`. Retry transient network
+ * failures and 5xx responses before giving up.
  */
 async function fetchWithRetry(
   url: string,
@@ -106,21 +107,6 @@ async function wpFetch<T>(path: string): Promise<T> {
   return res.json();
 }
 
-async function getAllSlugs(postType: string): Promise<string[]> {
-  const slugs: string[] = [];
-  let page = 1;
-  while (true) {
-    const items = await wpFetch<Array<{ slug: string }>>(
-      `/${postType}?per_page=100&page=${page}&_fields=slug`
-    );
-    if (items.length === 0) break;
-    slugs.push(...items.map((item) => item.slug));
-    if (items.length < 100) break;
-    page++;
-  }
-  return slugs;
-}
-
 export function getPosts(perPage = 12) {
   return wpFetch<WPContentItem[]>(
     `/posts?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
@@ -141,14 +127,6 @@ export async function getPageBySlug(slug: string): Promise<WPContentItem | null>
   return pages[0] ?? null;
 }
 
-export function getAllPostSlugs() {
-  return getAllSlugs("posts");
-}
-
-export function getAllPageSlugs() {
-  return getAllSlugs("pages");
-}
-
 export function getEvents(perPage = 100) {
   return wpFetch<WPContentItem[]>(
     `/ajde_events?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
@@ -160,10 +138,6 @@ export async function getEventBySlug(slug: string): Promise<WPContentItem | null
     `/ajde_events?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
   );
   return events[0] ?? null;
-}
-
-export function getAllEventSlugs() {
-  return getAllSlugs("ajde_events");
 }
 
 export interface WPCategory {
