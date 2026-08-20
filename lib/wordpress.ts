@@ -78,7 +78,7 @@ export function parseEventDate(raw?: string): Date | null {
 async function fetchWithRetry(
   url: string,
   init: RequestInit,
-  attempts = 3
+  attempts = 6
 ): Promise<Response> {
   let lastError: unknown;
   for (let attempt = 0; attempt < attempts; attempt++) {
