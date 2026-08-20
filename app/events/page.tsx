@@ -1,12 +1,18 @@
 import Link from "next/link";
-import { getEvents, getEventSchema, getFeaturedImage, parseEventDate } from "@/lib/wordpress";
+import {
+  getEvents,
+  getEventSchema,
+  getFeaturedImage,
+  mapWithConcurrency,
+  parseEventDate,
+} from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
 export default async function EventsPage() {
-  const events = await getEvents(100);
-  const schemas = await Promise.all(
-    events.map((event) => getEventSchema(event.slug).catch(() => null))
+  const events = await getEvents(30);
+  const schemas = await mapWithConcurrency(events, 5, (event) =>
+    getEventSchema(event.slug).catch(() => null)
   );
 
   return (

@@ -4,13 +4,18 @@ import {
   getEventBySlug,
   getEventSchema,
   getFeaturedImage,
+  getRecentEventSlugs,
   parseEventDate,
   stripHtml,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
-/** See app/[slug]/page.tsx for why there's no generateStaticParams here. */
+/** See app/[slug]/page.tsx for the same tradeoff — capped instead of all ~257 events. */
+export async function generateStaticParams() {
+  const slugs = await getRecentEventSlugs(20);
+  return slugs.map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({
   params,

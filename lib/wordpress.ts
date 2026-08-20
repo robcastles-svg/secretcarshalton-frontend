@@ -113,6 +113,16 @@ export function getPosts(perPage = 12) {
   );
 }
 
+export async function getRecentPostSlugs(count: number): Promise<string[]> {
+  const posts = await wpFetch<Array<{ slug: string }>>(`/posts?per_page=${count}&_fields=slug`);
+  return posts.map((p) => p.slug);
+}
+
+export async function getAllPageSlugs(): Promise<string[]> {
+  const pages = await wpFetch<Array<{ slug: string }>>(`/pages?per_page=100&_fields=slug`);
+  return pages.map((p) => p.slug);
+}
+
 export async function getPostBySlug(slug: string): Promise<WPContentItem | null> {
   const posts = await wpFetch<WPContentItem[]>(
     `/posts?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
@@ -131,6 +141,13 @@ export function getEvents(perPage = 100) {
   return wpFetch<WPContentItem[]>(
     `/ajde_events?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
   );
+}
+
+export async function getRecentEventSlugs(count: number): Promise<string[]> {
+  const events = await wpFetch<Array<{ slug: string }>>(
+    `/ajde_events?per_page=${count}&_fields=slug`
+  );
+  return events.map((e) => e.slug);
 }
 
 export async function getEventBySlug(slug: string): Promise<WPContentItem | null> {
@@ -172,6 +189,29 @@ export async function getPostsByCategory(categoryId: number): Promise<WPContentI
     page++;
   }
   return posts;
+}
+
+/**
+ * Runs `fn` over `items` with at most `limit` calls in flight at once,
+ * instead of firing every call simultaneously via Promise.all. Scraping
+ * dozens of live event pages in one burst is exactly the kind of
+ * concurrency spike that trips the WP host's connection limits.
+ */
+export async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index]);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
 }
 
 /**

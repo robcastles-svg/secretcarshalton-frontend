@@ -1,17 +1,33 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getFeaturedImage, getPageBySlug, getPostBySlug, stripHtml } from "@/lib/wordpress";
+import {
+  getAllPageSlugs,
+  getFeaturedImage,
+  getPageBySlug,
+  getPostBySlug,
+  getRecentPostSlugs,
+  stripHtml,
+} from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
 /**
- * No generateStaticParams here on purpose: eagerly pre-rendering all
- * ~650 posts/pages meant every deploy fired that many requests at
- * secretcarshalton.com's shared-hosting REST API in a couple of
- * minutes, which is what was crashing builds. Pages render on first
- * visit instead and get cached for `revalidate` seconds (ISR) — a
- * deploy no longer touches WordPress at all for this route.
+ * Pre-rendering all ~650 posts/pages here fired that many requests at
+ * secretcarshalton.com's shared-hosting REST API in a couple of minutes,
+ * which is what was crashing builds. Pages (structural, ~75 of them,
+ * cheap) still pre-render fully; posts are capped to the most recent 30
+ * — the ones actually linked from the homepage/nav. Everything else
+ * renders on first visit and is cached via ISR (the revalidate above),
+ * so a deploy touches WordPress ~100 times instead of ~650.
  */
+export async function generateStaticParams() {
+  const [pageSlugs, recentPostSlugs] = await Promise.all([
+    getAllPageSlugs(),
+    getRecentPostSlugs(30),
+  ]);
+  const slugs = new Set([...pageSlugs, ...recentPostSlugs]);
+  return Array.from(slugs).map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({
   params,
