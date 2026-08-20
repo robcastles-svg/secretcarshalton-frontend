@@ -74,6 +74,10 @@ export default async function RootLayout({
           <Link href="/" className="site-logo">
             Secret Carshalton
           </Link>
+          <input type="checkbox" id="nav-toggle" className="nav-toggle" />
+          <label htmlFor="nav-toggle" className="nav-toggle-label" aria-label="Menu">
+            <span />
+          </label>
           <nav className="primary-nav">
             {PRIMARY_NAV.map((item) => (
               <Link key={item.label} href={item.href}>

@@ -186,10 +186,18 @@ export async function getCategoryBySlug(slug: string): Promise<WPCategory | null
   return categories[0] ?? null;
 }
 
-export function getPostsByCategory(categoryId: number, perPage = 50) {
-  return wpFetch<WPContentItem[]>(
-    `/posts?categories=${categoryId}&per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
-  );
+export async function getPostsByCategory(categoryId: number): Promise<WPContentItem[]> {
+  const posts: WPContentItem[] = [];
+  let page = 1;
+  while (true) {
+    const batch = await wpFetch<WPContentItem[]>(
+      `/posts?categories=${categoryId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
+    );
+    posts.push(...batch);
+    if (batch.length < 100) break;
+    page++;
+  }
+  return posts;
 }
 
 /**

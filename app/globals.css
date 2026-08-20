@@ -88,21 +88,152 @@ img {
   color: #0a5c36;
 }
 
+/* Mobile nav toggle (checkbox hack — no JS needed) */
+.nav-toggle {
+  display: none;
+}
+
+.nav-toggle-label {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.nav-toggle-label span,
+.nav-toggle-label::before,
+.nav-toggle-label::after {
+  content: "";
+  display: block;
+  height: 2px;
+  width: 100%;
+  background: #1a1a1a;
+}
+
+@media (max-width: 720px) {
+  .nav-toggle-label {
+    display: flex;
+    order: 2;
+  }
+
+  .primary-nav {
+    display: none;
+    order: 3;
+    flex-basis: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e5e5e5;
+  }
+
+  .nav-toggle:checked ~ .primary-nav {
+    display: flex;
+  }
+
+  .utility-bar-inner {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem 1.25rem;
+  }
+}
+
 /* Content lists (posts/events/archives) */
 .post-list {
   list-style: none;
   padding: 0;
+  display: grid;
+  gap: 1.5rem;
 }
 
 .post-list li {
-  padding: 1rem 0;
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
   border-bottom: 1px solid #eee;
 }
 
+.post-list li a {
+  display: contents;
+}
+
+.post-list li img {
+  grid-row: 1 / 3;
+  width: 160px;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.post-list li:not(:has(img)) {
+  grid-template-columns: 1fr;
+}
+
+.post-list li:not(:has(img)) span,
+.post-list li:not(:has(img)) time,
+.post-list li:not(:has(img)) > div {
+  grid-column: 1;
+}
+
+.post-list li span {
+  grid-column: 2;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
 .post-list time {
-  display: block;
+  grid-column: 2;
   color: #777;
   font-size: 0.85rem;
+}
+
+.post-list li > div {
+  grid-column: 2;
+}
+
+.post-list li div p {
+  margin: 0.35rem 0 0;
+  color: #555;
+}
+
+@media (max-width: 560px) {
+  .post-list li {
+    grid-template-columns: 100px 1fr;
+  }
+
+  .post-list li img {
+    width: 100px;
+    height: 80px;
+  }
+}
+
+/* Simple link lists (Stories/Walks hub pages) */
+.link-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.link-list li {
+  border-bottom: 1px solid #eee;
+}
+
+.link-list a {
+  display: block;
+  padding: 0.75rem 0;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+.link-list a:hover {
+  color: #0a5c36;
 }
 
 /* Footer */

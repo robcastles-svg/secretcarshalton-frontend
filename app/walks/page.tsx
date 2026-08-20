@@ -11,7 +11,7 @@ export default async function WalksPage() {
   return (
     <main className="container">
       <h1>Walks</h1>
-      <ul className="post-list">
+      <ul className="link-list">
         {distances.map((distance) => (
           <li key={distance.id}>
             <Link href={`/walks/${distance.slug}`}>{distance.name}</Link>

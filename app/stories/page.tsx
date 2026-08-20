@@ -11,7 +11,7 @@ export default async function StoriesPage() {
   return (
     <main className="container">
       <h1>Stories</h1>
-      <ul className="post-list">
+      <ul className="link-list">
         {areas.map((area) => (
           <li key={area.id}>
             <Link href={`/stories/${area.slug}`}>{area.name}</Link>
