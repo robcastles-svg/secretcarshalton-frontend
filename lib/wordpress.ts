@@ -113,6 +113,13 @@ export function getPosts(perPage = 12) {
   );
 }
 
+/** Matches the real site's search scope: stories, news, and walks — all of which are posts. */
+export function searchPosts(query: string, perPage = 20) {
+  return wpFetch<WPContentItem[]>(
+    `/posts?search=${encodeURIComponent(query)}&per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
+  );
+}
+
 export async function getRecentPostSlugs(count: number): Promise<string[]> {
   const posts = await wpFetch<Array<{ slug: string }>>(`/posts?per_page=${count}&_fields=slug`);
   return posts.map((p) => p.slug);
@@ -175,6 +182,53 @@ export async function getCategoryBySlug(slug: string): Promise<WPCategory | null
     `/categories?slug=${encodeURIComponent(slug)}`
   );
   return categories[0] ?? null;
+}
+
+/** Latest post across a set of category IDs (WP's categories param ORs a comma list). */
+export async function getLatestPostInCategories(
+  categoryIds: number[]
+): Promise<WPContentItem | null> {
+  if (categoryIds.length === 0) return null;
+  const posts = await wpFetch<WPContentItem[]>(
+    `/posts?categories=${categoryIds.join(",")}&per_page=1&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
+  );
+  return posts[0] ?? null;
+}
+
+export interface WPComment {
+  id: number;
+  post: number;
+  author_name: string;
+  content: WPRendered;
+  date: string;
+}
+
+/**
+ * Comments left by the site owner posting as "Secret Carshalton" are
+ * filtered out — matches the live site's own behaviour of hiding admin
+ * replies from the comments widget.
+ */
+export async function getLatestComments(count: number): Promise<
+  Array<WPComment & { postSlug: string; postTitle: string }>
+> {
+  const comments = await wpFetch<WPComment[]>(
+    `/comments?per_page=${count * 3}&orderby=date&order=desc&_fields=id,post,author_name,content,date`
+  );
+  const real = comments.filter((c) => c.author_name !== "Secret Carshalton").slice(0, count);
+  if (real.length === 0) return [];
+
+  const postIds = Array.from(new Set(real.map((c) => c.post)));
+  const posts = await wpFetch<Array<{ id: number; slug: string; title: WPRendered }>>(
+    `/posts?include=${postIds.join(",")}&per_page=${postIds.length}&_fields=id,slug,title`
+  );
+  const postById = new Map(posts.map((p) => [p.id, p]));
+
+  return real
+    .map((c) => {
+      const post = postById.get(c.post);
+      return post ? { ...c, postSlug: post.slug, postTitle: post.title.rendered } : null;
+    })
+    .filter((c): c is WPComment & { postSlug: string; postTitle: string } => c !== null);
 }
 
 export async function getPostsByCategory(categoryId: number): Promise<WPContentItem[]> {
