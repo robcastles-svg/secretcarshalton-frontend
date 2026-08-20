@@ -208,6 +208,15 @@ export default async function RootLayout({
                 <a href="https://x.com/carshaltonviews" aria-label="X (Twitter)">
                   <XIcon />
                 </a>
+                <a href="https://www.youtube.com/@secretcarshalton" aria-label="YouTube">
+                  <YouTubeIcon />
+                </a>
+                <a href="https://www.linkedin.com/company/secret-carshalton/" aria-label="LinkedIn">
+                  <LinkedInIcon />
+                </a>
+                <a href="https://www.tiktok.com/@secretcarshalton" aria-label="TikTok">
+                  <TikTokIcon />
+                </a>
               </div>
               <p className="footer-copyright">
                 Secret Carshalton is proudly 100% Independent. Kindly credit Secret Carshalton if
@@ -263,6 +272,33 @@ function XIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
       <path d="M4 4l7.2 9.2L4.3 20h2.1l5.8-5.8L16.9 20H20l-7.5-9.6L19.6 4h-2.1l-5.4 5.4L8 4H4Z" />
+    </svg>
+  );
+}
+
+function YouTubeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <rect x="2" y="5.5" width="20" height="13" rx="3.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M10 9.5v5l4.5-2.5Z" />
+    </svg>
+  );
+}
+
+function LinkedInIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+      <rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <circle cx="7.5" cy="8" r="1.2" />
+      <path d="M6.6 10.5h1.8V17H6.6zM10.5 10.5h1.7v1c.5-.8 1.3-1.2 2.3-1.2 1.9 0 2.9 1.2 2.9 3.3V17h-1.8v-3c0-1.1-.5-1.7-1.4-1.7-.9 0-1.5.6-1.7 1.3-.1.2-.1.4-.1.7V17h-1.8Z" />
+    </svg>
+  );
+}
+
+function TikTokIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M16 3c.4 2.2 1.8 3.6 4 3.9v2.9c-1.5 0-2.8-.5-4-1.3v6.1c0 3-2.4 5.4-5.4 5.4S5.2 17.6 5.2 14.6 7.6 9.2 10.6 9.2c.3 0 .6 0 .9.1v3c-.3-.1-.6-.2-.9-.2-1.4 0-2.5 1.1-2.5 2.5s1.1 2.5 2.5 2.5 2.6-1.1 2.6-2.5V3Z" />
     </svg>
   );
 }
