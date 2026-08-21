@@ -91,16 +91,26 @@ export function parseEventDate(raw?: string): Date | null {
  * seemingly under its own concurrency limits — a single failure
  * otherwise aborts the entire `next build`. Retry transient network
  * failures and 5xx responses before giving up.
+ *
+ * Every attempt gets a hard 15s bound by default (callers can still pass
+ * their own `signal` to override it). Originally this had no timeout and
+ * defaulted to 9 attempts — worst case, over 2 minutes of retrying before
+ * finally rejecting, which blows past Next's own per-page build timeout
+ * and kills the whole export before any caller's `.catch()` gets a chance
+ * to help. That silently took down /events and then / (homepage) on two
+ * separate deploys before this was fixed at the source instead of
+ * per-call-site (see bb5b5ba, 06e2353, ac88a2b for the earlier ad hoc
+ * fixes this generalizes).
  */
 async function fetchWithRetry(
   url: string,
   init: RequestInit,
-  attempts = 9
+  attempts = 3
 ): Promise<Response> {
   let lastError: unknown;
   for (let attempt = 0; attempt < attempts; attempt++) {
     try {
-      const res = await fetch(url, init);
+      const res = await fetch(url, { signal: AbortSignal.timeout(15_000), ...init });
       if (res.ok || res.status < 500) return res;
       lastError = new Error(`HTTP ${res.status}`);
     } catch (err) {

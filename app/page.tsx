@@ -26,11 +26,17 @@ function formatDate(iso: string) {
 }
 
 export default async function HomePage() {
+  // A single failed WordPress fetch used to be able to take the whole
+  // homepage down with it (see ac88a2b's commit message — this exact
+  // Promise.all crashed a build with no fallback anywhere in the chain).
+  // Every branch below already renders fine with an empty/null result
+  // (the "no posts" state, conditionally-rendered sections), so catching
+  // here just lets that existing degrade-gracefully behavior actually work.
   const [recentPosts, walksCategory, allCategories, events] = await Promise.all([
-    getPosts(20),
-    getCategoryBySlug("walks"),
-    getCategories(),
-    getEvents(4),
+    getPosts(20).catch(() => []),
+    getCategoryBySlug("walks").catch(() => null),
+    getCategories().catch(() => []),
+    getEvents(4).catch(() => []),
   ]);
 
   const [hero, ...cardPosts] = recentPosts.slice(0, 4);
@@ -39,8 +45,8 @@ export default async function HomePage() {
     ? allCategories.filter((c) => c.parent === walksCategory.id).map((c) => c.id)
     : [];
   const [latestWalk, comments, eventSchemas, mostRead] = await Promise.all([
-    getLatestPostInCategories(walkChildIds),
-    getLatestComments(3),
+    getLatestPostInCategories(walkChildIds).catch(() => null),
+    getLatestComments(3).catch(() => []),
     mapWithConcurrency(events, 4, (event) => getEventSchema(event.slug).catch(() => null)),
     getMostReadPosts(recentPosts, 10),
   ]);
