@@ -29,9 +29,23 @@ confirmed yet), that would be a straightforward upgrade to step 2 later.
 
 | Plugin | Status | Purpose |
 |---|---|---|
-| `sc-membership` | in progress | Central member record: points, tiers, directory-upgrade approval queue. Everything else hooks into this rather than keeping its own copy of "who's a member." |
-| `sc-directory` | not started | Replaces Sabai Directory. Schema modeled on the real data scraped from staging (see below) — same shape, clean REST-first implementation. |
-| `sc-events` | not started | Replaces the EventON data layer. Same public shape the frontend already expects (`getEvents`/`getEventSchema` in `lib/wordpress.ts`), but with real REST fields (start/end/venue) instead of scraping schema.org JSON-LD out of HTML, which is what the frontend currently has to do because EventON doesn't expose it.
+| `sc-membership` | live on staging | Central member record: points, tiers, directory-upgrade approval queue, plus a bearer-token auth bridge (`/login`, `/register`) so the Next.js frontend can log members in without a second auth system — same `wp_users` table, same passwords. |
+| `sc-directory` | live on staging, no real data yet | Replaces Sabai Directory. Schema modeled on the real data scraped from staging (see below) — same shape, clean REST-first implementation via a plain CPT. 136 real Sabai listings still need migrating in. |
+| `sc-events` | live on staging, no real data yet | Replaces the EventON data layer. Real REST fields (start/end/venue) instead of scraping schema.org JSON-LD out of HTML, which is what the frontend still does today because EventON doesn't expose it. The ~257 real events are still in EventON — not migrated, so the frontend hasn't cut over yet (would show an empty events page). |
+| `sc-ads` | live on staging | Admin-manageable ad slots (billboard/leaderboard/sidebar/in-article) — a plain labelled form (image, link, alt text, placement, active toggle, date range), no code editing needed to change a creative. Replaces the hardcoded Billboard/Leaderboard image URLs that were in `app/layout.tsx`.
+
+## Frontend wiring (Next.js side)
+
+- `/login`, `/register`, `/dashboard` — call `app/api/auth/*` routes, which
+  proxy server-to-server to `sc-membership`'s bearer-token endpoints and
+  hold the token in an httpOnly cookie. The token never reaches client JS,
+  and CORS isn't a factor since it's never called directly from the browser.
+- `/directory`, `/directory/[slug]` — read `sc-directory` via
+  `lib/wordpress.ts`'s `getDirectoryListings*` functions.
+- `app/layout.tsx`'s Billboard/Leaderboard slots read `sc-ads` via `getAd()`.
+- All of the above point at `WP_STAGING_ROOT` (`staging19.secretcarshalton.com`)
+  in `lib/wordpress.ts`, not the live site — these plugins aren't deployed
+  to production yet. Swap that constant once they are.
 
 ## Real data model this is based on (scraped from staging, 2026-08-21)
 
@@ -68,8 +82,37 @@ that stays manual/PayPal for now per Rob's existing process.
   directory-upgrade status, for the Next.js frontend to render a member
   dashboard.
 
-`sc-directory` (when built) will fire `sc_directory_listing_claimed` and
-`sc_directory_upgrade_requested`; `sc-membership` already listens for
-those action names (see `class-sc-membership-hooks.php`) so the approval
-queue works the moment the directory plugin starts firing them — no
-changes needed on the membership side.
+`sc-directory` fires `sc_directory_listing_claimed` and
+`sc_directory_upgrade_requested` (with a `listing_id`); `sc-membership`
+listens for those (see `class-sc-membership-hooks.php`) and stores which
+listing an upgrade request is for, so the admin approval queue shows it.
+On approval, `sc-membership` fires `sc_membership_upgrade_reviewed`, and
+`sc-directory` listens for *that* to actually flip the listing's plan/
+featured meta — neither plugin needs to know the other's internal fields,
+just the three action names between them.
+
+`sc-events` fires `sc_events_rsvp` on RSVP; `sc-membership` has listened
+for it since before `sc-events` existed (5 points per RSVP).
+
+## Lessons from building this (read before adding a new CPT-based plugin)
+
+Two real outages happened while building `sc-directory`, both worth not
+repeating:
+
+1. **`register_post_type()`/`register_taxonomy()` must only ever run on
+   `init`, never `plugins_loaded`.** Our deploy path re-uploads a new
+   version over an already-active plugin, which never re-fires
+   `register_activation_hook` — so anything that needs to run once per
+   version bump (seeding taxonomy terms, etc.) needs its own version-check
+   that runs on `init`, calling a narrow function (just the seeding, not
+   full `register()` again) — not on `plugins_loaded`. Getting this wrong
+   took the entire staging site down twice, including wp-admin.
+2. **New CPTs need `'custom-fields'` in their `supports` array**, or
+   `register_post_meta()` fields silently never appear in (or save via)
+   the REST `meta` object, even though nothing errors. Hit this twice —
+   once on `sc-directory`, then again on `sc-ads` right after, because the
+   lesson wasn't carried forward the first time. Include it from the start.
+
+Also: always rebuild and verify a plugin's zip (`unzip -p file.zip
+path/to/file.php | grep ...`) immediately before uploading — a stale zip
+from before a source fix looks identical to a correct one until it's live.
