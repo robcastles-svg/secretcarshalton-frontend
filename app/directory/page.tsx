@@ -31,8 +31,15 @@ export default async function DirectoryPage({
 
   return (
     <main className="container">
-      <h1>Directory</h1>
-      <p>Local businesses and organisations in and around Carshalton.</p>
+      <div className="page-header-row">
+        <div>
+          <h1>Directory</h1>
+          <p>Local businesses and organisations in and around Carshalton.</p>
+        </div>
+        <Link href="/directory/submit" className="button-pill">
+          Add a listing
+        </Link>
+      </div>
 
       <nav className="directory-category-nav">
         <Link href="/directory" className={!activeCategory ? "active" : undefined}>

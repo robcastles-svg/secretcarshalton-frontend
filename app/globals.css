@@ -855,12 +855,15 @@ img {
   font-size: 0.9rem;
 }
 
-.auth-form input {
+.auth-form input,
+.auth-form select,
+.auth-form textarea {
   padding: 0.65rem 0.8rem;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
   font-family: inherit;
+  resize: vertical;
 }
 
 .auth-form button {
@@ -892,6 +895,23 @@ img {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.dashboard-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: #fff6e5;
+  border: 1px solid #f0d99a;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.dashboard-banner p {
+  margin: 0;
 }
 
 .dashboard-header button {
@@ -959,6 +979,14 @@ img {
 }
 
 /* Directory */
+.page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .directory-category-nav {
   display: flex;
   flex-wrap: wrap;

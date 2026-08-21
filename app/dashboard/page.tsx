@@ -3,6 +3,7 @@ import { getMemberMe } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 import { LogoutButton } from "./_components/LogoutButton";
 import { RequestUpgradeButton } from "./_components/RequestUpgradeButton";
+import { VerifyEmailBanner } from "./_components/VerifyEmailBanner";
 
 export const metadata = { title: "Your dashboard — Secret Carshalton" };
 
@@ -25,6 +26,8 @@ export default async function DashboardPage() {
         <h1>Your dashboard</h1>
         <LogoutButton />
       </div>
+
+      {!profile.email_verified && <VerifyEmailBanner />}
 
       <div className="dashboard-tier-card">
         <div className="dashboard-tier-badge">{profile.tier.label}</div>

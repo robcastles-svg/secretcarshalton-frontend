@@ -17,7 +17,12 @@ export default async function EventsPage() {
 
   return (
     <main className="container">
-      <h1>What&apos;s On</h1>
+      <div className="page-header-row">
+        <h1>What&apos;s On</h1>
+        <Link href="/events/submit" className="button-pill">
+          Submit an event
+        </Link>
+      </div>
       <ul className="post-list">
         {events.map((event, index) => {
           const image = getFeaturedImage(event);

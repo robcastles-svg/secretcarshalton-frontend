@@ -588,6 +588,7 @@ export async function registerMember(
 }
 
 export interface MemberProfile {
+  email_verified: boolean;
   points: number;
   tier: { slug: string; label: string };
   points_to_next_tier: number | null;
@@ -627,6 +628,80 @@ export async function requestDirectoryUpgrade(
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(listingId ? { listing_id: listingId } : {}),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+export async function verifyEmail(token: string): Promise<{ status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/verify-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** sessionToken here is the bearer token identifying the logged-in member, not the verify link's token. */
+export async function resendVerification(
+  sessionToken: string
+): Promise<{ status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/resend-verification`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${sessionToken}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// sc-directory / sc-events submissions — members submitting a new listing or
+// event, always landing as 'pending' for Rob to review (see the plugins'
+// own submit_listing/submit_event docblocks for why).
+// ---------------------------------------------------------------------------
+
+export async function submitListing(
+  token: string,
+  data: Record<string, string>
+): Promise<{ status: string; id: number } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/submit`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+export async function submitEvent(
+  token: string,
+  data: Record<string, string>
+): Promise<{ status: string; id: number } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/submit`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(data),
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });

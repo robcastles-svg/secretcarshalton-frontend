@@ -62,6 +62,12 @@ export default function LoginPage() {
         </button>
       </form>
       <p className="auth-switch">
+        {/* WordPress's own reset-password flow — same account, no separate system to build. */}
+        <a href="https://www.staging19.secretcarshalton.com/wp-login.php?action=lostpassword">
+          Forgot your password?
+        </a>
+      </p>
+      <p className="auth-switch">
         Not a member yet? <Link href="/register">Join Secret Carshalton</Link>
       </p>
     </main>
