@@ -367,9 +367,11 @@ export async function mapWithConcurrency<T, R>(
  * events move to a post type we control directly.
  */
 export async function getEventSchema(slug: string): Promise<EventSchema | null> {
-  const res = await fetchWithRetry(`https://www.secretcarshalton.com/events/${slug}/`, {
-    next: { revalidate: REVALIDATE_SECONDS },
-  });
+  const res = await fetchWithRetry(
+    `https://www.secretcarshalton.com/events/${slug}/`,
+    { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
+    3
+  );
   if (!res.ok) return null;
   const html = await res.text();
   const matches = html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g);
