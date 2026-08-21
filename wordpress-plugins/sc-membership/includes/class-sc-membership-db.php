@@ -32,6 +32,7 @@ class SC_Membership_DB {
 			points INT NOT NULL DEFAULT 0,
 			tier VARCHAR(40) NOT NULL DEFAULT 'newcomer',
 			directory_upgrade_status VARCHAR(20) DEFAULT NULL,
+			directory_upgrade_listing_id BIGINT UNSIGNED DEFAULT NULL,
 			directory_upgrade_requested_at DATETIME DEFAULT NULL,
 			directory_upgrade_reviewed_by BIGINT UNSIGNED DEFAULT NULL,
 			joined_at DATETIME NOT NULL,

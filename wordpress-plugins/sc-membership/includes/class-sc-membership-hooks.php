@@ -22,7 +22,7 @@ class SC_Membership_Hooks {
 		// now means the approval queue works the moment that plugin exists —
 		// nothing changes on this side when it ships.
 		add_action( 'sc_directory_listing_claimed', array( __CLASS__, 'on_listing_claimed' ), 10, 2 );
-		add_action( 'sc_directory_upgrade_requested', array( __CLASS__, 'on_upgrade_requested' ), 10, 1 );
+		add_action( 'sc_directory_upgrade_requested', array( __CLASS__, 'on_upgrade_requested' ), 10, 2 );
 	}
 
 	public static function on_comment_approved( $comment_id ) {
@@ -50,8 +50,13 @@ class SC_Membership_Hooks {
 	 * Marks a member's upgrade request as pending, for the admin approval
 	 * queue. Doesn't award points — approval is a manual, paid-tier decision,
 	 * not something earned by engagement.
+	 *
+	 * @param int      $user_id
+	 * @param int|null $listing_id Which listing the upgrade is for, when the
+	 *                             request came from sc-directory. Null for a
+	 *                             general membership-level request.
 	 */
-	public static function on_upgrade_requested( $user_id ) {
+	public static function on_upgrade_requested( $user_id, $listing_id = null ) {
 		global $wpdb;
 		$user_id = (int) $user_id;
 
@@ -61,11 +66,12 @@ class SC_Membership_Hooks {
 			SC_Membership_DB::members_table(),
 			array(
 				'directory_upgrade_status'       => 'pending',
+				'directory_upgrade_listing_id'   => $listing_id ? (int) $listing_id : null,
 				'directory_upgrade_requested_at' => current_time( 'mysql' ),
 				'updated_at'                      => current_time( 'mysql' ),
 			),
 			array( 'user_id' => $user_id ),
-			array( '%s', '%s', '%s' ),
+			array( '%s', '%d', '%s', '%s' ),
 			array( '%d' )
 		);
 	}

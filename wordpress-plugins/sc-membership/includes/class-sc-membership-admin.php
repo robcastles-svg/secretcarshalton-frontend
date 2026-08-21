@@ -43,15 +43,17 @@ class SC_Membership_Admin {
 		}
 
 		echo '<table class="wp-list-table widefat fixed striped"><thead><tr>'
-			. '<th>Member</th><th>Tier</th><th>Points</th><th>Requested</th><th>Action</th>'
+			. '<th>Member</th><th>Listing</th><th>Tier</th><th>Points</th><th>Requested</th><th>Action</th>'
 			. '</tr></thead><tbody>';
 
 		foreach ( $pending as $row ) {
-			$user = get_userdata( $row->user_id );
-			$tier = SC_Membership_Tiers::get( $row->tier );
+			$user    = get_userdata( $row->user_id );
+			$tier    = SC_Membership_Tiers::get( $row->tier );
+			$listing = $row->directory_upgrade_listing_id ? get_post( $row->directory_upgrade_listing_id ) : null;
 			printf(
-				'<tr><td>%1$s</td><td>%2$s</td><td>%3$d</td><td>%4$s</td><td>%5$s</td></tr>',
+				'<tr><td>%1$s</td><td>%2$s</td><td>%3$s</td><td>%4$d</td><td>%5$s</td><td>%6$s</td></tr>',
 				esc_html( $user ? $user->display_name . ' (' . $user->user_email . ')' : 'Unknown user' ),
+				$listing ? '<a href="' . esc_url( get_edit_post_link( $listing->ID, '' ) ) . '">' . esc_html( $listing->post_title ) . '</a>' : '<em>General request</em>',
 				esc_html( $tier ? $tier['label'] : $row->tier ),
 				(int) $row->points,
 				esc_html( $row->directory_upgrade_requested_at ),
@@ -96,8 +98,11 @@ class SC_Membership_Admin {
 
 		if ( $user_id && in_array( $decision, array( 'approved', 'rejected' ), true ) ) {
 			global $wpdb;
+			$table   = SC_Membership_DB::members_table();
+			$member  = $wpdb->get_row( $wpdb->prepare( "SELECT directory_upgrade_listing_id FROM {$table} WHERE user_id = %d", $user_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
 			$wpdb->update(
-				SC_Membership_DB::members_table(),
+				$table,
 				array(
 					'directory_upgrade_status'      => $decision,
 					'directory_upgrade_reviewed_by' => get_current_user_id(),
@@ -109,10 +114,12 @@ class SC_Membership_Admin {
 			);
 
 			/**
-			 * sc-directory (once built) hooks in here to actually unlock the
-			 * paid listing features once approval happens.
+			 * sc-directory hooks in here to actually unlock paid/featured
+			 * listing features once approval happens. $listing_id is null
+			 * for a general membership-level request (no specific listing).
 			 */
-			do_action( 'sc_membership_upgrade_reviewed', $user_id, $decision );
+			$listing_id = $member && $member->directory_upgrade_listing_id ? (int) $member->directory_upgrade_listing_id : null;
+			do_action( 'sc_membership_upgrade_reviewed', $user_id, $decision, $listing_id );
 		}
 
 		wp_safe_redirect( admin_url( 'admin.php?page=sc-membership' ) );
