@@ -48,7 +48,7 @@ class SC_Directory_CPT {
 				'rest_base'    => 'sc-listings',
 				'has_archive'  => 'directory',
 				'rewrite'      => array( 'slug' => 'directory/listing' ),
-				'supports'     => array( 'title', 'editor', 'thumbnail', 'author' ),
+				'supports'     => array( 'title', 'editor', 'thumbnail', 'author', 'custom-fields' ),
 				'menu_icon'    => 'dashicons-location',
 				'capability_type' => 'post',
 				'map_meta_cap' => true,
