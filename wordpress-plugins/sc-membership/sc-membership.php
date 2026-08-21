@@ -20,6 +20,7 @@ require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-points.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-hooks.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-rest.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-admin.php';
+require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-auth.php';
 
 register_activation_hook( __FILE__, array( 'SC_Membership_DB', 'install' ) );
 
@@ -42,6 +43,8 @@ add_action(
 
 add_action( 'plugins_loaded', array( 'SC_Membership_Hooks', 'init' ) );
 add_action( 'rest_api_init', array( 'SC_Membership_REST', 'register_routes' ) );
+add_action( 'rest_api_init', array( 'SC_Membership_Auth', 'register_routes' ) );
+add_action( 'rest_api_init', array( 'SC_Membership_Auth', 'init_bearer_auth' ), 5 );
 add_action( 'admin_menu', array( 'SC_Membership_Admin', 'register_menu' ) );
 add_action( 'admin_post_sc_membership_review_upgrade', array( 'SC_Membership_Admin', 'handle_review_upgrade' ) );
 
