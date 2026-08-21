@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+import { Roboto, Fraunces } from "next/font/google";
 import Link from "next/link";
 import { getAd, getCategories, getCategoryBySlug } from "@/lib/wordpress";
 import "./globals.css";
@@ -8,6 +8,14 @@ const roboto = Roboto({
   subsets: ["latin"],
   weight: ["400", "500", "700", "900"],
   variable: "--font-body",
+});
+
+/** Editorial display face for headlines/titles/logo — pairs with Roboto for body/UI text. */
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.secretcarshalton.com";
@@ -80,7 +88,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={roboto.variable}>
+      <body className={`${roboto.variable} ${fraunces.variable}`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
