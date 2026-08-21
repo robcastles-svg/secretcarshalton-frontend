@@ -11,20 +11,37 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.secretcarshalt
 
 export const revalidate = 3600;
 
+const FALLBACK_SITEMAP: MetadataRoute.Sitemap = [
+  { url: SITE_URL, changeFrequency: "daily", priority: 1 },
+  { url: `${SITE_URL}/directory`, changeFrequency: "daily", priority: 0.8 },
+  { url: `${SITE_URL}/events`, changeFrequency: "daily", priority: 0.8 },
+];
+
+/**
+ * A sitemap is a nice-to-have, never worth taking down a deploy over — the
+ * whole thing is wrapped so a WordPress hiccup here degrades to a minimal
+ * static sitemap instead of failing `npm run build`, which is exactly what
+ * happened before this was added (see commit history: an earlier version
+ * let a single failed page here exit the entire build).
+ */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  try {
+    return await buildSitemap();
+  } catch {
+    return FALLBACK_SITEMAP;
+  }
+}
+
+async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   const [pageSlugs, posts, categories, events, listings] = await Promise.all([
-    getAllPageSlugs(),
+    getAllPageSlugs().catch(() => []),
     getAllPostSlugs(),
-    getCategories(),
+    getCategories().catch(() => []),
     getEvents(100).catch(() => []),
     getDirectoryListings().catch(() => []),
   ]);
 
-  const entries: MetadataRoute.Sitemap = [
-    { url: SITE_URL, changeFrequency: "daily", priority: 1 },
-    { url: `${SITE_URL}/directory`, changeFrequency: "daily", priority: 0.8 },
-    { url: `${SITE_URL}/events`, changeFrequency: "daily", priority: 0.8 },
-  ];
+  const entries: MetadataRoute.Sitemap = [...FALLBACK_SITEMAP];
 
   for (const slug of pageSlugs) {
     entries.push({ url: `${SITE_URL}/${slug}`, changeFrequency: "monthly", priority: 0.5 });

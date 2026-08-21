@@ -182,15 +182,25 @@ export async function getAllPageSlugs(): Promise<string[]> {
   return pages.map((p) => p.slug);
 }
 
-/** Every post slug + last-modified date, for the sitemap. Paginated, capped well above the real post count. */
+/**
+ * Every post slug + last-modified date, for the sitemap. Paginated, capped
+ * well above the real post count. A sitemap is low-stakes — worth having
+ * fresh, never worth failing a deploy over — so a failed page stops the
+ * pagination and returns whatever was gathered so far instead of retrying
+ * through potentially many minutes of backoff across up to 30 pages.
+ */
 export async function getAllPostSlugs(): Promise<Array<{ slug: string; modified: string }>> {
   const all: Array<{ slug: string; modified: string }> = [];
   for (let page = 1; page <= 30; page++) {
-    const batch = await wpFetch<Array<{ slug: string; modified: string }>>(
-      `/posts?per_page=100&page=${page}&_fields=slug,modified`
-    );
-    all.push(...batch);
-    if (batch.length < 100) break;
+    try {
+      const batch = await wpFetch<Array<{ slug: string; modified: string }>>(
+        `/posts?per_page=100&page=${page}&_fields=slug,modified`
+      );
+      all.push(...batch);
+      if (batch.length < 100) break;
+    } catch {
+      break;
+    }
   }
   return all;
 }
