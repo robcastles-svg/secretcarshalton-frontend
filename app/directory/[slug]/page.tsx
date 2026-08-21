@@ -68,14 +68,16 @@ export default async function DirectoryListingPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
       />
-      <div className="post-body">
+      <div className="post-body directory-listing-card">
         {image && <img src={image.source_url} alt={image.alt_text} />}
-        <h1 dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
-        <div className="directory-badges">
-          {meta.sc_featured && <span className="directory-badge">Featured</span>}
-          {meta.sc_verified && <span className="directory-badge directory-badge-verified">Verified</span>}
+        <div className="directory-listing-card-body">
+          <h1 dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
+          <div className="directory-badges">
+            {meta.sc_featured && <span className="directory-badge">Featured</span>}
+            {meta.sc_verified && <span className="directory-badge directory-badge-verified">Verified</span>}
+          </div>
+          <div className="post-content" dangerouslySetInnerHTML={{ __html: listing.content.rendered }} />
         </div>
-        <div className="post-content" dangerouslySetInnerHTML={{ __html: listing.content.rendered }} />
       </div>
       <aside className="post-sidebar">
         <div className="sidebar-block">
