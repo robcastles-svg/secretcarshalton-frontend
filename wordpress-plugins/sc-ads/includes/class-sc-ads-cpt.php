@@ -30,7 +30,7 @@ class SC_Ads_CPT {
 				'show_in_menu'    => true,
 				'show_in_rest'    => true,
 				'rest_base'       => 'sc-ads',
-				'supports'        => array( 'title' ),
+				'supports'        => array( 'title', 'custom-fields' ),
 				'menu_icon'       => 'dashicons-megaphone',
 				'capability_type' => 'post',
 				'map_meta_cap'    => true,
