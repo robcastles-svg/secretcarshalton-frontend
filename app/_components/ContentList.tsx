@@ -21,7 +21,7 @@ export function ContentList({
         return (
           <li key={item.id}>
             <Link href={`/${item.slug}`}>
-              {image && <img src={image.source_url} alt={image.alt_text} />}
+              {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
               <div className="card-text">
                 {tag && <span className="card-tag">{tag.name}</span>}
                 <span className="card-title" dangerouslySetInnerHTML={{ __html: item.title.rendered }} />

@@ -1,6 +1,14 @@
 const WP_BASE = "https://www.secretcarshalton.com/wp-json/wp/v2";
 const REVALIDATE_SECONDS = 3600;
 
+/**
+ * The custom sc-membership/sc-directory/sc-events/sc-ads plugins only
+ * exist on the staging clone so far, not the live site — they're new
+ * (built this session) and not something to push to production without
+ * Rob reviewing them first. Once approved, this becomes WP_BASE's host.
+ */
+const WP_STAGING_ROOT = "https://www.staging19.secretcarshalton.com/wp-json";
+
 type WPRendered = { rendered: string };
 
 export interface WPFeaturedMedia {
@@ -39,8 +47,14 @@ export interface EventSchema {
  * still populates wp:featuredmedia — but with a WP_Error shape ({code,
  * message, data}) instead of omitting the key. Guard on source_url so a
  * stale reference renders as no image, not a broken <img>.
+ *
+ * Typed against just the _embedded shape (not the full WPContentItem) so
+ * it also works for sc-directory/sc-events items, which carry the same
+ * _embed convention but aren't posts/pages.
  */
-export function getFeaturedImage(item: WPContentItem): WPFeaturedMedia | null {
+export function getFeaturedImage(item: {
+  _embedded?: { "wp:featuredmedia"?: WPFeaturedMedia[] };
+}): WPFeaturedMedia | null {
   const media = item._embedded?.["wp:featuredmedia"]?.[0];
   return media && "source_url" in media ? media : null;
 }
@@ -166,6 +180,19 @@ export async function getRecentPostSlugs(count: number): Promise<string[]> {
 export async function getAllPageSlugs(): Promise<string[]> {
   const pages = await wpFetch<Array<{ slug: string }>>(`/pages?per_page=100&_fields=slug`);
   return pages.map((p) => p.slug);
+}
+
+/** Every post slug + last-modified date, for the sitemap. Paginated, capped well above the real post count. */
+export async function getAllPostSlugs(): Promise<Array<{ slug: string; modified: string }>> {
+  const all: Array<{ slug: string; modified: string }> = [];
+  for (let page = 1; page <= 30; page++) {
+    const batch = await wpFetch<Array<{ slug: string; modified: string }>>(
+      `/posts?per_page=100&page=${page}&_fields=slug,modified`
+    );
+    all.push(...batch);
+    if (batch.length < 100) break;
+  }
+  return all;
 }
 
 export async function getPostBySlug(slug: string): Promise<WPContentItem | null> {
@@ -345,4 +372,215 @@ export async function getEventSchema(slug: string): Promise<EventSchema | null> 
     }
   }
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// sc-ads — admin-manageable ad slots (staging only, see WP_STAGING_ROOT note)
+// ---------------------------------------------------------------------------
+
+export interface WPAd {
+  id: number;
+  image: string;
+  link: string;
+  alt: string;
+}
+
+/** Never allowed to fail the page it's on — an ad slot is decoration, not content. */
+export async function getAd(placement: string): Promise<WPAd | null> {
+  try {
+    const res = await fetchWithRetry(
+      `${WP_STAGING_ROOT}/sc-ads/v1/active/${placement}`,
+      { next: { revalidate: REVALIDATE_SECONDS } },
+      3
+    );
+    if (!res.ok) return null;
+    const text = await res.text();
+    if (!text) return null;
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// sc-directory — business directory (staging only, see WP_STAGING_ROOT note)
+// ---------------------------------------------------------------------------
+
+export interface WPListingMeta {
+  sc_address_street: string;
+  sc_address_town: string;
+  sc_address_region: string;
+  sc_address_postcode: string;
+  sc_address_country: string;
+  sc_website: string;
+  sc_phone: string;
+  sc_featured: boolean;
+  sc_verified: boolean;
+  sc_claimed: boolean;
+  sc_plan: string;
+  sc_claim_expires_at: string;
+}
+
+export interface WPListing {
+  id: number;
+  slug: string;
+  link: string;
+  title: WPRendered;
+  content: WPRendered;
+  author: number;
+  sc_listing_category: number[];
+  meta: WPListingMeta;
+  _embedded?: {
+    "wp:featuredmedia"?: WPFeaturedMedia[];
+  };
+}
+
+async function scDirectoryFetch<T>(path: string): Promise<T> {
+  const res = await fetchWithRetry(`${WP_STAGING_ROOT}/wp/v2${path}`, {
+    next: { revalidate: REVALIDATE_SECONDS },
+  });
+  if (!res.ok) {
+    throw new Error(`sc-directory fetch failed: ${path} -> ${res.status}`);
+  }
+  return res.json();
+}
+
+export function getDirectoryListings(perPage = 100) {
+  return scDirectoryFetch<WPListing[]>(
+    `/sc-listings?per_page=${perPage}&_fields=id,slug,link,title,content,author,sc_listing_category,meta,_links&_embed=wp:featuredmedia`
+  );
+}
+
+export async function getDirectoryListingBySlug(slug: string): Promise<WPListing | null> {
+  const listings = await scDirectoryFetch<WPListing[]>(
+    `/sc-listings?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
+  );
+  return listings[0] ?? null;
+}
+
+export function getDirectoryListingsByCategory(categoryId: number, perPage = 100) {
+  return scDirectoryFetch<WPListing[]>(
+    `/sc-listings?sc_listing_category=${categoryId}&per_page=${perPage}&_fields=id,slug,link,title,content,author,sc_listing_category,meta,_links&_embed=wp:featuredmedia`
+  );
+}
+
+export interface WPDirectoryCategory {
+  id: number;
+  slug: string;
+  name: string;
+  count: number;
+}
+
+export function getDirectoryCategories() {
+  return scDirectoryFetch<WPDirectoryCategory[]>(`/sc_listing_category?per_page=50`);
+}
+
+// ---------------------------------------------------------------------------
+// sc-events — real REST date/venue fields (staging only; not yet wired into
+// the live Events pages, which still read the ~257 real EventON events —
+// see lib/wordpress.ts's getEvents/getEventSchema above. sc-events has no
+// real event data yet, so switching over now would just show an empty
+// page. Kept here ready for once that data migration happens.
+// ---------------------------------------------------------------------------
+
+export interface WPScEventMeta {
+  sc_start: string;
+  sc_end: string;
+  sc_venue_name: string;
+  sc_venue_address: string;
+  sc_organizer: string;
+  sc_event_url: string;
+}
+
+export interface WPScEvent {
+  id: number;
+  slug: string;
+  link: string;
+  title: WPRendered;
+  content: WPRendered;
+  meta: WPScEventMeta;
+  _embedded?: {
+    "wp:featuredmedia"?: WPFeaturedMedia[];
+  };
+}
+
+export function getScEvents(perPage = 100) {
+  return scDirectoryFetch<WPScEvent[]>(
+    `/sc-events?per_page=${perPage}&_fields=id,slug,link,title,content,meta,_links&_embed=wp:featuredmedia&orderby=meta_value&meta_key=sc_start&order=asc`
+  );
+}
+
+// ---------------------------------------------------------------------------
+// sc-membership — auth bridge + member dashboard data (staging only)
+// ---------------------------------------------------------------------------
+
+export interface MemberAuthResponse {
+  token: string;
+  user: { id: number; display_name: string; email: string };
+  expires_in: number;
+}
+
+export interface MemberAuthError {
+  code: string;
+  message: string;
+}
+
+export async function loginMember(
+  username: string,
+  password: string
+): Promise<MemberAuthResponse | MemberAuthError> {
+  const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+    cache: "no-store",
+  });
+  return res.json();
+}
+
+export async function registerMember(
+  username: string,
+  email: string,
+  password: string
+): Promise<MemberAuthResponse | MemberAuthError> {
+  const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, email, password }),
+    cache: "no-store",
+  });
+  return res.json();
+}
+
+export interface MemberProfile {
+  points: number;
+  tier: { slug: string; label: string };
+  points_to_next_tier: number | null;
+  next_tier: { slug: string; label: string } | null;
+  directory_upgrade_status: string | null;
+  directory_upgrade_listing_id: number | null;
+  joined_at: string;
+  recent_activity: Array<{ points: number; reason: string; source: string; date: string }>;
+}
+
+export async function getMemberMe(token: string): Promise<MemberProfile | null> {
+  const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function requestDirectoryUpgrade(
+  token: string,
+  listingId?: number
+): Promise<{ status: string } | MemberAuthError> {
+  const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/directory-upgrade-request`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify(listingId ? { listing_id: listingId } : {}),
+    cache: "no-store",
+  });
+  return res.json();
 }

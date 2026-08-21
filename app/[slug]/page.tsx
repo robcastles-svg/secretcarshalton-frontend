@@ -17,6 +17,8 @@ import {
 
 export const revalidate = 3600;
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.secretcarshalton.com";
+
 /**
  * Pre-rendering all ~650 posts/pages here fired that many requests at
  * secretcarshalton.com's shared-hosting REST API in a couple of minutes,
@@ -51,7 +53,15 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: { canonical: `/${slug}` },
     openGraph: {
+      title,
+      description,
+      images: image ? [image.source_url] : undefined,
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
       title,
       description,
       images: image ? [image.source_url] : undefined,
@@ -108,8 +118,25 @@ export default async function ContentPage({
   const category = allCategories.find((c) => post.categories?.includes(c.id));
   const tag = allTags.find((t) => post.tags?.includes(t.id));
 
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: stripHtml(post.title.rendered),
+    image: image ? [image.source_url] : undefined,
+    datePublished: post.date,
+    mainEntityOfPage: `${SITE_URL}/${post.slug}`,
+    publisher: {
+      "@type": "Organization",
+      name: "Secret Carshalton",
+    },
+  };
+
   return (
     <article>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
       {image ? (
         <div className="post-hero">
           <img src={image.source_url} alt={image.alt_text} />

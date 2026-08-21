@@ -27,7 +27,7 @@ export default async function EventsPage() {
           return (
             <li key={event.id}>
               <Link href={`/events/${event.slug}`}>
-                {image && <img src={image.source_url} alt={image.alt_text} />}
+                {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
                 <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
               </Link>
               {startDate && (

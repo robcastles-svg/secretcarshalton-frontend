@@ -101,7 +101,7 @@ export default async function HomePage() {
                 return (
                   <li key={event.id}>
                     <Link href={`/events/${event.slug}`}>
-                      {image && <img src={image.source_url} alt={image.alt_text} />}
+                      {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
                       <div>
                         <span dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
                         {startDate && (
@@ -133,7 +133,7 @@ export default async function HomePage() {
                   <Link href="/walks">All walks</Link>
                 </div>
                 <Link href={`/${latestWalk.slug}`} className="feature-row">
-                  {image && <img src={image.source_url} alt={image.alt_text} />}
+                  {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
                   <div>
                     <span dangerouslySetInnerHTML={{ __html: latestWalk.title.rendered }} />
                     <p>{stripHtml(latestWalk.excerpt.rendered)}</p>

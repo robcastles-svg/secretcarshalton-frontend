@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import Link from "next/link";
-import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
+import { getAd, getCategories, getCategoryBySlug } from "@/lib/wordpress";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -10,9 +10,27 @@ const roboto = Roboto({
   variable: "--font-body",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.secretcarshalton.com";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Secret Carshalton",
   description: "People, Places and Stories in and around Carshalton.",
+};
+
+const ORGANIZATION_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Secret Carshalton",
+  url: SITE_URL,
+  sameAs: [
+    "https://www.instagram.com/secret.carshalton",
+    "https://www.facebook.com/secret.carshalton",
+    "https://x.com/carshaltonviews",
+    "https://www.youtube.com/@secretcarshalton",
+    "https://www.linkedin.com/company/secret-carshalton/",
+    "https://www.tiktok.com/@secretcarshalton",
+  ],
 };
 
 const PRIMARY_NAV = [
@@ -30,18 +48,19 @@ const UTILITY_NAV = [
   { label: "Subscribe", href: "/newsletter" },
   { label: "Advertise", href: "/advertising-contact" },
   { label: "Join", href: "/register" },
-  { label: "Login", href: "https://www.secretcarshalton.com/login/" },
+  { label: "Login", href: "/login" },
 ];
 
 /**
- * Quick links for people new to the area. Real destinations for these
- * three weren't part of the crawl — pointing at the closest existing
- * match for now (flagged to the user as a best guess, not confirmed).
+ * These now point at the real directory categories (confirmed by
+ * inspecting the live Sabai Directory admin — "Places to go", "Places to
+ * stay", and "Groups to join" are genuine listing categories, not a
+ * guess). Was a placeholder pointing at /walks, /directory, /people.
  */
 const QUICK_LINKS_NAV = [
-  { label: "Places to go", href: "/walks" },
-  { label: "Places to stay", href: "/directory" },
-  { label: "Places to join", href: "/people" },
+  { label: "Places to go", href: "/directory?category=places-to-go" },
+  { label: "Places to stay", href: "/directory?category=places-to-stay" },
+  { label: "Groups to join", href: "/directory?category=groups-to-join" },
 ];
 
 export default async function RootLayout({
@@ -49,10 +68,12 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [stories, walks, allCategories] = await Promise.all([
+  const [stories, walks, allCategories, billboardAd, leaderboardAd] = await Promise.all([
     getCategoryBySlug("stories"),
     getCategoryBySlug("walks"),
     getCategories(),
+    getAd("billboard"),
+    getAd("leaderboard"),
   ]);
   const storyAreas = stories ? allCategories.filter((c) => c.parent === stories.id) : [];
   const walkDistances = walks ? allCategories.filter((c) => c.parent === walks.id) : [];
@@ -60,6 +81,10 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={roboto.variable}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
+        />
         <div className="utility-bar">
           <div className="container utility-bar-inner">
             {UTILITY_NAV.map((item) =>
@@ -76,20 +101,12 @@ export default async function RootLayout({
           </div>
         </div>
 
-        {/*
-         * Billboard ad slot — hardcoded to today's live creative for now.
-         * Genuinely admin-manageable ad placements are Track 2 (need WP
-         * backend access); this is just the visual slot in the right spot.
-         */}
-        <a
-          className="ad-slot ad-billboard"
-          href="https://www.lazystuff.com/product-category/carshalton-main/carshaltonframedprints/"
-        >
-          <img
-            src="https://www.secretcarshalton.com/wp-content/uploads/2026/04/lazystuff-bb2.jpg"
-            alt="Carshalton Pub Crawl — own an original print, by LazyStuff"
-          />
-        </a>
+        {/* Billboard ad slot — admin-managed via sc-ads, see wordpress-plugins/sc-ads. */}
+        {billboardAd && (
+          <a className="ad-slot ad-billboard" href={billboardAd.link}>
+            <img src={billboardAd.image} alt={billboardAd.alt} />
+          </a>
+        )}
 
         <div className="quick-links-bar">
           <div className="container quick-links-inner">
@@ -106,16 +123,12 @@ export default async function RootLayout({
             <Link href="/" className="site-logo">
               Secret Carshalton
             </Link>
-            {/* Leaderboard ad slot — same caveat as the billboard above. */}
-            <a
-              className="ad-slot ad-leaderboard"
-              href="https://www.secretcarshalton.com/directory/listing/local-pub-themed-gifts-featuring-wonderful-carshalton"
-            >
-              <img
-                src="https://www.secretcarshalton.com/wp-content/uploads/2023/09/lazystuff-SC-banner.jpg"
-                alt="Carshalton Pub Gifts — LazyStuff"
-              />
-            </a>
+            {/* Leaderboard ad slot — admin-managed via sc-ads. */}
+            {leaderboardAd && (
+              <a className="ad-slot ad-leaderboard" href={leaderboardAd.link}>
+                <img src={leaderboardAd.image} alt={leaderboardAd.alt} />
+              </a>
+            )}
           </div>
           <div className="container primary-nav-row">
             <nav className="primary-nav">
@@ -188,7 +201,7 @@ export default async function RootLayout({
               <h2>Directory</h2>
               <ul>
                 <li>
-                  <a href="https://www.secretcarshalton.com/directory/">View all listings</a>
+                  <Link href="/directory">View all listings</Link>
                 </li>
                 <li>
                   <Link href="/advertising-contact">Add premium listing</Link>
