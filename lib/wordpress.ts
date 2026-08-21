@@ -400,7 +400,7 @@ export async function getAd(placement: string): Promise<WPAd | null> {
   try {
     const res = await fetchWithRetry(
       `${WP_STAGING_ROOT}/sc-ads/v1/active/${placement}`,
-      { next: { revalidate: REVALIDATE_SECONDS } },
+      { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
       3
     );
     if (!res.ok) return null;
@@ -445,10 +445,20 @@ export interface WPListing {
   };
 }
 
+/**
+ * Staging (see WP_STAGING_ROOT) turned out to be far less reliably
+ * reachable from Vercel's runtime than the live site is — confirmed live:
+ * /directory hung for 60+ seconds and got killed by Vercel's own function
+ * timeout, because this inherited wpFetch's default 9-attempt retry chain.
+ * 3 attempts (matching what getAd() already used defensively) plus a hard
+ * per-request timeout keeps a bad day on staging from ever hanging a page.
+ */
 async function scDirectoryFetch<T>(path: string): Promise<T> {
-  const res = await fetchWithRetry(`${WP_STAGING_ROOT}/wp/v2${path}`, {
-    next: { revalidate: REVALIDATE_SECONDS },
-  });
+  const res = await fetchWithRetry(
+    `${WP_STAGING_ROOT}/wp/v2${path}`,
+    { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
+    3
+  );
   if (!res.ok) {
     throw new Error(`sc-directory fetch failed: ${path} -> ${res.status}`);
   }
@@ -535,17 +545,27 @@ export interface MemberAuthError {
   message: string;
 }
 
+const NETWORK_ERROR: MemberAuthError = {
+  code: "network_error",
+  message: "Couldn't reach the membership service — please try again in a moment.",
+};
+
 export async function loginMember(
   username: string,
   password: string
 ): Promise<MemberAuthResponse | MemberAuthError> {
-  const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-    cache: "no-store",
-  });
-  return res.json();
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
 }
 
 export async function registerMember(
@@ -553,13 +573,18 @@ export async function registerMember(
   email: string,
   password: string
 ): Promise<MemberAuthResponse | MemberAuthError> {
-  const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, email, password }),
-    cache: "no-store",
-  });
-  return res.json();
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
 }
 
 export interface MemberProfile {
@@ -573,24 +598,40 @@ export interface MemberProfile {
   recent_activity: Array<{ points: number; reason: string; source: string; date: string }>;
 }
 
+/**
+ * The dashboard page treats a null return as "not logged in" and redirects
+ * to /login — that must never be blocked behind a hung request, so any
+ * network failure here (staging being unreachable, timeout, etc.) resolves
+ * to null rather than throwing and hanging the page render.
+ */
 export async function getMemberMe(token: string): Promise<MemberProfile | null> {
-  const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 export async function requestDirectoryUpgrade(
   token: string,
   listingId?: number
 ): Promise<{ status: string } | MemberAuthError> {
-  const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/directory-upgrade-request`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(listingId ? { listing_id: listingId } : {}),
-    cache: "no-store",
-  });
-  return res.json();
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/directory-upgrade-request`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(listingId ? { listing_id: listingId } : {}),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
 }

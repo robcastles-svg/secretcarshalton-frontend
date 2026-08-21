@@ -17,12 +17,17 @@ export default async function DirectoryPage({
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category } = await searchParams;
-  const categories = await getDirectoryCategories();
+  // Staging (which this reads from — see lib/wordpress.ts's WP_STAGING_ROOT
+  // note) has proven unreliable to reach from Vercel's runtime; never let
+  // that hang or crash this page — an empty directory is recoverable, a
+  // dead page isn't.
+  const categories = await getDirectoryCategories().catch(() => []);
   const activeCategory = category ? categories.find((c) => c.slug === category) : null;
 
-  const listings = activeCategory
-    ? await getDirectoryListingsByCategory(activeCategory.id)
-    : await getDirectoryListings();
+  const listings = await (activeCategory
+    ? getDirectoryListingsByCategory(activeCategory.id)
+    : getDirectoryListings()
+  ).catch(() => []);
 
   return (
     <main className="container">
