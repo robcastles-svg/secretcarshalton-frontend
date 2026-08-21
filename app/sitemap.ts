@@ -18,15 +18,28 @@ const FALLBACK_SITEMAP: MetadataRoute.Sitemap = [
 ];
 
 /**
- * A sitemap is a nice-to-have, never worth taking down a deploy over — the
- * whole thing is wrapped so a WordPress hiccup here degrades to a minimal
- * static sitemap instead of failing `npm run build`, which is exactly what
- * happened before this was added (see commit history: an earlier version
- * let a single failed page here exit the entire build).
+ * A sitemap is a nice-to-have, never worth taking down a deploy over. Two
+ * layers of protection, because one alone wasn't enough:
+ *
+ * - try/catch around a thrown error (a previous version had this alone —
+ *   it stopped a *crash* from failing the build, but not what actually
+ *   happened next: Next.js kills any route that takes over 60 seconds to
+ *   generate, and the retry/backoff chains inside the WordPress fetches
+ *   can still run past that even when they eventually succeed or resolve
+ *   via their own internal .catch(() => []) fallbacks — the *time*, not
+ *   just the outcome, is the problem).
+ * - a hard wall-clock timeout via Promise.race, so this route always
+ *   resolves in well under 60 seconds regardless of how slow WordPress is
+ *   being, falling back to a minimal static sitemap if it can't finish.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
-    return await buildSitemap();
+    return await Promise.race([
+      buildSitemap(),
+      new Promise<MetadataRoute.Sitemap>((resolve) =>
+        setTimeout(() => resolve(FALLBACK_SITEMAP), 20_000)
+      ),
+    ]);
   } catch {
     return FALLBACK_SITEMAP;
   }
