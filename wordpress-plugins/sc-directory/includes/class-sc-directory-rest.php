@@ -35,6 +35,74 @@ class SC_Directory_REST {
 				},
 			)
 		);
+
+		register_rest_route(
+			'sc-directory/v1',
+			'/submit',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'submit_listing' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+	}
+
+	/**
+	 * A member submitting a brand-new listing (as opposed to claiming an
+	 * existing one). Always lands as 'pending' — a public directory that
+	 * anyone logged in can publish to unmoderated is a spam/quality risk,
+	 * and the brief's own editorial model is draft → human approval →
+	 * publish throughout, not just for articles. Rob reviews and publishes
+	 * from the normal wp-admin listings screen, same as any other pending post.
+	 */
+	public static function submit_listing( WP_REST_Request $request ) {
+		$title = sanitize_text_field( (string) $request->get_param( 'title' ) );
+		if ( ! $title ) {
+			return new WP_Error( 'missing_title', 'A business/organisation name is required.', array( 'status' => 400 ) );
+		}
+
+		$user_id = get_current_user_id();
+
+		$post_id = wp_insert_post(
+			array(
+				'post_type'    => SC_Directory_CPT::POST_TYPE,
+				'post_status'  => 'pending',
+				'post_title'   => $title,
+				'post_content' => wp_kses_post( (string) $request->get_param( 'description' ) ),
+				'post_author'  => $user_id,
+			),
+			true
+		);
+
+		if ( is_wp_error( $post_id ) ) {
+			return new WP_Error( 'submit_failed', $post_id->get_error_message(), array( 'status' => 400 ) );
+		}
+
+		$category = sanitize_key( (string) $request->get_param( 'category' ) );
+		if ( $category && term_exists( $category, SC_Directory_CPT::TAXONOMY ) ) {
+			wp_set_object_terms( $post_id, $category, SC_Directory_CPT::TAXONOMY );
+		}
+
+		$meta = array(
+			'sc_address_street'   => sanitize_text_field( (string) $request->get_param( 'address_street' ) ),
+			'sc_address_town'     => sanitize_text_field( (string) $request->get_param( 'address_town' ) ),
+			'sc_address_region'   => sanitize_text_field( (string) $request->get_param( 'address_region' ) ),
+			'sc_address_postcode' => sanitize_text_field( (string) $request->get_param( 'address_postcode' ) ),
+			'sc_address_country'  => sanitize_text_field( (string) $request->get_param( 'address_country' ) ),
+			'sc_website'          => esc_url_raw( (string) $request->get_param( 'website' ) ),
+			'sc_phone'            => sanitize_text_field( (string) $request->get_param( 'phone' ) ),
+			'sc_claimed'          => '1', // The submitter is the owner by definition.
+			'sc_featured'         => '0',
+			'sc_verified'         => '0',
+			'sc_plan'             => 'free',
+		);
+		foreach ( $meta as $key => $value ) {
+			update_post_meta( $post_id, $key, $value );
+		}
+
+		return array( 'status' => 'pending', 'id' => $post_id );
 	}
 
 	public static function claim_listing( WP_REST_Request $request ) {
@@ -45,13 +113,18 @@ class SC_Directory_REST {
 			return new WP_Error( 'not_found', 'Listing not found.', array( 'status' => 404 ) );
 		}
 
-		if ( 'true' === get_post_meta( $listing_id, 'sc_claimed', true ) || true === get_post_meta( $listing_id, 'sc_claimed', true ) ) {
+		// A truthy check here, not a strict-string comparison: update_post_meta
+		// storing a raw PHP `true` round-trips as the string '1', not 'true' —
+		// a strict '===' check against either literal would never match, which
+		// is exactly the bug this replaced (the "already claimed" guard could
+		// never fire, so any listing could be silently re-claimed by anyone).
+		if ( get_post_meta( $listing_id, 'sc_claimed', true ) ) {
 			return new WP_Error( 'already_claimed', 'This listing is already claimed.', array( 'status' => 409 ) );
 		}
 
 		$user_id = get_current_user_id();
 
-		update_post_meta( $listing_id, 'sc_claimed', true );
+		update_post_meta( $listing_id, 'sc_claimed', '1' );
 		wp_update_post(
 			array(
 				'ID'          => $listing_id,

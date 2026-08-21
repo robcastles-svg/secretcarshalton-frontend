@@ -22,6 +22,15 @@ class SC_Membership_Auth {
 
 	const TOKEN_TTL = 30 * DAY_IN_SECONDS;
 
+	/**
+	 * The Vercel *branch* alias — stable across every new deploy to this
+	 * branch (unlike the per-deployment URL, which changes every push) —
+	 * so email links keep working without this plugin needing to know
+	 * about individual deployments. Swap to the real domain once this
+	 * goes live.
+	 */
+	const FRONTEND_URL = 'https://secretcarshalton-frontend-git-claude-v-dd76e4-secret-carshalton.vercel.app';
+
 	public static function register_routes() {
 		register_rest_route(
 			'sc-membership/v1',
@@ -40,6 +49,28 @@ class SC_Membership_Auth {
 				'methods'             => 'POST',
 				'callback'            => array( __CLASS__, 'register' ),
 				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/verify-email',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'verify_email' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/resend-verification',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'resend_verification' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
 			)
 		);
 	}
@@ -94,8 +125,87 @@ class SC_Membership_Auth {
 		// Creates the member row immediately so /me works right after registering.
 		SC_Membership_DB::get_or_create_member( $user_id );
 
+		self::send_verification_email( $user_id );
+
 		$user = get_user_by( 'id', $user_id );
 		return self::token_response( $user );
+	}
+
+	/**
+	 * Verification is soft, not a login gate: a new member lands on their
+	 * dashboard immediately (better first-run experience), and the
+	 * dashboard shows a "please verify" banner until they click the link.
+	 * Nothing currently checks this to block access — it's a nudge, not
+	 * a wall.
+	 */
+	private static function send_verification_email( $user_id ) {
+		$user  = get_user_by( 'id', $user_id );
+		if ( ! $user ) {
+			return;
+		}
+
+		$token = wp_generate_password( 32, false );
+		update_user_meta( $user_id, 'sc_email_verify_token', $token );
+		// Explicit string, not a raw PHP boolean — storing `false` round-trips
+		// as an empty string, indistinguishable from the meta never having
+		// been set at all (bit us twice already this session with postmeta
+		// booleans). '0' here is unambiguous against "never tracked".
+		update_user_meta( $user_id, 'sc_email_verified', '0' );
+
+		$link = self::FRONTEND_URL . '/verify-email?token=' . rawurlencode( $token );
+
+		wp_mail(
+			$user->user_email,
+			'Confirm your Secret Carshalton account',
+			"Hi {$user->display_name},\n\nPlease confirm your email address to finish setting up your Secret Carshalton membership:\n\n{$link}\n\nIf you didn't create this account, you can ignore this email."
+		);
+	}
+
+	public static function verify_email( WP_REST_Request $request ) {
+		$token = (string) $request->get_param( 'token' );
+		if ( ! $token ) {
+			return new WP_Error( 'missing_token', 'No verification token provided.', array( 'status' => 400 ) );
+		}
+
+		$users = get_users(
+			array(
+				'meta_key'   => 'sc_email_verify_token', // phpcs:ignore WordPress.DB.SlowDBQuery
+				'meta_value' => $token, // phpcs:ignore WordPress.DB.SlowDBQuery
+				'number'     => 1,
+			)
+		);
+
+		if ( empty( $users ) ) {
+			return new WP_Error( 'invalid_token', 'This verification link is invalid or has already been used.', array( 'status' => 400 ) );
+		}
+
+		$user_id = $users[0]->ID;
+		update_user_meta( $user_id, 'sc_email_verified', '1' );
+		delete_user_meta( $user_id, 'sc_email_verify_token' );
+
+		return array( 'status' => 'verified' );
+	}
+
+	public static function resend_verification( WP_REST_Request $request ) {
+		$user_id = get_current_user_id();
+
+		if ( self::is_verified( $user_id ) ) {
+			return array( 'status' => 'already_verified' );
+		}
+
+		self::send_verification_email( $user_id );
+		return array( 'status' => 'sent' );
+	}
+
+	/**
+	 * Meta never set (empty string on readback) means this account predates
+	 * email verification entirely — treat those as verified rather than
+	 * retroactively nagging every existing account (including the WP admin
+	 * account this was tested with).
+	 */
+	public static function is_verified( $user_id ) {
+		$meta = get_user_meta( $user_id, 'sc_email_verified', true );
+		return '' === $meta || '1' === $meta;
 	}
 
 	private static function token_response( WP_User $user ) {

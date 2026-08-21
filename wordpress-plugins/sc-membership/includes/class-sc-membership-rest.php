@@ -52,6 +52,7 @@ class SC_Membership_REST {
 		$next    = SC_Membership_Tiers::points_to_next_tier( (int) $member->points );
 
 		return array(
+			'email_verified'           => SC_Membership_Auth::is_verified( $user_id ),
 			'points'                   => (int) $member->points,
 			'tier'                     => array(
 				'slug'  => $tier['slug'],

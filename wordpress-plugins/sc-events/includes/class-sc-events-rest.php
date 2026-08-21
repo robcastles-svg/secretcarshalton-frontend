@@ -22,6 +22,67 @@ class SC_Events_REST {
 				},
 			)
 		);
+
+		register_rest_route(
+			'sc-events/v1',
+			'/submit',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'submit_event' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+	}
+
+	/** Same pending-for-review model as sc-directory's submit_listing. */
+	public static function submit_event( WP_REST_Request $request ) {
+		$title = sanitize_text_field( (string) $request->get_param( 'title' ) );
+		if ( ! $title ) {
+			return new WP_Error( 'missing_title', 'An event title is required.', array( 'status' => 400 ) );
+		}
+
+		$start = sanitize_text_field( (string) $request->get_param( 'start' ) );
+		if ( ! $start ) {
+			return new WP_Error( 'missing_start', 'A start date/time is required.', array( 'status' => 400 ) );
+		}
+
+		$user_id = get_current_user_id();
+
+		$post_id = wp_insert_post(
+			array(
+				'post_type'    => SC_Events_CPT::POST_TYPE,
+				'post_status'  => 'pending',
+				'post_title'   => $title,
+				'post_content' => wp_kses_post( (string) $request->get_param( 'description' ) ),
+				'post_author'  => $user_id,
+			),
+			true
+		);
+
+		if ( is_wp_error( $post_id ) ) {
+			return new WP_Error( 'submit_failed', $post_id->get_error_message(), array( 'status' => 400 ) );
+		}
+
+		$category = sanitize_key( (string) $request->get_param( 'category' ) );
+		if ( $category && term_exists( $category, SC_Events_CPT::TAXONOMY ) ) {
+			wp_set_object_terms( $post_id, $category, SC_Events_CPT::TAXONOMY );
+		}
+
+		$meta = array(
+			'sc_start'         => $start,
+			'sc_end'           => sanitize_text_field( (string) $request->get_param( 'end' ) ),
+			'sc_venue_name'    => sanitize_text_field( (string) $request->get_param( 'venue_name' ) ),
+			'sc_venue_address' => sanitize_text_field( (string) $request->get_param( 'venue_address' ) ),
+			'sc_organizer'     => sanitize_text_field( (string) $request->get_param( 'organizer' ) ),
+			'sc_event_url'     => esc_url_raw( (string) $request->get_param( 'event_url' ) ),
+		);
+		foreach ( $meta as $key => $value ) {
+			update_post_meta( $post_id, $key, $value );
+		}
+
+		return array( 'status' => 'pending', 'id' => $post_id );
 	}
 
 	public static function rsvp( WP_REST_Request $request ) {
