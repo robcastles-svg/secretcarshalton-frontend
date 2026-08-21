@@ -68,15 +68,23 @@ class SC_Directory_CPT {
 		);
 	}
 
+	/**
+	 * True activation only (fires register_activation_hook, which never
+	 * re-fires on our upload-a-new-version deploy path — see
+	 * sc-directory.php for the 'init' version-check that handles that case
+	 * by calling seed_categories() alone, without the rewrite flush).
+	 */
 	public static function install() {
 		self::register();
+		self::seed_categories();
+		flush_rewrite_rules();
+	}
 
+	public static function seed_categories() {
 		foreach ( self::default_categories() as $category ) {
 			if ( ! term_exists( $category, self::TAXONOMY ) ) {
 				wp_insert_term( $category, self::TAXONOMY );
 			}
 		}
-
-		flush_rewrite_rules();
 	}
 }

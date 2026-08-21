@@ -23,6 +23,23 @@ require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-admin.php';
 
 register_activation_hook( __FILE__, array( 'SC_Membership_DB', 'install' ) );
 
+/**
+ * Uploading a new version over an already-active plugin (our deploy path —
+ * see wordpress-plugins/README.md) does NOT re-fire the activation hook,
+ * only activating from scratch does. So schema changes need their own
+ * version check here, run on every load, rather than living only in
+ * register_activation_hook.
+ */
+add_action(
+	'plugins_loaded',
+	function () {
+		if ( get_option( 'sc_membership_db_version' ) !== SC_MEMBERSHIP_VERSION ) {
+			SC_Membership_DB::install();
+			update_option( 'sc_membership_db_version', SC_MEMBERSHIP_VERSION );
+		}
+	}
+);
+
 add_action( 'plugins_loaded', array( 'SC_Membership_Hooks', 'init' ) );
 add_action( 'rest_api_init', array( 'SC_Membership_REST', 'register_routes' ) );
 add_action( 'admin_menu', array( 'SC_Membership_Admin', 'register_menu' ) );
