@@ -899,6 +899,36 @@ img {
   cursor: not-allowed;
 }
 
+.password-input {
+  position: relative;
+  display: flex;
+}
+
+.password-input input {
+  flex: 1;
+  padding-right: 3.5rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #555;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.25rem 0.35rem;
+}
+
+.password-toggle:hover {
+  color: #1a1a1a;
+}
+
 .auth-error {
   color: #b3261e;
   font-size: 0.9rem;

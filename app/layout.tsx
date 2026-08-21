@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import Link from "next/link";
 import { getAd, getCategories, getCategoryBySlug } from "@/lib/wordpress";
+import { getSessionToken } from "@/lib/auth";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -47,8 +48,6 @@ const UTILITY_NAV = [
   { label: "Support us", href: "/donate" },
   { label: "Subscribe", href: "/newsletter" },
   { label: "Advertise", href: "/advertising-contact" },
-  { label: "Join", href: "/register" },
-  { label: "Login", href: "/login" },
 ];
 
 /**
@@ -68,12 +67,13 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [stories, walks, allCategories, billboardAd, leaderboardAd] = await Promise.all([
+  const [stories, walks, allCategories, billboardAd, leaderboardAd, sessionToken] = await Promise.all([
     getCategoryBySlug("stories"),
     getCategoryBySlug("walks"),
     getCategories(),
     getAd("billboard"),
     getAd("leaderboard"),
+    getSessionToken(),
   ]);
   const storyAreas = stories ? allCategories.filter((c) => c.parent === stories.id) : [];
   const walkDistances = walks ? allCategories.filter((c) => c.parent === walks.id) : [];
@@ -97,6 +97,14 @@ export default async function RootLayout({
                   {item.label}
                 </Link>
               )
+            )}
+            {sessionToken ? (
+              <Link href="/dashboard">Member dashboard</Link>
+            ) : (
+              <>
+                <Link href="/register">Join</Link>
+                <Link href="/login">Login</Link>
+              </>
             )}
           </div>
         </div>
