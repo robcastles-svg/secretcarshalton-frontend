@@ -506,10 +506,38 @@ export interface WPScEvent {
   };
 }
 
-export function getScEvents(perPage = 100) {
-  return scDirectoryFetch<WPScEvent[]>(
-    `/sc-events?per_page=${perPage}&_fields=id,slug,link,title,content,meta,_links&_embed=wp:featuredmedia&orderby=meta_value&meta_key=sc_start&order=asc`
-  );
+/**
+ * `orderby=meta_value&meta_key=sc_start` looks like the obvious way to get
+ * events in date order from WP's REST API, but this CPT never registered
+ * the custom REST query-var support meta-value sorting needs — sending
+ * those params doesn't 400, it just silently breaks the query (confirmed:
+ * it returns 3 posts out of 257, not an error). Sorted here in JS instead,
+ * using the same date parser the rest of this file already relies on —
+ * correct regardless of what WP's REST layer does or doesn't support.
+ *
+ * WP's REST controller also caps per_page at 100, so perPage above that
+ * paginates internally rather than 400ing.
+ */
+export async function getScEvents(perPage = 100): Promise<WPScEvent[]> {
+  const events: WPScEvent[] = [];
+  let page = 1;
+  while (events.length < perPage) {
+    const batchSize = Math.min(100, perPage - events.length);
+    const batch = await scDirectoryFetch<WPScEvent[]>(
+      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,title,content,meta,_links&_embed=wp:featuredmedia`
+    );
+    events.push(...batch);
+    if (batch.length < batchSize) break;
+    page++;
+  }
+  return events.sort((a, b) => {
+    const aDate = parseEventDate(a.meta.sc_start);
+    const bDate = parseEventDate(b.meta.sc_start);
+    if (!aDate && !bDate) return 0;
+    if (!aDate) return 1;
+    if (!bDate) return -1;
+    return aDate.getTime() - bDate.getTime();
+  });
 }
 
 export async function getScEventBySlug(slug: string): Promise<WPScEvent | null> {
@@ -520,25 +548,17 @@ export async function getScEventBySlug(slug: string): Promise<WPScEvent | null> 
 }
 
 export async function getRecentScEventSlugs(count: number): Promise<string[]> {
-  const events = await scDirectoryFetch<Array<{ slug: string }>>(
-    `/sc-events?per_page=${count}&_fields=slug&orderby=meta_value&meta_key=sc_start&order=asc`
-  );
-  return events.map((e) => e.slug);
+  const events = await getScEvents(300);
+  return events.slice(0, count).map((e) => e.slug);
 }
 
 /**
- * getScEvents already orders ascending by sc_start, but that pool includes
- * every migrated event — past and future. WP's core REST controller has no
- * meta-value date comparison built in (no meta_query support without a
- * custom REST arg), so "upcoming only" is filtered here instead: fetch the
- * full ordered pool, drop anything before now, take the first `count`.
- * Events with no parseable sc_start (a handful of migrated events whose
- * live page had no schema.org block) are excluded rather than sorted to
- * the top — a "What's On" list undated-first would be worse than one
- * that's slightly incomplete.
+ * getScEvents already returns every event sorted ascending by sc_start
+ * (past first, undated last) — "upcoming only" just drops anything before
+ * now and takes the first `count`.
  */
 export async function getUpcomingScEvents(count: number): Promise<WPScEvent[]> {
-  const events = await getScEvents(200);
+  const events = await getScEvents(300);
   const now = Date.now();
   return events
     .filter((e) => {
