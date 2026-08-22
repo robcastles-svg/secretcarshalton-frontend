@@ -5,6 +5,7 @@ import {
   getScEventBySlug,
   getScEventCategories,
   getScEventTags,
+  htmlToPlainText,
   stripHtml,
 } from "@/lib/wordpress";
 import { EventForm, type EventFormInitial } from "../../_components/EventForm";
@@ -48,7 +49,7 @@ export default async function EditEventPage({
 
   const initial: EventFormInitial = {
     title: stripHtml(event.title.rendered),
-    description: stripHtml(event.content.rendered),
+    description: htmlToPlainText(event.content.rendered),
     start: toDatetimeLocal(event.meta.sc_start),
     end: toDatetimeLocal(event.meta.sc_end),
     venue_name: event.meta.sc_venue_name ?? "",

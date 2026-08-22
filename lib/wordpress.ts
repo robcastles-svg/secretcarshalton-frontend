@@ -49,16 +49,39 @@ export function getFeaturedImage(item: {
   return media && "source_url" in media ? media : null;
 }
 
-export function stripHtml(html: string): string {
-  return html
-    .replace(/<[^>]+>/g, "")
+function decodeEntities(text: string): string {
+  return text
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
     .replace(/&nbsp;/g, " ")
     .replace(/&hellip;/g, "…")
     .replace(/&quot;/g, '"')
     .replace(/&#0?39;|&apos;/g, "'")
-    .replace(/&amp;/g, "&")
+    .replace(/&amp;/g, "&");
+}
+
+export function stripHtml(html: string): string {
+  return decodeEntities(html.replace(/<[^>]+>/g, ""))
     .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Like stripHtml, but for round-tripping wpautop'd content.rendered back
+ * into a plain textarea (the event edit form) without flattening it to a
+ * single line — </p> and <br> become real newlines first, so blank-line
+ * paragraph breaks survive being re-submitted through wp_kses_post and
+ * re-wpautop'd on the next render, the same way they did on first submit.
+ */
+export function htmlToPlainText(html: string): string {
+  return decodeEntities(
+    html
+      .replace(/<\/p>/gi, "\n\n")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<[^>]+>/g, "")
+  )
+    .replace(/[ \t]+/g, " ")
+    .replace(/ *\n */g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
