@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getMemberMe } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 import { LogoutButton } from "./_components/LogoutButton";
@@ -12,6 +13,15 @@ const UPGRADE_STATUS_LABEL: Record<string, string> = {
   approved: "Approved",
   rejected: "Not approved",
 };
+
+// Matches SC_Membership_Tiers::all() in wordpress-plugins/sc-membership —
+// keep these two in sync if the tier ladder changes.
+const TIERS = [
+  { slug: "newcomer", label: "Newcomer", threshold: 0 },
+  { slug: "regular", label: "Regular", threshold: 50 },
+  { slug: "local_legend", label: "Local Legend", threshold: 200 },
+  { slug: "carshalton_champion", label: "Carshalton Champion", threshold: 500 },
+];
 
 export default async function DashboardPage() {
   const token = await getSessionToken();
@@ -29,6 +39,33 @@ export default async function DashboardPage() {
 
       {!profile.email_verified && <VerifyEmailBanner />}
 
+      <section className="dashboard-section dashboard-account">
+        <h2>Account</h2>
+        <div className="dashboard-account-row">
+          <div className="dashboard-avatar" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" />
+            </svg>
+          </div>
+          <div>
+            <button type="button" className="button-pill button-pill-secondary" disabled>
+              Upload photo
+            </button>
+            <p className="dashboard-hint">Photo uploads aren&apos;t connected yet — coming soon.</p>
+          </div>
+        </div>
+        <p className="dashboard-hint">
+          Username and email aren&apos;t shown here yet — coming soon, once account details are wired up.
+        </p>
+        <a
+          className="button-pill button-pill-secondary"
+          href="https://www.staging19.secretcarshalton.com/wp-login.php?action=lostpassword"
+        >
+          Change password
+        </a>
+      </section>
+
       <div className="dashboard-tier-card">
         <div className="dashboard-tier-badge">{profile.tier.label}</div>
         <p className="dashboard-points">{profile.points} points</p>
@@ -38,7 +75,58 @@ export default async function DashboardPage() {
           </p>
         )}
         <p className="dashboard-joined">Member since {new Date(profile.joined_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</p>
+
+        <details className="dashboard-tier-explainer">
+          <summary>How tiers &amp; points work</summary>
+          <p>Points build up as you take part around the site:</p>
+          <ul>
+            <li>+2 for a comment that gets approved</li>
+            <li>+5 for RSVPing to an event</li>
+            <li>+15 for claiming a directory listing</li>
+          </ul>
+          <ul className="dashboard-tier-ladder">
+            {TIERS.map((tier) => (
+              <li key={tier.slug} className={profile.tier.slug === tier.slug ? "current" : undefined}>
+                {tier.label}
+                <span>{tier.threshold}+ points</span>
+              </li>
+            ))}
+          </ul>
+        </details>
       </div>
+
+      <section className="dashboard-section">
+        <h2>Your directory listing</h2>
+        <p className="dashboard-hint">Listings linked to your account will show here once this is wired up.</p>
+        <div className="dashboard-section-actions">
+          <Link href="/directory" className="button-pill button-pill-secondary">
+            Browse the directory
+          </Link>
+          <Link href="/directory/submit" className="button-pill">
+            Add a listing
+          </Link>
+        </div>
+      </section>
+
+      <section className="dashboard-section">
+        <h2>Your events</h2>
+        <p className="dashboard-hint">Events you&apos;ve RSVP&apos;d to will show here once this is wired up.</p>
+        <div className="dashboard-section-actions">
+          <Link href="/events" className="button-pill button-pill-secondary">
+            Browse events
+          </Link>
+          <Link href="/events/submit" className="button-pill">
+            Submit an event
+          </Link>
+        </div>
+      </section>
+
+      <section className="dashboard-section">
+        <h2>Your comments</h2>
+        <p className="dashboard-hint">
+          Comments you&apos;ve left across the site will show here once this is wired up.
+        </p>
+      </section>
 
       <section className="dashboard-section">
         <h2>Directory upgrade</h2>
