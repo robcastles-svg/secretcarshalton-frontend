@@ -108,7 +108,20 @@ export default async function EventsPage({
             return (
               <li key={event.id}>
                 <Link href={`/events/${event.slug}`}>
-                  {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
+                  <div className="event-card-media">
+                    {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
+                    {startDate && (
+                      <div className="event-card-date-badge">
+                        <span className="event-card-date-badge-weekday">
+                          {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
+                        </span>
+                        <span className="event-card-date-badge-day">{startDate.getDate()}</span>
+                        <span className="event-card-date-badge-month">
+                          {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
                 </Link>
                 {startDate && (

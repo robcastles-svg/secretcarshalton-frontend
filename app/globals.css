@@ -328,6 +328,50 @@ img {
   margin-bottom: 0.75rem;
 }
 
+.event-card-media {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+
+.event-card-media img {
+  margin-bottom: 0;
+}
+
+.event-card-date-badge {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 50px;
+  padding: 0.3rem 0.2rem;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.event-card-date-badge-weekday {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #c2607a;
+  letter-spacing: 0.03em;
+}
+
+.event-card-date-badge-day {
+  font-size: 1.3rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #1a1a1a;
+}
+
+.event-card-date-badge-month {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: 0.03em;
+}
+
 .post-list .card-title,
 .post-list .card-tag,
 .post-list .card-category,
