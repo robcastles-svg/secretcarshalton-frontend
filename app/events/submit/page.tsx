@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
-import { getScEventCategories, getScEventTags } from "@/lib/wordpress";
+import { getMyListings, getScEventCategories, getScEventTags } from "@/lib/wordpress";
 import { EventForm } from "../_components/EventForm";
 
 export const metadata = { title: "Submit an event — Secret Carshalton" };
@@ -9,16 +9,17 @@ export default async function EventsSubmitPage() {
   const token = await getSessionToken();
   if (!token) redirect("/login");
 
-  const [categories, tags] = await Promise.all([
+  const [categories, tags, listings] = await Promise.all([
     getScEventCategories().catch(() => []),
     getScEventTags().catch(() => []),
+    getMyListings(token),
   ]);
 
   return (
     <main className="container auth-page">
       <h1>Submit an event</h1>
       <p>Running something local? Submit it here — events are reviewed before they go live.</p>
-      <EventForm mode="create" categories={categories} tags={tags} />
+      <EventForm mode="create" categories={categories} tags={tags} listings={listings} />
     </main>
   );
 }

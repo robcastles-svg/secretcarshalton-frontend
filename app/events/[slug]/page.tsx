@@ -139,7 +139,11 @@ export default async function EventPage({
               See all events at {event.meta.sc_venue_name}
             </Link>
           )}
-          {event.sc_event_author_is_staff ? (
+          {event.sc_event_company ? (
+            <Link href={`/directory/${event.sc_event_company.slug}`} className="button-pill button-pill-secondary">
+              Hosted by {event.sc_event_company.name}
+            </Link>
+          ) : event.sc_event_author_is_staff ? (
             <ClaimEventButton eventId={event.id} isLoggedIn={Boolean(sessionToken)} />
           ) : (
             event._embedded?.author?.[0] && (

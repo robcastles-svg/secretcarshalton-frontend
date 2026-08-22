@@ -1485,6 +1485,12 @@ img {
   font-size: 0.9rem;
 }
 
+.event-form-hint {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: #777;
+}
+
 .auth-form input,
 .auth-form select,
 .auth-form textarea {

@@ -18,6 +18,17 @@ class SC_Events_Meta {
 		'sc_venue_address' => 'string',
 		'sc_organizer'     => 'string',
 		'sc_event_url'     => 'string',
+		/**
+		 * The sc-listings post ID of the business/organisation this event
+		 * belongs to — distinct from post_author (a WP *user* account).
+		 * "Submitted by [member]" was never the right public-facing credit
+		 * for an event a business owns; this is what "Hosted by [company]"
+		 * on the frontend actually reads from. Only ever set through
+		 * SC_Events_REST::set_taxonomies_from_request's sibling validation
+		 * (must be a listing the current user owns) — see update_event's
+		 * docblock — never accepted at face value from the request.
+		 */
+		'sc_event_listing_id' => 'integer',
 	);
 
 	public static function register() {
@@ -35,6 +46,8 @@ class SC_Events_Meta {
 				$args['sanitize_callback'] = 'esc_url_raw';
 			} elseif ( 'string' === $type ) {
 				$args['sanitize_callback'] = 'sanitize_text_field';
+			} elseif ( 'integer' === $type ) {
+				$args['sanitize_callback'] = 'absint';
 			}
 
 			register_post_meta( SC_Events_CPT::POST_TYPE, $key, $args );

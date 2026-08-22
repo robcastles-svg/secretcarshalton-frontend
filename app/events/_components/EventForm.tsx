@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { WPScEventCategory, WPScEventTag } from "@/lib/wordpress";
+import type { MyListing, WPScEventCategory, WPScEventTag } from "@/lib/wordpress";
 
 export interface EventFormInitial {
   title: string;
@@ -15,6 +15,7 @@ export interface EventFormInitial {
   event_url: string;
   category: string;
   tags: string[];
+  listing_id: string;
 }
 
 /**
@@ -29,6 +30,7 @@ export function EventForm({
   eventSlug,
   categories,
   tags,
+  listings,
   initial,
 }: {
   mode: "create" | "edit";
@@ -36,6 +38,7 @@ export function EventForm({
   eventSlug?: string;
   categories: WPScEventCategory[];
   tags: WPScEventTag[];
+  listings: MyListing[];
   initial?: EventFormInitial;
 }) {
   const router = useRouter();
@@ -51,7 +54,7 @@ export function EventForm({
 
     const form = new FormData(e.currentTarget);
     const data: Record<string, string | string[]> = {};
-    for (const key of ["title", "description", "start", "end", "venue_name", "venue_address", "organizer", "event_url", "category"]) {
+    for (const key of ["title", "description", "start", "end", "venue_name", "venue_address", "organizer", "event_url", "category", "listing_id"]) {
       data[key] = String(form.get(key) ?? "");
     }
     data.tags = selectedTags;
@@ -120,6 +123,22 @@ export function EventForm({
         Event website/link
         <input type="url" name="event_url" placeholder="https://" defaultValue={initial?.event_url} />
       </label>
+      {listings.length > 0 && (
+        <label>
+          Business or organisation this event belongs to (optional)
+          <select name="listing_id" defaultValue={initial?.listing_id ?? ""}>
+            <option value="">None — this is just me</option>
+            {listings.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.title}
+              </option>
+            ))}
+          </select>
+          <span className="event-form-hint">
+            Shows &quot;Hosted by [business]&quot; on the event instead of your personal profile.
+          </span>
+        </label>
+      )}
       {categories.length > 0 && (
         <label>
           Category

@@ -117,6 +117,37 @@ class SC_Events_REST {
 				'schema'       => array( 'type' => 'boolean' ),
 			)
 		);
+
+		/**
+		 * Resolves sc_event_listing_id (just a post ID in meta) into what
+		 * the frontend actually needs to render "Hosted by [company]" and
+		 * link to it — one field instead of a second round-trip fetch per
+		 * event. Null whenever no listing is attached, already-trashed, or
+		 * not published (an unpublished listing has no public page to link
+		 * to yet).
+		 */
+		register_rest_field(
+			SC_Events_CPT::POST_TYPE,
+			'sc_event_company',
+			array(
+				'get_callback' => function ( $post ) {
+					$listing_id = (int) get_post_meta( $post['id'], 'sc_event_listing_id', true );
+					if ( ! $listing_id ) {
+						return null;
+					}
+					$listing = get_post( $listing_id );
+					if ( ! $listing || 'sc_listing' !== $listing->post_type || 'publish' !== $listing->post_status ) {
+						return null;
+					}
+					return array(
+						'id'   => $listing->ID,
+						'name' => get_the_title( $listing ),
+						'slug' => $listing->post_name,
+					);
+				},
+				'schema'       => array( 'type' => 'object' ),
+			)
+		);
 	}
 
 	/**
@@ -318,6 +349,36 @@ class SC_Events_REST {
 			}
 			$value = (string) $request->get_param( $param );
 			update_post_meta( $post_id, $meta_key, 'event_url' === $param ? esc_url_raw( $value ) : sanitize_text_field( $value ) );
+		}
+
+		self::set_listing_from_request( $post_id, $request );
+	}
+
+	/**
+	 * "Hosted by [company]" on the frontend, not "Submitted by [member]" —
+	 * a business's event should credit the business, not whichever person's
+	 * account happened to submit it. listing_id=0 (or any falsy value)
+	 * clears the association back to "no company", same as tags clearing
+	 * on an empty array. A listing that doesn't exist, isn't an sc_listing,
+	 * or isn't owned by the current user is silently ignored rather than
+	 * erroring — same "skip invalid, don't fail the whole update" pattern
+	 * category/tags already use, and it closes the obvious attempt to
+	 * attach someone else's business to your event.
+	 */
+	private static function set_listing_from_request( $post_id, WP_REST_Request $request ) {
+		if ( null === $request->get_param( 'listing_id' ) ) {
+			return;
+		}
+
+		$listing_id = (int) $request->get_param( 'listing_id' );
+		if ( ! $listing_id ) {
+			update_post_meta( $post_id, 'sc_event_listing_id', 0 );
+			return;
+		}
+
+		$listing = get_post( $listing_id );
+		if ( $listing && 'sc_listing' === $listing->post_type && (int) $listing->post_author === get_current_user_id() ) {
+			update_post_meta( $post_id, 'sc_event_listing_id', $listing_id );
 		}
 	}
 

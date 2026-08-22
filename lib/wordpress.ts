@@ -576,6 +576,8 @@ export interface WPScEvent {
   sc_event_tag: number[];
   sc_event_rsvp_count?: number;
   sc_event_author_is_staff?: boolean;
+  sc_event_company?: { id: number; name: string; slug: string } | null;
+  sc_event_listing_id?: number;
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
     author?: WPPublicUser[];
@@ -651,7 +653,7 @@ export async function getScEvents(perPage = 100): Promise<WPScEvent[]> {
   while (events.length < perPage) {
     const batchSize = Math.min(100, perPage - events.length);
     const batch = await scDirectoryFetch<WPScEvent[]>(
-      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,author,title,content,meta,sc_event_category,sc_event_tag,sc_event_rsvp_count,sc_event_author_is_staff,_links&_embed=author,wp:featuredmedia`
+      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,author,title,content,meta,sc_event_category,sc_event_tag,sc_event_rsvp_count,sc_event_author_is_staff,sc_event_company,_links&_embed=author,wp:featuredmedia`
     );
     events.push(...batch);
     if (batch.length < batchSize) break;
