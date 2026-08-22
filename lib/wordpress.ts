@@ -691,6 +691,27 @@ export async function verifyEmail(token: string): Promise<{ status: string } | M
   }
 }
 
+export async function claimListing(
+  token: string,
+  listingId: number
+): Promise<{ status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/${listingId}/claim`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "claim_failed", message: body.message ?? "Could not claim this listing." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
 /** sessionToken here is the bearer token identifying the logged-in member, not the verify link's token. */
 export async function resendVerification(
   sessionToken: string

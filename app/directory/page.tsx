@@ -24,10 +24,14 @@ export default async function DirectoryPage({
   const categories = await getDirectoryCategories().catch(() => []);
   const activeCategory = category ? categories.find((c) => c.slug === category) : null;
 
-  const listings = await (activeCategory
+  const rawListings = await (activeCategory
     ? getDirectoryListingsByCategory(activeCategory.id)
     : getDirectoryListings()
   ).catch(() => []);
+
+  // Featured listings first — both on the unfiltered "All" view and within
+  // whichever category is being browsed, per how featuring is meant to work.
+  const listings = [...rawListings].sort((a, b) => Number(b.meta.sc_featured) - Number(a.meta.sc_featured));
 
   return (
     <main className="container">
@@ -64,11 +68,27 @@ export default async function DirectoryPage({
         <ul className="post-list directory-list">
           {listings.map((listing) => {
             const image = getFeaturedImage(listing);
+            const verified = listing.meta.sc_claimed || listing.meta.sc_verified;
             return (
               <li key={listing.id}>
                 <Link href={`/directory/${listing.slug}`}>
                   {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
-                  <span className="card-title" dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
+                  <span className="card-title">
+                    {verified && (
+                      <svg
+                        className="directory-verified-check directory-verified-check-sm"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        aria-label="Verified listing"
+                      >
+                        <circle cx="12" cy="12" r="10" fill="#0a5c36" />
+                        <path d="M7 12.5l3 3 7-7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                    <span dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
+                  </span>
                 </Link>
                 {listing.meta.sc_featured && <span className="directory-badge">Featured</span>}
                 <p>{stripHtml(listing.content.rendered).slice(0, 120)}</p>
