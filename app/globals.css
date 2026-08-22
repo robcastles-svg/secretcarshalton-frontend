@@ -86,6 +86,20 @@ img {
   text-decoration: none;
 }
 
+.site-logo-img {
+  display: block;
+  height: 34px;
+  width: auto;
+}
+
+.category-key-icon {
+  display: inline-block;
+  height: 0.7em;
+  width: auto;
+  margin-left: 0.4em;
+  vertical-align: middle;
+}
+
 .primary-nav-row {
   padding-top: 0;
   padding-bottom: 0.75rem;
@@ -370,8 +384,93 @@ img {
   font-weight: 700;
 }
 
-.event-detail-date {
-  font-size: 1.15rem;
+.event-hero {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.event-date-tile {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 84px;
+  padding: 0.6rem 0.5rem;
+  border-radius: 12px;
+  background: #fdf1f4;
+  border: 1px solid #f0d6dd;
+}
+
+.event-date-year {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #999;
+}
+
+.event-date-weekday {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c2607a;
+  letter-spacing: 0.04em;
+}
+
+.event-date-day {
+  font-size: 2.4rem;
+  font-weight: 900;
+  line-height: 1.05;
+  color: #1a1a1a;
+}
+
+.event-date-month {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: 0.04em;
+}
+
+.event-hero-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.event-hero-body .page-header-row {
+  margin-bottom: 0.5rem;
+}
+
+.event-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35rem 0;
+  color: #444;
+}
+
+.event-meta-row svg {
+  flex-shrink: 0;
+  color: #c2607a;
+}
+
+.event-meta-label {
+  font-style: italic;
+  color: #999;
+  margin-right: 0.15rem;
+}
+
+@media (max-width: 560px) {
+  .event-hero {
+    gap: 0.85rem;
+  }
+
+  .event-date-tile {
+    width: 66px;
+    padding: 0.5rem 0.35rem;
+  }
+
+  .event-date-day {
+    font-size: 1.9rem;
+  }
 }
 
 .post-list li > div {

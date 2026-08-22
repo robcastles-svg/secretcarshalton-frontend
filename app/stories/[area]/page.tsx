@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { CategoryMiniNav } from "@/app/_components/CategoryMiniNav";
 import { ContentList } from "@/app/_components/ContentList";
 import { getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
@@ -10,7 +11,7 @@ export async function generateStaticParams() {
   const parent = await getCategoryBySlug("stories").catch(() => null);
   if (!parent) return [];
   const categories = await getCategories().catch(() => []);
-  return categories.filter((c) => c.parent === parent.id).map((c) => ({ area: c.slug }));
+  return categories.filter((c) => c.parent === parent.id && c.count > 0).map((c) => ({ area: c.slug }));
 }
 
 export async function generateMetadata({
@@ -41,7 +42,7 @@ export default async function StoriesAreaPage({
   ]);
 
   const parent = allCategories.find((c) => c.slug === "stories");
-  const siblings = parent ? allCategories.filter((c) => c.parent === parent.id) : [];
+  const siblings = parent ? allCategories.filter((c) => c.parent === parent.id && c.count > 0) : [];
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
   const tagsById = new Map(allTags.map((t) => [t.id, t]));
 
@@ -49,7 +50,10 @@ export default async function StoriesAreaPage({
     <>
       <CategoryMiniNav basePath="/stories" categories={siblings} />
       <main className="container">
-        <h1>{category.name}</h1>
+        <h1>
+          {category.name}
+          <CategoryKeyIcon />
+        </h1>
         <ContentList items={posts} categoriesById={categoriesById} tagsById={tagsById} />
       </main>
     </>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import {
   getFeaturedImage,
   getLatestAddedScEvents,
@@ -57,7 +58,10 @@ export default async function EventsPage({
   return (
     <main className="container">
       <div className="page-header-row">
-        <h1>What&apos;s On</h1>
+        <h1>
+          What&apos;s On
+          <CategoryKeyIcon />
+        </h1>
         <Link href="/events/submit" className="button-pill">
           Submit an event
         </Link>

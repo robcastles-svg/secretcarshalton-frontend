@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import {
   getDirectoryCategories,
   getDirectoryListings,
@@ -37,7 +38,10 @@ export default async function DirectoryPage({
     <main className="container">
       <div className="page-header-row">
         <div>
-          <h1>Directory</h1>
+          <h1>
+            Directory
+            <CategoryKeyIcon />
+          </h1>
           <p>Local businesses and organisations in and around Carshalton.</p>
         </div>
         <Link href="/directory/submit" className="button-pill">

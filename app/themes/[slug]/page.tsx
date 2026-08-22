@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { getCategories, getPostsByTag, getTagBySlug, getTags } from "@/lib/wordpress";
 
@@ -43,7 +44,10 @@ export default async function ThemePage({
   return (
     <main className="container">
       <span className="theme-eyebrow">Stories by theme</span>
-      <h1>{tag.name}</h1>
+      <h1>
+        {tag.name}
+        <CategoryKeyIcon />
+      </h1>
       {posts.length === 0 && <p>No stories tagged &quot;{tag.name}&quot; yet.</p>}
       <ContentList items={posts} categoriesById={categoriesById} tagsById={tagsById} />
     </main>

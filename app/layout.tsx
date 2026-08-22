@@ -77,8 +77,8 @@ export default async function RootLayout({
     getAd("leaderboard"),
     getSessionToken(),
   ]);
-  const storyAreas = stories ? allCategories.filter((c) => c.parent === stories.id) : [];
-  const walkDistances = walks ? allCategories.filter((c) => c.parent === walks.id) : [];
+  const storyAreas = stories ? allCategories.filter((c) => c.parent === stories.id && c.count > 0) : [];
+  const walkDistances = walks ? allCategories.filter((c) => c.parent === walks.id && c.count > 0) : [];
 
   return (
     <html lang="en">
@@ -135,7 +135,7 @@ export default async function RootLayout({
         <header className="site-header">
           <div className="container site-header-inner">
             <Link href="/" className="site-logo">
-              Secret Carshalton
+              <img src="/logo.png" alt="Secret Carshalton" className="site-logo-img" />
             </Link>
             {/* Leaderboard ad slot — admin-managed via sc-ads. */}
             {leaderboardAd && (

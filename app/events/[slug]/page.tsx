@@ -10,6 +10,7 @@ import {
   getMemberMe,
   getRecentScEventSlugs,
   getScEventBySlug,
+  getScEventTags,
   parseEventDate,
   slugifyVenue,
   stripHtml,
@@ -18,6 +19,28 @@ import { ClaimEventButton } from "./_components/ClaimEventButton";
 import { RsvpButton } from "./_components/RsvpButton";
 
 export const revalidate = 3600;
+
+function formatTime(date: Date): string {
+  return date.toLocaleString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true });
+}
+
+function PinIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M12 22s7-7.58 7-12.5A7 7 0 0 0 5 9.5C5 14.42 12 22 12 22Z" />
+      <circle cx="12" cy="9.5" r="2.5" />
+    </svg>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3.5 2" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export async function generateStaticParams() {
   const slugs = await getRecentScEventSlugs(50).catch(() => []);
@@ -58,9 +81,10 @@ export default async function EventPage({
 
   if (!event) notFound();
 
-  const [sessionToken, fullThread] = await Promise.all([
+  const [sessionToken, fullThread, allTags] = await Promise.all([
     getSessionToken(),
     getCommentsForPost(event.id, 50).catch(() => []),
+    getScEventTags().catch(() => []),
   ]);
 
   const [profile, rsvpStatus] = await Promise.all([
@@ -72,6 +96,8 @@ export default async function EventPage({
 
   const image = getFeaturedImage(event);
   const startDate = parseEventDate(event.meta.sc_start);
+  const endDate = parseEventDate(event.meta.sc_end);
+  const eventTypes = allTags.filter((t) => event.sc_event_tag?.includes(t.id));
 
   const addressParts = [event.meta.sc_venue_name, event.meta.sc_venue_address].filter(Boolean);
   const mapQuery = addressParts.join(", ");
@@ -102,35 +128,56 @@ export default async function EventPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
       />
       <div className="post-body">
-        <div className="page-header-row">
-          <h1 dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-          {isOwner && (
-            <Link href={`/events/${event.slug}/edit`} className="button-pill button-pill-secondary">
-              Edit event
-            </Link>
+        <div className="event-hero">
+          {startDate && (
+            <div className="event-date-tile">
+              <span className="event-date-year">{startDate.getFullYear()}</span>
+              <span className="event-date-weekday">
+                {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
+              </span>
+              <span className="event-date-day">{startDate.getDate()}</span>
+              <span className="event-date-month">
+                {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
+              </span>
+            </div>
           )}
-        </div>
-        {startDate && (
-          <p className="event-detail-date">
-            <strong>
-              {startDate.toLocaleString("en-GB", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })}
-            </strong>
+          <div className="event-hero-body">
+            <div className="page-header-row">
+              <h1 dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
+              {isOwner && (
+                <Link href={`/events/${event.slug}/edit`} className="button-pill button-pill-secondary">
+                  Edit event
+                </Link>
+              )}
+            </div>
             {event.meta.sc_venue_name && (
-              <>
-                {" — "}
+              <p className="event-meta-row">
+                <PinIcon />
                 {event.meta.sc_venue_name}
                 {event.meta.sc_venue_address ? `, ${event.meta.sc_venue_address}` : ""}
-              </>
+              </p>
             )}
-          </p>
-        )}
+            {startDate && (
+              <p className="event-meta-row">
+                <ClockIcon />
+                {formatTime(startDate)}
+                {endDate ? ` – ${formatTime(endDate)}` : ""}
+              </p>
+            )}
+            {eventTypes.length > 0 && (
+              <p className="event-meta-row">
+                <span className="event-meta-label">Event Type</span>
+                {eventTypes.map((t) => t.name).join(", ")}
+              </p>
+            )}
+            {event.meta.sc_organizer && (
+              <p className="event-meta-row">
+                <span className="event-meta-label">Organised By</span>
+                {event.meta.sc_organizer}
+              </p>
+            )}
+          </div>
+        </div>
         {image && <img src={image.source_url} alt={image.alt_text} />}
 
         <div className="event-detail-actions">
@@ -171,15 +218,10 @@ export default async function EventPage({
       </div>
 
       <aside className="post-sidebar">
-        {(event.meta.sc_organizer || event.meta.sc_event_url || addressParts.length > 0) && (
+        {(event.meta.sc_event_url || addressParts.length > 0) && (
           <div className="sidebar-block">
             <h2>More info</h2>
             {addressParts.length > 0 && <p>{addressParts.join(", ")}</p>}
-            {event.meta.sc_organizer && (
-              <p>
-                Organised by <strong>{event.meta.sc_organizer}</strong>
-              </p>
-            )}
             {event.meta.sc_event_url && (
               <p>
                 <a href={event.meta.sc_event_url} target="_blank" rel="noopener noreferrer">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { getTags } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -10,7 +11,10 @@ export default async function ThemesPage() {
 
   return (
     <main className="container">
-      <h1>Stories by theme</h1>
+      <h1>
+        Stories by theme
+        <CategoryKeyIcon />
+      </h1>
       <ul className="theme-index-list">
         {themes.map((t) => (
           <li key={t.id}>

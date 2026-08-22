@@ -1,3 +1,4 @@
+import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { getCategoryBySlug, getPostsByCategory } from "@/lib/wordpress";
 
@@ -9,7 +10,10 @@ export default async function NewsPage() {
 
   return (
     <main className="container">
-      <h1>News</h1>
+      <h1>
+        News
+        <CategoryKeyIcon />
+      </h1>
       <ContentList items={posts} />
     </main>
   );
