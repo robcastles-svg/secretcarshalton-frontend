@@ -3,6 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 
+/**
+ * Deliberately not a real RSVP/ticketing action — events on this site are
+ * informational (the "more info" link/box is where real sign-up happens,
+ * via whatever external process the organiser uses). This is a lightweight
+ * "I'm interested" signal that earns the member points, so the copy leans
+ * on "interested" + the points hint rather than "going", which read like a
+ * booking confirmation.
+ */
 export function RsvpButton({
   eventId,
   isLoggedIn,
@@ -22,7 +30,7 @@ export function RsvpButton({
   if (!isLoggedIn) {
     return (
       <Link href="/login" className="button-pill button-pill-secondary rsvp-button">
-        Log in to say you&apos;re going
+        Log in to say you&apos;re interested
       </Link>
     );
   }
@@ -49,11 +57,12 @@ export function RsvpButton({
         onClick={handleClick}
         disabled={submitting}
       >
-        {going ? "✓ You're going" : "I'm going"}
+        {going ? "✓ Interested" : "I'm interested"}
       </button>
+      {!going && <span className="rsvp-points-hint">Earn 5 points</span>}
       {count > 0 && (
         <span className="rsvp-count">
-          {count} {count === 1 ? "person" : "people"} going
+          {count} {count === 1 ? "person" : "people"} interested
         </span>
       )}
       {error && <p className="auth-error">{error}</p>}

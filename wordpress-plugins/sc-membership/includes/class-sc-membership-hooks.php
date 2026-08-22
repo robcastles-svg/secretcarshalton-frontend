@@ -40,7 +40,7 @@ class SC_Membership_Hooks {
 	}
 
 	public static function on_event_rsvp( $user_id, $event_id ) {
-		sc_membership_award_points( (int) $user_id, 5, 'RSVP\'d to an event', 'event_rsvp' );
+		sc_membership_award_points( (int) $user_id, 5, 'Marked interested in an event', 'event_rsvp' );
 	}
 
 	public static function on_event_claimed( $user_id, $event_id ) {
