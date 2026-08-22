@@ -55,6 +55,16 @@ export default async function DashboardPage() {
 
       {!profile.email_verified && <VerifyEmailBanner />}
 
+      {profile.is_editor && (
+        <section className="dashboard-section dashboard-editor-cta">
+          <h2>Editorial</h2>
+          <p className="dashboard-hint">Draft a new story from notes or photos, with Claude&apos;s help.</p>
+          <Link href="/admin/draft" className="button-pill">
+            Draft a story
+          </Link>
+        </section>
+      )}
+
       <section className="dashboard-section dashboard-account">
         <h2>Account</h2>
         <div className="dashboard-account-row">

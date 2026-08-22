@@ -107,6 +107,14 @@ class SC_Membership_REST {
 		$next    = SC_Membership_Tiers::points_to_next_tier( (int) $member->points );
 
 		return array(
+			// 'edit_others_posts' is Editor/Administrator only — Author and
+			// below can't. Used by the frontend to gate the AI editorial
+			// draft tool (brief section 11's admin/editor role split), not
+			// as a security boundary itself: the real boundary is that
+			// publishing still goes through WordPress's own wp/v2/posts
+			// REST controller, which enforces this same capability
+			// server-side regardless of what the frontend shows.
+			'is_editor'                => user_can( $user_id, 'edit_others_posts' ),
 			'email_verified'           => SC_Membership_Auth::is_verified( $user_id ),
 			'points'                   => (int) $member->points,
 			'tier'                     => array(

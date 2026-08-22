@@ -625,6 +625,7 @@ export async function registerMember(
 }
 
 export interface MemberProfile {
+  is_editor: boolean;
   email_verified: boolean;
   points: number;
   tier: { slug: string; label: string };
@@ -820,6 +821,42 @@ export async function getMyComments(token: string): Promise<MyComment[]> {
     return res.json();
   } catch {
     return [];
+  }
+}
+
+/**
+ * Publishes an AI-drafted (and editor-reviewed) article as a WordPress
+ * 'pending' post — never straight to 'publish' (brief section 14: draft
+ * → human approval → publish, nothing goes public automatically). Goes
+ * to staging's native wp/v2/posts, not a custom sc-* route: the member's
+ * bearer token already satisfies is_user_logged_in() there the same way
+ * it does for every other sc-membership-backed call, and WP core's own
+ * post capability check (edit_posts) does the real enforcement — the
+ * frontend's is_editor gate is a UI convenience, not the security
+ * boundary. Categories/tags aren't resolved to term IDs here (staging's
+ * taxonomy may not match live's) — the editor applies them by hand in
+ * wp-admin after this lands as a pending post, same as reviewing any
+ * other field before publishing.
+ */
+export async function createDraftPost(
+  token: string,
+  data: { title: string; content: string; excerpt: string }
+): Promise<{ id: number; status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/wp/v2/posts`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ ...data, status: "pending" }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "publish_failed", message: body.message ?? "Could not create the draft post." };
+    }
+    return { id: body.id, status: body.status };
+  } catch {
+    return NETWORK_ERROR;
   }
 }
 
