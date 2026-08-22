@@ -34,6 +34,45 @@ class SC_Events_REST {
 				},
 			)
 		);
+
+		register_rest_route(
+			'sc-events/v1',
+			'/mine',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_my_events' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+	}
+
+	/** Same reasoning as SC_Directory_REST::get_my_listings(). */
+	public static function get_my_events( WP_REST_Request $request ) {
+		$posts = get_posts(
+			array(
+				'post_type'      => SC_Events_CPT::POST_TYPE,
+				'author'         => get_current_user_id(),
+				'post_status'    => array( 'publish', 'pending', 'draft' ),
+				'posts_per_page' => 50,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			)
+		);
+
+		return array_map(
+			function ( $post ) {
+				return array(
+					'id'     => $post->ID,
+					'title'  => get_the_title( $post ),
+					'status' => $post->post_status,
+					'slug'   => $post->post_name,
+					'start'  => get_post_meta( $post->ID, 'sc_start', true ),
+				);
+			},
+			$posts
+		);
 	}
 
 	/** Same pending-for-review model as sc-directory's submit_listing. */

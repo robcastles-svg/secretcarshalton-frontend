@@ -47,6 +47,51 @@ class SC_Directory_REST {
 				},
 			)
 		);
+
+		register_rest_route(
+			'sc-directory/v1',
+			'/mine',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_my_listings' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+	}
+
+	/**
+	 * A member's own listings regardless of status — the dashboard's
+	 * "Your directory listing" section, and the reason a plain wp/v2
+	 * query wasn't used: a subscriber lacks the capability to see their
+	 * own 'pending' posts through the generic REST controller's status
+	 * filter, only 'publish'.
+	 */
+	public static function get_my_listings( WP_REST_Request $request ) {
+		$posts = get_posts(
+			array(
+				'post_type'      => SC_Directory_CPT::POST_TYPE,
+				'author'         => get_current_user_id(),
+				'post_status'    => array( 'publish', 'pending', 'draft' ),
+				'posts_per_page' => 50,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			)
+		);
+
+		return array_map(
+			function ( $post ) {
+				return array(
+					'id'     => $post->ID,
+					'title'  => get_the_title( $post ),
+					'status' => $post->post_status,
+					'slug'   => $post->post_name,
+					'date'   => $post->post_date,
+				);
+			},
+			$posts
+		);
 	}
 
 	/**

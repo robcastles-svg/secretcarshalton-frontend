@@ -756,6 +756,73 @@ export interface SubmittedComment {
   content: WPRendered;
 }
 
+export interface MyListing {
+  id: number;
+  title: string;
+  status: string;
+  slug: string;
+  date: string;
+}
+
+export async function getMyListings(token: string): Promise<MyListing[]> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/mine`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+export interface MyEvent {
+  id: number;
+  title: string;
+  status: string;
+  slug: string;
+  start: string;
+}
+
+export async function getMyEvents(token: string): Promise<MyEvent[]> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/mine`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+export interface MyComment {
+  id: number;
+  content: WPRendered;
+  date: string;
+  status: string;
+  post_slug: string | null;
+  post_title: string | null;
+}
+
+export async function getMyComments(token: string): Promise<MyComment[]> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/my-comments`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 export async function submitComment(
   token: string,
   postId: number,

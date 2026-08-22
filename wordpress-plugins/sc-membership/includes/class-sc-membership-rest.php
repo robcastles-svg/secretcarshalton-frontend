@@ -55,6 +55,49 @@ class SC_Membership_REST {
 				},
 			)
 		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/my-comments',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_my_comments' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+	}
+
+	/** The dashboard's "Your comments" section — across any status, own account only. */
+	public static function get_my_comments( WP_REST_Request $request ) {
+		// No 'status' key: get_comments() only filters by comment_approved
+		// when one is explicitly passed, so this already returns the
+		// member's comments across every status (approved, held, spam,
+		// trash) without needing 'all' as a literal value.
+		$comments = get_comments(
+			array(
+				'user_id' => get_current_user_id(),
+				'number'  => 50,
+				'orderby' => 'comment_date',
+				'order'   => 'DESC',
+			)
+		);
+
+		return array_map(
+			function ( $comment ) {
+				$post = get_post( $comment->comment_post_ID );
+				return array(
+					'id'        => (int) $comment->comment_ID,
+					'content'   => array( 'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ) ),
+					'date'      => $comment->comment_date,
+					'status'    => wp_get_comment_status( $comment->comment_ID ),
+					'post_slug' => $post ? $post->post_name : null,
+					'post_title' => $post ? get_the_title( $post ) : null,
+				);
+			},
+			$comments
+		);
 	}
 
 	public static function get_me( WP_REST_Request $request ) {
