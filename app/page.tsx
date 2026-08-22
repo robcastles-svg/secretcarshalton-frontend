@@ -168,7 +168,7 @@ export default async function HomePage() {
 
         {mostRead.length > 0 && (
           <section className="home-section">
-            <h2>🔥 Most read</h2>
+            <h2>Top 10 stories</h2>
             <ol className="most-read-list">
               {mostRead.map((post) => (
                 <li key={post.id}>

@@ -110,10 +110,14 @@ export default async function RootLayout({
         </div>
 
         {/* Billboard ad slot — admin-managed via sc-ads, see wordpress-plugins/sc-ads. */}
-        {billboardAd && (
+        {billboardAd ? (
           <a className="ad-slot ad-billboard" href={billboardAd.link}>
             <img src={billboardAd.image} alt={billboardAd.alt} />
           </a>
+        ) : (
+          <Link href="/advertising-contact" className="ad-slot-placeholder ad-billboard-placeholder">
+            Claim this banner space for your local business
+          </Link>
         )}
 
         <div className="quick-links-bar">
@@ -176,6 +180,9 @@ export default async function RootLayout({
                     <Link href={`/stories/${area.slug}`}>{area.name}</Link>
                   </li>
                 ))}
+                <li>
+                  <Link href="/themes">Stories by theme</Link>
+                </li>
               </ul>
             </div>
             <div>

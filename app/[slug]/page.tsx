@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CommentSection } from "@/app/_components/CommentSection";
+import { getSessionToken } from "@/lib/auth";
 import {
   getAllPageSlugs,
   getCategories,
@@ -108,11 +110,13 @@ export default async function ContentPage({
     );
   }
 
-  const [allCategories, allTags, comments, recentPosts] = await Promise.all([
+  const [allCategories, allTags, comments, fullThread, recentPosts, sessionToken] = await Promise.all([
     getCategories().catch(() => []),
     getTags().catch(() => []),
     getCommentsForPost(post.id, 3).catch(() => []),
+    getCommentsForPost(post.id, 50).catch(() => []),
     getPosts(15).catch(() => []),
+    getSessionToken(),
   ]);
 
   const mostRead = await getMostReadPosts(
@@ -172,6 +176,8 @@ export default async function ContentPage({
             className="post-content"
             dangerouslySetInnerHTML={{ __html: post.content.rendered }}
           />
+
+          <CommentSection postId={post.id} comments={fullThread} isLoggedIn={Boolean(sessionToken)} />
         </div>
 
         <aside className="post-sidebar">
@@ -198,6 +204,22 @@ export default async function ContentPage({
                     <p>{stripHtml(c.content.rendered)}</p>
                   </li>
                 ))}
+              </ul>
+            </div>
+          )}
+
+          {allTags.length > 0 && (
+            <div className="sidebar-block">
+              <h3>Stories by theme</h3>
+              <ul className="sidebar-theme-list">
+                {allTags
+                  .filter((t) => t.count === undefined || t.count > 0)
+                  .slice(0, 24)
+                  .map((t) => (
+                    <li key={t.id}>
+                      <Link href={`/themes/${t.slug}`}>{t.name.toUpperCase()}</Link>
+                    </li>
+                  ))}
               </ul>
             </div>
           )}

@@ -43,6 +43,18 @@ class SC_Membership_REST {
 				'permission_callback' => '__return_true',
 			)
 		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/comments',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'submit_comment' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
 	}
 
 	public static function get_me( WP_REST_Request $request ) {
@@ -92,6 +104,65 @@ class SC_Membership_REST {
 		do_action( 'sc_directory_upgrade_requested', $user_id, $listing_id );
 
 		return array( 'status' => 'pending' );
+	}
+
+	/**
+	 * Members comment as themselves (their real WP user), not anonymously —
+	 * comment_author/email come from the account, not the request body, so
+	 * there's no way to spoof another name. Goes through wp_new_comment()
+	 * rather than wp_insert_comment() directly so normal WP moderation
+	 * (blacklist, held-for-moderation defaults, the comment_post hook that
+	 * SC_Membership_Hooks::on_comment_approved() listens for) all still
+	 * apply exactly as they would for a native comment-form submission.
+	 */
+	public static function submit_comment( WP_REST_Request $request ) {
+		$post_id = (int) $request->get_param( 'post_id' );
+		$content = trim( (string) $request->get_param( 'content' ) );
+		$parent  = (int) $request->get_param( 'parent' );
+
+		if ( ! $post_id || ! get_post( $post_id ) ) {
+			return new WP_Error( 'invalid_post', 'That post does not exist.', array( 'status' => 404 ) );
+		}
+
+		if ( '' === $content ) {
+			return new WP_Error( 'empty_comment', 'Comment cannot be empty.', array( 'status' => 400 ) );
+		}
+
+		if ( $parent && ! get_comment( $parent ) ) {
+			return new WP_Error( 'invalid_parent', 'That comment no longer exists.', array( 'status' => 400 ) );
+		}
+
+		$user = wp_get_current_user();
+
+		$comment_id = wp_new_comment(
+			wp_slash(
+				array(
+					'comment_post_ID'      => $post_id,
+					'comment_content'      => $content,
+					'comment_author'       => $user->display_name,
+					'comment_author_email' => $user->user_email,
+					'user_id'              => $user->ID,
+					'comment_parent'       => $parent,
+					'comment_type'         => 'comment',
+					'comment_author_url'   => '',
+				)
+			),
+			true
+		);
+
+		if ( is_wp_error( $comment_id ) ) {
+			return new WP_Error( 'comment_failed', $comment_id->get_error_message(), array( 'status' => 400 ) );
+		}
+
+		$comment = get_comment( $comment_id );
+
+		return array(
+			'id'          => (int) $comment_id,
+			'status'      => wp_get_comment_status( $comment_id ),
+			'author_name' => $comment->comment_author,
+			'date'        => $comment->comment_date,
+			'content'     => array( 'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ) ),
+		);
 	}
 
 	public static function get_leaderboard( WP_REST_Request $request ) {

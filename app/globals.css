@@ -179,6 +179,25 @@ img {
   flex-shrink: 0;
 }
 
+.ad-slot-placeholder {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  color: #888;
+  font-size: 0.8rem;
+  padding: 0.75rem;
+  border: 1px dashed #ccc;
+}
+
+.ad-slot-placeholder:hover {
+  color: #c2607a;
+  border-color: #c2607a;
+}
+
+.ad-billboard-placeholder {
+  background: #f0f0f0;
+}
+
 @media (max-width: 720px) {
   .ad-leaderboard {
     max-width: 100%;
@@ -835,6 +854,193 @@ img {
 .sidebar-ad span {
   font-size: 0.85rem;
   color: #555;
+}
+
+.sidebar-theme-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1rem;
+}
+
+.sidebar-theme-list a {
+  color: #c2607a;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.sidebar-theme-list a:hover {
+  text-decoration: underline;
+}
+
+/* Comment thread + posting form */
+.comment-section {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.comment-section-header {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.25rem;
+}
+
+.comment-login-hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.comment-login-hint a {
+  color: #c2607a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.comment-section-header h2 {
+  margin: 0 0 0.5rem;
+}
+
+.comment-form {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 640px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.comment-form .button-pill {
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  justify-self: start;
+}
+
+.comment-form .button-pill:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.comment-pending-notice {
+  color: #0a5c36;
+  font-weight: 600;
+  margin: 0;
+}
+
+.comment-login-promo {
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 640px;
+}
+
+.comment-login-badge {
+  display: inline-block;
+  background: #ddd;
+  color: #1a1a1a;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+}
+
+.comment-login-promo ul {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.4rem;
+  color: #444;
+}
+
+.comment-login-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.comment-login-actions a:not(.button-pill) {
+  color: #c2607a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.comment-count {
+  margin-top: 2rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid #c2607a;
+  padding-bottom: 0.5rem;
+  display: inline-block;
+}
+
+.comment-thread {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.comment-thread li {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1.5rem;
+}
+
+.comment-thread strong {
+  display: block;
+}
+
+.comment-thread time {
+  display: block;
+  color: #999;
+  font-size: 0.8rem;
+  margin: 0.15rem 0 0.5rem;
+}
+
+.comment-thread p {
+  margin: 0;
+  color: #333;
+}
+
+/* Stories-by-theme index */
+.theme-index-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem 1.5rem;
+}
+
+.theme-index-list a {
+  color: #c2607a;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.theme-eyebrow {
+  display: block;
+  color: #c2607a;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.25rem;
 }
 
 @media (max-width: 860px) {

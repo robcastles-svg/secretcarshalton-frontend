@@ -266,10 +266,16 @@ export interface WPTag {
   id: number;
   slug: string;
   name: string;
+  count?: number;
 }
 
 export function getTags() {
   return wpFetch<WPTag[]>(`/tags?per_page=100&hide_empty=false`);
+}
+
+export async function getTagBySlug(slug: string): Promise<WPTag | null> {
+  const tags = await wpFetch<WPTag[]>(`/tags?slug=${encodeURIComponent(slug)}`);
+  return tags[0] ?? null;
 }
 
 export async function getCategoryBySlug(slug: string): Promise<WPCategory | null> {
@@ -354,6 +360,25 @@ export async function getPostsByCategory(categoryId: number): Promise<WPContentI
  * dozens of live event pages in one burst is exactly the kind of
  * concurrency spike that trips the WP host's connection limits.
  */
+/**
+ * "Stories by theme" — the site's tag taxonomy repurposed as browsable
+ * theme pages (the brief's homepage notes describe this feature without
+ * it existing anywhere on the reference site to copy from).
+ */
+export async function getPostsByTag(tagId: number): Promise<WPContentItem[]> {
+  const posts: WPContentItem[] = [];
+  let page = 1;
+  while (true) {
+    const batch = await wpFetch<WPContentItem[]>(
+      `/posts?tags=${tagId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,_links&_embed=wp:featuredmedia`
+    );
+    posts.push(...batch);
+    if (batch.length < 100) break;
+    page++;
+  }
+  return posts;
+}
+
 export async function mapWithConcurrency<T, R>(
   items: T[],
   limit: number,
@@ -714,6 +739,34 @@ export async function submitEvent(
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(data),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+export interface SubmittedComment {
+  id: number;
+  status: "approved" | "unapproved" | "spam" | "trash";
+  author_name: string;
+  date: string;
+  content: WPRendered;
+}
+
+export async function submitComment(
+  token: string,
+  postId: number,
+  content: string,
+  parent?: number
+): Promise<SubmittedComment | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/comments`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ post_id: postId, content, parent: parent ?? 0 }),
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });
