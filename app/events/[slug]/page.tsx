@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   getFeaturedImage,
   getRecentScEventSlugs,
   getScEventBySlug,
   parseEventDate,
+  slugifyVenue,
   stripHtml,
 } from "@/lib/wordpress";
 
@@ -99,6 +101,20 @@ export default async function EventPage({
         </p>
       )}
       {image && <img src={image.source_url} alt={image.alt_text} />}
+
+      <div className="event-detail-actions">
+        {event.meta.sc_venue_name && (
+          <Link href={`/events/venue/${slugifyVenue(event.meta.sc_venue_name)}`} className="button-pill button-pill-secondary">
+            See all events at {event.meta.sc_venue_name}
+          </Link>
+        )}
+        {event._embedded?.author?.[0] && (
+          <Link href={`/members/${event._embedded.author[0].slug}`} className="button-pill button-pill-secondary">
+            Submitted by {event._embedded.author[0].name}
+          </Link>
+        )}
+      </div>
+
       <div dangerouslySetInnerHTML={{ __html: event.content.rendered }} />
     </article>
   );

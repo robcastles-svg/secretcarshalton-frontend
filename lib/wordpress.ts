@@ -499,13 +499,43 @@ export interface WPScEvent {
   slug: string;
   link: string;
   date: string;
+  author: number;
   title: WPRendered;
   content: WPRendered;
   meta: WPScEventMeta;
   sc_event_category: number[];
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
+    author?: WPPublicUser[];
   };
+}
+
+/** Fields WP's REST users endpoint exposes unauthenticated (the "view" context) — no email, no roles. */
+export interface WPPublicUser {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  link: string;
+  avatar_urls?: Record<string, string>;
+}
+
+export async function getWPUserBySlug(slug: string): Promise<WPPublicUser | null> {
+  try {
+    const users = await scDirectoryFetch<WPPublicUser[]>(`/users?slug=${encodeURIComponent(slug)}`);
+    return users[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Slug/venue-name matching, not a real venue entity — see getScEventsByVenue's docblock. */
+export function slugifyVenue(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 export interface WPScEventCategory {
@@ -537,7 +567,7 @@ export async function getScEvents(perPage = 100): Promise<WPScEvent[]> {
   while (events.length < perPage) {
     const batchSize = Math.min(100, perPage - events.length);
     const batch = await scDirectoryFetch<WPScEvent[]>(
-      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,title,content,meta,sc_event_category,_links&_embed=wp:featuredmedia`
+      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,author,title,content,meta,sc_event_category,_links&_embed=author,wp:featuredmedia`
     );
     events.push(...batch);
     if (batch.length < batchSize) break;
@@ -555,9 +585,26 @@ export async function getScEvents(perPage = 100): Promise<WPScEvent[]> {
 
 export async function getScEventBySlug(slug: string): Promise<WPScEvent | null> {
   const events = await scDirectoryFetch<WPScEvent[]>(
-    `/sc-events?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
+    `/sc-events?slug=${encodeURIComponent(slug)}&_embed=author,wp:featuredmedia`
   );
   return events[0] ?? null;
+}
+
+/**
+ * "All events at this venue" — sc_venue_name is free text, not a real
+ * venue entity/taxonomy, so this matches on the slugified name rather
+ * than an ID. Good enough for now; a proper venues taxonomy (with its
+ * own address/map once, not repeated per event) is future work if venue
+ * pages turn out to want more than a list.
+ */
+export async function getScEventsByVenue(venueSlug: string): Promise<WPScEvent[]> {
+  const events = await getScEvents(300);
+  return events.filter((e) => e.meta.sc_venue_name && slugifyVenue(e.meta.sc_venue_name) === venueSlug);
+}
+
+export async function getScEventsByAuthor(authorId: number): Promise<WPScEvent[]> {
+  const events = await getScEvents(300);
+  return events.filter((e) => e.author === authorId);
 }
 
 export async function getRecentScEventSlugs(count: number): Promise<string[]> {
