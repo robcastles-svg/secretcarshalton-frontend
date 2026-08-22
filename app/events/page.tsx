@@ -3,6 +3,7 @@ import {
   getFeaturedImage,
   getLatestAddedScEvents,
   getScEventCategories,
+  getScEventTags,
   getScEvents,
   getUpcomingScEvents,
   parseEventDate,
@@ -10,34 +11,45 @@ import {
 import { EventCalendarMonth } from "./_components/EventCalendarMonth";
 import { EventCategoryTiles } from "./_components/EventCategoryTiles";
 import { EventCountdown } from "./_components/EventCountdown";
+import { EventTagTiles } from "./_components/EventTagTiles";
 
 export const revalidate = 3600;
+
+/** Builds the `?category=&tag=` query string shared by the list/calendar view-switch links. */
+function filterQuery(categorySlug?: string, tagSlug?: string, hasLeadingParam = false): string {
+  const params: string[] = [];
+  if (categorySlug) params.push(`category=${categorySlug}`);
+  if (tagSlug) params.push(`tag=${tagSlug}`);
+  if (params.length === 0) return "";
+  return (hasLeadingParam ? "&" : "?") + params.join("&");
+}
 
 export default async function EventsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; category?: string; year?: string; month?: string }>;
+  searchParams: Promise<{ view?: string; category?: string; tag?: string; year?: string; month?: string }>;
 }) {
-  const { view, category, year, month } = await searchParams;
+  const { view, category, tag, year, month } = await searchParams;
   const isCalendar = view === "calendar";
   const now = new Date();
   const calendarYear = Number(year) || now.getFullYear();
   const calendarMonth = Number(month) || now.getMonth() + 1;
 
-  const [categories, upcoming, allEvents, latestAdded] = await Promise.all([
+  const [categories, tags, upcoming, allEvents, latestAdded] = await Promise.all([
     getScEventCategories().catch(() => []),
+    getScEventTags().catch(() => []),
     getUpcomingScEvents(100).catch(() => []),
     isCalendar ? getScEvents(300).catch(() => []) : Promise.resolve([]),
     getLatestAddedScEvents(5).catch(() => []),
   ]);
 
   const activeCategory = category ? categories.find((c) => c.slug === category) : null;
-  const listEvents = activeCategory
-    ? upcoming.filter((e) => e.sc_event_category?.includes(activeCategory.id))
-    : upcoming;
-  const calendarEvents = activeCategory
-    ? allEvents.filter((e) => e.sc_event_category?.includes(activeCategory.id))
-    : allEvents;
+  const activeTag = tag ? tags.find((t) => t.slug === tag) : null;
+  const matchesFilters = (e: { sc_event_category?: number[]; sc_event_tag?: number[] }) =>
+    (!activeCategory || e.sc_event_category?.includes(activeCategory.id)) &&
+    (!activeTag || e.sc_event_tag?.includes(activeTag.id));
+  const listEvents = upcoming.filter(matchesFilters);
+  const calendarEvents = allEvents.filter(matchesFilters);
 
   const next = upcoming[0];
   const nextStart = next ? parseEventDate(next.meta.sc_start) : null;
@@ -60,17 +72,22 @@ export default async function EventsPage({
         />
       )}
 
-      <EventCategoryTiles categories={categories} activeSlug={activeCategory?.slug} />
+      <EventCategoryTiles
+        categories={categories}
+        activeSlug={activeCategory?.slug}
+        activeTagSlug={activeTag?.slug}
+      />
+      <EventTagTiles tags={tags} activeSlug={activeTag?.slug} activeCategorySlug={activeCategory?.slug} />
 
       <div className="event-view-switch">
         <Link
-          href={activeCategory ? `/events?category=${activeCategory.slug}` : "/events"}
+          href={`/events${filterQuery(activeCategory?.slug, activeTag?.slug)}`}
           className={!isCalendar ? "active" : undefined}
         >
           List
         </Link>
         <Link
-          href={`/events?view=calendar${activeCategory ? `&category=${activeCategory.slug}` : ""}`}
+          href={`/events?view=calendar${filterQuery(activeCategory?.slug, activeTag?.slug, true)}`}
           className={isCalendar ? "active" : undefined}
         >
           Calendar

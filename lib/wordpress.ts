@@ -504,6 +504,7 @@ export interface WPScEvent {
   content: WPRendered;
   meta: WPScEventMeta;
   sc_event_category: number[];
+  sc_event_tag: number[];
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
     author?: WPPublicUser[];
@@ -549,6 +550,18 @@ export function getScEventCategories() {
   return scDirectoryFetch<WPScEventCategory[]>(`/sc_event_category?per_page=50`);
 }
 
+/** Subject tags (Comedy, Music, Festival, ...) — EventON's event_type, migrated onto sc_event_tag. */
+export interface WPScEventTag {
+  id: number;
+  slug: string;
+  name: string;
+  count: number;
+}
+
+export function getScEventTags() {
+  return scDirectoryFetch<WPScEventTag[]>(`/sc_event_tag?per_page=50`);
+}
+
 /**
  * `orderby=meta_value&meta_key=sc_start` looks like the obvious way to get
  * events in date order from WP's REST API, but this CPT never registered
@@ -567,7 +580,7 @@ export async function getScEvents(perPage = 100): Promise<WPScEvent[]> {
   while (events.length < perPage) {
     const batchSize = Math.min(100, perPage - events.length);
     const batch = await scDirectoryFetch<WPScEvent[]>(
-      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,author,title,content,meta,sc_event_category,_links&_embed=author,wp:featuredmedia`
+      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,author,title,content,meta,sc_event_category,sc_event_tag,_links&_embed=author,wp:featuredmedia`
     );
     events.push(...batch);
     if (batch.length < batchSize) break;
