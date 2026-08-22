@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getDirectoryListingBySlug, getDirectoryListings, getFeaturedImage } from "@/lib/wordpress";
+import {
+  getDirectoryCategories,
+  getDirectoryListingBySlug,
+  getDirectoryListings,
+  getFeaturedImage,
+} from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -30,12 +35,16 @@ export default async function DirectoryListingPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const listing = await getDirectoryListingBySlug(slug).catch(() => null);
+  const [listing, categories] = await Promise.all([
+    getDirectoryListingBySlug(slug).catch(() => null),
+    getDirectoryCategories().catch(() => []),
+  ]);
 
   if (!listing) notFound();
 
   const image = getFeaturedImage(listing);
   const { meta } = listing;
+  const category = categories.find((c) => listing.sc_listing_category?.includes(c.id));
   const addressParts = [
     meta.sc_address_street,
     meta.sc_address_town,
@@ -71,11 +80,35 @@ export default async function DirectoryListingPage({
       <div className="post-body directory-listing-card">
         {image && <img src={image.source_url} alt={image.alt_text} />}
         <div className="directory-listing-card-body">
-          <h1 dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
-          <div className="directory-badges">
-            {meta.sc_featured && <span className="directory-badge">Featured</span>}
-            {meta.sc_verified && <span className="directory-badge directory-badge-verified">Verified</span>}
-          </div>
+          <h1>
+            {meta.sc_verified && (
+              <svg
+                className="directory-verified-check"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                aria-label="Verified listing"
+              >
+                <circle cx="12" cy="12" r="10" fill="#0a5c36" />
+                <path d="M7 12.5l3 3 7-7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+            <span dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
+          </h1>
+          {(category || meta.sc_featured) && (
+            <div className="directory-badges">
+              {category && (
+                <span className="directory-category-pill">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z" />
+                  </svg>
+                  {category.name}
+                </span>
+              )}
+              {meta.sc_featured && <span className="directory-badge">Featured</span>}
+            </div>
+          )}
           <div className="post-content" dangerouslySetInnerHTML={{ __html: listing.content.rendered }} />
         </div>
       </div>

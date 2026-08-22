@@ -1477,6 +1477,21 @@ img {
   background: #0a5c36;
 }
 
+.directory-verified-check {
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+  vertical-align: -2px;
+}
+
+.directory-category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #c2607a;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
 .directory-badges {
   display: flex;
   gap: 0.5rem;
