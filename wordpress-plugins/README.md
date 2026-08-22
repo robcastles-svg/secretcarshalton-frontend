@@ -30,8 +30,8 @@ confirmed yet), that would be a straightforward upgrade to step 2 later.
 | Plugin | Status | Purpose |
 |---|---|---|
 | `sc-membership` | live on staging | Central member record: points, tiers, directory-upgrade approval queue, plus a bearer-token auth bridge (`/login`, `/register`) so the Next.js frontend can log members in without a second auth system — same `wp_users` table, same passwords. |
-| `sc-directory` | live on staging, no real data yet | Replaces Sabai Directory. Schema modeled on the real data scraped from staging (see below) — same shape, clean REST-first implementation via a plain CPT. 136 real Sabai listings still need migrating in. |
-| `sc-events` | live on staging, no real data yet | Replaces the EventON data layer. Real REST fields (start/end/venue) instead of scraping schema.org JSON-LD out of HTML, which is what the frontend still does today because EventON doesn't expose it. The ~257 real events are still in EventON — not migrated, so the frontend hasn't cut over yet (would show an empty events page). |
+| `sc-directory` | live on staging, real data migrated | Replaces Sabai Directory. Schema modeled on the real data scraped from staging (see below) — same shape, clean REST-first implementation via a plain CPT. 118 of the 136 real Sabai listings imported (the rest were pending/draft/trashed in the original and weren't migrated); all unclaimed until Rob supplies real owner emails (task pending). |
+| `sc-events` | live on staging, real data migrated | Replaces the EventON data layer. Real REST fields (start/end/venue) instead of scraping schema.org JSON-LD out of HTML, which is what the frontend used to do (and what caused two of this session's build failures). All 257 real events migrated from EventON's live data; the frontend now reads from sc-events end to end — see app/events/, app/page.tsx, lib/wordpress.ts's getScEvents/getUpcomingScEvents. |
 | `sc-ads` | live on staging | Admin-manageable ad slots (billboard/leaderboard/sidebar/in-article) — a plain labelled form (image, link, alt text, placement, active toggle, date range), no code editing needed to change a creative. Replaces the hardcoded Billboard/Leaderboard image URLs that were in `app/layout.tsx`.
 
 ## Frontend wiring (Next.js side)
@@ -42,6 +42,8 @@ confirmed yet), that would be a straightforward upgrade to step 2 later.
   and CORS isn't a factor since it's never called directly from the browser.
 - `/directory`, `/directory/[slug]` — read `sc-directory` via
   `lib/wordpress.ts`'s `getDirectoryListings*` functions.
+- `/events`, `/events/[slug]`, and the homepage's Events strip — read
+  `sc-events` via `getScEvents`/`getUpcomingScEvents`/`getScEventBySlug`.
 - `app/layout.tsx`'s Billboard/Leaderboard slots read `sc-ads` via `getAd()`.
 - All of the above point at `WP_STAGING_ROOT` (`staging19.secretcarshalton.com`)
   in `lib/wordpress.ts`, not the live site — these plugins aren't deployed
