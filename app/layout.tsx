@@ -3,6 +3,7 @@ import { Roboto } from "next/font/google";
 import Link from "next/link";
 import { getAd, getCategories, getCategoryBySlug } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
+import { PrimaryNav } from "./_components/PrimaryNav";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -144,11 +145,7 @@ export default async function RootLayout({
           </div>
           <div className="container primary-nav-row">
             <nav className="primary-nav">
-              {PRIMARY_NAV.map((item) => (
-                <Link key={item.label} href={item.href}>
-                  {item.label}
-                </Link>
-              ))}
+              <PrimaryNav items={PRIMARY_NAV} />
               <Link href="/search" className="nav-search" aria-label="Search">
                 <SearchIcon />
               </Link>

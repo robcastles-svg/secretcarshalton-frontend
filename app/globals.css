@@ -108,6 +108,13 @@ img {
   color: #0a5c36;
 }
 
+.primary-nav a.active {
+  color: #0a5c36;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
 .nav-search {
   display: flex;
   color: #555;
@@ -855,6 +862,16 @@ img {
 .sidebar-ad span {
   font-size: 0.85rem;
   color: #555;
+}
+
+.sidebar-block-ad {
+  display: block;
+}
+
+.sidebar-block-ad img {
+  display: block;
+  width: 100%;
+  border-radius: 4px;
 }
 
 .sidebar-theme-list {

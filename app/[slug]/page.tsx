@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CommentSection } from "@/app/_components/CommentSection";
 import { getSessionToken } from "@/lib/auth";
 import {
+  getAd,
   getAllPageSlugs,
   getCategories,
   getCommentsForPost,
@@ -110,13 +111,14 @@ export default async function ContentPage({
     );
   }
 
-  const [allCategories, allTags, comments, fullThread, recentPosts, sessionToken] = await Promise.all([
+  const [allCategories, allTags, comments, fullThread, recentPosts, sessionToken, sidebarAd] = await Promise.all([
     getCategories().catch(() => []),
     getTags().catch(() => []),
     getCommentsForPost(post.id, 3).catch(() => []),
     getCommentsForPost(post.id, 50).catch(() => []),
     getPosts(15).catch(() => []),
     getSessionToken(),
+    getAd("sidebar"),
   ]);
 
   const mostRead = await getMostReadPosts(
@@ -206,6 +208,16 @@ export default async function ContentPage({
                 ))}
               </ul>
             </div>
+          )}
+
+          {sidebarAd ? (
+            <a className="sidebar-block-ad" href={sidebarAd.link}>
+              <img src={sidebarAd.image} alt={sidebarAd.alt} loading="lazy" />
+            </a>
+          ) : (
+            <Link href="/advertising-contact" className="ad-slot-placeholder">
+              Advertise here
+            </Link>
           )}
 
           {allTags.length > 0 && (
