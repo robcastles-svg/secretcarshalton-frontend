@@ -16,12 +16,29 @@ class SC_Events_CPT {
 
 	const POST_TYPE = 'sc_event';
 	const TAXONOMY  = 'sc_event_category';
+	/**
+	 * Subject tags (Comedy, Music, Festival, ...) — EventON's event_type
+	 * taxonomy, distinct from sc_event_category (which is really a
+	 * location grouping: Carshalton / Sutton borough / Outside Sutton,
+	 * migrated from EventON's separate event_type_2). Two taxonomies
+	 * because that's genuinely two different axes to browse by, matching
+	 * what's already live.
+	 */
+	const TAG_TAXONOMY = 'sc_event_tag';
 
 	public static function default_categories() {
 		return array(
 			'Whats On in Carshalton',
 			'Whats On in Sutton',
 			'Whats On Outside Sutton',
+		);
+	}
+
+	/** The real 13 terms from EventON's event_type taxonomy on the live site (confirmed via its REST API). */
+	public static function default_tags() {
+		return array(
+			'Comedy', 'Dance', 'Festival', 'Fitness', 'Free Entry', 'Heritage',
+			'Music', 'Nature', 'Other', 'Quiz', 'Shopping', 'Suitable for kids', 'Theatre',
 		);
 	}
 
@@ -53,15 +70,29 @@ class SC_Events_CPT {
 				'rewrite'      => array( 'slug' => 'events/category' ),
 			)
 		);
+
+		register_taxonomy(
+			self::TAG_TAXONOMY,
+			self::POST_TYPE,
+			array(
+				'label'        => 'Event Tags',
+				'public'       => true,
+				'show_in_rest' => true,
+				'hierarchical' => false,
+				'rewrite'      => array( 'slug' => 'events/tag' ),
+			)
+		);
 	}
 
 	/**
 	 * True activation only — see sc-events.php for why the version-checked
-	 * seed_categories() call also has to run independently on 'init'.
+	 * seed_categories()/seed_tags() calls also have to run independently
+	 * on 'init'.
 	 */
 	public static function install() {
 		self::register();
 		self::seed_categories();
+		self::seed_tags();
 		flush_rewrite_rules();
 	}
 
@@ -69,6 +100,14 @@ class SC_Events_CPT {
 		foreach ( self::default_categories() as $category ) {
 			if ( ! term_exists( $category, self::TAXONOMY ) ) {
 				wp_insert_term( $category, self::TAXONOMY );
+			}
+		}
+	}
+
+	public static function seed_tags() {
+		foreach ( self::default_tags() as $tag ) {
+			if ( ! term_exists( $tag, self::TAG_TAXONOMY ) ) {
+				wp_insert_term( $tag, self::TAG_TAXONOMY );
 			}
 		}
 	}

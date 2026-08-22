@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_EVENTS_VERSION', '0.1.0' );
+define( 'SC_EVENTS_VERSION', '0.2.0' );
 define( 'SC_EVENTS_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_EVENTS_DIR . 'includes/class-sc-events-cpt.php';
@@ -37,6 +37,7 @@ add_action(
 	function () {
 		if ( get_option( 'sc_events_db_version' ) !== SC_EVENTS_VERSION ) {
 			SC_Events_CPT::seed_categories();
+			SC_Events_CPT::seed_tags();
 			update_option( 'sc_events_db_version', SC_EVENTS_VERSION );
 		}
 	}
