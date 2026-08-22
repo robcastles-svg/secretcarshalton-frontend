@@ -29,9 +29,14 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.secretcarshalt
  * so a deploy touches WordPress ~100 times instead of ~650.
  */
 export async function generateStaticParams() {
+  // A genuine (not just slow) WordPress failure here used to be able to
+  // crash the whole build's static-params collection for this route —
+  // meaning zero pages/posts pre-render for the entire deploy, not just
+  // one. Empty arrays degrade to ISR-on-first-visit instead (see the
+  // comment below), which is recoverable; a dead build isn't.
   const [pageSlugs, recentPostSlugs] = await Promise.all([
-    getAllPageSlugs(),
-    getRecentPostSlugs(30),
+    getAllPageSlugs().catch(() => []),
+    getRecentPostSlugs(30).catch(() => []),
   ]);
   const slugs = new Set([...pageSlugs, ...recentPostSlugs]);
   return Array.from(slugs).map((slug) => ({ slug }));
@@ -43,7 +48,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const item = (await getPostBySlug(slug)) ?? (await getPageBySlug(slug));
+  const item = (await getPostBySlug(slug).catch(() => null)) ?? (await getPageBySlug(slug).catch(() => null));
   if (!item) return {};
 
   const title = stripHtml(item.title.rendered);
@@ -83,8 +88,8 @@ export default async function ContentPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug);
-  const item = post ?? (await getPageBySlug(slug));
+  const post = await getPostBySlug(slug).catch(() => null);
+  const item = post ?? (await getPageBySlug(slug).catch(() => null));
 
   if (!item) notFound();
 
@@ -104,10 +109,10 @@ export default async function ContentPage({
   }
 
   const [allCategories, allTags, comments, recentPosts] = await Promise.all([
-    getCategories(),
-    getTags(),
-    getCommentsForPost(post.id, 3),
-    getPosts(15),
+    getCategories().catch(() => []),
+    getTags().catch(() => []),
+    getCommentsForPost(post.id, 3).catch(() => []),
+    getPosts(15).catch(() => []),
   ]);
 
   const mostRead = await getMostReadPosts(

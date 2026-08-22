@@ -19,7 +19,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const listing = await getDirectoryListingBySlug(slug);
+  const listing = await getDirectoryListingBySlug(slug).catch(() => null);
   if (!listing) return {};
   return { title: `${listing.title.rendered} — Directory — Secret Carshalton` };
 }
@@ -30,7 +30,7 @@ export default async function DirectoryListingPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const listing = await getDirectoryListingBySlug(slug);
+  const listing = await getDirectoryListingBySlug(slug).catch(() => null);
 
   if (!listing) notFound();
 

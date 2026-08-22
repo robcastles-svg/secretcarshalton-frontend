@@ -10,7 +10,7 @@ import {
 export const revalidate = 3600;
 
 export default async function EventsPage() {
-  const events = await getEvents(30);
+  const events = await getEvents(30).catch(() => []);
   const schemas = await mapWithConcurrency(events, 5, (event) =>
     getEventSchema(event.slug).catch(() => null)
   );

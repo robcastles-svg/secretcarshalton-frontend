@@ -4,8 +4,8 @@ import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
 export const revalidate = 3600;
 
 export default async function WalksPage() {
-  const parent = await getCategoryBySlug("walks");
-  const categories = await getCategories();
+  const parent = await getCategoryBySlug("walks").catch(() => null);
+  const categories = await getCategories().catch(() => []);
   const distances = parent ? categories.filter((c) => c.parent === parent.id) : [];
 
   return (

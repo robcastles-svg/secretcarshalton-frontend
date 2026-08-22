@@ -4,8 +4,8 @@ import { getCategoryBySlug, getPostsByCategory } from "@/lib/wordpress";
 export const revalidate = 3600;
 
 export default async function PeoplePage() {
-  const category = await getCategoryBySlug("people");
-  const posts = category ? await getPostsByCategory(category.id) : [];
+  const category = await getCategoryBySlug("people").catch(() => null);
+  const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
 
   return (
     <main className="container">

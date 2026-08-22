@@ -7,9 +7,9 @@ import { getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const parent = await getCategoryBySlug("walks");
+  const parent = await getCategoryBySlug("walks").catch(() => null);
   if (!parent) return [];
-  const categories = await getCategories();
+  const categories = await getCategories().catch(() => []);
   return categories.filter((c) => c.parent === parent.id).map((c) => ({ distance: c.slug }));
 }
 
@@ -19,7 +19,7 @@ export async function generateMetadata({
   params: Promise<{ distance: string }>;
 }): Promise<Metadata> {
   const { distance } = await params;
-  const category = await getCategoryBySlug(distance);
+  const category = await getCategoryBySlug(distance).catch(() => null);
   if (!category) return {};
   return { title: `${category.name} — Walks` };
 }
@@ -30,14 +30,14 @@ export default async function WalksDistancePage({
   params: Promise<{ distance: string }>;
 }) {
   const { distance } = await params;
-  const category = await getCategoryBySlug(distance);
+  const category = await getCategoryBySlug(distance).catch(() => null);
 
   if (!category) notFound();
 
   const [posts, allCategories, allTags] = await Promise.all([
-    getPostsByCategory(category.id),
-    getCategories(),
-    getTags(),
+    getPostsByCategory(category.id).catch(() => []),
+    getCategories().catch(() => []),
+    getTags().catch(() => []),
   ]);
 
   const parent = allCategories.find((c) => c.slug === "walks");

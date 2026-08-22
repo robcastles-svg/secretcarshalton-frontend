@@ -13,7 +13,7 @@ export const revalidate = 3600;
 
 /** See app/[slug]/page.tsx for the same tradeoff — capped instead of all ~257 events. */
 export async function generateStaticParams() {
-  const slugs = await getRecentEventSlugs(20);
+  const slugs = await getRecentEventSlugs(20).catch(() => []);
   return slugs.map((slug) => ({ slug }));
 }
 
@@ -23,7 +23,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const event = await getEventBySlug(slug);
+  const event = await getEventBySlug(slug).catch(() => null);
   if (!event) return {};
 
   const title = stripHtml(event.title.rendered);
@@ -47,7 +47,7 @@ export default async function EventPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const event = await getEventBySlug(slug);
+  const event = await getEventBySlug(slug).catch(() => null);
 
   if (!event) notFound();
 

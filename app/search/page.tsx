@@ -9,7 +9,7 @@ export default async function SearchPage({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q } = await searchParams;
-  const results = q ? await searchPosts(q) : [];
+  const results = q ? await searchPosts(q).catch(() => []) : [];
 
   return (
     <main className="container">

@@ -4,8 +4,8 @@ import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
 export const revalidate = 3600;
 
 export default async function StoriesPage() {
-  const parent = await getCategoryBySlug("stories");
-  const categories = await getCategories();
+  const parent = await getCategoryBySlug("stories").catch(() => null);
+  const categories = await getCategories().catch(() => []);
   const areas = parent ? categories.filter((c) => c.parent === parent.id) : [];
 
   return (
