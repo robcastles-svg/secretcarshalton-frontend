@@ -3,6 +3,7 @@ import { Roboto } from "next/font/google";
 import Link from "next/link";
 import { getAd, getCategories, getCategoryBySlug } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
+import { BackToTop } from "./_components/BackToTop";
 import { PrimaryNav } from "./_components/PrimaryNav";
 import "./globals.css";
 
@@ -290,6 +291,7 @@ export default async function RootLayout({
             </div>
           </div>
         </footer>
+        <BackToTop />
       </body>
     </html>
   );

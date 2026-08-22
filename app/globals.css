@@ -294,6 +294,11 @@ img {
 .post-list li {
   display: flex;
   flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  padding-bottom: 1rem;
 }
 
 .post-list li a {
@@ -306,8 +311,15 @@ img {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: 4px;
   margin-bottom: 0.75rem;
+}
+
+.post-list .card-title,
+.post-list .card-tag,
+.post-list .card-category,
+.post-list time {
+  margin-left: 1rem;
+  margin-right: 1rem;
 }
 
 /* The excerpt (an unclassed <div> straight under <li>) isn't part of the
@@ -361,16 +373,13 @@ img {
   color: #555;
 }
 
-@media (max-width: 560px) {
-  .post-list li {
-    grid-template-columns: 100px 1fr;
-  }
-
-  .post-list li img {
-    width: 100px;
-    height: 80px;
-  }
-}
+/*
+ * No mobile override here on purpose: the card above is already the
+ * full-width vertical layout (image on top, full width) at every screen
+ * size — there used to be a rule here shrinking the image down to a
+ * 100x80 thumbnail on mobile, which fought the desktop card treatment
+ * instead of just scaling it down.
+ */
 
 /* Simple link lists (Stories/Walks hub pages) */
 .link-list {
@@ -474,6 +483,10 @@ img {
   gap: 1rem;
   text-decoration: none;
   color: inherit;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 0.75rem;
 }
 
 .event-row-list img {
@@ -503,6 +516,10 @@ img {
   text-decoration: none;
   color: inherit;
   align-items: center;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
 }
 
 .feature-row img {
@@ -610,29 +627,27 @@ img {
   color: #fff;
 }
 
-.event-tag-tiles {
+.event-tag-dropdown {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.6rem;
   margin: 0 0 1.5rem;
 }
 
-.event-tag-tiles a {
-  display: inline-block;
-  padding: 0.35rem 0.8rem;
+.event-tag-dropdown label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.event-tag-dropdown select {
+  padding: 0.45rem 0.8rem;
   border-radius: 999px;
   border: 1px solid #ddd;
   background: #fff;
-  color: #555;
-  text-decoration: none;
-  font-size: 0.78rem;
+  color: #1a1a1a;
+  font-size: 0.85rem;
   font-weight: 600;
-}
-
-.event-tag-tiles a.active {
-  background: #1a1a1a;
-  border-color: #1a1a1a;
-  color: #fff;
 }
 
 .event-view-switch {
@@ -767,6 +782,69 @@ img {
   flex-wrap: wrap;
   gap: 0.75rem;
   margin: 1.5rem 0;
+}
+
+.rsvp-button-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.rsvp-button-going {
+  background: #0a5c36;
+}
+
+.rsvp-count {
+  color: #777;
+  font-size: 0.85rem;
+}
+
+.event-map iframe {
+  display: block;
+  border-radius: 8px;
+}
+
+.member-profile-link-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.member-profile-link-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.member-profile-link-list li:last-child {
+  border-bottom: none;
+}
+
+.member-profile-comment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.member-profile-comment-list li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.member-profile-comment-list li:last-child {
+  border-bottom: none;
+}
+
+.member-profile-comment-list time {
+  display: block;
+  color: #777;
+  font-size: 0.8rem;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.member-profile-comment-list p {
+  margin: 0;
+  color: #555;
 }
 
 .member-profile-header {
@@ -1408,6 +1486,28 @@ img {
   cursor: not-allowed;
 }
 
+.event-form-tags {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.75rem 1rem 1rem;
+}
+
+.event-form-tags legend {
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0 0.35rem;
+}
+
+.event-form-tag-checkbox {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 400 !important;
+  font-size: 0.9rem;
+  margin: 0.3rem 1rem 0.3rem 0;
+}
+
 .password-input {
   position: relative;
   display: flex;
@@ -1598,6 +1698,12 @@ img {
   gap: 0.75rem;
   padding: 0.6rem 0;
   border-bottom: 1px solid #eee;
+}
+
+.dashboard-my-list-edit {
+  margin-left: auto;
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .dashboard-my-comments > li {
@@ -1870,4 +1976,33 @@ img {
   background: #f5f5f5;
   border-radius: 12px;
   padding: 1.5rem;
+}
+
+.back-to-top {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #1a1a1a;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  z-index: 40;
+}
+
+.back-to-top:hover {
+  background: #c2607a;
+}
+
+@media (max-width: 560px) {
+  .back-to-top {
+    right: 1rem;
+    bottom: 1rem;
+  }
 }

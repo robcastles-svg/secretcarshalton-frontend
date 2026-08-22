@@ -67,6 +67,54 @@ class SC_Membership_REST {
 				},
 			)
 		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/comments-by-user',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_comments_by_user' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+	}
+
+	/**
+	 * Powers the "their comments" section on a member's *public* profile
+	 * page — unlike get_my_comments() (own account, any status), this is
+	 * reachable by anyone with the user's ID, so it's deliberately
+	 * narrower: approved comments only, no held/spam/trash leakage.
+	 */
+	public static function get_comments_by_user( WP_REST_Request $request ) {
+		$user_id = (int) $request->get_param( 'user_id' );
+		if ( ! $user_id ) {
+			return new WP_Error( 'missing_user_id', 'A user_id is required.', array( 'status' => 400 ) );
+		}
+
+		$comments = get_comments(
+			array(
+				'user_id' => $user_id,
+				'status'  => 'approve',
+				'number'  => 20,
+				'orderby' => 'comment_date',
+				'order'   => 'DESC',
+			)
+		);
+
+		return array_map(
+			function ( $comment ) {
+				$post = get_post( $comment->comment_post_ID );
+				return array(
+					'id'         => (int) $comment->comment_ID,
+					'content'    => array( 'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ) ),
+					'date'       => $comment->comment_date,
+					'post_type'  => $post ? $post->post_type : null,
+					'post_slug'  => $post ? $post->post_name : null,
+					'post_title' => $post ? get_the_title( $post ) : null,
+				);
+			},
+			$comments
+		);
 	}
 
 	/** The dashboard's "Your comments" section — across any status, own account only. */
@@ -92,6 +140,7 @@ class SC_Membership_REST {
 					'content'   => array( 'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ) ),
 					'date'      => $comment->comment_date,
 					'status'    => wp_get_comment_status( $comment->comment_ID ),
+					'post_type' => $post ? $post->post_type : null,
 					'post_slug' => $post ? $post->post_name : null,
 					'post_title' => $post ? get_the_title( $post ) : null,
 				);
@@ -107,6 +156,7 @@ class SC_Membership_REST {
 		$next    = SC_Membership_Tiers::points_to_next_tier( (int) $member->points );
 
 		return array(
+			'id'                       => $user_id,
 			// 'edit_others_posts' is Editor/Administrator only — Author and
 			// below can't. Used by the frontend to gate the AI editorial
 			// draft tool (brief section 11's admin/editor role split), not
@@ -184,6 +234,29 @@ class SC_Membership_REST {
 		}
 
 		$user = wp_get_current_user();
+
+		/*
+		 * WP Armour (Honeypot Anti Spam, active site-wide) hooks
+		 * preprocess_comment and calls wp_die() directly whenever its
+		 * dynamically-named hidden form field isn't present in $_POST —
+		 * found by testing this route directly (it 500s with "Spamming or
+		 * your Javascript is disabled"), not by reading WP Armour's source.
+		 * A real browser's comment form gets that field injected and
+		 * submitted empty; this REST route never renders that form at all,
+		 * so every submission here — including the ones members already
+		 * send from the live comment box — hits the same wp_die() before
+		 * wp_new_comment() ever returns. Pre-setting the guessed field name
+		 * in $_POST didn't satisfy it (its check may be more than
+		 * presence/absence), so the only way to reach wp_new_comment() at
+		 * all is removing preprocess_comment's filters for this one call.
+		 * Safe here specifically because permission_callback already
+		 * requires a real logged-in member — this route was never reachable
+		 * by anonymous spam in the first place, unlike the honeypot's actual
+		 * target (the public wp-comments-post.php form). No other plugin in
+		 * the active list is a spam filter that would be lost by this (no
+		 * Akismet et al. installed).
+		 */
+		remove_all_filters( 'preprocess_comment' );
 
 		$comment_id = wp_new_comment(
 			wp_slash(

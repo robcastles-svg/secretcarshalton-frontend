@@ -1,14 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CommentSection } from "@/app/_components/CommentSection";
+import { getSessionToken } from "@/lib/auth";
 import {
+  getCommentsForPost,
+  getEventRsvpStatus,
   getFeaturedImage,
+  getMemberMe,
   getRecentScEventSlugs,
   getScEventBySlug,
   parseEventDate,
   slugifyVenue,
   stripHtml,
 } from "@/lib/wordpress";
+import { RsvpButton } from "./_components/RsvpButton";
 
 export const revalidate = 3600;
 
@@ -51,8 +57,23 @@ export default async function EventPage({
 
   if (!event) notFound();
 
+  const [sessionToken, fullThread] = await Promise.all([
+    getSessionToken(),
+    getCommentsForPost(event.id, 50).catch(() => []),
+  ]);
+
+  const [profile, rsvpStatus] = await Promise.all([
+    sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
+    sessionToken ? getEventRsvpStatus(sessionToken, event.id) : Promise.resolve(null),
+  ]);
+
+  const isOwner = Boolean(profile && profile.id === event.author);
+
   const image = getFeaturedImage(event);
   const startDate = parseEventDate(event.meta.sc_start);
+
+  const addressParts = [event.meta.sc_venue_name, event.meta.sc_venue_address].filter(Boolean);
+  const mapQuery = addressParts.join(", ");
 
   const eventSchema = {
     "@context": "https://schema.org",
@@ -74,48 +95,100 @@ export default async function EventPage({
   };
 
   return (
-    <article className="container">
+    <article className="container post-layout">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
       />
-      <h1 dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-      {startDate && (
-        <p>
-          <strong>
-            {startDate.toLocaleString("en-GB", {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-              hour: "numeric",
-              minute: "2-digit",
-            })}
-          </strong>
-          {event.meta.sc_venue_name && (
-            <>
-              {" — "}
-              {event.meta.sc_venue_name}
-              {event.meta.sc_venue_address ? `, ${event.meta.sc_venue_address}` : ""}
-            </>
+      <div className="post-body">
+        <div className="page-header-row">
+          <h1 dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
+          {isOwner && (
+            <Link href={`/events/${event.slug}/edit`} className="button-pill button-pill-secondary">
+              Edit event
+            </Link>
           )}
-        </p>
-      )}
-      {image && <img src={image.source_url} alt={image.alt_text} />}
+        </div>
+        {startDate && (
+          <p>
+            <strong>
+              {startDate.toLocaleString("en-GB", {
+                weekday: "long",
+                day: "numeric",
+                month: "long",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </strong>
+            {event.meta.sc_venue_name && (
+              <>
+                {" — "}
+                {event.meta.sc_venue_name}
+                {event.meta.sc_venue_address ? `, ${event.meta.sc_venue_address}` : ""}
+              </>
+            )}
+          </p>
+        )}
+        {image && <img src={image.source_url} alt={image.alt_text} />}
 
-      <div className="event-detail-actions">
-        {event.meta.sc_venue_name && (
-          <Link href={`/events/venue/${slugifyVenue(event.meta.sc_venue_name)}`} className="button-pill button-pill-secondary">
-            See all events at {event.meta.sc_venue_name}
-          </Link>
-        )}
-        {event._embedded?.author?.[0] && (
-          <Link href={`/members/${event._embedded.author[0].slug}`} className="button-pill button-pill-secondary">
-            Submitted by {event._embedded.author[0].name}
-          </Link>
-        )}
+        <RsvpButton
+          eventId={event.id}
+          isLoggedIn={Boolean(sessionToken)}
+          initialGoing={rsvpStatus?.going ?? false}
+          initialCount={rsvpStatus?.going_count ?? event.sc_event_rsvp_count ?? 0}
+        />
+
+        <div className="event-detail-actions">
+          {event.meta.sc_venue_name && (
+            <Link href={`/events/venue/${slugifyVenue(event.meta.sc_venue_name)}`} className="button-pill button-pill-secondary">
+              See all events at {event.meta.sc_venue_name}
+            </Link>
+          )}
+          {event._embedded?.author?.[0] && (
+            <Link href={`/members/${event._embedded.author[0].slug}`} className="button-pill button-pill-secondary">
+              Submitted by {event._embedded.author[0].name}
+            </Link>
+          )}
+        </div>
+
+        <div dangerouslySetInnerHTML={{ __html: event.content.rendered }} />
+
+        <CommentSection postId={event.id} comments={fullThread} isLoggedIn={Boolean(sessionToken)} />
       </div>
 
-      <div dangerouslySetInnerHTML={{ __html: event.content.rendered }} />
+      <aside className="post-sidebar">
+        {(event.meta.sc_organizer || event.meta.sc_event_url || addressParts.length > 0) && (
+          <div className="sidebar-block">
+            <h2>More info</h2>
+            {addressParts.length > 0 && <p>{addressParts.join(", ")}</p>}
+            {event.meta.sc_organizer && (
+              <p>
+                Organised by <strong>{event.meta.sc_organizer}</strong>
+              </p>
+            )}
+            {event.meta.sc_event_url && (
+              <p>
+                <a href={event.meta.sc_event_url} target="_blank" rel="noopener noreferrer">
+                  {event.meta.sc_event_url.replace(/^https?:\/\//, "")}
+                </a>
+              </p>
+            )}
+          </div>
+        )}
+
+        {mapQuery && (
+          <div className="sidebar-block event-map">
+            <iframe
+              title="Event location map"
+              width="100%"
+              height="220"
+              style={{ border: 0 }}
+              loading="lazy"
+              src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`}
+            />
+          </div>
+        )}
+      </aside>
     </article>
   );
 }

@@ -52,7 +52,7 @@ class SC_Events_CPT {
 				'rest_base'    => 'sc-events',
 				'has_archive'  => 'events',
 				'rewrite'      => array( 'slug' => 'events' ),
-				'supports'     => array( 'title', 'editor', 'thumbnail', 'author', 'custom-fields' ),
+				'supports'     => array( 'title', 'editor', 'thumbnail', 'author', 'custom-fields', 'comments' ),
 				'menu_icon'    => 'dashicons-calendar-alt',
 				'capability_type' => 'post',
 				'map_meta_cap' => true,
@@ -93,6 +93,7 @@ class SC_Events_CPT {
 		self::register();
 		self::seed_categories();
 		self::seed_tags();
+		self::open_comments_on_existing_events();
 		flush_rewrite_rules();
 	}
 
@@ -109,6 +110,36 @@ class SC_Events_CPT {
 			if ( ! term_exists( $tag, self::TAG_TAXONOMY ) ) {
 				wp_insert_term( $tag, self::TAG_TAXONOMY );
 			}
+		}
+	}
+
+	/**
+	 * Adding 'comments' to the CPT's supports array (done alongside this)
+	 * only changes the *default* comment_status new posts get going
+	 * forward — WordPress doesn't retroactively touch already-created
+	 * rows' stored comment_status. Every sc_event submitted before this
+	 * version was inserted with comments implicitly closed, so without
+	 * this one-time backfill the comment box would silently 403 on any
+	 * event that existed before this feature shipped.
+	 */
+	public static function open_comments_on_existing_events() {
+		$ids = get_posts(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'meta_query'     => array(
+					array(
+						'key'     => '_sc_events_comments_backfilled',
+						'compare' => 'NOT EXISTS',
+					),
+				),
+			)
+		);
+		foreach ( $ids as $id ) {
+			wp_update_post( array( 'ID' => $id, 'comment_status' => 'open' ) );
+			update_post_meta( $id, '_sc_events_comments_backfilled', 1 );
 		}
 	}
 }

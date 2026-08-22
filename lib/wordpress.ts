@@ -310,6 +310,45 @@ export async function getLatestComments(count: number): Promise<
     .filter((c): c is WPComment & { postSlug: string; postTitle: string } => c !== null);
 }
 
+export interface PublicComment {
+  id: number;
+  content: WPRendered;
+  date: string;
+  post_type: string | null;
+  post_slug: string | null;
+  post_title: string | null;
+}
+
+/** Maps a post_type + slug to the frontend route it lives at — the one thing WP's own post_type name can't tell you. */
+export function linkForPostType(postType: string | null, slug: string | null): string | null {
+  if (!slug) return null;
+  if (postType === "sc_event") return `/events/${slug}`;
+  if (postType === "sc_listing") return `/directory/${slug}`;
+  return `/${slug}`;
+}
+
+/**
+ * Public, unauthenticated — approved comments only (see
+ * SC_Membership_REST::get_comments_by_user's docblock). Powers the "their
+ * comments" section on a member's public profile page.
+ */
+export async function getCommentsByUser(
+  userId: number
+): Promise<Array<PublicComment & { link: string | null }>> {
+  try {
+    const res = await fetchWithRetry(
+      `${WP_STAGING_ROOT}/sc-membership/v1/comments-by-user?user_id=${userId}`,
+      { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
+      3
+    );
+    if (!res.ok) return [];
+    const comments: PublicComment[] = await res.json();
+    return comments.map((c) => ({ ...c, link: linkForPostType(c.post_type, c.post_slug) }));
+  } catch {
+    return [];
+  }
+}
+
 export async function getPostsByCategory(categoryId: number): Promise<WPContentItem[]> {
   const posts: WPContentItem[] = [];
   let page = 1;
@@ -477,6 +516,13 @@ export function getDirectoryCategories() {
   return scDirectoryFetch<WPDirectoryCategory[]>(`/sc_listing_category?per_page=50`);
 }
 
+/** For a member's public profile page — "listings they've submitted." WP's core REST author param needs no custom route. */
+export function getDirectoryListingsByAuthor(authorId: number) {
+  return scDirectoryFetch<WPListing[]>(
+    `/sc-listings?author=${authorId}&per_page=50&_fields=id,slug,link,title,content,author,sc_listing_category,meta,_links&_embed=wp:featuredmedia`
+  );
+}
+
 // ---------------------------------------------------------------------------
 // sc-events — real REST date/venue fields, no HTML-scraping needed. The
 // ~257 real events have been migrated from EventON's live data (see
@@ -505,6 +551,7 @@ export interface WPScEvent {
   meta: WPScEventMeta;
   sc_event_category: number[];
   sc_event_tag: number[];
+  sc_event_rsvp_count?: number;
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
     author?: WPPublicUser[];
@@ -580,7 +627,7 @@ export async function getScEvents(perPage = 100): Promise<WPScEvent[]> {
   while (events.length < perPage) {
     const batchSize = Math.min(100, perPage - events.length);
     const batch = await scDirectoryFetch<WPScEvent[]>(
-      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,author,title,content,meta,sc_event_category,sc_event_tag,_links&_embed=author,wp:featuredmedia`
+      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,author,title,content,meta,sc_event_category,sc_event_tag,sc_event_rsvp_count,_links&_embed=author,wp:featuredmedia`
     );
     events.push(...batch);
     if (batch.length < batchSize) break;
@@ -618,6 +665,92 @@ export async function getScEventsByVenue(venueSlug: string): Promise<WPScEvent[]
 export async function getScEventsByAuthor(authorId: number): Promise<WPScEvent[]> {
   const events = await getScEvents(300);
   return events.filter((e) => e.author === authorId);
+}
+
+/**
+ * Owner-only edit, via the custom sc-events/v1/{id} route rather than WP's
+ * own wp/v2/sc-events/{id} — members are Subscribers with no edit_posts
+ * capability at all, so the generic REST controller would 401/403 for
+ * every member regardless of whose post it is. Every field is optional:
+ * only keys present in `data` get touched server-side (see
+ * SC_Events_REST::update_event's docblock).
+ */
+export async function updateEvent(
+  token: string,
+  eventId: number,
+  data: Record<string, string | string[]>
+): Promise<{ id: number; status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "update_failed", message: body.message ?? "Could not update the event." };
+    }
+    return { id: body.id, status: body.status };
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+export interface RsvpStatus {
+  going: boolean;
+  going_count: number;
+}
+
+export async function getEventRsvpStatus(token: string, eventId: number): Promise<RsvpStatus | null> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}/rsvp`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function rsvpToEvent(token: string, eventId: number): Promise<RsvpStatus | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}/rsvp`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "rsvp_failed", message: body.message ?? "Could not RSVP to this event." };
+    }
+    return { going: true, going_count: body.going_count };
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+export async function unRsvpFromEvent(token: string, eventId: number): Promise<RsvpStatus | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}/rsvp`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "rsvp_failed", message: body.message ?? "Could not update your RSVP." };
+    }
+    return { going: false, going_count: body.going_count };
+  } catch {
+    return NETWORK_ERROR;
+  }
 }
 
 export async function getRecentScEventSlugs(count: number): Promise<string[]> {
@@ -705,6 +838,7 @@ export async function registerMember(
 }
 
 export interface MemberProfile {
+  id: number;
   is_editor: boolean;
   email_verified: boolean;
   points: number;
@@ -834,7 +968,7 @@ export async function submitListing(
 
 export async function submitEvent(
   token: string,
-  data: Record<string, string>
+  data: Record<string, string | string[]>
 ): Promise<{ status: string; id: number } | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/submit`, {
@@ -907,6 +1041,7 @@ export interface MyComment {
   content: WPRendered;
   date: string;
   status: string;
+  post_type: string | null;
   post_slug: string | null;
   post_title: string | null;
 }

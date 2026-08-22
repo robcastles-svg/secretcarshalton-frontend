@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getMemberMe, getMyComments, getMyEvents, getMyListings } from "@/lib/wordpress";
+import { getMemberMe, getMyComments, getMyEvents, getMyListings, linkForPostType } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 import { LogoutButton } from "./_components/LogoutButton";
 import { RequestUpgradeButton } from "./_components/RequestUpgradeButton";
@@ -167,6 +167,9 @@ export default async function DashboardPage() {
                 ) : (
                   <span>{event.title}</span>
                 )}
+                <Link href={`/events/${event.slug}/edit`} className="dashboard-my-list-edit">
+                  Edit
+                </Link>
               </li>
             ))}
           </ul>
@@ -195,11 +198,14 @@ export default async function DashboardPage() {
                   {comment.status !== "approved" && (
                     <span className="dashboard-status-badge dashboard-status-pending">Awaiting moderation</span>
                   )}
-                  {comment.post_slug ? (
-                    <Link href={`/${comment.post_slug}`}>{comment.post_title}</Link>
-                  ) : (
-                    <span>{comment.post_title ?? "A post"}</span>
-                  )}
+                  {(() => {
+                    const link = linkForPostType(comment.post_type, comment.post_slug);
+                    return link ? (
+                      <Link href={link}>{comment.post_title}</Link>
+                    ) : (
+                      <span>{comment.post_title ?? "A post"}</span>
+                    );
+                  })()}
                   <time>{formatDate(comment.date)}</time>
                 </div>
                 <p dangerouslySetInnerHTML={{ __html: comment.content.rendered }} />
