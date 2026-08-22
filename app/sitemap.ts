@@ -4,7 +4,7 @@ import {
   getAllPostSlugs,
   getCategories,
   getDirectoryListings,
-  getEvents,
+  getScEvents,
 } from "@/lib/wordpress";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.secretcarshalton.com";
@@ -50,7 +50,7 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     getAllPageSlugs().catch(() => []),
     getAllPostSlugs(),
     getCategories().catch(() => []),
-    getEvents(100).catch(() => []),
+    getScEvents(300).catch(() => []),
     getDirectoryListings().catch(() => []),
   ]);
 

@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
-  getEventBySlug,
-  getEventSchema,
   getFeaturedImage,
-  getRecentEventSlugs,
+  getRecentScEventSlugs,
+  getScEventBySlug,
   parseEventDate,
   stripHtml,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
-/** See app/[slug]/page.tsx for the same tradeoff — capped instead of all ~257 events. */
 export async function generateStaticParams() {
-  const slugs = await getRecentEventSlugs(20).catch(() => []);
+  const slugs = await getRecentScEventSlugs(50).catch(() => []);
   return slugs.map((slug) => ({ slug }));
 }
 
@@ -23,7 +21,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const event = await getEventBySlug(slug).catch(() => null);
+  const event = await getScEventBySlug(slug).catch(() => null);
   if (!event) return {};
 
   const title = stripHtml(event.title.rendered);
@@ -47,17 +45,38 @@ export default async function EventPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const event = await getEventBySlug(slug).catch(() => null);
+  const event = await getScEventBySlug(slug).catch(() => null);
 
   if (!event) notFound();
 
   const image = getFeaturedImage(event);
-  const schema = await getEventSchema(slug).catch(() => null);
-  const venue = schema?.location?.[0];
-  const startDate = parseEventDate(schema?.startDate);
+  const startDate = parseEventDate(event.meta.sc_start);
+
+  const eventSchema = {
+    "@context": "https://schema.org",
+    "@type": "Event",
+    name: stripHtml(event.title.rendered),
+    startDate: event.meta.sc_start || undefined,
+    endDate: event.meta.sc_end || undefined,
+    location: event.meta.sc_venue_name
+      ? {
+          "@type": "Place",
+          name: event.meta.sc_venue_name,
+          address: event.meta.sc_venue_address || undefined,
+        }
+      : undefined,
+    organizer: event.meta.sc_organizer
+      ? { "@type": "Organization", name: event.meta.sc_organizer, url: event.meta.sc_event_url || undefined }
+      : undefined,
+    image: image ? [image.source_url] : undefined,
+  };
 
   return (
     <article className="container">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
+      />
       <h1 dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
       {startDate && (
         <p>
@@ -70,11 +89,11 @@ export default async function EventPage({
               minute: "2-digit",
             })}
           </strong>
-          {venue?.name && (
+          {event.meta.sc_venue_name && (
             <>
               {" — "}
-              {venue.name}
-              {venue.address?.streetAddress ? `, ${venue.address.streetAddress}` : ""}
+              {event.meta.sc_venue_name}
+              {event.meta.sc_venue_address ? `, ${event.meta.sc_venue_address}` : ""}
             </>
           )}
         </p>

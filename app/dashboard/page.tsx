@@ -162,10 +162,11 @@ export default async function DashboardPage() {
                 <span className={`dashboard-status-badge dashboard-status-${event.status}`}>
                   {POST_STATUS_LABEL[event.status] ?? event.status}
                 </span>
-                {/* Not linked even once published: /events/[slug] still reads the
-                    old EventON post type, not sc-events (see task #4) — a link
-                    here would 404 until that migration lands. */}
-                <span>{event.title}</span>
+                {event.status === "publish" ? (
+                  <Link href={`/events/${event.slug}`}>{event.title}</Link>
+                ) : (
+                  <span>{event.title}</span>
+                )}
               </li>
             ))}
           </ul>

@@ -1,19 +1,10 @@
 import Link from "next/link";
-import {
-  getEvents,
-  getEventSchema,
-  getFeaturedImage,
-  mapWithConcurrency,
-  parseEventDate,
-} from "@/lib/wordpress";
+import { getFeaturedImage, getUpcomingScEvents, parseEventDate } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
 export default async function EventsPage() {
-  const events = await getEvents(30).catch(() => []);
-  const schemas = await mapWithConcurrency(events, 5, (event) =>
-    getEventSchema(event.slug).catch(() => null)
-  );
+  const events = await getUpcomingScEvents(100).catch(() => []);
 
   return (
     <main className="container">
@@ -24,11 +15,9 @@ export default async function EventsPage() {
         </Link>
       </div>
       <ul className="post-list">
-        {events.map((event, index) => {
+        {events.map((event) => {
           const image = getFeaturedImage(event);
-          const schema = schemas[index];
-          const venue = schema?.location?.[0];
-          const startDate = parseEventDate(schema?.startDate);
+          const startDate = parseEventDate(event.meta.sc_start);
           return (
             <li key={event.id}>
               <Link href={`/events/${event.slug}`}>
@@ -44,7 +33,7 @@ export default async function EventsPage() {
                     hour: "numeric",
                     minute: "2-digit",
                   })}
-                  {venue?.name ? ` — ${venue.name}` : ""}
+                  {event.meta.sc_venue_name ? ` — ${event.meta.sc_venue_name}` : ""}
                 </time>
               )}
             </li>

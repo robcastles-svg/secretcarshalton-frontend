@@ -2,15 +2,13 @@ import Link from "next/link";
 import { ContentList } from "@/app/_components/ContentList";
 import {
   getCategoryBySlug,
-  getEventSchema,
-  getEvents,
   getFeaturedImage,
   getLatestComments,
   getLatestPostInCategories,
   getMostReadPosts,
   getPosts,
   getCategories,
-  mapWithConcurrency,
+  getUpcomingScEvents,
   parseEventDate,
   stripHtml,
 } from "@/lib/wordpress";
@@ -36,7 +34,7 @@ export default async function HomePage() {
     getPosts(20).catch(() => []),
     getCategoryBySlug("walks").catch(() => null),
     getCategories().catch(() => []),
-    getEvents(4).catch(() => []),
+    getUpcomingScEvents(4).catch(() => []),
   ]);
 
   const [hero, ...cardPosts] = recentPosts.slice(0, 4);
@@ -44,10 +42,9 @@ export default async function HomePage() {
   const walkChildIds = walksCategory
     ? allCategories.filter((c) => c.parent === walksCategory.id).map((c) => c.id)
     : [];
-  const [latestWalk, comments, eventSchemas, mostRead] = await Promise.all([
+  const [latestWalk, comments, mostRead] = await Promise.all([
     getLatestPostInCategories(walkChildIds).catch(() => null),
     getLatestComments(3).catch(() => []),
-    mapWithConcurrency(events, 4, (event) => getEventSchema(event.slug).catch(() => null)),
     getMostReadPosts(recentPosts, 10),
   ]);
 
@@ -99,11 +96,9 @@ export default async function HomePage() {
               <Link href="/events">All events</Link>
             </div>
             <ul className="event-row-list">
-              {events.map((event, i) => {
+              {events.map((event) => {
                 const image = getFeaturedImage(event);
-                const schema = eventSchemas[i];
-                const startDate = parseEventDate(schema?.startDate);
-                const venue = schema?.location?.[0];
+                const startDate = parseEventDate(event.meta.sc_start);
                 return (
                   <li key={event.id}>
                     <Link href={`/events/${event.slug}`}>
@@ -117,7 +112,7 @@ export default async function HomePage() {
                               day: "numeric",
                               month: "short",
                             })}
-                            {venue?.name ? ` — ${venue.name}` : ""}
+                            {event.meta.sc_venue_name ? ` — ${event.meta.sc_venue_name}` : ""}
                           </time>
                         )}
                       </div>

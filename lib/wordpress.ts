@@ -32,16 +32,6 @@ export interface WPContentItem {
   };
 }
 
-export interface EventSchema {
-  startDate?: string;
-  endDate?: string;
-  location?: Array<{
-    name?: string;
-    address?: { streetAddress?: string };
-  }>;
-  organizer?: Array<{ name?: string; url?: string }>;
-}
-
 /**
  * When featured_media points to a deleted/invalid attachment, WP's _embed
  * still populates wp:featuredmedia — but with a WP_Error shape ({code,
@@ -229,26 +219,6 @@ export async function getPageBySlug(slug: string): Promise<WPContentItem | null>
   return pages[0] ?? null;
 }
 
-export function getEvents(perPage = 100) {
-  return wpFetch<WPContentItem[]>(
-    `/ajde_events?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
-  );
-}
-
-export async function getRecentEventSlugs(count: number): Promise<string[]> {
-  const events = await wpFetch<Array<{ slug: string }>>(
-    `/ajde_events?per_page=${count}&_fields=slug`
-  );
-  return events.map((e) => e.slug);
-}
-
-export async function getEventBySlug(slug: string): Promise<WPContentItem | null> {
-  const events = await wpFetch<WPContentItem[]>(
-    `/ajde_events?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
-  );
-  return events[0] ?? null;
-}
-
 export interface WPCategory {
   id: number;
   slug: string;
@@ -396,31 +366,6 @@ export async function mapWithConcurrency<T, R>(
   return results;
 }
 
-/**
- * EventON's date/venue meta isn't exposed via REST, so it's pulled from
- * the schema.org JSON-LD block on each event's live page instead, until
- * events move to a post type we control directly.
- */
-export async function getEventSchema(slug: string): Promise<EventSchema | null> {
-  const res = await fetchWithRetry(
-    `https://www.secretcarshalton.com/events/${slug}/`,
-    { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
-    3
-  );
-  if (!res.ok) return null;
-  const html = await res.text();
-  const matches = html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g);
-  for (const match of matches) {
-    try {
-      const data = JSON.parse(match[1]);
-      if (data["@type"] === "Event") return data;
-    } catch {
-      continue;
-    }
-  }
-  return null;
-}
-
 // ---------------------------------------------------------------------------
 // sc-ads — admin-manageable ad slots (staging only, see WP_STAGING_ROOT note)
 // ---------------------------------------------------------------------------
@@ -533,11 +478,11 @@ export function getDirectoryCategories() {
 }
 
 // ---------------------------------------------------------------------------
-// sc-events — real REST date/venue fields (staging only; not yet wired into
-// the live Events pages, which still read the ~257 real EventON events —
-// see lib/wordpress.ts's getEvents/getEventSchema above. sc-events has no
-// real event data yet, so switching over now would just show an empty
-// page. Kept here ready for once that data migration happens.
+// sc-events — real REST date/venue fields, no HTML-scraping needed. The
+// ~257 real events have been migrated from EventON's live data (see
+// scrape_events.py/import_events.py in the migration scratch directory —
+// one-off scripts, not part of this repo) into sc-events on staging; the
+// Events pages below read from here now instead of getEvents/getEventSchema.
 // ---------------------------------------------------------------------------
 
 export interface WPScEventMeta {
@@ -565,6 +510,42 @@ export function getScEvents(perPage = 100) {
   return scDirectoryFetch<WPScEvent[]>(
     `/sc-events?per_page=${perPage}&_fields=id,slug,link,title,content,meta,_links&_embed=wp:featuredmedia&orderby=meta_value&meta_key=sc_start&order=asc`
   );
+}
+
+export async function getScEventBySlug(slug: string): Promise<WPScEvent | null> {
+  const events = await scDirectoryFetch<WPScEvent[]>(
+    `/sc-events?slug=${encodeURIComponent(slug)}&_embed=wp:featuredmedia`
+  );
+  return events[0] ?? null;
+}
+
+export async function getRecentScEventSlugs(count: number): Promise<string[]> {
+  const events = await scDirectoryFetch<Array<{ slug: string }>>(
+    `/sc-events?per_page=${count}&_fields=slug&orderby=meta_value&meta_key=sc_start&order=asc`
+  );
+  return events.map((e) => e.slug);
+}
+
+/**
+ * getScEvents already orders ascending by sc_start, but that pool includes
+ * every migrated event — past and future. WP's core REST controller has no
+ * meta-value date comparison built in (no meta_query support without a
+ * custom REST arg), so "upcoming only" is filtered here instead: fetch the
+ * full ordered pool, drop anything before now, take the first `count`.
+ * Events with no parseable sc_start (a handful of migrated events whose
+ * live page had no schema.org block) are excluded rather than sorted to
+ * the top — a "What's On" list undated-first would be worse than one
+ * that's slightly incomplete.
+ */
+export async function getUpcomingScEvents(count: number): Promise<WPScEvent[]> {
+  const events = await getScEvents(200);
+  const now = Date.now();
+  return events
+    .filter((e) => {
+      const start = parseEventDate(e.meta.sc_start);
+      return start !== null && start.getTime() >= now;
+    })
+    .slice(0, count);
 }
 
 // ---------------------------------------------------------------------------
