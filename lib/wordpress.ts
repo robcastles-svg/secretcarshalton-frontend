@@ -498,12 +498,25 @@ export interface WPScEvent {
   id: number;
   slug: string;
   link: string;
+  date: string;
   title: WPRendered;
   content: WPRendered;
   meta: WPScEventMeta;
+  sc_event_category: number[];
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
   };
+}
+
+export interface WPScEventCategory {
+  id: number;
+  slug: string;
+  name: string;
+  count: number;
+}
+
+export function getScEventCategories() {
+  return scDirectoryFetch<WPScEventCategory[]>(`/sc_event_category?per_page=50`);
 }
 
 /**
@@ -524,7 +537,7 @@ export async function getScEvents(perPage = 100): Promise<WPScEvent[]> {
   while (events.length < perPage) {
     const batchSize = Math.min(100, perPage - events.length);
     const batch = await scDirectoryFetch<WPScEvent[]>(
-      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,title,content,meta,_links&_embed=wp:featuredmedia`
+      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,title,content,meta,sc_event_category,_links&_embed=wp:featuredmedia`
     );
     events.push(...batch);
     if (batch.length < batchSize) break;
@@ -566,6 +579,12 @@ export async function getUpcomingScEvents(count: number): Promise<WPScEvent[]> {
       return start !== null && start.getTime() >= now;
     })
     .slice(0, count);
+}
+
+/** Most recently *added* to the site — WP's own post `date`, not sc_start. */
+export async function getLatestAddedScEvents(count: number): Promise<WPScEvent[]> {
+  const events = await getScEvents(300);
+  return [...events].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, count);
 }
 
 // ---------------------------------------------------------------------------
