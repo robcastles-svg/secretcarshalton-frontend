@@ -47,7 +47,7 @@ export default async function EventsByVenuePage({
               </Link>
               {startDate && (
                 <time dateTime={startDate.toISOString()}>
-                  {startDate.toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+                  {startDate.toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                 </time>
               )}
             </li>

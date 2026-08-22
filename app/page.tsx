@@ -111,6 +111,7 @@ export default async function HomePage() {
                               weekday: "short",
                               day: "numeric",
                               month: "short",
+                              year: "numeric",
                             })}
                             {event.meta.sc_venue_name ? ` — ${event.meta.sc_venue_name}` : ""}
                           </time>

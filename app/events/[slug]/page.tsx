@@ -14,6 +14,7 @@ import {
   slugifyVenue,
   stripHtml,
 } from "@/lib/wordpress";
+import { ClaimEventButton } from "./_components/ClaimEventButton";
 import { RsvpButton } from "./_components/RsvpButton";
 
 export const revalidate = 3600;
@@ -110,12 +111,13 @@ export default async function EventPage({
           )}
         </div>
         {startDate && (
-          <p>
+          <p className="event-detail-date">
             <strong>
               {startDate.toLocaleString("en-GB", {
                 weekday: "long",
                 day: "numeric",
                 month: "long",
+                year: "numeric",
                 hour: "numeric",
                 minute: "2-digit",
               })}
@@ -131,27 +133,35 @@ export default async function EventPage({
         )}
         {image && <img src={image.source_url} alt={image.alt_text} />}
 
-        <RsvpButton
-          eventId={event.id}
-          isLoggedIn={Boolean(sessionToken)}
-          initialGoing={rsvpStatus?.going ?? false}
-          initialCount={rsvpStatus?.going_count ?? event.sc_event_rsvp_count ?? 0}
-        />
-
         <div className="event-detail-actions">
           {event.meta.sc_venue_name && (
             <Link href={`/events/venue/${slugifyVenue(event.meta.sc_venue_name)}`} className="button-pill button-pill-secondary">
               See all events at {event.meta.sc_venue_name}
             </Link>
           )}
-          {event._embedded?.author?.[0] && (
-            <Link href={`/members/${event._embedded.author[0].slug}`} className="button-pill button-pill-secondary">
-              Submitted by {event._embedded.author[0].name}
-            </Link>
+          {event.sc_event_author_is_staff ? (
+            <ClaimEventButton eventId={event.id} isLoggedIn={Boolean(sessionToken)} />
+          ) : (
+            event._embedded?.author?.[0] && (
+              <Link href={`/members/${event._embedded.author[0].slug}`} className="button-pill button-pill-secondary">
+                Submitted by {event._embedded.author[0].name}
+              </Link>
+            )
           )}
         </div>
 
         <div dangerouslySetInnerHTML={{ __html: event.content.rendered }} />
+
+        <p className="event-correction-link">
+          Spotted something wrong — date changed, venue moved? <Link href="/contact">Suggest a correction</Link>.
+        </p>
+
+        <RsvpButton
+          eventId={event.id}
+          isLoggedIn={Boolean(sessionToken)}
+          initialGoing={rsvpStatus?.going ?? false}
+          initialCount={rsvpStatus?.going_count ?? event.sc_event_rsvp_count ?? 0}
+        />
 
         <CommentSection postId={event.id} comments={fullThread} isLoggedIn={Boolean(sessionToken)} />
       </div>

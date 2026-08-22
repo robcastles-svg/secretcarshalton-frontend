@@ -17,6 +17,7 @@ class SC_Membership_Hooks {
 
 		// sc-events (not built yet) will fire this when a member RSVPs to an event.
 		add_action( 'sc_events_rsvp', array( __CLASS__, 'on_event_rsvp' ), 10, 2 );
+		add_action( 'sc_events_event_claimed', array( __CLASS__, 'on_event_claimed' ), 10, 2 );
 
 		// sc-directory (not built yet) will fire these. Registering the listeners
 		// now means the approval queue works the moment that plugin exists —
@@ -40,6 +41,10 @@ class SC_Membership_Hooks {
 
 	public static function on_event_rsvp( $user_id, $event_id ) {
 		sc_membership_award_points( (int) $user_id, 5, 'RSVP\'d to an event', 'event_rsvp' );
+	}
+
+	public static function on_event_claimed( $user_id, $event_id ) {
+		sc_membership_award_points( (int) $user_id, 10, 'Claimed an event listing', 'event_claim' );
 	}
 
 	public static function on_listing_claimed( $user_id, $listing_id ) {

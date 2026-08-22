@@ -108,11 +108,12 @@ export default async function EventsPage({
                   <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
                 </Link>
                 {startDate && (
-                  <time dateTime={startDate.toISOString()}>
+                  <time className="event-card-date" dateTime={startDate.toISOString()}>
                     {startDate.toLocaleString("en-GB", {
                       weekday: "long",
                       day: "numeric",
                       month: "long",
+                      year: "numeric",
                       hour: "numeric",
                       minute: "2-digit",
                     })}
@@ -140,7 +141,7 @@ export default async function EventsPage({
                       <span dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
                       {startDate && (
                         <time dateTime={startDate.toISOString()}>
-                          {startDate.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
+                          {startDate.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
                         </time>
                       )}
                     </div>

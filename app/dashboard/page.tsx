@@ -108,6 +108,7 @@ export default async function DashboardPage() {
           <ul>
             <li>+2 for a comment that gets approved</li>
             <li>+5 for RSVPing to an event</li>
+            <li>+10 for claiming an event listing</li>
             <li>+15 for claiming a directory listing</li>
           </ul>
           <ul className="dashboard-tier-ladder">

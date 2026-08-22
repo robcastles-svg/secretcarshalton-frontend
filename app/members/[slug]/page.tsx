@@ -72,7 +72,7 @@ export default async function MemberProfilePage({
                   </Link>
                   {startDate && (
                     <time dateTime={startDate.toISOString()}>
-                      {startDate.toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+                      {startDate.toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                     </time>
                   )}
                 </li>

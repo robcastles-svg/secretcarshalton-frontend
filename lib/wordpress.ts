@@ -575,6 +575,7 @@ export interface WPScEvent {
   sc_event_category: number[];
   sc_event_tag: number[];
   sc_event_rsvp_count?: number;
+  sc_event_author_is_staff?: boolean;
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
     author?: WPPublicUser[];
@@ -650,7 +651,7 @@ export async function getScEvents(perPage = 100): Promise<WPScEvent[]> {
   while (events.length < perPage) {
     const batchSize = Math.min(100, perPage - events.length);
     const batch = await scDirectoryFetch<WPScEvent[]>(
-      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,author,title,content,meta,sc_event_category,sc_event_tag,sc_event_rsvp_count,_links&_embed=author,wp:featuredmedia`
+      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,author,title,content,meta,sc_event_category,sc_event_tag,sc_event_rsvp_count,sc_event_author_is_staff,_links&_embed=author,wp:featuredmedia`
     );
     events.push(...batch);
     if (batch.length < batchSize) break;
@@ -680,14 +681,23 @@ export async function getScEventBySlug(slug: string): Promise<WPScEvent | null> 
  * own address/map once, not repeated per event) is future work if venue
  * pages turn out to want more than a list.
  */
-export async function getScEventsByVenue(venueSlug: string): Promise<WPScEvent[]> {
-  const events = await getScEvents(300);
-  return events.filter((e) => e.meta.sc_venue_name && slugifyVenue(e.meta.sc_venue_name) === venueSlug);
+function isUpcoming(event: WPScEvent, now = Date.now()): boolean {
+  const start = parseEventDate(event.meta.sc_start);
+  return start !== null && start.getTime() >= now;
 }
 
+/** "All upcoming events at this venue" — past events at the same venue aren't useful to surface here. */
+export async function getScEventsByVenue(venueSlug: string): Promise<WPScEvent[]> {
+  const events = await getScEvents(300);
+  return events.filter(
+    (e) => e.meta.sc_venue_name && slugifyVenue(e.meta.sc_venue_name) === venueSlug && isUpcoming(e)
+  );
+}
+
+/** "Upcoming events by this member" — same reasoning as getScEventsByVenue. */
 export async function getScEventsByAuthor(authorId: number): Promise<WPScEvent[]> {
   const events = await getScEvents(300);
-  return events.filter((e) => e.author === authorId);
+  return events.filter((e) => e.author === authorId && isUpcoming(e));
 }
 
 /**
@@ -716,6 +726,25 @@ export async function updateEvent(
       return { code: body.code ?? "update_failed", message: body.message ?? "Could not update the event." };
     }
     return { id: body.id, status: body.status };
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Reassigns a staff/import-authored event to the claiming member — see SC_Events_REST::claim_event's docblock. */
+export async function claimEvent(token: string, eventId: number): Promise<{ status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}/claim`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "claim_failed", message: body.message ?? "Could not claim this event." };
+    }
+    return body;
   } catch {
     return NETWORK_ERROR;
   }
@@ -788,13 +817,7 @@ export async function getRecentScEventSlugs(count: number): Promise<string[]> {
  */
 export async function getUpcomingScEvents(count: number): Promise<WPScEvent[]> {
   const events = await getScEvents(300);
-  const now = Date.now();
-  return events
-    .filter((e) => {
-      const start = parseEventDate(e.meta.sc_start);
-      return start !== null && start.getTime() >= now;
-    })
-    .slice(0, count);
+  return events.filter((e) => isUpcoming(e)).slice(0, count);
 }
 
 /** Most recently *added* to the site — WP's own post `date`, not sc_start. */

@@ -73,6 +73,18 @@ class SC_Events_REST {
 			)
 		);
 
+		register_rest_route(
+			'sc-events/v1',
+			'/(?P<id>\d+)/claim',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'claim_event' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
 		register_rest_field(
 			SC_Events_CPT::POST_TYPE,
 			'sc_event_rsvp_count',
@@ -83,6 +95,63 @@ class SC_Events_REST {
 				'schema'       => array( 'type' => 'integer' ),
 			)
 		);
+
+		/**
+		 * Every one of the ~257 events migrated from EventON was inserted
+		 * under the site's own admin account (see migrate_tags.py's import
+		 * counterpart) — post_author there was never the real-world
+		 * organiser, it was whichever account ran the import. "Submitted by
+		 * [admin]" on those is misleading, not informative, so the frontend
+		 * needs a clean way to tell "a staff/import account" from "a real
+		 * member" without hardcoding a user ID it might not always know.
+		 * user_can() works on any user ID regardless of who's asking — no
+		 * REST auth context needed.
+		 */
+		register_rest_field(
+			SC_Events_CPT::POST_TYPE,
+			'sc_event_author_is_staff',
+			array(
+				'get_callback' => function ( $post ) {
+					return (bool) user_can( (int) $post['author'], 'manage_options' );
+				},
+				'schema'       => array( 'type' => 'boolean' ),
+			)
+		);
+	}
+
+	/**
+	 * Lets a real organiser take ownership of an event that's currently
+	 * sitting under the staff/import account — mirrors
+	 * SC_Directory_REST::claim_listing exactly (unclaimed only, reassigns
+	 * post_author, no verification beyond "you're logged in", same as
+	 * directory claims already work). Once claimed, sc_event_author_is_staff
+	 * naturally flips to false, so the claim button/submitted-by button hide
+	 * and show correctly without any extra state to keep in sync.
+	 */
+	public static function claim_event( WP_REST_Request $request ) {
+		$event_id = (int) $request->get_param( 'id' );
+		$event    = self::require_event( $event_id );
+		if ( is_wp_error( $event ) ) {
+			return $event;
+		}
+
+		if ( ! user_can( (int) $event->post_author, 'manage_options' ) ) {
+			return new WP_Error( 'already_claimed', 'This event has already been claimed.', array( 'status' => 409 ) );
+		}
+
+		$user_id = get_current_user_id();
+
+		wp_update_post(
+			array(
+				'ID'          => $event_id,
+				'post_author' => $user_id,
+			)
+		);
+
+		/** sc-membership listens for this and awards claim points. */
+		do_action( 'sc_events_event_claimed', $user_id, $event_id );
+
+		return array( 'status' => 'claimed' );
 	}
 
 	/**
