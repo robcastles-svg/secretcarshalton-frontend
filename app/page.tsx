@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ContentList } from "@/app/_components/ContentList";
+import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import {
   getCategoryBySlug,
+  getDirectoryListings,
   getFeaturedImage,
   getLatestComments,
   getLatestPostInCategories,
@@ -30,12 +32,19 @@ export default async function HomePage() {
   // Every branch below already renders fine with an empty/null result
   // (the "no posts" state, conditionally-rendered sections), so catching
   // here just lets that existing degrade-gracefully behavior actually work.
-  const [recentPosts, walksCategory, allCategories, events] = await Promise.all([
+  const [recentPosts, walksCategory, allCategories, events, directoryListings] = await Promise.all([
     getPosts(20).catch(() => []),
     getCategoryBySlug("walks").catch(() => null),
     getCategories().catch(() => []),
     getUpcomingScEvents(4).catch(() => []),
+    getDirectoryListings(10).catch(() => []),
   ]);
+
+  // One spotlight (the most recent featured/paid listing, if any) shown on
+  // its own above the grid, then the 3 latest listings otherwise — not
+  // re-showing the spotlighted one there too.
+  const spotlightListing = directoryListings.find((l) => l.meta.sc_featured);
+  const latestListings = directoryListings.filter((l) => l.id !== spotlightListing?.id).slice(0, 3);
 
   const [hero, ...cardPosts] = recentPosts.slice(0, 4);
 
@@ -144,6 +153,38 @@ export default async function HomePage() {
               </section>
             );
           })()}
+
+        {(spotlightListing || latestListings.length > 0) && (
+          <section className="home-section">
+            <div className="home-section-header">
+              <h2>Directory</h2>
+              <Link href="/directory">Browse the directory</Link>
+            </div>
+
+            {spotlightListing &&
+              (() => {
+                const image = getFeaturedImage(spotlightListing);
+                return (
+                  <Link href={`/directory/${spotlightListing.slug}`} className="feature-row directory-spotlight">
+                    {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
+                    <div>
+                      <span className="directory-badge">Featured</span>
+                      <span dangerouslySetInnerHTML={{ __html: spotlightListing.title.rendered }} />
+                      <p>{stripHtml(spotlightListing.content.rendered).slice(0, 140)}</p>
+                    </div>
+                  </Link>
+                );
+              })()}
+
+            {latestListings.length > 0 && (
+              <ul className="post-list directory-list">
+                {latestListings.map((listing) => (
+                  <DirectoryListingCard key={listing.id} listing={listing} />
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
 
         {comments.length > 0 && (
           <section className="home-section">

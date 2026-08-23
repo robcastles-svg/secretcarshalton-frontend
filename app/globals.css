@@ -787,6 +787,20 @@ img {
   margin-bottom: 0.4rem;
 }
 
+.directory-spotlight {
+  margin-bottom: 1.5rem;
+}
+
+/* Two classes beats .feature-row span's class+tag specificity — without
+   this, the pill-shaped .directory-badge would inherit .feature-row
+   span's display:block/font-size:1.2rem and render as a full-width
+   oversized line instead of a small badge. */
+.directory-spotlight .directory-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  margin: 0 0 0.5rem;
+}
+
 .feature-row p {
   color: #555;
   margin: 0;
