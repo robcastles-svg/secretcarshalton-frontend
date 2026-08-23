@@ -1248,6 +1248,12 @@ img {
   font-size: 0.9rem;
 }
 
+.member-points-badge {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--color-active-dark);
+}
+
 .member-directory-edit {
   position: absolute;
   top: 0;

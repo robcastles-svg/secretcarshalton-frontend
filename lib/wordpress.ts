@@ -718,6 +718,7 @@ export interface WPMember {
   display_name: string;
   slug: string;
   avatar: string;
+  points: number;
 }
 
 /**

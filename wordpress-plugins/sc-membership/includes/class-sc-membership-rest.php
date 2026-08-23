@@ -214,6 +214,13 @@ class SC_Membership_REST {
 	 * event/listing yet. Administrators are excluded — this is a member
 	 * directory, not a staff list.
 	 */
+	/**
+	 * Points are included so the frontend can offer a "most active" sort
+	 * alongside alphabetical — a plain array_map over $users can't do that
+	 * lookup itself, since a member only gets a row in sc_members the
+	 * first time they earn points (see SC_Membership_DB::get_or_create_member),
+	 * so most users here have no row at all and default to 0.
+	 */
 	public static function get_members( WP_REST_Request $request ) {
 		$users = get_users(
 			array(
@@ -224,13 +231,21 @@ class SC_Membership_REST {
 			)
 		);
 
+		global $wpdb;
+		$table          = SC_Membership_DB::members_table();
+		$points_by_user = array();
+		foreach ( $wpdb->get_results( "SELECT user_id, points FROM {$table}" ) as $row ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$points_by_user[ (int) $row->user_id ] = (int) $row->points;
+		}
+
 		return array_map(
-			function ( $user ) {
+			function ( $user ) use ( $points_by_user ) {
 				return array(
 					'id'           => $user->ID,
 					'display_name' => $user->display_name,
 					'slug'         => $user->user_nicename,
 					'avatar'       => get_avatar_url( $user->ID, array( 'size' => 96 ) ),
+					'points'       => $points_by_user[ $user->ID ] ?? 0,
 				);
 			},
 			$users
