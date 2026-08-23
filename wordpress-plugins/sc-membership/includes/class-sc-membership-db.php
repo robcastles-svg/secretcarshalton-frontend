@@ -93,4 +93,46 @@ class SC_Membership_DB {
 			$wpdb->prepare( "SELECT * FROM {$table} WHERE user_id = %d", $user_id ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		);
 	}
+
+	/**
+	 * Spam registrations on this site tend to use a URL as the username —
+	 * checked against both user_login and display_name since a bot can
+	 * set either. Lives here (not in the REST or Admin classes) because
+	 * both SC_Membership_Auth::register() (flag on signup) and
+	 * SC_Membership_Admin (the manual re-scan button) need it, and this
+	 * is the one class both already depend on.
+	 */
+	public static function username_looks_like_url( $user_login, $display_name = '' ) {
+		foreach ( array( $user_login, $display_name ) as $value ) {
+			$value = strtolower( trim( (string) $value ) );
+			if ( '' === $value ) {
+				continue;
+			}
+			// A scheme or www. prefix is unambiguous. A bare "contains a
+			// TLD" check was tried and dropped — chrisperr54@hotmail.com is
+			// a completely normal WP username (login = own email address,
+			// a common registration pattern on this site), and it matched
+			// "\.com" just as readily as an actual spam URL would, hiding
+			// dozens of real members. A scheme/www prefix has no such
+			// false-positive path against a plain email address.
+			if ( preg_match( '#^(https?://|www\.)#i', $value ) ) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** True once an admin has explicitly restored a flagged account — stops the re-scan button from flagging it again. */
+	public static function is_reviewed( $user_id ) {
+		return '1' === get_user_meta( $user_id, 'sc_member_reviewed', true );
+	}
+
+	public static function is_pending_review( $user_id ) {
+		return '1' === get_user_meta( $user_id, 'sc_member_pending_review', true );
+	}
+
+	public static function flag_pending_review( $user_id, $reason ) {
+		update_user_meta( $user_id, 'sc_member_pending_review', '1' );
+		update_user_meta( $user_id, 'sc_member_pending_reason', $reason );
+	}
 }

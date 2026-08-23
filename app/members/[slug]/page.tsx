@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
@@ -29,6 +30,55 @@ export async function generateMetadata({
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+}
+
+const VISIBLE_LIMIT = 3;
+
+/**
+ * A list of up to VISIBLE_LIMIT items, with any overflow tucked behind a
+ * <details> "show N more" — a profile with a lot of history (events,
+ * listings, comments) would otherwise run the page on indefinitely.
+ * `listClassName` matches each section's existing list markup so the
+ * "more" batch renders identically to the visible one.
+ */
+function ExpandableList<T>({
+  items,
+  listClassName,
+  itemKey,
+  renderItem,
+  noun,
+}: {
+  items: T[];
+  listClassName: string;
+  itemKey: (item: T) => string | number;
+  renderItem: (item: T) => ReactNode;
+  noun: string;
+}) {
+  const visible = items.slice(0, VISIBLE_LIMIT);
+  const rest = items.slice(VISIBLE_LIMIT);
+
+  return (
+    <>
+      <ul className={listClassName}>
+        {visible.map((item) => (
+          <li key={itemKey(item)}>{renderItem(item)}</li>
+        ))}
+      </ul>
+      {rest.length > 0 && (
+        <details className="member-profile-more">
+          <summary>
+            Show {rest.length} more {noun}
+            {rest.length === 1 ? "" : "s"}
+          </summary>
+          <ul className={listClassName}>
+            {rest.map((item) => (
+              <li key={itemKey(item)}>{renderItem(item)}</li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </>
+  );
 }
 
 export default async function MemberProfilePage({
@@ -71,12 +121,16 @@ export default async function MemberProfilePage({
         {events.length === 0 ? (
           <p className="dashboard-hint">No events submitted yet.</p>
         ) : (
-          <ul className="post-list">
-            {events.map((event) => {
+          <ExpandableList
+            items={events}
+            listClassName="post-list"
+            itemKey={(event) => event.id}
+            noun="event"
+            renderItem={(event) => {
               const image = getFeaturedImage(event);
               const startDate = parseEventDate(event.meta.sc_start);
               return (
-                <li key={event.id}>
+                <>
                   <Link href={`/events/${event.slug}`}>
                     {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
                     <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
@@ -86,10 +140,10 @@ export default async function MemberProfilePage({
                       {startDate.toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
                     </time>
                   )}
-                </li>
+                </>
               );
-            })}
-          </ul>
+            }}
+          />
         )}
       </section>
 
@@ -104,13 +158,15 @@ export default async function MemberProfilePage({
         {listings.length === 0 ? (
           <p className="dashboard-hint">No directory listings yet.</p>
         ) : (
-          <ul className="member-profile-link-list">
-            {listings.map((listing) => (
-              <li key={listing.id}>
-                <Link href={`/directory/${listing.slug}`} dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
-              </li>
-            ))}
-          </ul>
+          <ExpandableList
+            items={listings}
+            listClassName="member-profile-link-list"
+            itemKey={(listing) => listing.id}
+            noun="listing"
+            renderItem={(listing) => (
+              <Link href={`/directory/${listing.slug}`} dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
+            )}
+          />
         )}
       </section>
 
@@ -119,9 +175,13 @@ export default async function MemberProfilePage({
         {comments.length === 0 ? (
           <p className="dashboard-hint">No comments yet.</p>
         ) : (
-          <ul className="member-profile-comment-list">
-            {comments.map((comment) => (
-              <li key={comment.id}>
+          <ExpandableList
+            items={comments}
+            listClassName="member-profile-comment-list"
+            itemKey={(comment) => comment.id}
+            noun="comment"
+            renderItem={(comment) => (
+              <>
                 {comment.link ? (
                   <Link href={comment.link}>{comment.post_title ?? "View"}</Link>
                 ) : (
@@ -129,9 +189,9 @@ export default async function MemberProfilePage({
                 )}
                 <time>{formatDate(comment.date)}</time>
                 <p>{stripHtml(comment.content.rendered)}</p>
-              </li>
-            ))}
-          </ul>
+              </>
+            )}
+          />
         )}
       </section>
     </main>

@@ -8,7 +8,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * to approve directory upgrades once they've paid" screen Rob described.
  * Deliberately plain (a table + Approve/Reject buttons), no JS framework,
  * so it stays simple to extend once sc-directory exists and needs its own
- * review step alongside this one.
+ * review step alongside this one. Also now the pending-members queue —
+ * accounts flagged as looking like spam (a URL for a username), which
+ * stay hidden from the public /members list until reviewed here.
  */
 class SC_Membership_Admin {
 
@@ -18,10 +20,17 @@ class SC_Membership_Admin {
 			'Membership',
 			'manage_options',
 			'sc-membership',
-			array( __CLASS__, 'render_upgrade_queue' ),
+			array( __CLASS__, 'render_queues' ),
 			'dashicons-groups',
 			30
 		);
+	}
+
+	public static function render_queues() {
+		echo '<div class="wrap"><h1>Membership</h1>';
+		self::render_pending_members_queue();
+		self::render_upgrade_queue();
+		echo '</div>';
 	}
 
 	public static function render_upgrade_queue() {
@@ -35,10 +44,10 @@ class SC_Membership_Admin {
 			)
 		);
 
-		echo '<div class="wrap"><h1>Membership — Directory Upgrade Requests</h1>';
+		echo '<h2>Directory Upgrade Requests</h2>';
 
 		if ( empty( $pending ) ) {
-			echo '<p>No pending requests.</p></div>';
+			echo '<p>No pending requests.</p>';
 			return;
 		}
 
@@ -57,20 +66,20 @@ class SC_Membership_Admin {
 				esc_html( $tier ? $tier['label'] : $row->tier ),
 				(int) $row->points,
 				esc_html( $row->directory_upgrade_requested_at ),
-				self::review_buttons( $row->user_id )
+				self::upgrade_review_buttons( $row->user_id )
 			);
 		}
 
-		echo '</tbody></table></div>';
+		echo '</tbody></table>';
 	}
 
-	private static function review_buttons( $user_id ) {
-		$approve = self::review_form( $user_id, 'approved', 'Approve' );
-		$reject  = self::review_form( $user_id, 'rejected', 'Reject' );
+	private static function upgrade_review_buttons( $user_id ) {
+		$approve = self::upgrade_review_form( $user_id, 'approved', 'Approve' );
+		$reject  = self::upgrade_review_form( $user_id, 'rejected', 'Reject' );
 		return $approve . ' ' . $reject;
 	}
 
-	private static function review_form( $user_id, $decision, $label ) {
+	private static function upgrade_review_form( $user_id, $decision, $label ) {
 		ob_start();
 		?>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline">
@@ -120,6 +129,183 @@ class SC_Membership_Admin {
 			 */
 			$listing_id = $member && $member->directory_upgrade_listing_id ? (int) $member->directory_upgrade_listing_id : null;
 			do_action( 'sc_membership_upgrade_reviewed', $user_id, $decision, $listing_id );
+		}
+
+		wp_safe_redirect( admin_url( 'admin.php?page=sc-membership' ) );
+		exit;
+	}
+
+	/**
+	 * Accounts SC_Membership_Auth::register() (new signups) or the
+	 * "Scan now" button below (existing accounts) flagged as looking
+	 * like a spam registration — hidden from the public /members list
+	 * (SC_Membership_REST::get_members) until republished or removed here.
+	 */
+	public static function render_pending_members_queue() {
+		$pending = get_users(
+			array(
+				'meta_key'   => 'sc_member_pending_review', // phpcs:ignore WordPress.DB.SlowDBQuery
+				'meta_value' => '1', // phpcs:ignore WordPress.DB.SlowDBQuery
+				'number'     => 200,
+				'orderby'    => 'registered',
+				'order'      => 'DESC',
+			)
+		);
+
+		echo '<h2>Pending Members</h2>';
+		echo '<p class="description">Registrations that look like spam (a URL for a username) don\'t show up on the public members list until you review them here.</p>';
+
+		self::scan_button();
+
+		if ( empty( $pending ) ) {
+			echo '<p>No pending members.</p>';
+			return;
+		}
+
+		echo '<table class="wp-list-table widefat fixed striped"><thead><tr>'
+			. '<th>Username</th><th>Display name</th><th>Email</th><th>Registered</th><th>Reason</th><th>Action</th>'
+			. '</tr></thead><tbody>';
+
+		foreach ( $pending as $user ) {
+			$reason = get_user_meta( $user->ID, 'sc_member_pending_reason', true );
+			printf(
+				'<tr><td>%1$s</td><td>%2$s</td><td>%3$s</td><td>%4$s</td><td>%5$s</td><td>%6$s</td></tr>',
+				esc_html( $user->user_login ),
+				esc_html( $user->display_name ),
+				esc_html( $user->user_email ),
+				esc_html( $user->user_registered ),
+				esc_html( 'url_username' === $reason ? 'Username looks like a URL' : $reason ),
+				self::pending_member_form( $user )
+			);
+		}
+
+		echo '</tbody></table>';
+	}
+
+	private static function scan_button() {
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin: 0.75em 0;">
+			<?php wp_nonce_field( 'sc_membership_scan_pending_members' ); ?>
+			<input type="hidden" name="action" value="sc_membership_scan_pending_members" />
+			<button type="submit" class="button">Scan existing members for spam-looking usernames</button>
+		</form>
+		<?php
+	}
+
+	/**
+	 * A display-name field so Rob can fix an unlucky-but-real name (not
+	 * user_login — WordPress doesn't support renaming that) before
+	 * republishing, plus the Remove option, in one row/form.
+	 */
+	private static function pending_member_form( $user ) {
+		ob_start();
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+			<?php wp_nonce_field( 'sc_membership_review_pending_member_' . $user->ID ); ?>
+			<input type="hidden" name="action" value="sc_membership_review_pending_member" />
+			<input type="hidden" name="user_id" value="<?php echo esc_attr( $user->ID ); ?>" />
+			<input type="text" name="display_name" value="<?php echo esc_attr( $user->display_name ); ?>" style="width: 160px;" />
+			<button type="submit" name="decision" value="republish" class="button button-primary">Save &amp; republish</button>
+			<button type="submit" name="decision" value="remove" class="button" onclick="return confirm('Permanently delete this account?');">Remove</button>
+		</form>
+		<?php
+		return ob_get_clean();
+	}
+
+	public static function handle_review_pending_member() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Not allowed.' );
+		}
+
+		$user_id  = isset( $_POST['user_id'] ) ? (int) $_POST['user_id'] : 0;
+		$decision = isset( $_POST['decision'] ) ? sanitize_key( $_POST['decision'] ) : '';
+
+		check_admin_referer( 'sc_membership_review_pending_member_' . $user_id );
+
+		if ( $user_id && 'republish' === $decision ) {
+			$display_name = sanitize_text_field( (string) ( $_POST['display_name'] ?? '' ) );
+			$update       = array( 'ID' => $user_id );
+			if ( $display_name ) {
+				$update['display_name'] = $display_name;
+				$update['nickname']     = $display_name;
+			}
+			wp_update_user( $update );
+
+			delete_user_meta( $user_id, 'sc_member_pending_review' );
+			delete_user_meta( $user_id, 'sc_member_pending_reason' );
+			update_user_meta( $user_id, 'sc_member_reviewed', '1' );
+		} elseif ( $user_id && 'remove' === $decision ) {
+			if ( ! function_exists( 'wp_delete_user' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/user.php';
+			}
+			wp_delete_user( $user_id );
+		}
+
+		wp_safe_redirect( admin_url( 'admin.php?page=sc-membership' ) );
+		exit;
+	}
+
+	/**
+	 * Catches accounts that registered before this feature existed —
+	 * new signups are flagged automatically (SC_Membership_Auth::register),
+	 * this is the one-off backfill for everyone already in the database.
+	 * Skips anyone already reviewed (SC_Membership_DB::is_reviewed) so a
+	 * legit member Rob already restored doesn't get re-flagged just for
+	 * having ".com" in a business name.
+	 */
+	public static function handle_scan_pending_members() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Not allowed.' );
+		}
+
+		check_admin_referer( 'sc_membership_scan_pending_members' );
+
+		/**
+		 * Self-correcting: an earlier, looser version of
+		 * username_looks_like_url() flagged plain email-address usernames
+		 * (chrisperr54@hotmail.com matched a bare "\.com" check just like
+		 * a real spam URL would) — every account this button auto-flagged
+		 * (reason 'url_username', never manually reviewed) gets
+		 * re-checked against the *current* logic, and un-flagged if it no
+		 * longer matches, so tightening the detection here fixes past
+		 * over-flagging on the next scan rather than needing a one-off cleanup.
+		 */
+		$auto_flagged = get_users(
+			array(
+				'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery
+					array(
+						'key'   => 'sc_member_pending_review',
+						'value' => '1',
+					),
+					array(
+						'key'   => 'sc_member_pending_reason',
+						'value' => 'url_username',
+					),
+				),
+				'number' => -1,
+			)
+		);
+		foreach ( $auto_flagged as $user ) {
+			if ( ! SC_Membership_DB::username_looks_like_url( $user->user_login, $user->display_name ) ) {
+				delete_user_meta( $user->ID, 'sc_member_pending_review' );
+				delete_user_meta( $user->ID, 'sc_member_pending_reason' );
+			}
+		}
+
+		$users = get_users(
+			array(
+				'role__not_in' => array( 'administrator' ),
+				'number'       => -1,
+			)
+		);
+
+		foreach ( $users as $user ) {
+			if ( SC_Membership_DB::is_pending_review( $user->ID ) || SC_Membership_DB::is_reviewed( $user->ID ) ) {
+				continue;
+			}
+			if ( SC_Membership_DB::username_looks_like_url( $user->user_login, $user->display_name ) ) {
+				SC_Membership_DB::flag_pending_review( $user->ID, 'url_username' );
+			}
 		}
 
 		wp_safe_redirect( admin_url( 'admin.php?page=sc-membership' ) );

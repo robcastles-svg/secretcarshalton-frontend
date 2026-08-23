@@ -125,7 +125,7 @@ class SC_Membership_REST {
 		$slug = sanitize_title( (string) $request->get_param( 'slug' ) );
 		$user = get_user_by( 'slug', $slug );
 
-		if ( ! $user ) {
+		if ( ! $user || SC_Membership_DB::is_pending_review( $user->ID ) ) {
 			return new WP_Error( 'not_found', 'Member not found.', array( 'status' => 404 ) );
 		}
 
@@ -228,6 +228,19 @@ class SC_Membership_REST {
 				'orderby'      => 'display_name',
 				'order'        => 'ASC',
 				'number'       => 500,
+			)
+		);
+
+		// Accounts flagged pending review (e.g. a URL-as-username spam
+		// signup — see SC_Membership_DB::username_looks_like_url) stay
+		// out of the public list until an admin republishes or removes
+		// them from the pending-members queue.
+		$users = array_values(
+			array_filter(
+				$users,
+				function ( $user ) {
+					return ! SC_Membership_DB::is_pending_review( $user->ID );
+				}
 			)
 		);
 

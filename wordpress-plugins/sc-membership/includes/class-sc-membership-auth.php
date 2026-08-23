@@ -125,6 +125,19 @@ class SC_Membership_Auth {
 		// Creates the member row immediately so /me works right after registering.
 		SC_Membership_DB::get_or_create_member( $user_id );
 
+		/**
+		 * A URL-as-username is the single most common shape of spam
+		 * registration this site sees. Flagging it here (rather than
+		 * refusing the signup outright) hides them from the public
+		 * /members list immediately while still letting a real person
+		 * with an unlucky username reach Rob via the pending-review queue
+		 * (SC_Membership_Admin::render_pending_members_queue) instead of
+		 * just being silently rejected.
+		 */
+		if ( SC_Membership_DB::username_looks_like_url( $username, $username ) ) {
+			SC_Membership_DB::flag_pending_review( $user_id, 'url_username' );
+		}
+
 		self::send_verification_email( $user_id );
 
 		$user = get_user_by( 'id', $user_id );

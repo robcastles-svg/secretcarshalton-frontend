@@ -1082,6 +1082,20 @@ img {
   border-bottom: none;
 }
 
+.member-profile-more {
+  margin-top: 1rem;
+}
+
+.member-profile-more summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-active-dark);
+}
+
+.member-profile-more[open] summary {
+  margin-bottom: 1rem;
+}
+
 .member-profile-comment-list {
   list-style: none;
   padding: 0;
