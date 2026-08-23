@@ -152,13 +152,6 @@ export function getPosts(perPage = 12) {
   );
 }
 
-/** Matches the real site's search scope: stories, news, and walks — all of which are posts. */
-export function searchPosts(query: string, perPage = 20) {
-  return wpFetch<WPContentItem[]>(
-    `/posts?search=${encodeURIComponent(query)}&per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
-  );
-}
-
 async function getPostViewCount(postId: number): Promise<number> {
   const res = await fetchWithRetry(
     `https://www.secretcarshalton.com/wp-json/post-views-counter/get-post-views/${postId}`,
@@ -1209,4 +1202,157 @@ export async function submitComment(
   } catch {
     return NETWORK_ERROR;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Site search — mirrors the live site's /search-page/ filter form exactly
+// (category tabs, title/content search mode, theme tag, sort), extended to
+// also cover events and directory listings, which the original only ever
+// searched posts for.
+// ---------------------------------------------------------------------------
+
+export interface SiteSearchFilters {
+  q: string;
+  category: string; // "" (All) | "news" | "stories" | "walks" | "events" | "directory"
+  searchMode: string; // "both" | "title" | "content" — posts only, matching the live filter
+  tag: string; // theme tag slug — posts only
+  sort: string; // "" | "newest" | "oldest" | "az" | "za"
+}
+
+export interface SearchResultItem {
+  type: "post" | "event" | "listing";
+  id: number;
+  title: string;
+  excerpt: string;
+  href: string;
+  date: string;
+  image: WPFeaturedMedia | null;
+  meta?: string;
+}
+
+/**
+ * The live site's "News"/"Stories"/"Walks" category filter passes a `cat`
+ * query var straight through to WP_Query, whose classic `cat` param
+ * includes descendant categories by default (unlike REST's `categories`
+ * param, which is an exact-term match only) — so "Stories" there also
+ * catches posts filed under a story-area subcategory. Reproducing that
+ * needs the subcategory IDs gathered explicitly, the same way
+ * storyAreas/walkDistances already do in layout.tsx.
+ */
+async function categoryIdsWithChildren(slug: string): Promise<number[]> {
+  const [category, allCategories] = await Promise.all([getCategoryBySlug(slug), getCategories()]);
+  if (!category) return [];
+  const childIds = allCategories.filter((c) => c.parent === category.id).map((c) => c.id);
+  return [category.id, ...childIds];
+}
+
+/** search_mode has no REST equivalent — WP's own `search` param always matches title+content+excerpt — so it's applied as a filter on top of the real search results. */
+function matchesSearchMode(title: string, content: string, q: string, mode: string): boolean {
+  if (mode !== "title" && mode !== "content") return true;
+  const needle = q.toLowerCase();
+  return mode === "title"
+    ? stripHtml(title).toLowerCase().includes(needle)
+    : stripHtml(content).toLowerCase().includes(needle);
+}
+
+async function searchPostsFiltered(filters: SiteSearchFilters): Promise<SearchResultItem[]> {
+  const { q, category, tag, sort } = filters;
+  const params = new URLSearchParams();
+  params.set("search", q);
+  params.set("per_page", "60");
+  params.set("_fields", "id,slug,date,link,title,excerpt,content,featured_media,_links");
+  params.set("_embed", "wp:featuredmedia");
+  if (sort === "az") {
+    params.set("orderby", "title");
+    params.set("order", "asc");
+  } else if (sort === "za") {
+    params.set("orderby", "title");
+    params.set("order", "desc");
+  } else if (sort === "oldest") {
+    params.set("orderby", "date");
+    params.set("order", "asc");
+  } else {
+    params.set("orderby", "date");
+    params.set("order", "desc");
+  }
+
+  const isPostCategory = category === "news" || category === "stories" || category === "walks";
+  const [categoryIds, tagObj] = await Promise.all([
+    isPostCategory ? categoryIdsWithChildren(category) : Promise.resolve([]),
+    tag ? getTagBySlug(tag) : Promise.resolve(null),
+  ]);
+  if (categoryIds.length) params.set("categories", categoryIds.join(","));
+  if (tagObj) params.set("tags", String(tagObj.id));
+
+  const posts = await wpFetch<WPContentItem[]>(`/posts?${params.toString()}`);
+  return posts
+    .filter((p) => matchesSearchMode(p.title.rendered, p.content.rendered, q, filters.searchMode))
+    .map((p) => ({
+      type: "post" as const,
+      id: p.id,
+      title: stripHtml(p.title.rendered),
+      excerpt: stripHtml(p.excerpt.rendered),
+      href: `/${p.slug}`,
+      date: p.date,
+      image: getFeaturedImage(p),
+    }));
+}
+
+async function searchEventsFiltered(filters: SiteSearchFilters): Promise<SearchResultItem[]> {
+  const events = await scDirectoryFetch<WPScEvent[]>(
+    `/sc-events?search=${encodeURIComponent(filters.q)}&per_page=60&_fields=id,slug,link,date,title,content,meta,_links&_embed=wp:featuredmedia`
+  );
+  return events.map((e) => ({
+    type: "event" as const,
+    id: e.id,
+    title: stripHtml(e.title.rendered),
+    excerpt: stripHtml(e.content.rendered).slice(0, 160),
+    href: `/events/${e.slug}`,
+    date: e.meta.sc_start || e.date,
+    image: getFeaturedImage(e),
+    meta: e.meta.sc_venue_name || undefined,
+  }));
+}
+
+async function searchDirectoryFiltered(filters: SiteSearchFilters): Promise<SearchResultItem[]> {
+  const listings = await scDirectoryFetch<Array<WPListing & { date: string }>>(
+    `/sc-listings?search=${encodeURIComponent(filters.q)}&per_page=60&_fields=id,slug,link,title,content,date,meta,_links&_embed=wp:featuredmedia`
+  );
+  return listings.map((l) => ({
+    type: "listing" as const,
+    id: l.id,
+    title: stripHtml(l.title.rendered),
+    excerpt: stripHtml(l.content.rendered).slice(0, 160),
+    href: `/directory/${l.slug}`,
+    date: l.date,
+    image: getFeaturedImage(l),
+    meta: l.meta.sc_address_town || undefined,
+  }));
+}
+
+function sortResults(items: SearchResultItem[], sort: string): SearchResultItem[] {
+  const sorted = [...items];
+  if (sort === "az") sorted.sort((a, b) => a.title.localeCompare(b.title));
+  else if (sort === "za") sorted.sort((a, b) => b.title.localeCompare(a.title));
+  else if (sort === "oldest") sorted.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  else sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  return sorted;
+}
+
+export async function searchSite(filters: SiteSearchFilters): Promise<SearchResultItem[]> {
+  const q = filters.q.trim();
+  if (!q) return [];
+  const normalized = { ...filters, q };
+
+  const wantsPosts = !filters.category || ["news", "stories", "walks"].includes(filters.category);
+  const wantsEvents = !filters.category || filters.category === "events";
+  const wantsDirectory = !filters.category || filters.category === "directory";
+
+  const [posts, events, directory] = await Promise.all([
+    wantsPosts ? searchPostsFiltered(normalized).catch(() => []) : Promise.resolve([]),
+    wantsEvents ? searchEventsFiltered(normalized).catch(() => []) : Promise.resolve([]),
+    wantsDirectory ? searchDirectoryFiltered(normalized).catch(() => []) : Promise.resolve([]),
+  ]);
+
+  return sortResults([...posts, ...events, ...directory], filters.sort);
 }
