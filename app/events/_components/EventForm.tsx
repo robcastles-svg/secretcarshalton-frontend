@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { MyListing, WPScEventCategory, WPScEventTag } from "@/lib/wordpress";
+import type { MyListing, WPEventVenue, WPScEventCategory, WPScEventTag } from "@/lib/wordpress";
 
 export interface EventFormInitial {
   title: string;
@@ -18,6 +18,8 @@ export interface EventFormInitial {
   listing_id: string;
 }
 
+const NEW_VENUE = "__new__";
+
 /**
  * Shared by /events/submit (create, always lands as 'pending') and
  * /events/[slug]/edit (update, owner-only) — same fields either way, just
@@ -31,6 +33,7 @@ export function EventForm({
   categories,
   tags,
   listings,
+  venues,
   initial,
 }: {
   mode: "create" | "edit";
@@ -39,6 +42,7 @@ export function EventForm({
   categories: WPScEventCategory[];
   tags: WPScEventTag[];
   listings: MyListing[];
+  venues: WPEventVenue[];
   initial?: EventFormInitial;
 }) {
   const router = useRouter();
@@ -47,6 +51,30 @@ export function EventForm({
   const [done, setDone] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>(initial?.tags ?? []);
 
+  // Editing an existing event whose venue isn't in the known list yet
+  // (it was the only one to ever use that name) still needs to land on
+  // the free-text "new location" input, not silently reset to blank.
+  const initialIsKnownVenue = Boolean(
+    initial?.venue_name && venues.some((v) => v.name === initial.venue_name)
+  );
+  const [addingNewVenue, setAddingNewVenue] = useState(
+    Boolean(initial?.venue_name) && !initialIsKnownVenue
+  );
+  const [venueName, setVenueName] = useState(initial?.venue_name ?? "");
+  const [venueAddress, setVenueAddress] = useState(initial?.venue_address ?? "");
+
+  function handleVenueSelect(value: string) {
+    if (value === NEW_VENUE) {
+      setAddingNewVenue(true);
+      setVenueName("");
+      setVenueAddress("");
+      return;
+    }
+    setAddingNewVenue(false);
+    setVenueName(value);
+    setVenueAddress(venues.find((v) => v.name === value)?.address ?? "");
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
@@ -54,9 +82,11 @@ export function EventForm({
 
     const form = new FormData(e.currentTarget);
     const data: Record<string, string | string[]> = {};
-    for (const key of ["title", "description", "start", "end", "venue_name", "venue_address", "organizer", "event_url", "category", "listing_id"]) {
+    for (const key of ["title", "description", "start", "end", "organizer", "event_url", "category", "listing_id"]) {
       data[key] = String(form.get(key) ?? "");
     }
+    data.venue_name = venueName;
+    data.venue_address = venueAddress;
     data.tags = selectedTags;
 
     const endpoint = mode === "create" ? "/api/events/submit" : `/api/events/${eventId}`;
@@ -108,16 +138,38 @@ export function EventForm({
         <input type="datetime-local" name="end" defaultValue={initial?.end} />
       </label>
       <label>
-        Venue name
-        <input type="text" name="venue_name" defaultValue={initial?.venue_name} />
+        Venue
+        <select value={addingNewVenue ? NEW_VENUE : venueName} onChange={(e) => handleVenueSelect(e.target.value)}>
+          <option value="">Select a venue…</option>
+          {venues.map((v) => (
+            <option key={v.name} value={v.name}>
+              {v.name}
+            </option>
+          ))}
+          <option value={NEW_VENUE}>+ Add a new location</option>
+        </select>
       </label>
+      {addingNewVenue && (
+        <label>
+          New venue name
+          <input
+            type="text"
+            value={venueName}
+            onChange={(e) => setVenueName(e.target.value)}
+            placeholder="Venue name"
+          />
+        </label>
+      )}
       <label>
         Venue address
-        <input type="text" name="venue_address" defaultValue={initial?.venue_address} />
+        <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} />
       </label>
       <label>
-        Organiser
-        <input type="text" name="organizer" defaultValue={initial?.organizer} />
+        Organiser / company name
+        <input type="text" name="organizer" defaultValue={initial?.organizer} placeholder="e.g. Carshalton Rotary Club" />
+        <span className="event-form-hint">
+          The name shown publicly as who&apos;s running this event — a business or group name, not a personal one.
+        </span>
       </label>
       <label>
         Event website/link
@@ -135,7 +187,7 @@ export function EventForm({
             ))}
           </select>
           <span className="event-form-hint">
-            Shows &quot;Hosted by [business]&quot; on the event instead of your personal profile.
+            Shows &quot;Hosted by [business]&quot; on the event instead of the Organiser name above.
           </span>
         </label>
       )}

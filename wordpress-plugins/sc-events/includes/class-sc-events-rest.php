@@ -53,6 +53,16 @@ class SC_Events_REST {
 
 		register_rest_route(
 			'sc-events/v1',
+			'/venues',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_venues' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'sc-events/v1',
 			'/(?P<id>\d+)',
 			array(
 				'methods'             => 'POST',
@@ -384,6 +394,45 @@ class SC_Events_REST {
 		if ( $listing && 'sc_listing' === $listing->post_type && (int) $listing->post_author === get_current_user_id() ) {
 			update_post_meta( $post_id, 'sc_event_listing_id', $listing_id );
 		}
+	}
+
+	/**
+	 * Every distinct venue name already in use, each with its most
+	 * recently-used address — powers the add/edit event form's venue
+	 * picker (existing locations + "add a new one"), so submitters aren't
+	 * retyping "Honeywood Museum" slightly differently every time and
+	 * splintering /events/venue/{slug} across near-duplicate slugs.
+	 */
+	public static function get_venues( WP_REST_Request $request ) {
+		global $wpdb;
+
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT pm.meta_value AS name, addr.meta_value AS address
+				FROM {$wpdb->postmeta} pm
+				INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+				LEFT JOIN {$wpdb->postmeta} addr ON addr.post_id = pm.post_id AND addr.meta_key = 'sc_venue_address'
+				WHERE pm.meta_key = 'sc_venue_name' AND pm.meta_value != '' AND p.post_type = %s AND p.post_status = 'publish'
+				ORDER BY pm.meta_value ASC, p.post_date DESC",
+				SC_Events_CPT::POST_TYPE
+			)
+		);
+
+		$seen   = array();
+		$venues = array();
+		foreach ( $rows as $row ) {
+			$name = trim( $row->name );
+			if ( '' === $name || isset( $seen[ $name ] ) ) {
+				continue;
+			}
+			$seen[ $name ] = true;
+			$venues[]      = array(
+				'name'    => $name,
+				'address' => $row->address ? $row->address : '',
+			);
+		}
+
+		return $venues;
 	}
 
 	private static function get_going_ids( $event_id ) {

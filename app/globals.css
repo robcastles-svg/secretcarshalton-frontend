@@ -2235,6 +2235,12 @@ img {
   margin: 0.25rem 0 1.25rem;
 }
 
+.claim-pending-notice {
+  color: var(--color-active-dark);
+  font-weight: 600;
+  margin: 0.25rem 0 1.25rem;
+}
+
 /* AI editorial draft workflow */
 .admin-draft-page {
   max-width: 720px;

@@ -524,6 +524,8 @@ export interface WPListing {
   author: number;
   sc_listing_category: number[];
   meta: WPListingMeta;
+  /** True once a claim has been requested but not yet approved — see SC_Directory_REST::claim_listing. */
+  sc_claim_pending?: boolean;
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
   };
@@ -730,6 +732,24 @@ export interface WPScEventTag {
 
 export function getScEventTags() {
   return scDirectoryFetch<WPScEventTag[]>(`/sc_event_tag?per_page=50`);
+}
+
+export interface WPEventVenue {
+  name: string;
+  address: string;
+}
+
+/** Every venue already in use, for the add/edit event form's picker — see SC_Events_REST::get_venues. */
+export async function getEventVenues(): Promise<WPEventVenue[]> {
+  const res = await fetchWithRetry(
+    `${WP_STAGING_ROOT}/sc-events/v1/venues`,
+    { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
+    3
+  );
+  if (!res.ok) {
+    throw new Error(`sc-events venues fetch failed -> ${res.status}`);
+  }
+  return res.json();
 }
 
 /**

@@ -64,6 +64,18 @@ class SC_Directory_REST {
 			)
 		);
 
+		register_rest_field(
+			SC_Directory_CPT::POST_TYPE,
+			'sc_claim_pending',
+			array(
+				'get_callback' => function ( $post ) {
+					return ! get_post_meta( $post['id'], 'sc_claimed', true )
+						&& (bool) get_post_meta( $post['id'], 'sc_claim_requested_by', true );
+				},
+				'schema'       => array( 'type' => 'boolean' ),
+			)
+		);
+
 		register_rest_route(
 			'sc-directory/v1',
 			'/(?P<id>\d+)',
@@ -246,6 +258,19 @@ class SC_Directory_REST {
 		return array( 'status' => 'pending', 'id' => $post_id );
 	}
 
+	/**
+	 * Claiming used to be instant — one click reassigned post_author with
+	 * no review at all, which meant anyone could take over any unclaimed
+	 * listing (a real local business's page) just by being logged in.
+	 * This now only *requests* a claim: it records who's asking and
+	 * leaves the listing exactly as it was until an admin approves it
+	 * from the "Claim Requests" screen (SC_Directory_Admin), which is
+	 * also where sc_directory_listing_claimed actually fires — see
+	 * SC_Directory_Admin::handle_review_claim(). A truthy check on
+	 * sc_claimed here, not a strict comparison: update_post_meta stores a
+	 * raw PHP `true` back as the string '1', so '===' against either
+	 * literal would never match.
+	 */
 	public static function claim_listing( WP_REST_Request $request ) {
 		$listing_id = (int) $request->get_param( 'id' );
 		$listing    = get_post( $listing_id );
@@ -254,31 +279,23 @@ class SC_Directory_REST {
 			return new WP_Error( 'not_found', 'Listing not found.', array( 'status' => 404 ) );
 		}
 
-		// A truthy check here, not a strict-string comparison: update_post_meta
-		// storing a raw PHP `true` round-trips as the string '1', not 'true' —
-		// a strict '===' check against either literal would never match, which
-		// is exactly the bug this replaced (the "already claimed" guard could
-		// never fire, so any listing could be silently re-claimed by anyone).
 		if ( get_post_meta( $listing_id, 'sc_claimed', true ) ) {
 			return new WP_Error( 'already_claimed', 'This listing is already claimed.', array( 'status' => 409 ) );
 		}
 
+		if ( get_post_meta( $listing_id, 'sc_claim_requested_by', true ) ) {
+			return new WP_Error( 'already_requested', 'A claim request for this listing is already awaiting review.', array( 'status' => 409 ) );
+		}
+
 		$user_id = get_current_user_id();
 
-		update_post_meta( $listing_id, 'sc_claimed', '1' );
-		wp_update_post(
-			array(
-				'ID'          => $listing_id,
-				'post_author' => $user_id,
-			)
-		);
+		update_post_meta( $listing_id, 'sc_claim_requested_by', $user_id );
+		update_post_meta( $listing_id, 'sc_claim_requested_at', current_time( 'mysql' ) );
 
-		/**
-		 * sc-membership listens for this and awards claim points.
-		 */
-		do_action( 'sc_directory_listing_claimed', $user_id, $listing_id );
+		/** sc-directory's own admin queue picks this up; sc-directory's hooks class emails Rob about it. */
+		do_action( 'sc_directory_listing_claim_requested', $user_id, $listing_id );
 
-		return array( 'status' => 'claimed' );
+		return array( 'status' => 'pending' );
 	}
 
 	public static function request_upgrade( WP_REST_Request $request ) {

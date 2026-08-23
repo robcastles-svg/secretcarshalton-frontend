@@ -187,17 +187,21 @@ export default async function EventPage({
               See all events at {event.meta.sc_venue_name}
             </Link>
           )}
+          {/*
+           * No "Submitted by [member]" fallback — the public-facing
+           * credit for an event is either a real business (sc_event_company,
+           * linked to their directory listing) or the free-text Organiser
+           * name already shown in the hero above, never a private member's
+           * personal profile. Who actually submitted it is still visible to
+           * the member themselves (My events on the dashboard) and to admins.
+           */}
           {event.sc_event_company ? (
             <Link href={`/directory/${event.sc_event_company.slug}`} className="button-pill button-pill-secondary">
               Hosted by {event.sc_event_company.name}
             </Link>
-          ) : event.sc_event_author_is_staff ? (
-            <ClaimEventButton eventId={event.id} isLoggedIn={Boolean(sessionToken)} />
           ) : (
-            event._embedded?.author?.[0] && (
-              <Link href={`/members/${event._embedded.author[0].slug}`} className="button-pill button-pill-secondary">
-                Submitted by {event._embedded.author[0].name}
-              </Link>
+            event.sc_event_author_is_staff && (
+              <ClaimEventButton eventId={event.id} isLoggedIn={Boolean(sessionToken)} />
             )
           )}
         </div>

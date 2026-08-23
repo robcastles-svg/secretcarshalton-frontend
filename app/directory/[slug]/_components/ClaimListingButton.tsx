@@ -1,18 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function ClaimListingButton({
   listingId,
   isLoggedIn,
+  initialPending,
 }: {
   listingId: number;
   isLoggedIn: boolean;
+  initialPending: boolean;
 }) {
-  const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
+  const [pending, setPending] = useState(initialPending);
   const [error, setError] = useState<string | null>(null);
 
   if (!isLoggedIn) {
@@ -21,6 +22,14 @@ export function ClaimListingButton({
         Is this your business? Log in to claim it
       </Link>
     );
+  }
+
+  // Claims go to Rob for review now, not straight through — see
+  // SC_Directory_REST::claim_listing. The listing itself won't show as
+  // claimed yet, so this has to remember the request locally rather than
+  // relying on a refreshed sc_claimed flag that hasn't changed.
+  if (pending) {
+    return <p className="claim-pending-notice">Claim request submitted — awaiting review.</p>;
   }
 
   async function handleClick() {
@@ -32,7 +41,7 @@ export function ClaimListingButton({
       body: JSON.stringify({ listingId }),
     });
     if (res.ok) {
-      router.refresh();
+      setPending(true);
     } else {
       const body = await res.json().catch(() => ({}));
       setError(body.error || "Something went wrong — please try again.");
@@ -43,7 +52,7 @@ export function ClaimListingButton({
   return (
     <div>
       <button type="button" className="button-pill button-pill-active" onClick={handleClick} disabled={submitting}>
-        {submitting ? "Claiming…" : "Is this your business? Claim this listing"}
+        {submitting ? "Submitting…" : "Is this your business? Claim this listing"}
       </button>
       {error && <p className="auth-error">{error}</p>}
     </div>

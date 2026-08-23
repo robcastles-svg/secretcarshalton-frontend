@@ -127,7 +127,11 @@ export default async function DirectoryListingPage({
           )}
           {!meta.sc_claimed && (
             <div className="directory-claim-row">
-              <ClaimListingButton listingId={listing.id} isLoggedIn={Boolean(sessionToken)} />
+              <ClaimListingButton
+                listingId={listing.id}
+                isLoggedIn={Boolean(sessionToken)}
+                initialPending={Boolean(listing.sc_claim_pending)}
+              />
             </div>
           )}
           <div className="post-content" dangerouslySetInnerHTML={{ __html: listing.content.rendered }} />
