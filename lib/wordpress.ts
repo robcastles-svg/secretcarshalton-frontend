@@ -665,6 +665,8 @@ export interface WPPublicUser {
   description: string;
   avatar_urls?: Record<string, string>;
   banned?: boolean;
+  points?: number;
+  tier?: { slug: string; label: string };
 }
 
 /**
@@ -1042,6 +1044,7 @@ export async function registerMember(
 
 export interface MemberProfile {
   id: number;
+  display_name: string;
   is_editor: boolean;
   email_verified: boolean;
   points: number;

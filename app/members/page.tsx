@@ -88,13 +88,45 @@ export default async function MembersPage({
           </div>
 
           {sortMode === "active" ? (
-            <div className="member-directory-grid">
-              {[...members]
-                .sort((a, b) => b.points - a.points || a.display_name.localeCompare(b.display_name))
-                .map((member, i) => (
-                  <MemberCard key={member.id} member={member} isAdmin={isAdmin} rank={i + 1} />
-                ))}
-            </div>
+            (() => {
+              // Split rather than one sorted-by-points list: with almost
+              // everyone tied at 0 points (no activity yet), a single list
+              // sorted that way is indistinguishable from alphabetical
+              // once past the handful of members who've actually done
+              // something — which reads as "the sort isn't working" even
+              // though it is. Keeping the two groups visually separate
+              // makes the real ranking obvious for exactly as many people
+              // as it actually applies to.
+              const ranked = [...members]
+                .filter((m) => m.points > 0)
+                .sort((a, b) => b.points - a.points || a.display_name.localeCompare(b.display_name));
+              const unranked = members
+                .filter((m) => m.points === 0)
+                .sort((a, b) => a.display_name.localeCompare(b.display_name));
+
+              return (
+                <>
+                  {ranked.length > 0 && (
+                    <>
+                      <h2 className="member-directory-letter">Most active</h2>
+                      <div className="member-directory-grid">
+                        {ranked.map((member, i) => (
+                          <MemberCard key={member.id} member={member} isAdmin={isAdmin} rank={i + 1} />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  <h2 className="member-directory-letter">
+                    {ranked.length > 0 ? "Not yet active" : "No activity yet"}
+                  </h2>
+                  <div className="member-directory-grid">
+                    {unranked.map((member) => (
+                      <MemberCard key={member.id} member={member} isAdmin={isAdmin} />
+                    ))}
+                  </div>
+                </>
+              );
+            })()
           ) : (
             <>
               <nav className="member-alpha-nav" aria-label="Jump to members starting with">

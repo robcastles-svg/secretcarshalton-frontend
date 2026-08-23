@@ -108,6 +108,7 @@ export default async function MemberProfilePage({
         {avatar && <img src={avatar} alt="" className="member-profile-avatar" />}
         <div>
           <h1>{user.name}</h1>
+          {user.tier && <span className="member-tier-badge">{user.tier.label}</span>}
           {user.description && <p>{user.description}</p>}
         </div>
       </div>

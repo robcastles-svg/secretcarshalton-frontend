@@ -130,6 +130,8 @@ class SC_Membership_REST {
 		}
 
 		$avatar = get_avatar_url( $user->ID, array( 'size' => 96 ) );
+		$member = SC_Membership_DB::get_or_create_member( $user->ID );
+		$tier   = SC_Membership_Tiers::get( $member->tier );
 
 		return array(
 			'id'           => $user->ID,
@@ -142,6 +144,11 @@ class SC_Membership_REST {
 				'96' => $avatar,
 			),
 			'banned'       => self::is_banned( $user->ID ),
+			'points'       => (int) $member->points,
+			'tier'         => array(
+				'slug'  => $tier['slug'],
+				'label' => $tier['label'],
+			),
 		);
 	}
 
@@ -187,23 +194,19 @@ class SC_Membership_REST {
 	}
 
 	/**
-	 * BuddyPress owns avatar resolution on this install and falls back to
-	 * its own generic mystery-man.jpg for every member who hasn't uploaded
-	 * a photo — which is everyone right now, since the dashboard's own
-	 * "Upload photo" button isn't wired up yet. Catches that fallback (and
-	 * WP core's own gravatar "mystery" default, for when avatar resolution
-	 * doesn't go through BuddyPress) and swaps in the branded default
-	 * instead. A real Gravatar match is untouched — this only replaces
-	 * the "no photo at all" case. Registered globally via get_avatar_url
-	 * so it applies everywhere an avatar is resolved: this plugin's own
-	 * /members endpoint and WP core's /wp/v2/users (which the public
-	 * member-profile page reads its avatar from).
+	 * Every member shows the same branded badge, full stop — no Gravatar,
+	 * no BuddyPress-uploaded photo. Originally this only replaced the
+	 * generic mystery-man.jpg fallback, but Rob wants profile photos off
+	 * the table entirely (see the dashboard's removed "Upload photo"
+	 * button): the directory is meant to be the place people put effort
+	 * into representing their business, not a personal-profile feature.
+	 * Registered globally via get_avatar_url so it applies everywhere an
+	 * avatar is resolved: this plugin's own /members endpoint and WP
+	 * core's /wp/v2/users (which the public member-profile page reads
+	 * its avatar from).
 	 */
 	public static function filter_default_avatar( $url, $id_or_email, $args ) {
-		if ( $url && ( false !== strpos( $url, 'mystery-man' ) || false !== strpos( $url, 'd=mm' ) ) ) {
-			return SC_Membership_Auth::FRONTEND_URL . '/default-avatar.png';
-		}
-		return $url;
+		return SC_Membership_Auth::FRONTEND_URL . '/default-avatar.png';
 	}
 
 	/**
@@ -343,6 +346,7 @@ class SC_Membership_REST {
 
 		return array(
 			'id'                       => $user_id,
+			'display_name'             => get_userdata( $user_id )->display_name,
 			// 'edit_others_posts' is Editor/Administrator only — Author and
 			// below can't. Used by the frontend to gate the AI editorial
 			// draft tool (brief section 11's admin/editor role split), not

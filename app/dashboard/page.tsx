@@ -49,7 +49,7 @@ export default async function DashboardPage() {
   return (
     <main className="container dashboard">
       <div className="dashboard-header">
-        <h1>Your dashboard</h1>
+        <h1>Hello {profile.display_name}</h1>
         <LogoutButton />
       </div>
 
@@ -72,18 +72,8 @@ export default async function DashboardPage() {
       <section className="dashboard-section dashboard-account">
         <h2>Account</h2>
         <div className="dashboard-account-row">
-          <div className="dashboard-avatar" aria-hidden="true">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M4 20c0-4 3.5-7 8-7s8 3 8 7" />
-            </svg>
-          </div>
-          <div>
-            <button type="button" className="button-pill button-pill-secondary" disabled>
-              Upload photo
-            </button>
-            <p className="dashboard-hint">Photo uploads aren&apos;t connected yet — coming soon.</p>
-          </div>
+          {/* Every member shows the same badge — no profile photo uploads, by design (see SC_Membership_REST::filter_default_avatar). The directory is where we want people putting in effort, not a personal profile. */}
+          <img src="/default-avatar.png" alt="" className="dashboard-avatar" />
         </div>
         <p className="dashboard-hint">
           Username and email aren&apos;t shown here yet — coming soon, once account details are wired up.
