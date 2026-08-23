@@ -657,22 +657,59 @@ export interface WPScEvent {
   };
 }
 
-/** Fields WP's REST users endpoint exposes unauthenticated (the "view" context) — no email, no roles. */
+/** No `link` field — WP core's own /wp/v2/users response had one, but nothing here reads it and the replacement endpoint below doesn't bother computing it. */
 export interface WPPublicUser {
   id: number;
   name: string;
   slug: string;
   description: string;
-  link: string;
   avatar_urls?: Record<string, string>;
+  banned?: boolean;
 }
 
+/**
+ * Deliberately not WP core's /wp/v2/users?slug= — that endpoint silently
+ * hides any account that hasn't authored public content (a WP core
+ * privacy default), which 404'd the public profile page for almost
+ * every member on this site. SC_Membership_REST::get_member_by_slug has
+ * no such restriction, same as getAllMembers already needed for the
+ * full /members list.
+ */
 export async function getWPUserBySlug(slug: string): Promise<WPPublicUser | null> {
   try {
-    const users = await scDirectoryFetch<WPPublicUser[]>(`/users?slug=${encodeURIComponent(slug)}`);
-    return users[0] ?? null;
+    const res = await fetchWithRetry(
+      `${WP_STAGING_ROOT}/sc-membership/v1/members/${encodeURIComponent(slug)}`,
+      { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
+      3
+    );
+    if (!res.ok) return null;
+    return res.json();
   } catch {
     return null;
+  }
+}
+
+/** Admin-only — bans (or unbans) a member, blocking their login. See SC_Membership_REST::moderate_member. */
+export async function moderateMember(
+  token: string,
+  userId: number,
+  action: "ban" | "unban"
+): Promise<{ status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/members/${userId}/moderate`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "moderate_failed", message: body.message ?? "Could not update this member." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
   }
 }
 

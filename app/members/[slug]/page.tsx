@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getSessionToken } from "@/lib/auth";
 import {
   getCommentsByUser,
   getDirectoryListingsByAuthor,
   getFeaturedImage,
+  getMemberMe,
   getScEventsByAuthor,
   getWPUserBySlug,
   parseEventDate,
   stripHtml,
 } from "@/lib/wordpress";
+import { BanMemberButton } from "./_components/BanMemberButton";
 
 export const revalidate = 3600;
 
@@ -34,14 +37,18 @@ export default async function MemberProfilePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const user = await getWPUserBySlug(slug).catch(() => null);
+  const [user, sessionToken] = await Promise.all([
+    getWPUserBySlug(slug).catch(() => null),
+    getSessionToken(),
+  ]);
 
   if (!user) notFound();
 
-  const [events, listings, comments] = await Promise.all([
+  const [events, listings, comments, viewerProfile] = await Promise.all([
     getScEventsByAuthor(user.id).catch(() => []),
     getDirectoryListingsByAuthor(user.id).catch(() => []),
     getCommentsByUser(user.id),
+    sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
   ]);
   const avatar = user.avatar_urls?.["96"] || user.avatar_urls?.["48"];
 
@@ -54,6 +61,10 @@ export default async function MemberProfilePage({
           {user.description && <p>{user.description}</p>}
         </div>
       </div>
+
+      {viewerProfile?.is_editor && (
+        <BanMemberButton userId={user.id} initialBanned={Boolean(user.banned)} />
+      )}
 
       <section className="dashboard-section">
         <h2>Events submitted by {user.name}</h2>

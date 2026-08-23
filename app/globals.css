@@ -1128,16 +1128,105 @@ img {
   margin: 0 0 0.25rem;
 }
 
-.member-directory-list {
-  list-style: none;
-  padding: 0;
-  margin: 1.5rem 0 0;
+.member-moderation {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: -1rem 0 2rem;
+}
+
+.member-banned-badge {
+  background: #c0392b;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+}
+
+.member-ban-button {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.member-ban-button:hover {
+  background: #c0392b;
+  color: #fff;
+}
+
+.member-count {
+  color: #777;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.member-alpha-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 1.5rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 5;
+}
+
+.member-alpha-nav a,
+.member-alpha-nav span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.member-alpha-nav a {
+  color: #1a1a1a;
+}
+
+.member-alpha-nav a:hover {
+  background: var(--color-active);
+  color: #fff;
+}
+
+.member-alpha-nav span {
+  color: #ccc;
+}
+
+.member-directory-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1.5rem;
+  margin: 0;
 }
 
-.member-directory-list a {
+.member-directory-letter {
+  grid-column: 1 / -1;
+  margin: 1.5rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid #eee;
+  scroll-margin-top: 4rem;
+}
+
+.member-directory-letter:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.member-directory-item {
+  position: relative;
+}
+
+.member-directory-item a {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1147,16 +1236,35 @@ img {
   text-align: center;
 }
 
-.member-directory-list img {
+.member-directory-item img {
   width: 72px;
   height: 72px;
   border-radius: 50%;
   object-fit: cover;
 }
 
-.member-directory-list span {
+.member-directory-item span {
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+.member-directory-edit {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #777;
+  text-decoration: none;
+}
+
+.member-directory-edit:hover {
+  border-color: var(--color-active);
+  color: var(--color-active-dark);
 }
 
 .dashboard-members-link {

@@ -87,6 +87,103 @@ class SC_Membership_REST {
 				'permission_callback' => '__return_true',
 			)
 		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/members/(?P<slug>[^/]+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_member_by_slug' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/members/(?P<id>\d+)/moderate',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'moderate_member' ),
+				'permission_callback' => function () {
+					return current_user_can( 'manage_options' );
+				},
+			)
+		);
+	}
+
+	/**
+	 * The public member-profile page (/members/{slug}) was 404ing for
+	 * almost everyone in the /members list — get_members() above lists
+	 * every registered user, but this used to go through WP core's own
+	 * wp/v2/users?slug= route, which silently hides any account that
+	 * hasn't authored public content (a WP core privacy default). That's
+	 * most of this site's members, since most haven't posted an event or
+	 * listing. Same fix as get_members(): a plain get_user_by() lookup,
+	 * no such restriction.
+	 */
+	public static function get_member_by_slug( WP_REST_Request $request ) {
+		$slug = sanitize_title( (string) $request->get_param( 'slug' ) );
+		$user = get_user_by( 'slug', $slug );
+
+		if ( ! $user ) {
+			return new WP_Error( 'not_found', 'Member not found.', array( 'status' => 404 ) );
+		}
+
+		$avatar = get_avatar_url( $user->ID, array( 'size' => 96 ) );
+
+		return array(
+			'id'           => $user->ID,
+			'name'         => $user->display_name,
+			'slug'         => $user->user_nicename,
+			'description'  => get_user_meta( $user->ID, 'description', true ),
+			'avatar_urls'  => array(
+				'24' => $avatar,
+				'48' => $avatar,
+				'96' => $avatar,
+			),
+			'banned'       => self::is_banned( $user->ID ),
+		);
+	}
+
+	/**
+	 * "Ban/spam" a member — BuddyPress (confirmed active on this install,
+	 * see the avatar filter's mystery-man.jpg path) already has a real,
+	 * standalone-site-safe version of this via
+	 * bp_core_process_spammer_status(): it hides the member's BuddyPress
+	 * content sitewide and blocks them logging in. Falls back to a plain
+	 * user-meta flag + the wp_authenticate_user login block below if
+	 * BuddyPress isn't active for some reason, so this never silently
+	 * no-ops.
+	 */
+	public static function is_banned( $user_id ) {
+		if ( function_exists( 'bp_is_user_spammer' ) ) {
+			return (bool) bp_is_user_spammer( $user_id );
+		}
+		return '1' === get_user_meta( $user_id, 'sc_member_banned', true );
+	}
+
+	public static function moderate_member( WP_REST_Request $request ) {
+		$user_id = (int) $request->get_param( 'id' );
+		$action  = sanitize_key( (string) $request->get_param( 'action' ) );
+
+		$user = get_userdata( $user_id );
+		if ( ! $user ) {
+			return new WP_Error( 'not_found', 'Member not found.', array( 'status' => 404 ) );
+		}
+		if ( user_can( $user_id, 'manage_options' ) ) {
+			return new WP_Error( 'not_allowed', 'Admin accounts can\'t be banned.', array( 'status' => 403 ) );
+		}
+		if ( ! in_array( $action, array( 'ban', 'unban' ), true ) ) {
+			return new WP_Error( 'invalid_action', 'Unknown action.', array( 'status' => 400 ) );
+		}
+
+		if ( function_exists( 'bp_core_process_spammer_status' ) ) {
+			bp_core_process_spammer_status( $user_id, 'ban' === $action ? 'spam' : 'ham' );
+		} else {
+			update_user_meta( $user_id, 'sc_member_banned', 'ban' === $action ? '1' : '0' );
+		}
+
+		return array( 'status' => 'ban' === $action ? 'banned' : 'unbanned' );
 	}
 
 	/**
