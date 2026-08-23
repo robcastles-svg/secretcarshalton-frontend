@@ -481,6 +481,7 @@ img {
 .post-list .card-title,
 .post-list .card-tag,
 .post-list .card-category,
+.post-list .card-readmore,
 .post-list time {
   margin-left: 1rem;
   margin-right: 1rem;
@@ -526,6 +527,24 @@ img {
   color: #777;
   font-size: 0.85rem;
   margin-top: 0.4rem;
+}
+
+/* Explicit "Read more" CTA on the homepage's lead story cards — sits
+   inside the same whole-card <a> as the title/category, so it's a
+   visual button rather than a second (invalid, nested) link. */
+.card-readmore {
+  display: inline-block;
+  margin-top: 0.6rem;
+  padding: 0.35rem 0.9rem;
+  background: #c2607a;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.hero-readmore {
+  margin-top: 0.25rem;
 }
 
 .post-list time.event-card-date {

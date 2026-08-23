@@ -77,6 +77,7 @@ export default async function HomePage() {
             <h1 dangerouslySetInnerHTML={{ __html: hero.title.rendered }} />
             <p>{stripHtml(hero.excerpt.rendered)}</p>
             <time dateTime={hero.date}>{formatDate(hero.date)}</time>
+            <span className="button-pill hero-readmore">Read more</span>
           </Link>
           {heroImage && (
             <Link href={`/${hero.slug}`} className="hero-image">
@@ -85,7 +86,7 @@ export default async function HomePage() {
           )}
         </section>
 
-        <ContentList items={cardPosts} />
+        <ContentList items={cardPosts} showReadMore />
       </div>
 
       <div className="newsletter-cta">

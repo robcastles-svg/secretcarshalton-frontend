@@ -5,11 +5,14 @@ export function ContentList({
   items,
   categoriesById,
   tagsById,
+  showReadMore,
 }: {
   items: WPContentItem[];
   /** When provided, each card shows its tag above the headline and category below it. */
   categoriesById?: Map<number, WPCategory>;
   tagsById?: Map<number, WPTag>;
+  /** Adds a "Read more" button to each card — used for the homepage's lead stories, not the plain archive/listing pages that reuse this component. */
+  showReadMore?: boolean;
 }) {
   return (
     <ul className="post-list">
@@ -26,6 +29,7 @@ export function ContentList({
                 {tag && <span className="card-tag">{tag.name}</span>}
                 <span className="card-title" dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
                 {category && <span className="card-category">{category.name}</span>}
+                {showReadMore && <span className="card-readmore">Read more</span>}
               </div>
             </Link>
             <time dateTime={item.date}>
