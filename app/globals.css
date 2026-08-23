@@ -2189,6 +2189,12 @@ img {
   margin: 1rem 0 1.25rem;
 }
 
+.dashboard-greeting {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #555;
+}
+
 .dashboard-avatar {
   flex-shrink: 0;
   width: 64px;

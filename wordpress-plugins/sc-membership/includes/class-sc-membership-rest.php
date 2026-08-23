@@ -347,6 +347,11 @@ class SC_Membership_REST {
 		return array(
 			'id'                       => $user_id,
 			'display_name'             => get_userdata( $user_id )->display_name,
+			// Set by SC_Membership_Auth::record_visit on every login/register
+			// that issued this member's current session — false only for
+			// the very first one, so the dashboard can say "Hello" once and
+			// "Welcome back" from then on.
+			'is_returning'             => (int) get_user_meta( $user_id, 'sc_member_login_count', true ) > 1,
 			// 'edit_others_posts' is Editor/Administrator only — Author and
 			// below can't. Used by the frontend to gate the AI editorial
 			// draft tool (brief section 11's admin/editor role split), not

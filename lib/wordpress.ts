@@ -1045,6 +1045,7 @@ export async function registerMember(
 export interface MemberProfile {
   id: number;
   display_name: string;
+  is_returning: boolean;
   is_editor: boolean;
   email_verified: boolean;
   points: number;

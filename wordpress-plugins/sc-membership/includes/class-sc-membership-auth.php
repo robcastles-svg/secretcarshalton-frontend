@@ -221,7 +221,21 @@ class SC_Membership_Auth {
 		return '' === $meta || '1' === $meta;
 	}
 
+	/**
+	 * Powers the dashboard's "Hello" vs "Welcome back" greeting — every
+	 * session-issuing event (register or login) counts as a visit, so a
+	 * brand new member sees "Hello" the first time they land on the
+	 * dashboard (count reaches 1 here, whether that came from registering
+	 * or logging in) and "Welcome back" on every one after.
+	 */
+	private static function record_visit( $user_id ) {
+		$count = (int) get_user_meta( $user_id, 'sc_member_login_count', true );
+		update_user_meta( $user_id, 'sc_member_login_count', $count + 1 );
+	}
+
 	private static function token_response( WP_User $user ) {
+		self::record_visit( $user->ID );
+
 		return array(
 			'token'    => self::issue_token( $user->ID ),
 			'user'     => array(
