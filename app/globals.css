@@ -532,6 +532,27 @@ img {
   margin-top: 0.25rem;
 }
 
+@media (max-width: 720px) {
+  /* <time> is inline by default, so the Read more button (inline-block)
+     was sitting right next to the date on the same line instead of
+     below it. */
+  .hero-readmore {
+    display: block;
+    width: fit-content;
+    margin-top: 0.75rem;
+  }
+
+  /* The raw excerpt can run to several sentences — clip the homepage's
+     lead-story preview to 3 lines on mobile instead of pushing the
+     Read more button and everything after it far down the page. */
+  .hero-text p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+}
+
 .post-list time.event-card-date {
   color: #1a1a1a;
   font-size: 1rem;
