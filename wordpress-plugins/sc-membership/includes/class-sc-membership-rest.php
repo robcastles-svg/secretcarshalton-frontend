@@ -90,6 +90,26 @@ class SC_Membership_REST {
 	}
 
 	/**
+	 * BuddyPress owns avatar resolution on this install and falls back to
+	 * its own generic mystery-man.jpg for every member who hasn't uploaded
+	 * a photo — which is everyone right now, since the dashboard's own
+	 * "Upload photo" button isn't wired up yet. Catches that fallback (and
+	 * WP core's own gravatar "mystery" default, for when avatar resolution
+	 * doesn't go through BuddyPress) and swaps in the branded default
+	 * instead. A real Gravatar match is untouched — this only replaces
+	 * the "no photo at all" case. Registered globally via get_avatar_url
+	 * so it applies everywhere an avatar is resolved: this plugin's own
+	 * /members endpoint and WP core's /wp/v2/users (which the public
+	 * member-profile page reads its avatar from).
+	 */
+	public static function filter_default_avatar( $url, $id_or_email, $args ) {
+		if ( $url && ( false !== strpos( $url, 'mystery-man' ) || false !== strpos( $url, 'd=mm' ) ) ) {
+			return SC_Membership_Auth::FRONTEND_URL . '/default-avatar.png';
+		}
+		return $url;
+	}
+
+	/**
 	 * Every registered member, for the public "browse members" list —
 	 * deliberately not wp/v2/users: WP core's REST users list only
 	 * surfaces accounts that have authored public content, which would

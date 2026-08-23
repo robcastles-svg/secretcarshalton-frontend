@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Membership
  * Description: Central member record (points, tiers, directory-upgrade approvals) shared by the directory, events, and comments. Other Secret Carshalton plugins hook into this rather than keeping their own copy of "who's a member."
- * Version: 0.2.0
+ * Version: 0.3.0
  * Author: Secret Carshalton
  * Text Domain: sc-membership
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_MEMBERSHIP_VERSION', '0.2.0' );
+define( 'SC_MEMBERSHIP_VERSION', '0.3.0' );
 define( 'SC_MEMBERSHIP_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-db.php';
@@ -43,6 +43,7 @@ add_action(
 
 add_action( 'plugins_loaded', array( 'SC_Membership_Hooks', 'init' ) );
 add_action( 'rest_api_init', array( 'SC_Membership_REST', 'register_routes' ) );
+add_filter( 'get_avatar_url', array( 'SC_Membership_REST', 'filter_default_avatar' ), 20, 3 );
 add_action( 'rest_api_init', array( 'SC_Membership_Auth', 'register_routes' ) );
 add_action( 'rest_api_init', array( 'SC_Membership_Auth', 'init_bearer_auth' ), 5 );
 add_action( 'admin_menu', array( 'SC_Membership_Admin', 'register_menu' ) );
