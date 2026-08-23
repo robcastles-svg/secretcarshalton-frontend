@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getMemberMe, getMyComments, getMyEvents, getMyListings, linkForPostType } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
+import { ExpandableList } from "@/app/_components/ExpandableList";
 import { LogoutButton } from "./_components/LogoutButton";
 import { RequestUpgradeButton } from "./_components/RequestUpgradeButton";
 import { VerifyEmailBanner } from "./_components/VerifyEmailBanner";
@@ -124,9 +125,13 @@ export default async function DashboardPage() {
         {myListings.length === 0 ? (
           <p className="dashboard-hint">Nothing yet — claim an existing listing or add a new one.</p>
         ) : (
-          <ul className="dashboard-my-list">
-            {myListings.map((listing) => (
-              <li key={listing.id}>
+          <ExpandableList
+            items={myListings}
+            listClassName="dashboard-my-list"
+            itemKey={(listing) => listing.id}
+            noun="listing"
+            renderItem={(listing) => (
+              <>
                 <span className={`dashboard-status-badge dashboard-status-${listing.status}`}>
                   {POST_STATUS_LABEL[listing.status] ?? listing.status}
                 </span>
@@ -138,9 +143,9 @@ export default async function DashboardPage() {
                 <Link href={`/directory/${listing.slug}/edit`} className="dashboard-my-list-edit">
                   Edit
                 </Link>
-              </li>
-            ))}
-          </ul>
+              </>
+            )}
+          />
         )}
         <div className="dashboard-section-actions">
           <Link href="/directory" className="button-pill button-pill-secondary">
@@ -157,9 +162,13 @@ export default async function DashboardPage() {
         {myEvents.length === 0 ? (
           <p className="dashboard-hint">Nothing submitted yet.</p>
         ) : (
-          <ul className="dashboard-my-list">
-            {myEvents.map((event) => (
-              <li key={event.id}>
+          <ExpandableList
+            items={myEvents}
+            listClassName="dashboard-my-list"
+            itemKey={(event) => event.id}
+            noun="event"
+            renderItem={(event) => (
+              <>
                 <span className={`dashboard-status-badge dashboard-status-${event.status}`}>
                   {POST_STATUS_LABEL[event.status] ?? event.status}
                 </span>
@@ -171,9 +180,9 @@ export default async function DashboardPage() {
                 <Link href={`/events/${event.slug}/edit`} className="dashboard-my-list-edit">
                   Edit
                 </Link>
-              </li>
-            ))}
-          </ul>
+              </>
+            )}
+          />
         )}
         <div className="dashboard-section-actions">
           <Link href="/events" className="button-pill button-pill-secondary">
@@ -192,9 +201,13 @@ export default async function DashboardPage() {
             Nothing yet — comment on a story to join the conversation.
           </p>
         ) : (
-          <ul className="dashboard-my-list dashboard-my-comments">
-            {myComments.map((comment) => (
-              <li key={comment.id}>
+          <ExpandableList
+            items={myComments}
+            listClassName="dashboard-my-list dashboard-my-comments"
+            itemKey={(comment) => comment.id}
+            noun="comment"
+            renderItem={(comment) => (
+              <>
                 <div>
                   {comment.status !== "approved" && (
                     <span className="dashboard-status-badge dashboard-status-pending">Awaiting moderation</span>
@@ -210,9 +223,9 @@ export default async function DashboardPage() {
                   <time>{formatDate(comment.date)}</time>
                 </div>
                 <p dangerouslySetInnerHTML={{ __html: comment.content.rendered }} />
-              </li>
-            ))}
-          </ul>
+              </>
+            )}
+          />
         )}
       </section>
 

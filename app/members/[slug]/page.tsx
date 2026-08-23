@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
@@ -13,6 +12,7 @@ import {
   parseEventDate,
   stripHtml,
 } from "@/lib/wordpress";
+import { ExpandableList } from "@/app/_components/ExpandableList";
 import { BanMemberButton } from "./_components/BanMemberButton";
 
 export const revalidate = 3600;
@@ -30,55 +30,6 @@ export async function generateMetadata({
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
-}
-
-const VISIBLE_LIMIT = 3;
-
-/**
- * A list of up to VISIBLE_LIMIT items, with any overflow tucked behind a
- * <details> "show N more" — a profile with a lot of history (events,
- * listings, comments) would otherwise run the page on indefinitely.
- * `listClassName` matches each section's existing list markup so the
- * "more" batch renders identically to the visible one.
- */
-function ExpandableList<T>({
-  items,
-  listClassName,
-  itemKey,
-  renderItem,
-  noun,
-}: {
-  items: T[];
-  listClassName: string;
-  itemKey: (item: T) => string | number;
-  renderItem: (item: T) => ReactNode;
-  noun: string;
-}) {
-  const visible = items.slice(0, VISIBLE_LIMIT);
-  const rest = items.slice(VISIBLE_LIMIT);
-
-  return (
-    <>
-      <ul className={listClassName}>
-        {visible.map((item) => (
-          <li key={itemKey(item)}>{renderItem(item)}</li>
-        ))}
-      </ul>
-      {rest.length > 0 && (
-        <details className="member-profile-more">
-          <summary>
-            Show {rest.length} more {noun}
-            {rest.length === 1 ? "" : "s"}
-          </summary>
-          <ul className={listClassName}>
-            {rest.map((item) => (
-              <li key={itemKey(item)}>{renderItem(item)}</li>
-            ))}
-          </ul>
-        </details>
-      )}
-    </>
-  );
 }
 
 export default async function MemberProfilePage({

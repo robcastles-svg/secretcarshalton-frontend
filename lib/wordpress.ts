@@ -731,9 +731,13 @@ export interface WPMember {
  * SC_Membership_REST::get_members() has no such restriction.
  */
 export async function getAllMembers(): Promise<WPMember[]> {
+  // no-store, not the usual REVALIDATE_SECONDS cache: points/activity change
+  // as members do things around the site, and an hour-stale "Most active"
+  // ranking reads as broken (looks identical to a plain alphabetical list
+  // once nearly everyone's cached points are 0) rather than just delayed.
   const res = await fetchWithRetry(
     `${WP_STAGING_ROOT}/sc-membership/v1/members`,
-    { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
+    { cache: "no-store", signal: AbortSignal.timeout(15_000) },
     3
   );
   if (!res.ok) {

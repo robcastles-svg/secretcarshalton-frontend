@@ -6,7 +6,10 @@ import { getAllMembers, getMemberMe, type WPMember } from "@/lib/wordpress";
 export const metadata = { title: "Members — Secret Carshalton" };
 export const revalidate = 3600;
 
-const LETTERS = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+// "#" last, not first — a plain string sort puts symbols/digits before "A",
+// which reads as a stray leading group rather than the deliberate catch-all
+// it's meant to be.
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split("");
 
 function letterKey(name: string): string {
   const ch = name.trim().charAt(0).toUpperCase();
@@ -144,12 +147,12 @@ export default async function MembersPage({
               </nav>
 
               <div className="member-directory-grid">
-                {Array.from(letterGroups.entries()).map(([letter, group]) => (
+                {LETTERS.filter((letter) => letterGroups.has(letter)).map((letter) => (
                   <Fragment key={letter}>
                     <h2 id={`letter-${letter}`} className="member-directory-letter">
                       {letter}
                     </h2>
-                    {group.map((member) => (
+                    {letterGroups.get(letter)!.map((member) => (
                       <MemberCard key={member.id} member={member} isAdmin={isAdmin} />
                     ))}
                   </Fragment>
