@@ -1267,6 +1267,46 @@ img {
   color: var(--color-active-dark);
 }
 
+@media (max-width: 720px) {
+  .member-alpha-nav {
+    gap: 0.2rem;
+  }
+
+  .member-alpha-nav a,
+  .member-alpha-nav span {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.75rem;
+  }
+
+  .member-directory-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.85rem;
+  }
+
+  .member-directory-item img {
+    width: 56px;
+    height: 56px;
+  }
+
+  .member-directory-item span {
+    font-size: 0.78rem;
+  }
+
+  .member-directory-edit {
+    top: -0.35rem;
+    right: -0.35rem;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .member-directory-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .dashboard-members-link {
   margin-top: -0.5rem;
 }
