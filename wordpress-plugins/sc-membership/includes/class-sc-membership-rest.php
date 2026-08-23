@@ -9,6 +9,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class SC_Membership_REST {
 
+	/**
+	 * A run of member accounts (business/organisation names, mostly —
+	 * "Curated by Dapper & Suave" and friends) have display_name stored
+	 * in wp_users with the "&" already HTML-entity-encoded as "&amp;" —
+	 * confirmed via $user->data (the raw, unfiltered DB row: WP_User's
+	 * own magic ->display_name getter applies its own 'display' escaping
+	 * on top, which would double it further) still coming back escaped.
+	 * Baked in at account creation/import, not something the read path
+	 * introduces — decode defensively here so the JSON API always
+	 * carries the true text either way; a name with no entities in it
+	 * passes through unchanged.
+	 */
+	private static function clean_display_name( $raw_display_name ) {
+		return wp_specialchars_decode( (string) $raw_display_name, ENT_QUOTES );
+	}
+
 	public static function register_routes() {
 		register_rest_route(
 			'sc-membership/v1',
@@ -134,20 +150,38 @@ class SC_Membership_REST {
 		$tier   = SC_Membership_Tiers::get( $member->tier );
 
 		return array(
-			'id'           => $user->ID,
-			'name'         => $user->display_name,
-			'slug'         => $user->user_nicename,
-			'description'  => get_user_meta( $user->ID, 'description', true ),
-			'avatar_urls'  => array(
+			'id'              => $user->ID,
+			'name'            => self::clean_display_name( $user->data->display_name ),
+			'slug'            => $user->user_nicename,
+			'description'     => get_user_meta( $user->ID, 'description', true ),
+			'avatar_urls'     => array(
 				'24' => $avatar,
 				'48' => $avatar,
 				'96' => $avatar,
 			),
-			'banned'       => self::is_banned( $user->ID ),
-			'points'       => (int) $member->points,
-			'tier'         => array(
+			'banned'          => self::is_banned( $user->ID ),
+			'points'          => (int) $member->points,
+			'tier'            => array(
 				'slug'  => $tier['slug'],
 				'label' => $tier['label'],
+			),
+			/**
+			 * Not every point source has its own section below — RSVPing
+			 * to an event awards points but leaves no "submitted"
+			 * anything to list, which otherwise makes a real, active
+			 * member's profile look entirely blank. This is the same
+			 * points-log data get_me() already shows the member privately
+			 * on their own dashboard.
+			 */
+			'recent_activity' => array_map(
+				function ( $entry ) {
+					return array(
+						'points' => (int) $entry->points_delta,
+						'reason' => $entry->reason,
+						'date'   => $entry->created_at,
+					);
+				},
+				SC_Membership_Points::recent_activity( $user->ID, 10 )
 			),
 		);
 	}
@@ -258,7 +292,7 @@ class SC_Membership_REST {
 			function ( $user ) use ( $points_by_user ) {
 				return array(
 					'id'           => $user->ID,
-					'display_name' => $user->display_name,
+					'display_name' => self::clean_display_name( $user->data->display_name ),
 					'slug'         => $user->user_nicename,
 					'avatar'       => get_avatar_url( $user->ID, array( 'size' => 96 ) ),
 					'points'       => $points_by_user[ $user->ID ] ?? 0,
@@ -346,7 +380,7 @@ class SC_Membership_REST {
 
 		return array(
 			'id'                       => $user_id,
-			'display_name'             => get_userdata( $user_id )->display_name,
+			'display_name'             => self::clean_display_name( get_userdata( $user_id )->data->display_name ),
 			// Set by SC_Membership_Auth::record_visit on every login/register
 			// that issued this member's current session — false only for
 			// the very first one, so the dashboard can say "Hello" once and
@@ -458,7 +492,12 @@ class SC_Membership_REST {
 				array(
 					'comment_post_ID'      => $post_id,
 					'comment_content'      => $content,
-					'comment_author'       => $user->display_name,
+					// clean_display_name(), not the raw (possibly
+					// entity-encoded, see its docblock) value — this gets
+					// stored verbatim in wp_comments.comment_author, so an
+					// un-decoded "&amp;" would corrupt the DB row itself,
+					// not just one page's rendering of it.
+					'comment_author'       => self::clean_display_name( $user->data->display_name ),
 					'comment_author_email' => $user->user_email,
 					'user_id'              => $user->ID,
 					'comment_parent'       => $parent,
@@ -497,7 +536,7 @@ class SC_Membership_REST {
 				$user = get_userdata( $row->user_id );
 				$tier = SC_Membership_Tiers::get( $row->tier );
 				return array(
-					'display_name' => $user ? $user->display_name : 'Member',
+					'display_name' => $user ? self::clean_display_name( $user->data->display_name ) : 'Member',
 					'points'       => (int) $row->points,
 					'tier'         => $tier ? $tier['label'] : $row->tier,
 				);

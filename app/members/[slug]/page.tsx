@@ -32,6 +32,10 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 }
 
+function formatEventDate(startDate: Date) {
+  return startDate.toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
+
 export default async function MemberProfilePage({
   params,
 }: {
@@ -45,13 +49,23 @@ export default async function MemberProfilePage({
 
   if (!user) notFound();
 
-  const [events, listings, comments, viewerProfile] = await Promise.all([
+  const [allEvents, listings, comments, viewerProfile] = await Promise.all([
     getScEventsByAuthor(user.id).catch(() => []),
     getDirectoryListingsByAuthor(user.id).catch(() => []),
     getCommentsByUser(user.id),
     sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
   ]);
   const avatar = user.avatar_urls?.["96"] || user.avatar_urls?.["48"];
+
+  const now = Date.now();
+  const upcomingEvents = allEvents.filter((event) => {
+    const start = parseEventDate(event.meta.sc_start);
+    return start !== null && start.getTime() >= now;
+  });
+  const pastEvents = allEvents.filter((event) => {
+    const start = parseEventDate(event.meta.sc_start);
+    return start === null || start.getTime() < now;
+  });
 
   return (
     <main className="container">
@@ -68,13 +82,36 @@ export default async function MemberProfilePage({
         <BanMemberButton userId={user.id} initialBanned={Boolean(user.banned)} />
       )}
 
+      {/*
+       * Not every point source has its own section below — RSVPing to an
+       * event, for one, awards points but leaves nothing to list under
+       * Events/Directory/Comments. Without this, a genuinely active
+       * member's profile can end up with points but every section below
+       * saying "nothing yet," which reads as broken rather than just a
+       * different kind of engagement.
+       */}
+      {user.recent_activity && user.recent_activity.length > 0 && (
+        <section className="dashboard-section">
+          <h2>Recent activity</h2>
+          <ul className="dashboard-activity-list">
+            {user.recent_activity.map((entry, i) => (
+              <li key={i}>
+                <span className="dashboard-activity-points">+{entry.points}</span>
+                <span>{entry.reason}</span>
+                <time>{formatDate(entry.date)}</time>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="dashboard-section">
-        <h2>Events submitted by {user.name}</h2>
-        {events.length === 0 ? (
-          <p className="dashboard-hint">No events submitted yet.</p>
+        <h2>Upcoming events submitted by {user.name}</h2>
+        {upcomingEvents.length === 0 ? (
+          <p className="dashboard-hint">Nothing upcoming right now.</p>
         ) : (
           <ExpandableList
-            items={events}
+            items={upcomingEvents}
             listClassName="post-list"
             itemKey={(event) => event.id}
             noun="event"
@@ -87,11 +124,36 @@ export default async function MemberProfilePage({
                     {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
                     <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
                   </Link>
-                  {startDate && (
-                    <time dateTime={startDate.toISOString()}>
-                      {startDate.toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
-                    </time>
-                  )}
+                  {startDate && <time dateTime={startDate.toISOString()}>{formatEventDate(startDate)}</time>}
+                </>
+              );
+            }}
+          />
+        )}
+      </section>
+
+      {/*
+       * A plain list, not the image-card treatment above — these have
+       * already happened, so this is a record of past engagement (what
+       * Rob's looking at when judging a member's activity) rather than
+       * something to promote.
+       */}
+      <section className="dashboard-section">
+        <h2>Past events</h2>
+        {pastEvents.length === 0 ? (
+          <p className="dashboard-hint">No past events.</p>
+        ) : (
+          <ExpandableList
+            items={pastEvents}
+            listClassName="member-profile-link-list"
+            itemKey={(event) => event.id}
+            noun="event"
+            renderItem={(event) => {
+              const startDate = parseEventDate(event.meta.sc_start);
+              return (
+                <>
+                  <Link href={`/events/${event.slug}`} dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
+                  {startDate && <time dateTime={startDate.toISOString()}>{formatEventDate(startDate)}</time>}
                 </>
               );
             }}

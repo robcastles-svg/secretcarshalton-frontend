@@ -1082,6 +1082,13 @@ img {
   border-bottom: none;
 }
 
+.member-profile-link-list time {
+  display: block;
+  color: #777;
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+
 .member-profile-more {
   margin-top: 1rem;
 }

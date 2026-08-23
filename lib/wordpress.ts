@@ -667,6 +667,7 @@ export interface WPPublicUser {
   banned?: boolean;
   points?: number;
   tier?: { slug: string; label: string };
+  recent_activity?: Array<{ points: number; reason: string; date: string }>;
 }
 
 /**
@@ -679,9 +680,12 @@ export interface WPPublicUser {
  */
 export async function getWPUserBySlug(slug: string): Promise<WPPublicUser | null> {
   try {
+    // no-store, same reasoning as getAllMembers: points/activity change as
+    // members do things, and an hour-stale profile is how a genuinely
+    // active member ends up looking "blank" right after they've engaged.
     const res = await fetchWithRetry(
       `${WP_STAGING_ROOT}/sc-membership/v1/members/${encodeURIComponent(slug)}`,
-      { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
+      { cache: "no-store", signal: AbortSignal.timeout(15_000) },
       3
     );
     if (!res.ok) return null;
@@ -857,10 +861,17 @@ export async function getScEventsByVenue(venueSlug: string): Promise<WPScEvent[]
   );
 }
 
-/** "Upcoming events by this member" — same reasoning as getScEventsByVenue. */
+/**
+ * Every event by this member, past and upcoming both — unlike
+ * getScEventsByVenue, this feeds the member profile page's engagement
+ * history (Rob wants to see what someone's actually submitted over time,
+ * not just what's still to come), so it deliberately doesn't apply
+ * isUpcoming's filter. Callers that want "what's next" should filter the
+ * result themselves.
+ */
 export async function getScEventsByAuthor(authorId: number): Promise<WPScEvent[]> {
   const events = await getScEvents(300);
-  return events.filter((e) => e.author === authorId && isUpcoming(e));
+  return events.filter((e) => e.author === authorId);
 }
 
 /**
