@@ -327,7 +327,12 @@ img {
    down to half width; stacking it keeps the image full width throughout). */
 .hero {
   display: grid;
-  grid-template-columns: 1fr;
+  /* minmax(0, 1fr), not a bare 1fr — a bare 1fr track's floor is its
+     content's min-content width, and the 100vw-wide bleeding image
+     below is exactly the oversized child that would blow the track
+     out past the container (same failure mode already hit and fixed
+     on .post-layout and the member directory grid). */
+  grid-template-columns: minmax(0, 1fr);
   gap: 1.25rem;
   padding: 1.5rem 0 2.5rem;
   border-bottom: 1px solid #eee;
@@ -339,8 +344,16 @@ img {
   order: 1;
 }
 
+/* True edge-to-edge, not just "fills its column" — .hero sits inside
+   .container (max-width: 1100px, side padding), so 100% width alone
+   still left visible gaps at the browser edges on wide screens. Bleed
+   past the container the same way post photos already do on mobile. */
 .hero-image {
   order: 0;
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
 }
 
 .hero-image img {
@@ -348,7 +361,7 @@ img {
   height: auto;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 0;
 }
 
 .hero-eyebrow {
