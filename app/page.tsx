@@ -143,13 +143,17 @@ export default async function HomePage() {
                   <h2>Walks</h2>
                   <Link href="/walks">All walks</Link>
                 </div>
-                <Link href={`/${latestWalk.slug}`} className="feature-row">
-                  {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
-                  <div>
-                    <span dangerouslySetInnerHTML={{ __html: latestWalk.title.rendered }} />
+                <div className="hero hero-secondary">
+                  <Link href={`/${latestWalk.slug}`} className="hero-text">
+                    <h3 dangerouslySetInnerHTML={{ __html: latestWalk.title.rendered }} />
                     <p>{stripHtml(latestWalk.excerpt.rendered)}</p>
-                  </div>
-                </Link>
+                  </Link>
+                  {image && (
+                    <Link href={`/${latestWalk.slug}`} className="hero-image">
+                      <img src={image.source_url} alt={image.alt_text} loading="lazy" />
+                    </Link>
+                  )}
+                </div>
               </section>
             );
           })()}
