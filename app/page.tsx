@@ -86,7 +86,7 @@ export default async function HomePage() {
           )}
         </section>
 
-        <ContentList items={cardPosts} showReadMore />
+        <ContentList items={cardPosts} />
       </div>
 
       <div className="newsletter-cta">
@@ -148,6 +148,7 @@ export default async function HomePage() {
                   <Link href={`/${latestWalk.slug}`} className="hero-text">
                     <h3 dangerouslySetInnerHTML={{ __html: latestWalk.title.rendered }} />
                     <p>{stripHtml(latestWalk.excerpt.rendered)}</p>
+                    <span className="button-pill hero-readmore">Read more</span>
                   </Link>
                   {image && (
                     <Link href={`/${latestWalk.slug}`} className="hero-image">
