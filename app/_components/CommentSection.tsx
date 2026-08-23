@@ -81,11 +81,15 @@ export function CommentSection({
           />
           {error && <p className="auth-error">{error}</p>}
           {pendingNotice && <p className="comment-pending-notice">Thanks — your comment is awaiting moderation.</p>}
-          <button type="submit" className="button-pill" disabled={submitting}>
+          <button type="submit" className="button-pill button-pill-active" disabled={submitting}>
             {submitting ? "Posting…" : "Post comment"}
           </button>
         </form>
       ) : (
+        <>
+          <Link href="/login" className="comment-box-teaser">
+            Leave a first comment…
+          </Link>
         <div className="comment-login-promo">
           <div className="comment-login-badge">Member</div>
           <ul>
@@ -101,6 +105,7 @@ export function CommentSection({
             <Link href="/register">Register</Link>
           </div>
         </div>
+        </>
       )}
 
       <div className="comment-count">{thread.length} COMMENT{thread.length === 1 ? "" : "S"}</div>

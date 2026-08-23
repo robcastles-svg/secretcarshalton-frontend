@@ -86,7 +86,7 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
         />
-        <div className="utility-bar">
+        <div className={`utility-bar${sessionToken ? " utility-bar-loggedin" : ""}`}>
           <div className="container utility-bar-inner">
             {UTILITY_NAV.map((item) =>
               item.href.startsWith("http") ? (

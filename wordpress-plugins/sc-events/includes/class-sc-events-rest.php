@@ -189,8 +189,11 @@ class SC_Events_REST {
 	 * Members can't edit posts at all (Subscriber has no edit_posts
 	 * capability — see the CPT's map_meta_cap docblock), so this can't
 	 * rely on WP's own capability checks the way an Editor/Admin route
-	 * could. Ownership is the entire security boundary here: logged in,
-	 * and the post really is theirs.
+	 * could. Ownership is the security boundary for a member — but an
+	 * Editor/Administrator (user_can(..., 'manage_options')) can fix up
+	 * any event regardless of who submitted it, the same override
+	 * sc_event_author_is_staff already uses to tell a staff account from
+	 * a real member.
 	 */
 	public static function check_owns_event( WP_REST_Request $request ) {
 		if ( ! is_user_logged_in() ) {
@@ -200,7 +203,8 @@ class SC_Events_REST {
 		if ( ! $event || SC_Events_CPT::POST_TYPE !== $event->post_type ) {
 			return new WP_Error( 'not_found', 'Event not found.', array( 'status' => 404 ) );
 		}
-		if ( (int) $event->post_author !== get_current_user_id() ) {
+		$current_user_id = get_current_user_id();
+		if ( (int) $event->post_author !== $current_user_id && ! user_can( $current_user_id, 'manage_options' ) ) {
 			return new WP_Error( 'forbidden', 'You can only edit your own events.', array( 'status' => 403 ) );
 		}
 		return true;

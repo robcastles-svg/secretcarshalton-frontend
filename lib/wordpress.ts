@@ -586,6 +586,44 @@ export function getDirectoryListingsByAuthor(authorId: number) {
   );
 }
 
+/**
+ * Unlike events (a custom /sc-events/v1/{id} route, since Subscribers have
+ * no edit_posts capability at all), listing editing goes straight through
+ * WordPress's own wp/v2/sc-listings/{id} — sc-directory never needed a
+ * bespoke update route because the only editor this ever needed to support
+ * is an admin/editor account, which already has edit_others_posts. The
+ * Bearer token still carries real WP capabilities via
+ * SC_Membership_Auth::determine_current_user, so this 403s correctly for
+ * anyone without them.
+ */
+export async function updateDirectoryListing(
+  token: string,
+  listingId: number,
+  data: {
+    title?: string;
+    content?: string;
+    sc_listing_category?: number[];
+    meta?: Partial<WPListingMeta>;
+  }
+): Promise<{ id: number } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/wp/v2/sc-listings/${listingId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "update_failed", message: body.message ?? "Could not update the listing." };
+    }
+    return { id: body.id };
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // sc-events — real REST date/venue fields, no HTML-scraping needed. The
 // ~257 real events have been migrated from EventON's live data (see
@@ -641,6 +679,32 @@ export async function getWPUserBySlug(slug: string): Promise<WPPublicUser | null
   } catch {
     return null;
   }
+}
+
+export interface WPMember {
+  id: number;
+  display_name: string;
+  slug: string;
+  avatar: string;
+}
+
+/**
+ * Every registered member — deliberately not getWPUserBySlug's /users
+ * endpoint looped over IDs: WP core's REST users list only surfaces
+ * accounts that have authored public content, which would silently drop
+ * anyone who's registered but hasn't posted an event/listing/comment yet.
+ * SC_Membership_REST::get_members() has no such restriction.
+ */
+export async function getAllMembers(): Promise<WPMember[]> {
+  const res = await fetchWithRetry(
+    `${WP_STAGING_ROOT}/sc-membership/v1/members`,
+    { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
+    3
+  );
+  if (!res.ok) {
+    throw new Error(`sc-membership members fetch failed -> ${res.status}`);
+  }
+  return res.json();
 }
 
 /** Slug/venue-name matching, not a real venue entity — see getScEventsByVenue's docblock. */

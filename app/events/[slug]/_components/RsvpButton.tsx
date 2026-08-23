@@ -53,7 +53,7 @@ export function RsvpButton({
     <div className="rsvp-button-wrap">
       <button
         type="button"
-        className={`button-pill rsvp-button${going ? " rsvp-button-going" : ""}`}
+        className={`button-pill button-pill-active rsvp-button${going ? " rsvp-button-going" : ""}`}
         onClick={handleClick}
         disabled={submitting}
       >

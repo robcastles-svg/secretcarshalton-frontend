@@ -42,7 +42,7 @@ export function ClaimListingButton({
 
   return (
     <div>
-      <button type="button" className="button-pill button-pill-secondary" onClick={handleClick} disabled={submitting}>
+      <button type="button" className="button-pill button-pill-active" onClick={handleClick} disabled={submitting}>
         {submitting ? "Claiming…" : "Is this your business? Claim this listing"}
       </button>
       {error && <p className="auth-error">{error}</p>}

@@ -53,6 +53,10 @@ export default async function DashboardPage() {
         <LogoutButton />
       </div>
 
+      <p className="dashboard-members-link">
+        <Link href="/members">Browse all members →</Link>
+      </p>
+
       {!profile.email_verified && <VerifyEmailBanner />}
 
       {profile.is_editor && (

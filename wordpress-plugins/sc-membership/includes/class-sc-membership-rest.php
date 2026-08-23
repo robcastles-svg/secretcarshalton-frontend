@@ -77,6 +77,47 @@ class SC_Membership_REST {
 				'permission_callback' => '__return_true',
 			)
 		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/members',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_members' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+	}
+
+	/**
+	 * Every registered member, for the public "browse members" list —
+	 * deliberately not wp/v2/users: WP core's REST users list only
+	 * surfaces accounts that have authored public content, which would
+	 * silently hide any member who's registered but hasn't posted an
+	 * event/listing yet. Administrators are excluded — this is a member
+	 * directory, not a staff list.
+	 */
+	public static function get_members( WP_REST_Request $request ) {
+		$users = get_users(
+			array(
+				'role__not_in' => array( 'administrator' ),
+				'orderby'      => 'display_name',
+				'order'        => 'ASC',
+				'number'       => 500,
+			)
+		);
+
+		return array_map(
+			function ( $user ) {
+				return array(
+					'id'           => $user->ID,
+					'display_name' => $user->display_name,
+					'slug'         => $user->user_nicename,
+					'avatar'       => get_avatar_url( $user->ID, array( 'size' => 96 ) ),
+				);
+			},
+			$users
+		);
 	}
 
 	/**

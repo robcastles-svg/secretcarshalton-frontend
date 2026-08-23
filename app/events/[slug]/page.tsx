@@ -93,6 +93,7 @@ export default async function EventPage({
   ]);
 
   const isOwner = Boolean(profile && profile.id === event.author);
+  const canEdit = isOwner || Boolean(profile?.is_editor);
 
   const image = getFeaturedImage(event);
   const startDate = parseEventDate(event.meta.sc_start);
@@ -144,8 +145,8 @@ export default async function EventPage({
           <div className="event-hero-body">
             <div className="page-header-row">
               <h1 dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-              {isOwner && (
-                <Link href={`/events/${event.slug}/edit`} className="button-pill button-pill-secondary">
+              {canEdit && (
+                <Link href={`/events/${event.slug}/edit`} className="button-pill button-pill-active">
                   Edit event
                 </Link>
               )}

@@ -38,7 +38,7 @@ export function ClaimEventButton({
 
   return (
     <div>
-      <button type="button" className="button-pill button-pill-secondary" onClick={handleClick} disabled={submitting}>
+      <button type="button" className="button-pill button-pill-active" onClick={handleClick} disabled={submitting}>
         {submitting ? "Claiming…" : "Is this your event? Claim it"}
       </button>
       {error && <p className="auth-error">{error}</p>}

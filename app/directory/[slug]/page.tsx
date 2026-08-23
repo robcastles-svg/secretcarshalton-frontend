@@ -8,6 +8,7 @@ import {
   getDirectoryListingBySlug,
   getDirectoryListings,
   getFeaturedImage,
+  getMemberMe,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -45,6 +46,8 @@ export default async function DirectoryListingPage({
   ]);
 
   if (!listing) notFound();
+
+  const profile = sessionToken ? await getMemberMe(sessionToken) : null;
 
   const image = getFeaturedImage(listing);
   const { meta } = listing;
@@ -85,22 +88,29 @@ export default async function DirectoryListingPage({
       <div className="post-body directory-listing-card">
         {image && <img src={image.source_url} alt={image.alt_text} />}
         <div className="directory-listing-card-body">
-          <h1>
-            {verified && (
-              <svg
-                className="directory-verified-check"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                aria-label="Verified listing"
-              >
-                <circle cx="12" cy="12" r="10" fill="#0a5c36" />
-                <path d="M7 12.5l3 3 7-7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+          <div className="page-header-row">
+            <h1>
+              {verified && (
+                <svg
+                  className="directory-verified-check"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-label="Verified listing"
+                >
+                  <circle cx="12" cy="12" r="10" fill="#0a5c36" />
+                  <path d="M7 12.5l3 3 7-7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+              <span dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
+            </h1>
+            {profile?.is_editor && (
+              <Link href={`/directory/${listing.slug}/edit`} className="button-pill button-pill-active">
+                Edit listing
+              </Link>
             )}
-            <span dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
-          </h1>
+          </div>
           {(category || meta.sc_featured) && (
             <div className="directory-badges">
               {category && (

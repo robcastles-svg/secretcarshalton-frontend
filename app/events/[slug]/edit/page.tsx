@@ -40,9 +40,10 @@ export default async function EditEventPage({
   if (!event) notFound();
   if (!profile) redirect("/login");
 
-  // Ownership is the real security boundary server-side (SC_Events_REST::check_owns_event) —
-  // this is just so a non-owner doesn't land on a form that will 403 on submit.
-  if (profile.id !== event.author) {
+  // Ownership (or being an admin/editor) is the real security boundary server-side
+  // (SC_Events_REST::check_owns_event) — this is just so neither lands on a form
+  // that will 403 on submit.
+  if (profile.id !== event.author && !profile.is_editor) {
     redirect(`/events/${slug}`);
   }
 

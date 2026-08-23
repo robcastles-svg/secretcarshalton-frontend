@@ -1,3 +1,12 @@
+:root {
+  /* The colour a button/bar turns once something only available while
+     logged in becomes available — claim/RSVP/comment/edit actions, and
+     the utility bar itself. Kept as one variable so the "logged in" look
+     stays consistent everywhere it's used. */
+  --color-active: #e2761f;
+  --color-active-dark: #c2630f;
+}
+
 body {
   margin: 0;
   font-family: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -63,6 +72,19 @@ img {
 
 .utility-bar a:hover {
   color: #0a5c36;
+}
+
+.utility-bar-loggedin {
+  background: var(--color-active);
+  border-bottom-color: var(--color-active-dark);
+}
+
+.utility-bar-loggedin a {
+  color: #fff;
+}
+
+.utility-bar-loggedin a:hover {
+  color: #1a1a1a;
 }
 
 /* Header */
@@ -1106,6 +1128,41 @@ img {
   margin: 0 0 0.25rem;
 }
 
+.member-directory-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1.5rem;
+}
+
+.member-directory-list a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #1a1a1a;
+  text-align: center;
+}
+
+.member-directory-list img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.member-directory-list span {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.dashboard-members-link {
+  margin-top: -0.5rem;
+}
+
 .member-profile-header p {
   margin: 0;
   color: #555;
@@ -1532,6 +1589,29 @@ img {
   margin: 0;
 }
 
+/* Styled to look like the real textarea it stands in for, so a logged-out
+   visitor sees an inviting place to comment rather than just a login
+   prompt — clicking it (like clicking into the real box) sends them to
+   log in first. */
+.comment-box-teaser {
+  display: block;
+  max-width: 640px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  color: #888;
+  font-size: 1rem;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.comment-box-teaser:hover {
+  border-color: var(--color-active);
+  color: var(--color-active-dark);
+}
+
 .comment-login-promo {
   background: #f5f5f5;
   border-radius: 12px;
@@ -1894,6 +1974,24 @@ img {
 }
 
 .button-pill-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* The colour a claim/RSVP/comment/edit button turns once it's actually
+   available to you — i.e. once you're logged in (and, for edit buttons,
+   an admin) — replacing the "log in to do this" prompt it stands in for. */
+.button-pill-active {
+  background: var(--color-active);
+  color: #fff;
+  border: none;
+}
+
+.button-pill-active:hover {
+  background: var(--color-active-dark);
+}
+
+.button-pill-active:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
