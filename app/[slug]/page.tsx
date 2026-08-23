@@ -241,7 +241,7 @@ export default async function ContentPage({
           <AdSlot
             placement="sidebar"
             className="sidebar-block-ad"
-            placeholderClassName="ad-slot-placeholder"
+            placeholderClassName="sidebar-ad-placeholder"
             placeholderText="Advertise here"
           />
 

@@ -1654,13 +1654,17 @@ img {
   margin: 1.5rem 0;
 }
 
+/* Matches the live site's caption treatment: bold caption text directly
+   under the image, then a keyline rule underneath it separating the
+   caption from the body copy that follows — not a line between the image
+   and caption. */
 .post-content figcaption,
 .post-content .wp-caption-text {
   font-weight: 700;
   font-size: 0.85rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #ddd;
-  color: #555;
+  margin-top: 0.35rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #ccc;
 }
 
 .post-sidebar {
@@ -1734,14 +1738,43 @@ img {
   color: #555;
 }
 
-.sidebar-block-ad {
+/* MPU (Medium Rectangle) — the standard IAB sidebar ad unit, 300x250.
+   Fixed dimensions rather than "however wide the column is, whatever
+   height the uploaded image happens to be": a real ad slot needs a
+   predictable size so it can be sold/booked as one, and object-fit
+   keeps a creative that isn't exactly 300x250 from distorting. */
+.sidebar-block-ad,
+.sidebar-ad-placeholder {
   display: block;
+  width: 300px;
+  max-width: 100%;
+  height: 250px;
+  margin: 0 auto;
 }
 
 .sidebar-block-ad img {
   display: block;
   width: 100%;
+  height: 100%;
+  object-fit: cover;
   border-radius: 4px;
+}
+
+.sidebar-ad-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  color: #888;
+  font-size: 0.8rem;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+}
+
+.sidebar-ad-placeholder:hover {
+  color: #c2607a;
+  border-color: #c2607a;
 }
 
 .sidebar-theme-list {
@@ -1993,32 +2026,39 @@ img {
   }
 
   /* Brief requirement: article photos extend edge-to-edge on mobile, no
-     side margins. Scoped to direct children of .post-content (standalone
-     editorial images/captions, the common WP pattern) rather than every
+     side margins. Scoped to standalone editorial images/captions (a bare
+     <img>, a Gutenberg figure/wp-caption block, or the classic-editor
+     pattern of an image alone in its own <p>) rather than every
      descendant <img> — a gallery block's multi-column thumbnails would
-     each break to 100vw individually otherwise. The keyline caption
-     border stays full-bleed for free (its own box inherits the bled
-     parent's width); inner padding keeps the caption *text* off the
-     screen edge. */
+     each break to 100vw individually otherwise. !important is needed
+     because years of classic-editor posts carry an inline
+     style="width:NNNpx" on the wp-caption <figure> itself, which
+     otherwise wins over a plain stylesheet rule regardless of
+     specificity — confirmed against real post HTML, not a guess. The
+     keyline caption border stays full-bleed for free (its own box
+     inherits the bled parent's width); inner padding keeps the caption
+     *text* off the screen edge. */
   .post-content > img,
   .post-content > figure,
-  .post-content > .wp-caption {
-    width: 100vw;
-    max-width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
-    border-radius: 0;
+  .post-content > .wp-caption,
+  .post-content > p:has(> img:only-child) {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
+    border-radius: 0 !important;
   }
 
   .post-content > figure img,
-  .post-content > .wp-caption img {
-    width: 100%;
-    border-radius: 0;
+  .post-content > .wp-caption img,
+  .post-content > p:has(> img:only-child) > img {
+    width: 100% !important;
+    border-radius: 0 !important;
   }
 
   .post-content > figure figcaption,
   .post-content > .wp-caption .wp-caption-text {
-    padding: 0.5rem 1.5rem 0;
+    padding: 0 1.5rem 0.5rem;
   }
 }
 

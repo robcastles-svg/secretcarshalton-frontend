@@ -23,7 +23,7 @@ class SC_Ads_CPT {
 	const PLACEMENTS = array(
 		'billboard'   => 'Billboard (full-width, top of page)',
 		'leaderboard' => 'Leaderboard (beside logo in header — rotation pool)',
-		'sidebar'     => 'Sidebar (article pages)',
+		'sidebar'     => 'Sidebar (article pages) — 300×250 MPU',
 		'in_post_1'   => 'In-article — first slot',
 		'in_post_2'   => 'In-article — second slot',
 	);
