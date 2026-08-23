@@ -20,6 +20,9 @@ export interface WPContentItem {
   id: number;
   slug: string;
   date: string;
+  // Not requested by every caller (see each _fields list) — only reliably
+  // present via getPostBySlug, which is the one place it's shown.
+  modified?: string;
   link: string;
   title: WPRendered;
   excerpt: WPRendered;
@@ -152,40 +155,75 @@ export function getPosts(perPage = 12) {
   );
 }
 
-async function getPostViewCount(postId: number): Promise<number> {
-  const res = await fetchWithRetry(
-    `https://www.secretcarshalton.com/wp-json/post-views-counter/get-post-views/${postId}`,
-    { next: { revalidate: REVALIDATE_SECONDS } }
-  );
-  if (!res.ok) return 0;
-  const count = Number(await res.text());
-  return Number.isFinite(count) ? count : 0;
+/**
+ * Our own view counter (sc-post-views, staging), not the third-party
+ * Post Views Counter plugin's REST API — that one only ever answers "this
+ * post's all-time total" (one request per post, no time window, no "top
+ * posts" of any kind), which is why the homepage's "top stories" used to
+ * need a request per candidate post and could only ever be "top of the
+ * last 20", not genuinely "this week". sc-post-views keeps a daily bucket
+ * per post (seeded from Post Views Counter's numbers so nothing reset to
+ * zero when this switched over — see its admin backfill), so both
+ * problems go away: getPostViewCount is one request, and getTopPosts
+ * below answers "today"/"this week" directly, already sorted.
+ */
+export async function getPostViewCount(postId: number): Promise<number> {
+  try {
+    const res = await fetchWithRetry(
+      `${WP_STAGING_ROOT}/sc-post-views/v1/count/${postId}`,
+      { next: { revalidate: 300 }, signal: AbortSignal.timeout(15_000) },
+      3
+    );
+    if (!res.ok) return 0;
+    const body = await res.json();
+    return typeof body.views === "number" ? body.views : 0;
+  } catch {
+    return 0;
+  }
 }
 
-/**
- * The view-count plugin's REST API only accepts one post ID per call and
- * has no "top posts" or time-windowed route — despite offering a
- * comma-separated ID pattern, it silently returns a single aggregate
- * number rather than a per-post breakdown. So this is all-time views,
- * not "this week", and it costs one request per post in the pool —
- * kept small and bounded, and never allowed to fail the page it's on.
- */
-export async function getMostReadPosts(
-  candidatePool: WPContentItem[],
-  count: number
-): Promise<WPContentItem[]> {
+/** Fire-and-forget: tells sc-post-views a real page view just happened. See PostViewTracker. */
+export async function recordPostView(postId: number, slug: string, title: string): Promise<void> {
   try {
-    const counts = await mapWithConcurrency(candidatePool, 3, (post) =>
-      getPostViewCount(post.id)
+    await fetch(`${WP_STAGING_ROOT}/sc-post-views/v1/record`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ post_id: postId, slug, title }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    });
+  } catch {
+    // Losing an occasional view count isn't worth failing anything over.
+  }
+}
+
+export interface TopViewedPost {
+  post_id: number;
+  slug: string;
+  title: string;
+  views: number;
+}
+
+async function getTopPosts(window: "today" | "week", limit: number): Promise<TopViewedPost[]> {
+  try {
+    const res = await fetchWithRetry(
+      `${WP_STAGING_ROOT}/sc-post-views/v1/top?window=${window}&limit=${limit}`,
+      { next: { revalidate: 300 }, signal: AbortSignal.timeout(15_000) },
+      3
     );
-    return candidatePool
-      .map((post, i) => ({ post, views: counts[i] }))
-      .sort((a, b) => b.views - a.views)
-      .slice(0, count)
-      .map((x) => x.post);
+    if (!res.ok) return [];
+    return res.json();
   } catch {
     return [];
   }
+}
+
+export function getTopPostsToday(limit: number): Promise<TopViewedPost[]> {
+  return getTopPosts("today", limit);
+}
+
+export function getTopPostsThisWeek(limit: number): Promise<TopViewedPost[]> {
+  return getTopPosts("week", limit);
 }
 
 export async function getRecentPostSlugs(count: number): Promise<string[]> {

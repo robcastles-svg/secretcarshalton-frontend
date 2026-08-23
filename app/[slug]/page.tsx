@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { AdSlot } from "@/app/_components/AdSlot";
 import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
+import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { getSessionToken } from "@/lib/auth";
 import {
   getAllPageSlugs,
@@ -12,12 +13,12 @@ import {
   getCommentsForPost,
   getFeaturedImage,
   getMembersByIds,
-  getMostReadPosts,
   getPageBySlug,
   getPostBySlug,
-  getPosts,
+  getPostViewCount,
   getRecentPostSlugs,
   getTags,
+  getTopPostsToday,
   splitContentIntoParagraphChunks,
   stripHtml,
 } from "@/lib/wordpress";
@@ -89,6 +90,20 @@ function formatDate(iso: string) {
   });
 }
 
+/** WP's date/modified are plain "YYYY-MM-DDTHH:MM:SS" (site-local, no offset) — comparing the date portion as a string avoids any timezone parsing at all. */
+function sameCalendarDay(a: string, b: string) {
+  return a.slice(0, 10) === b.slice(0, 10);
+}
+
+function EyeIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12Z" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
 export default async function ContentPage({
   params,
 }: {
@@ -115,13 +130,16 @@ export default async function ContentPage({
     );
   }
 
-  const [allCategories, allTags, comments, fullThread, recentPosts, sessionToken] = await Promise.all([
+  const [allCategories, allTags, comments, fullThread, sessionToken, viewCount, topToday] = await Promise.all([
     getCategories().catch(() => []),
     getTags().catch(() => []),
     getCommentsForPost(post.id, 3).catch(() => []),
     getCommentsForPost(post.id, 50).catch(() => []),
-    getPosts(15).catch(() => []),
     getSessionToken(),
+    getPostViewCount(post.id),
+    // +1: the current post is filtered out below, so ask for one extra
+    // to still land on 5 when it would otherwise have been in the list.
+    getTopPostsToday(6),
   ]);
 
   const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
@@ -136,10 +154,7 @@ export default async function ContentPage({
   const inPost1After = contentChunks.length > 4 ? 3 : null;
   const inPost2After = contentChunks.length > 9 ? contentChunks.length - 3 : null;
 
-  const mostRead = await getMostReadPosts(
-    recentPosts.filter((p) => p.id !== post.id),
-    5
-  );
+  const topPostsToday = topToday.filter((p) => p.post_id !== post.id).slice(0, 5);
 
   const category = allCategories.find((c) => post.categories?.includes(c.id));
   const tag = allTags.find((t) => post.tags?.includes(t.id));
@@ -150,6 +165,7 @@ export default async function ContentPage({
     headline: stripHtml(post.title.rendered),
     image: image ? [image.source_url] : undefined,
     datePublished: post.date,
+    dateModified: post.modified || post.date,
     mainEntityOfPage: `${SITE_URL}/${post.slug}`,
     publisher: {
       "@type": "Organization",
@@ -188,8 +204,15 @@ export default async function ContentPage({
 
       <div className="container post-layout">
         <div className="post-body">
+          <PostViewTracker postId={post.id} slug={post.slug} title={stripHtml(post.title.rendered)} />
           <div className="post-meta-row">
-            <time dateTime={post.date}>{formatDate(post.date)}</time>
+            <time dateTime={post.date}>Published: {formatDate(post.date)}</time>
+            {post.modified && !sameCalendarDay(post.date, post.modified) && (
+              <time dateTime={post.modified}>Updated: {formatDate(post.modified)}</time>
+            )}
+            <span className="post-view-count">
+              <EyeIcon /> {viewCount.toLocaleString("en-GB")}
+            </span>
             <CommentCountLink count={fullThread.length} />
           </div>
           <div className="post-content">
@@ -211,13 +234,13 @@ export default async function ContentPage({
         </div>
 
         <aside className="post-sidebar">
-          {mostRead.length > 0 && (
+          {topPostsToday.length > 0 && (
             <div className="sidebar-block">
-              <h3>Top posts</h3>
+              <h3>Top 5 posts today</h3>
               <ol className="most-read-list">
-                {mostRead.map((p) => (
-                  <li key={p.id}>
-                    <Link href={`/${p.slug}`} dangerouslySetInnerHTML={{ __html: p.title.rendered }} />
+                {topPostsToday.map((p) => (
+                  <li key={p.post_id}>
+                    <Link href={`/${p.slug}`}>{p.title}</Link>
                   </li>
                 ))}
               </ol>

@@ -5,9 +5,9 @@ import {
   getFeaturedImage,
   getLatestComments,
   getLatestPostInCategories,
-  getMostReadPosts,
   getPosts,
   getCategories,
+  getTopPostsThisWeek,
   getUpcomingScEvents,
   parseEventDate,
   stripHtml,
@@ -42,10 +42,10 @@ export default async function HomePage() {
   const walkChildIds = walksCategory
     ? allCategories.filter((c) => c.parent === walksCategory.id).map((c) => c.id)
     : [];
-  const [latestWalk, comments, mostRead] = await Promise.all([
+  const [latestWalk, comments, topThisWeek] = await Promise.all([
     getLatestPostInCategories(walkChildIds).catch(() => null),
     getLatestComments(3).catch(() => []),
-    getMostReadPosts(recentPosts, 10),
+    getTopPostsThisWeek(10).catch(() => []),
   ]);
 
   if (!hero) {
@@ -162,15 +162,13 @@ export default async function HomePage() {
           </section>
         )}
 
-        {mostRead.length > 0 && (
+        {topThisWeek.length > 0 && (
           <section className="home-section">
-            <h2>Top 10 stories</h2>
+            <h2>Top 10 stories this week</h2>
             <ol className="most-read-list">
-              {mostRead.map((post) => (
-                <li key={post.id}>
-                  <Link href={`/${post.slug}`}
-                    dangerouslySetInnerHTML={{ __html: post.title.rendered }}
-                  />
+              {topThisWeek.map((post) => (
+                <li key={post.post_id}>
+                  <Link href={`/${post.slug}`}>{post.title}</Link>
                 </li>
               ))}
             </ol>
