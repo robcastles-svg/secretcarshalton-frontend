@@ -13,11 +13,19 @@ class SC_Ads_CPT {
 
 	const POST_TYPE = 'sc_ad';
 
+	/**
+	 * Mirrors the real zone structure found on the live site's AdRotate
+	 * setup (confirmed by sampling rendered pages — see g-N/a-N markup):
+	 * group 1 is a genuine multi-ad rotation pool, groups 3/4/5/7 are
+	 * single-advertiser exclusive slots, two of which (5, 7) sit inside
+	 * the article body itself rather than around it.
+	 */
 	const PLACEMENTS = array(
 		'billboard'   => 'Billboard (full-width, top of page)',
-		'leaderboard' => 'Leaderboard (beside logo in header)',
+		'leaderboard' => 'Leaderboard (beside logo in header — rotation pool)',
 		'sidebar'     => 'Sidebar (article pages)',
-		'in_article'  => 'In-article',
+		'in_post_1'   => 'In-article — first slot',
+		'in_post_2'   => 'In-article — second slot',
 	);
 
 	public static function register() {

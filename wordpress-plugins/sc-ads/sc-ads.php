@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Secret Carshalton — Ads
- * Description: Admin-manageable ad slots (billboard, leaderboard, sidebar, in-article) — no code editing needed to change a creative. Replaces the hardcoded ad images in the Next.js layout.
- * Version: 0.1.0
+ * Description: Admin-manageable, weighted-random-rotating ad zones (billboard, leaderboard, sidebar, two in-article slots) with click tracking — mirrors the live site's former AdRotate zone structure. No code editing needed to change a creative.
+ * Version: 0.2.0
  * Author: Secret Carshalton
  * Text Domain: sc-ads
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_ADS_VERSION', '0.1.0' );
+define( 'SC_ADS_VERSION', '0.2.0' );
 define( 'SC_ADS_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_ADS_DIR . 'includes/class-sc-ads-cpt.php';

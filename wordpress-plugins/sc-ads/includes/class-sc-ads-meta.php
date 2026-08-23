@@ -11,8 +11,10 @@ class SC_Ads_Meta {
 		'sc_ad_alt_text'  => 'string',
 		'sc_ad_placement' => 'string',
 		'sc_ad_active'    => 'boolean',
-		'sc_ad_start'     => 'string', // ISO date, empty = no restriction
-		'sc_ad_end'       => 'string', // ISO date, empty = no restriction
+		'sc_ad_start'     => 'string',  // ISO date, empty = no restriction
+		'sc_ad_end'       => 'string',  // ISO date, empty = no restriction
+		'sc_ad_weight'    => 'integer', // relative odds within its placement's rotation pool, default 1
+		'sc_ad_clicks'    => 'integer', // incremented by the click-tracking endpoint, not admin-editable
 	);
 
 	public static function register() {
@@ -30,6 +32,8 @@ class SC_Ads_Meta {
 				$args['sanitize_callback'] = 'esc_url_raw';
 			} elseif ( 'string' === $type ) {
 				$args['sanitize_callback'] = 'sanitize_text_field';
+			} elseif ( 'integer' === $type ) {
+				$args['sanitize_callback'] = 'absint';
 			}
 
 			register_post_meta( SC_Ads_CPT::POST_TYPE, $key, $args );

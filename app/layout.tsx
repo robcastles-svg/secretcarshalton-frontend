@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import Link from "next/link";
-import { getAd, getCategories, getCategoryBySlug } from "@/lib/wordpress";
+import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
+import { AdSlot } from "./_components/AdSlot";
 import { BackToTop } from "./_components/BackToTop";
 import { PrimaryNav } from "./_components/PrimaryNav";
 import "./globals.css";
@@ -69,12 +70,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [stories, walks, allCategories, billboardAd, leaderboardAd, sessionToken] = await Promise.all([
+  const [stories, walks, allCategories, sessionToken] = await Promise.all([
     getCategoryBySlug("stories"),
     getCategoryBySlug("walks"),
     getCategories(),
-    getAd("billboard"),
-    getAd("leaderboard"),
     getSessionToken(),
   ]);
   const storyAreas = stories ? allCategories.filter((c) => c.parent === stories.id && c.count > 0) : [];
@@ -112,15 +111,12 @@ export default async function RootLayout({
         </div>
 
         {/* Billboard ad slot — admin-managed via sc-ads, see wordpress-plugins/sc-ads. */}
-        {billboardAd ? (
-          <a className="ad-slot ad-billboard" href={billboardAd.link}>
-            <img src={billboardAd.image} alt={billboardAd.alt} />
-          </a>
-        ) : (
-          <Link href="/advertising-contact" className="ad-slot-placeholder ad-billboard-placeholder">
-            Claim this banner space for your local business
-          </Link>
-        )}
+        <AdSlot
+          placement="billboard"
+          className="ad-slot ad-billboard"
+          placeholderClassName="ad-slot-placeholder ad-billboard-placeholder"
+          placeholderText="Claim this banner space for your local business"
+        />
 
         <div className="quick-links-bar">
           <div className="container quick-links-inner">
@@ -137,12 +133,8 @@ export default async function RootLayout({
             <Link href="/" className="site-logo">
               <img src="/logo.png" alt="Secret Carshalton" className="site-logo-img" />
             </Link>
-            {/* Leaderboard ad slot — admin-managed via sc-ads. */}
-            {leaderboardAd && (
-              <a className="ad-slot ad-leaderboard" href={leaderboardAd.link}>
-                <img src={leaderboardAd.image} alt={leaderboardAd.alt} />
-              </a>
-            )}
+            {/* Leaderboard ad slot — admin-managed via sc-ads, weighted-random rotation. */}
+            <AdSlot placement="leaderboard" className="ad-slot ad-leaderboard" />
           </div>
           <div className="container primary-nav-row">
             <nav className="primary-nav">

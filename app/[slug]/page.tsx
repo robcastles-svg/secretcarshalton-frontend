@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AdSlot } from "@/app/_components/AdSlot";
 import { CommentSection } from "@/app/_components/CommentSection";
 import { getSessionToken } from "@/lib/auth";
 import {
-  getAd,
   getAllPageSlugs,
   getCategories,
   getCommentsForPost,
@@ -15,6 +16,7 @@ import {
   getPosts,
   getRecentPostSlugs,
   getTags,
+  splitContentIntoParagraphChunks,
   stripHtml,
 } from "@/lib/wordpress";
 
@@ -111,15 +113,22 @@ export default async function ContentPage({
     );
   }
 
-  const [allCategories, allTags, comments, fullThread, recentPosts, sessionToken, sidebarAd] = await Promise.all([
+  const [allCategories, allTags, comments, fullThread, recentPosts, sessionToken] = await Promise.all([
     getCategories().catch(() => []),
     getTags().catch(() => []),
     getCommentsForPost(post.id, 3).catch(() => []),
     getCommentsForPost(post.id, 50).catch(() => []),
     getPosts(15).catch(() => []),
     getSessionToken(),
-    getAd("sidebar"),
   ]);
+
+  // Mirrors the live site's real in-article ad positions (groups 5 and 7
+  // sampled mid-article and near the end) — only inserted when the post
+  // actually has enough content for the slot to land naturally rather
+  // than right after the opening paragraph.
+  const contentChunks = splitContentIntoParagraphChunks(post.content.rendered);
+  const inPost1After = contentChunks.length > 4 ? 3 : null;
+  const inPost2After = contentChunks.length > 9 ? contentChunks.length - 3 : null;
 
   const mostRead = await getMostReadPosts(
     recentPosts.filter((p) => p.id !== post.id),
@@ -174,10 +183,15 @@ export default async function ContentPage({
       <div className="container post-layout">
         <div className="post-body">
           <time dateTime={post.date}>{formatDate(post.date)}</time>
-          <div
-            className="post-content"
-            dangerouslySetInnerHTML={{ __html: post.content.rendered }}
-          />
+          <div className="post-content">
+            {contentChunks.map((chunk, i) => (
+              <Fragment key={i}>
+                <div dangerouslySetInnerHTML={{ __html: chunk }} />
+                {i === inPost1After && <AdSlot placement="in_post_1" className="ad-slot ad-in-post" />}
+                {i === inPost2After && <AdSlot placement="in_post_2" className="ad-slot ad-in-post" />}
+              </Fragment>
+            ))}
+          </div>
 
           <CommentSection postId={post.id} comments={fullThread} isLoggedIn={Boolean(sessionToken)} />
         </div>
@@ -210,15 +224,12 @@ export default async function ContentPage({
             </div>
           )}
 
-          {sidebarAd ? (
-            <a className="sidebar-block-ad" href={sidebarAd.link}>
-              <img src={sidebarAd.image} alt={sidebarAd.alt} loading="lazy" />
-            </a>
-          ) : (
-            <Link href="/advertising-contact" className="ad-slot-placeholder">
-              Advertise here
-            </Link>
-          )}
+          <AdSlot
+            placement="sidebar"
+            className="sidebar-block-ad"
+            placeholderClassName="ad-slot-placeholder"
+            placeholderText="Advertise here"
+          />
 
           {allTags.length > 0 && (
             <div className="sidebar-block">

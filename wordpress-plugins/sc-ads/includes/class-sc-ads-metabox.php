@@ -31,6 +31,8 @@ class SC_Ads_Metabox {
 		$active    = get_post_meta( $post->ID, 'sc_ad_active', true );
 		$start     = get_post_meta( $post->ID, 'sc_ad_start', true );
 		$end       = get_post_meta( $post->ID, 'sc_ad_end', true );
+		$weight    = get_post_meta( $post->ID, 'sc_ad_weight', true );
+		$clicks    = (int) get_post_meta( $post->ID, 'sc_ad_clicks', true );
 		?>
 		<table class="form-table">
 			<tr>
@@ -78,9 +80,21 @@ class SC_Ads_Metabox {
 				<th><label for="sc_ad_end">End date (optional)</label></th>
 				<td><input type="date" id="sc_ad_end" name="sc_ad_end" value="<?php echo esc_attr( $end ); ?>" /></td>
 			</tr>
+			<tr>
+				<th><label for="sc_ad_weight">Weight</label></th>
+				<td>
+					<input type="number" id="sc_ad_weight" name="sc_ad_weight" min="1" step="1" style="width:80px;"
+						value="<?php echo esc_attr( $weight ?: 1 ); ?>" />
+					<p class="description">Relative odds within this placement's rotation, e.g. a weight of 2 shows twice as often as a weight of 1.</p>
+				</td>
+			</tr>
+			<tr>
+				<th>Clicks</th>
+				<td><?php echo esc_html( number_format_i18n( $clicks ) ); ?> <span class="description">(tracked automatically, not editable here)</span></td>
+			</tr>
 		</table>
 		<p class="description">
-			Only one ad per placement should be Active at a time — if several are, the frontend shows whichever was published most recently.
+			Multiple Active ads in the same placement rotate at random, weighted by the Weight field above — matching how the site's ad slots have always worked.
 		</p>
 		<?php
 	}
@@ -103,6 +117,7 @@ class SC_Ads_Metabox {
 		}
 
 		update_post_meta( $post_id, 'sc_ad_active', ! empty( $_POST['sc_ad_active'] ) );
+		update_post_meta( $post_id, 'sc_ad_weight', max( 1, absint( $_POST['sc_ad_weight'] ?? 1 ) ) );
 		update_post_meta( $post_id, 'sc_ad_start', sanitize_text_field( wp_unslash( $_POST['sc_ad_start'] ?? '' ) ) );
 		update_post_meta( $post_id, 'sc_ad_end', sanitize_text_field( wp_unslash( $_POST['sc_ad_end'] ?? '' ) ) );
 	}

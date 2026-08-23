@@ -439,18 +439,65 @@ export interface WPAd {
   alt: string;
 }
 
-/** Never allowed to fail the page it's on — an ad slot is decoration, not content. */
+/**
+ * Deliberately uncached (`cache: "no-store"`) — sc-ads now picks a
+ * weighted-random ad per call, matching how AdRotate itself re-rolls on
+ * every page load. The pages that show ads are still ISR (revalidate
+ * 3600), so a cached fetch here would freeze the same ad for the whole
+ * revalidation window; this is called from the /api/ads/active proxy
+ * route, which the AdSlot client component hits on every pageview, so
+ * rotation stays genuinely per-visit rather than per-ISR-window.
+ * Never allowed to fail the page it's on — an ad slot is decoration, not content.
+ */
 export async function getAd(placement: string): Promise<WPAd | null> {
   try {
     const res = await fetchWithRetry(
       `${WP_STAGING_ROOT}/sc-ads/v1/active/${placement}`,
-      { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
+      { cache: "no-store", signal: AbortSignal.timeout(15_000) },
       3
     );
     if (!res.ok) return null;
     const text = await res.text();
     if (!text) return null;
     return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Splits wpautop'd content HTML into a sequence of block-level chunks
+ * (after each closing </p>, list, blockquote or heading tag) so the
+ * frontend can interleave in-article ad slots between them — the way
+ * groups 5 and 7 sat embedded mid-article on the live AdRotate setup,
+ * rather than only ever wrapping the article as a single opaque blob.
+ */
+export function splitContentIntoParagraphChunks(html: string): string[] {
+  const parts = html.split(/(<\/p>|<\/ul>|<\/ol>|<\/blockquote>|<\/h[1-6]>)/i);
+  const chunks: string[] = [];
+  let current = "";
+  for (const part of parts) {
+    current += part;
+    if (/^<\/(p|ul|ol|blockquote|h[1-6])>$/i.test(part)) {
+      chunks.push(current);
+      current = "";
+    }
+  }
+  if (current.trim()) chunks.push(current);
+  return chunks;
+}
+
+/** Increments the click counter server-side and hands back the real link to redirect to. */
+export async function recordAdClick(adId: number): Promise<string | null> {
+  try {
+    const res = await fetchWithRetry(
+      `${WP_STAGING_ROOT}/sc-ads/v1/click/${adId}`,
+      { method: "POST", cache: "no-store", signal: AbortSignal.timeout(15_000) },
+      3
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.link || null;
   } catch {
     return null;
   }

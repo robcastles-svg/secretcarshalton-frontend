@@ -225,6 +225,17 @@ img {
   }
 }
 
+.ad-in-post {
+  margin: 2rem auto;
+  text-align: center;
+}
+
+.ad-in-post img {
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
 /* Hero */
 .hero {
   display: grid;
