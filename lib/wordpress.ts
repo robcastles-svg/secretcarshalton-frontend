@@ -587,27 +587,20 @@ export function getDirectoryListingsByAuthor(authorId: number) {
 }
 
 /**
- * Unlike events (a custom /sc-events/v1/{id} route, since Subscribers have
- * no edit_posts capability at all), listing editing goes straight through
- * WordPress's own wp/v2/sc-listings/{id} — sc-directory never needed a
- * bespoke update route because the only editor this ever needed to support
- * is an admin/editor account, which already has edit_others_posts. The
- * Bearer token still carries real WP capabilities via
- * SC_Membership_Auth::determine_current_user, so this 403s correctly for
- * anyone without them.
+ * Same reasoning as updateEvent — Subscriber has no edit_posts capability
+ * at all, so WordPress's own wp/v2/sc-listings/{id} route would 403 an
+ * owner editing their own listing even though they're the author. This
+ * custom /sc-directory/v1/{id} route checks ownership manually instead
+ * (SC_Directory_REST::check_owns_listing) and also allows any
+ * admin/editor through, same as the event equivalent.
  */
 export async function updateDirectoryListing(
   token: string,
   listingId: number,
-  data: {
-    title?: string;
-    content?: string;
-    sc_listing_category?: number[];
-    meta?: Partial<WPListingMeta>;
-  }
-): Promise<{ id: number } | MemberAuthError> {
+  data: Record<string, string>
+): Promise<{ id: number; status: string } | MemberAuthError> {
   try {
-    const res = await fetch(`${WP_STAGING_ROOT}/wp/v2/sc-listings/${listingId}`, {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/${listingId}`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -618,7 +611,7 @@ export async function updateDirectoryListing(
     if (!res.ok) {
       return { code: body.code ?? "update_failed", message: body.message ?? "Could not update the listing." };
     }
-    return { id: body.id };
+    return { id: body.id, status: body.status };
   } catch {
     return NETWORK_ERROR;
   }

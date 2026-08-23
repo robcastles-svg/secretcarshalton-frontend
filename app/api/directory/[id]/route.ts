@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMemberMe, updateDirectoryListing } from "@/lib/wordpress";
+import { updateDirectoryListing } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 
-/** Admin/editor-only for now — see the "Edit listing" button's is_editor gate on the listing page. */
+/** Owner-or-admin — SC_Directory_REST::check_owns_listing is the real authorization boundary, this just forwards the request. */
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const token = await getSessionToken();
   if (!token) {
     return NextResponse.json({ error: "Not logged in." }, { status: 401 });
-  }
-
-  const profile = await getMemberMe(token);
-  if (!profile?.is_editor) {
-    return NextResponse.json({ error: "You don't have permission to edit this listing." }, { status: 403 });
   }
 
   const { id } = await params;

@@ -142,6 +142,9 @@ export default async function DashboardPage() {
                 ) : (
                   <span>{listing.title}</span>
                 )}
+                <Link href={`/directory/${listing.slug}/edit`} className="dashboard-my-list-edit">
+                  Edit
+                </Link>
               </li>
             ))}
           </ul>

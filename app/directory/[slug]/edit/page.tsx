@@ -30,10 +30,10 @@ export default async function EditListingPage({
   if (!listing) notFound();
   if (!profile) redirect("/login");
 
-  // Editing a directory listing is currently admin/editor-only (see the
-  // "Edit listing" button on the listing page) — this is just so a member
-  // without that permission doesn't land on a form that will 403 on submit.
-  if (!profile.is_editor) {
+  // Ownership (or being an admin/editor) is the real security boundary
+  // server-side (SC_Directory_REST::check_owns_listing) — this is just so
+  // neither lands on a form that will 403 on submit.
+  if (profile.id !== listing.author && !profile.is_editor) {
     redirect(`/directory/${slug}`);
   }
 

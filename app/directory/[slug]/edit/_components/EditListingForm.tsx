@@ -38,25 +38,26 @@ export function EditListingForm({
     setError(null);
 
     const form = new FormData(e.currentTarget);
-    const category = categories.find((c) => c.slug === String(form.get("category") ?? ""));
+    const data: Record<string, string> = {};
+    for (const key of [
+      "title",
+      "description",
+      "category",
+      "address_street",
+      "address_town",
+      "address_region",
+      "address_postcode",
+      "address_country",
+      "phone",
+      "website",
+    ]) {
+      data[key] = String(form.get(key) ?? "");
+    }
 
     const res = await fetch(`/api/directory/${listingId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: String(form.get("title") ?? ""),
-        content: String(form.get("description") ?? ""),
-        sc_listing_category: category ? [category.id] : [],
-        meta: {
-          sc_address_street: String(form.get("address_street") ?? ""),
-          sc_address_town: String(form.get("address_town") ?? ""),
-          sc_address_region: String(form.get("address_region") ?? ""),
-          sc_address_postcode: String(form.get("address_postcode") ?? ""),
-          sc_address_country: String(form.get("address_country") ?? ""),
-          sc_phone: String(form.get("phone") ?? ""),
-          sc_website: String(form.get("website") ?? ""),
-        },
-      }),
+      body: JSON.stringify(data),
     });
 
     if (res.ok) {

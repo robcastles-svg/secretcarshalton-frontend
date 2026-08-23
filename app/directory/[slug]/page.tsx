@@ -48,6 +48,7 @@ export default async function DirectoryListingPage({
   if (!listing) notFound();
 
   const profile = sessionToken ? await getMemberMe(sessionToken) : null;
+  const canEdit = Boolean(profile && (profile.id === listing.author || profile.is_editor));
 
   const image = getFeaturedImage(listing);
   const { meta } = listing;
@@ -105,7 +106,7 @@ export default async function DirectoryListingPage({
               )}
               <span dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
             </h1>
-            {profile?.is_editor && (
+            {canEdit && (
               <Link href={`/directory/${listing.slug}/edit`} className="button-pill button-pill-active">
                 Edit listing
               </Link>

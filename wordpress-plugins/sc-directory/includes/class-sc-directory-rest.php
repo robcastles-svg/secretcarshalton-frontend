@@ -4,10 +4,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * The two actions that aren't plain post editing: claiming an unclaimed
- * listing, and requesting a paid/featured upgrade. Reading and editing
- * listings already works through WordPress's own wp/v2/sc-listings
- * routes (registered automatically because the CPT has show_in_rest).
+ * Reading (and, for an admin's Bearer token, editing) already works
+ * through WordPress's own wp/v2/sc-listings routes — registered
+ * automatically because the CPT has show_in_rest. But a member editing
+ * their *own* listing needs the same workaround events already has
+ * (update_listing/check_owns_listing below): Subscriber has no
+ * edit_posts capability at all, so core REST 403s them regardless of
+ * ownership. Beyond that: claiming an unclaimed listing, and requesting
+ * a paid/featured upgrade.
  */
 class SC_Directory_REST {
 
@@ -59,6 +63,98 @@ class SC_Directory_REST {
 				},
 			)
 		);
+
+		register_rest_route(
+			'sc-directory/v1',
+			'/(?P<id>\d+)',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'update_listing' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_listing' ),
+			)
+		);
+	}
+
+	/**
+	 * Same reasoning as SC_Events_REST::check_owns_event — a Subscriber
+	 * (which is what every member is) has no edit_posts capability at
+	 * all, so WordPress's own wp/v2/sc-listings/{id} route 403s them even
+	 * for their own listing. This custom route checks ownership manually
+	 * instead, same as the docblock on the CPT said only "an admin
+	 * editing through core REST" was covered — this is the other half,
+	 * an owner editing their own listing. Admins can edit any listing.
+	 */
+	public static function check_owns_listing( WP_REST_Request $request ) {
+		if ( ! is_user_logged_in() ) {
+			return new WP_Error( 'not_logged_in', 'You must be logged in.', array( 'status' => 401 ) );
+		}
+		$listing = get_post( (int) $request->get_param( 'id' ) );
+		if ( ! $listing || SC_Directory_CPT::POST_TYPE !== $listing->post_type ) {
+			return new WP_Error( 'not_found', 'Listing not found.', array( 'status' => 404 ) );
+		}
+		$current_user_id = get_current_user_id();
+		if ( (int) $listing->post_author !== $current_user_id && ! user_can( $current_user_id, 'manage_options' ) ) {
+			return new WP_Error( 'forbidden', 'You can only edit your own listing.', array( 'status' => 403 ) );
+		}
+		return true;
+	}
+
+	/**
+	 * Every field optional, same as SC_Events_REST::update_event — a
+	 * partial edit (e.g. just fixing the phone number) shouldn't force
+	 * resending the whole form. Deliberately doesn't touch
+	 * sc_featured/sc_verified/sc_claimed/sc_plan — those stay
+	 * admin-controlled from wp-admin, not something a member (or even an
+	 * admin through this member-facing form) can flip from here.
+	 */
+	public static function update_listing( WP_REST_Request $request ) {
+		$post_id = (int) $request->get_param( 'id' );
+		$update  = array( 'ID' => $post_id );
+
+		if ( null !== $request->get_param( 'title' ) ) {
+			$title = sanitize_text_field( (string) $request->get_param( 'title' ) );
+			if ( ! $title ) {
+				return new WP_Error( 'missing_title', 'A business/organisation name is required.', array( 'status' => 400 ) );
+			}
+			$update['post_title'] = $title;
+		}
+		if ( null !== $request->get_param( 'description' ) ) {
+			$update['post_content'] = wp_kses_post( (string) $request->get_param( 'description' ) );
+		}
+
+		if ( count( $update ) > 1 ) {
+			$result = wp_update_post( $update, true );
+			if ( is_wp_error( $result ) ) {
+				return new WP_Error( 'update_failed', $result->get_error_message(), array( 'status' => 400 ) );
+			}
+		}
+
+		if ( null !== $request->get_param( 'category' ) ) {
+			$category = sanitize_key( (string) $request->get_param( 'category' ) );
+			if ( $category && term_exists( $category, SC_Directory_CPT::TAXONOMY ) ) {
+				wp_set_object_terms( $post_id, $category, SC_Directory_CPT::TAXONOMY );
+			}
+		}
+
+		$meta_fields = array(
+			'address_street'   => 'sc_address_street',
+			'address_town'     => 'sc_address_town',
+			'address_region'   => 'sc_address_region',
+			'address_postcode' => 'sc_address_postcode',
+			'address_country'  => 'sc_address_country',
+			'phone'            => 'sc_phone',
+		);
+		foreach ( $meta_fields as $param => $meta_key ) {
+			if ( null === $request->get_param( $param ) ) {
+				continue;
+			}
+			update_post_meta( $post_id, $meta_key, sanitize_text_field( (string) $request->get_param( $param ) ) );
+		}
+		if ( null !== $request->get_param( 'website' ) ) {
+			update_post_meta( $post_id, 'sc_website', esc_url_raw( (string) $request->get_param( 'website' ) ) );
+		}
+
+		return array( 'status' => get_post_status( $post_id ), 'id' => $post_id );
 	}
 
 	/**
