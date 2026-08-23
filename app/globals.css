@@ -1250,6 +1250,12 @@ img {
 
 .member-directory-item {
   position: relative;
+  /* Grid items default to min-width: auto, so a single long name (no
+     spaces to wrap on — "businessplanwriters" etc, common among these
+     accounts) sets the column's min-content floor wider than the
+     column itself, forcing 2-3 columns to collapse to 1 or overflow
+     the page on mobile. Explicit 0 lets the column actually shrink. */
+  min-width: 0;
 }
 
 .member-directory-item a {
@@ -1260,6 +1266,7 @@ img {
   text-decoration: none;
   color: #1a1a1a;
   text-align: center;
+  min-width: 0;
 }
 
 .member-directory-item img {
@@ -1272,6 +1279,7 @@ img {
 .member-directory-item span {
   font-weight: 600;
   font-size: 0.9rem;
+  overflow-wrap: anywhere;
 }
 
 .member-points-badge {
@@ -1312,7 +1320,7 @@ img {
   }
 
   .member-directory-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.85rem;
   }
 
@@ -1335,7 +1343,7 @@ img {
 
 @media (max-width: 420px) {
   .member-directory-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

@@ -285,6 +285,8 @@ class SC_Events_REST {
 		self::set_taxonomies_from_request( $post_id, $request );
 		self::update_meta_from_request( $post_id, $request );
 
+		do_action( 'sc_events_event_submitted', $user_id, $post_id );
+
 		return array( 'status' => 'pending', 'id' => $post_id );
 	}
 

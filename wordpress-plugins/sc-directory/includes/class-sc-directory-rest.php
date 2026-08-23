@@ -255,6 +255,8 @@ class SC_Directory_REST {
 			update_post_meta( $post_id, $key, $value );
 		}
 
+		do_action( 'sc_directory_listing_submitted', $user_id, $post_id );
+
 		return array( 'status' => 'pending', 'id' => $post_id );
 	}
 

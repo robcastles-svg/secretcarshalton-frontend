@@ -11,31 +11,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SC_Membership_Hooks {
 
 	public static function init() {
-		// Native WordPress: an approved comment earns a small amount of points.
-		add_action( 'comment_approved_', array( __CLASS__, 'on_comment_approved' ), 10, 1 );
-		add_action( 'wp_set_comment_status', array( __CLASS__, 'on_comment_status_change' ), 10, 2 );
+		/**
+		 * Not comment_approved_ (a dynamic hook keyed by comment_type) —
+		 * that only fires for comments with an empty comment_type, but
+		 * SC_Membership_REST::submit_comment explicitly inserts comments
+		 * with comment_type => 'comment' (WordPress core's own default
+		 * since 5.5), so the real fired hook is comment_approved_comment
+		 * and the empty-type listener never matched a single one of this
+		 * site's actual member comments — confirmed against real data:
+		 * members who'd definitely commented were showing 0 points.
+		 * transition_comment_status fires for every status change
+		 * regardless of comment_type, and covers both an auto-approved
+		 * comment (approved at insert) and one an admin approves later
+		 * from the moderation queue, which comment_approved_'s partner
+		 * wp_set_comment_status hook only ever caught the second case of.
+		 */
+		add_action( 'transition_comment_status', array( __CLASS__, 'on_comment_status_transition' ), 10, 3 );
 
-		// sc-events (not built yet) will fire this when a member RSVPs to an event.
 		add_action( 'sc_events_rsvp', array( __CLASS__, 'on_event_rsvp' ), 10, 2 );
 		add_action( 'sc_events_event_claimed', array( __CLASS__, 'on_event_claimed' ), 10, 2 );
+		add_action( 'sc_events_event_submitted', array( __CLASS__, 'on_event_submitted' ), 10, 2 );
 
-		// sc-directory (not built yet) will fire these. Registering the listeners
-		// now means the approval queue works the moment that plugin exists —
-		// nothing changes on this side when it ships.
 		add_action( 'sc_directory_listing_claimed', array( __CLASS__, 'on_listing_claimed' ), 10, 2 );
+		add_action( 'sc_directory_listing_submitted', array( __CLASS__, 'on_listing_submitted' ), 10, 2 );
 		add_action( 'sc_directory_upgrade_requested', array( __CLASS__, 'on_upgrade_requested' ), 10, 2 );
 	}
 
-	public static function on_comment_approved( $comment_id ) {
-		$comment = get_comment( $comment_id );
-		if ( $comment && (int) $comment->user_id > 0 ) {
+	public static function on_comment_status_transition( $new_status, $old_status, $comment ) {
+		if ( 'approved' === $new_status && 'approved' !== $old_status && (int) $comment->user_id > 0 ) {
 			sc_membership_award_points( (int) $comment->user_id, 2, 'Left a comment', 'comment' );
-		}
-	}
-
-	public static function on_comment_status_change( $comment_id, $status ) {
-		if ( 'approve' === $status ) {
-			self::on_comment_approved( $comment_id );
 		}
 	}
 
@@ -47,8 +51,16 @@ class SC_Membership_Hooks {
 		sc_membership_award_points( (int) $user_id, 10, 'Claimed an event listing', 'event_claim' );
 	}
 
+	public static function on_event_submitted( $user_id, $event_id ) {
+		sc_membership_award_points( (int) $user_id, 5, 'Submitted an event', 'event_submit' );
+	}
+
 	public static function on_listing_claimed( $user_id, $listing_id ) {
 		sc_membership_award_points( (int) $user_id, 15, 'Claimed a directory listing', 'directory_claim' );
+	}
+
+	public static function on_listing_submitted( $user_id, $listing_id ) {
+		sc_membership_award_points( (int) $user_id, 5, 'Submitted a directory listing', 'directory_submit' );
 	}
 
 	/**

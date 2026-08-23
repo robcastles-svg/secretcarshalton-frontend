@@ -28,9 +28,139 @@ class SC_Membership_Admin {
 
 	public static function render_queues() {
 		echo '<div class="wrap"><h1>Membership</h1>';
+		self::render_backfill_notice();
+		self::render_points_backfill();
 		self::render_pending_members_queue();
 		self::render_upgrade_queue();
 		echo '</div>';
+	}
+
+	/**
+	 * A dynamic hook-name bug (comment_approved_ never matched the
+	 * comment_type WordPress core actually inserts, see the docblock in
+	 * class-sc-membership-hooks.php) meant comments never awarded points,
+	 * and submitting an event/listing never awarded points at all (only
+	 * claiming and RSVPing did) until sc_events_event_submitted /
+	 * sc_directory_listing_submitted were added. Both are fixed for
+	 * anything that happens from now on; this button is the one-off catch-up
+	 * for members who already commented/submitted before the fix — same
+	 * shape as handle_scan_pending_members's backfill for spam detection.
+	 * Idempotent via a meta marker on each comment/post, so it's safe to
+	 * run again (e.g. after new activity) without double-awarding.
+	 */
+	public static function render_points_backfill() {
+		echo '<h2>Points Backfill</h2>';
+		echo '<p class="description">Catches up points for comments, event submissions, and directory listing submissions that happened before those hooks were fixed/added. Safe to run more than once — anything already credited is skipped.</p>';
+		?>
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin: 0.75em 0;">
+			<?php wp_nonce_field( 'sc_membership_backfill_points' ); ?>
+			<input type="hidden" name="action" value="sc_membership_backfill_points" />
+			<button type="submit" class="button">Backfill missing points now</button>
+		</form>
+		<?php
+	}
+
+	private static function render_backfill_notice() {
+		$result = get_transient( 'sc_membership_backfill_result_' . get_current_user_id() );
+		if ( ! $result ) {
+			return;
+		}
+		delete_transient( 'sc_membership_backfill_result_' . get_current_user_id() );
+		printf(
+			'<div class="notice notice-success"><p>Backfill complete: %1$d comment(s), %2$d event submission(s), %3$d directory listing submission(s) awarded points.</p></div>',
+			(int) $result['comments'],
+			(int) $result['events'],
+			(int) $result['listings']
+		);
+	}
+
+	public static function handle_backfill_points() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( 'Not allowed.' );
+		}
+
+		check_admin_referer( 'sc_membership_backfill_points' );
+
+		$counts = array( 'comments' => 0, 'events' => 0, 'listings' => 0 );
+
+		$comments = get_comments(
+			array(
+				'status' => 'approve',
+				'type'   => 'comment',
+				'number' => 0,
+			)
+		);
+		foreach ( $comments as $comment ) {
+			$user_id = (int) $comment->user_id;
+			if ( ! $user_id || '1' === get_comment_meta( $comment->comment_ID, 'sc_points_awarded', true ) ) {
+				continue;
+			}
+			sc_membership_award_points( $user_id, 2, 'Left a comment', 'comment' );
+			update_comment_meta( $comment->comment_ID, 'sc_points_awarded', '1' );
+			$counts['comments']++;
+		}
+
+		/**
+		 * Publish + pending: a pending submission already represents the
+		 * member having done the submitting, which is what's being
+		 * rewarded (the same event a fresh submit_event()/submit_listing()
+		 * call awards points for immediately, before any admin review).
+		 * Staff/admin authors are skipped — those are unclaimed imported
+		 * posts, not member submissions.
+		 */
+		/**
+		 * Raw post-type slugs ('sc_event', 'sc_listing'), not
+		 * SC_Events_CPT::POST_TYPE / SC_Directory_CPT::POST_TYPE — this
+		 * plugin doesn't otherwise depend on sc-events/sc-directory's
+		 * classes (it only listens for their generic action hooks), and
+		 * get_posts() with an unregistered post type just returns an
+		 * empty array, so this degrades harmlessly if either plugin is
+		 * ever deactivated rather than fataling on a missing class.
+		 */
+		$events = get_posts(
+			array(
+				'post_type'      => 'sc_event',
+				'post_status'    => array( 'publish', 'pending' ),
+				'numberposts'    => -1,
+			)
+		);
+		foreach ( $events as $event ) {
+			$user_id = (int) $event->post_author;
+			if ( ! $user_id || user_can( $user_id, 'manage_options' ) ) {
+				continue;
+			}
+			if ( '1' === get_post_meta( $event->ID, 'sc_submit_points_awarded', true ) ) {
+				continue;
+			}
+			sc_membership_award_points( $user_id, 5, 'Submitted an event', 'event_submit' );
+			update_post_meta( $event->ID, 'sc_submit_points_awarded', '1' );
+			$counts['events']++;
+		}
+
+		$listings = get_posts(
+			array(
+				'post_type'      => 'sc_listing',
+				'post_status'    => array( 'publish', 'pending' ),
+				'numberposts'    => -1,
+			)
+		);
+		foreach ( $listings as $listing ) {
+			$user_id = (int) $listing->post_author;
+			if ( ! $user_id || user_can( $user_id, 'manage_options' ) ) {
+				continue;
+			}
+			if ( '1' === get_post_meta( $listing->ID, 'sc_submit_points_awarded', true ) ) {
+				continue;
+			}
+			sc_membership_award_points( $user_id, 5, 'Submitted a directory listing', 'directory_submit' );
+			update_post_meta( $listing->ID, 'sc_submit_points_awarded', '1' );
+			$counts['listings']++;
+		}
+
+		set_transient( 'sc_membership_backfill_result_' . get_current_user_id(), $counts, 60 );
+
+		wp_safe_redirect( admin_url( 'admin.php?page=sc-membership' ) );
+		exit;
 	}
 
 	public static function render_upgrade_queue() {
