@@ -3,6 +3,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdSlot } from "@/app/_components/AdSlot";
+import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
 import { getSessionToken } from "@/lib/auth";
 import {
@@ -10,6 +11,7 @@ import {
   getCategories,
   getCommentsForPost,
   getFeaturedImage,
+  getMembersByIds,
   getMostReadPosts,
   getPageBySlug,
   getPostBySlug,
@@ -122,6 +124,10 @@ export default async function ContentPage({
     getSessionToken(),
   ]);
 
+  const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
+    () => new Map<number, { slug: string; name: string; avatar: string }>()
+  );
+
   // Mirrors the live site's real in-article ad positions (groups 5 and 7
   // sampled mid-article and near the end) — only inserted when the post
   // actually has enough content for the slot to land naturally rather
@@ -182,7 +188,10 @@ export default async function ContentPage({
 
       <div className="container post-layout">
         <div className="post-body">
-          <time dateTime={post.date}>{formatDate(post.date)}</time>
+          <div className="post-meta-row">
+            <time dateTime={post.date}>{formatDate(post.date)}</time>
+            <CommentCountLink count={fullThread.length} />
+          </div>
           <div className="post-content">
             {contentChunks.map((chunk, i) => (
               <Fragment key={i}>
@@ -193,7 +202,12 @@ export default async function ContentPage({
             ))}
           </div>
 
-          <CommentSection postId={post.id} comments={fullThread} isLoggedIn={Boolean(sessionToken)} />
+          <CommentSection
+            postId={post.id}
+            comments={fullThread}
+            isLoggedIn={Boolean(sessionToken)}
+            commenterProfiles={commenterProfileMap}
+          />
         </div>
 
         <aside className="post-sidebar">

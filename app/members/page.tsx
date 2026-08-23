@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
 import { getAllMembers, getMemberMe, type WPMember } from "@/lib/wordpress";
 
@@ -64,8 +65,14 @@ export default async function MembersPage({
   const { sort } = await searchParams;
   const sortMode = sort === "active" ? "active" : "az";
 
-  const [members, sessionToken] = await Promise.all([getAllMembers().catch(() => []), getSessionToken()]);
-  const profile = sessionToken ? await getMemberMe(sessionToken) : null;
+  // The full directory is a members-only feature — individual profiles
+  // (linked to from comments, event/listing pages, etc.) stay public, but
+  // browsing everyone at once is gated so a logged-out visitor lands on
+  // login rather than an empty/confusing page.
+  const sessionToken = await getSessionToken();
+  if (!sessionToken) redirect("/login?next=/members");
+
+  const [members, profile] = await Promise.all([getAllMembers().catch(() => []), getMemberMe(sessionToken)]);
   const isAdmin = Boolean(profile?.is_editor);
   const letterGroups = groupByLetter(members);
 

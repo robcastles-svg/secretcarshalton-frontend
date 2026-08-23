@@ -12,14 +12,26 @@ function formatDate(iso: string) {
   });
 }
 
+interface CommenterProfile {
+  slug: string;
+  name: string;
+  avatar: string;
+}
+
 export function CommentSection({
   postId,
   comments,
   isLoggedIn,
+  commenterProfiles,
 }: {
   postId: number;
   comments: WPComment[];
   isLoggedIn: boolean;
+  // Keyed by WPComment.author (a WP user id) — only present for real,
+  // public member accounts (see getMembersByIds). A guest/anonymous
+  // comment, or one from staff, simply has no entry here and renders as
+  // plain text, same as before this existed.
+  commenterProfiles?: Map<number, CommenterProfile>;
 }) {
   const [thread, setThread] = useState(comments);
   const [text, setText] = useState("");
@@ -57,7 +69,7 @@ export function CommentSection({
   }
 
   return (
-    <div className="comment-section">
+    <div className="comment-section" id="comments">
       <div className="comment-section-header">
         <p className="comment-login-hint">
           {!isLoggedIn && (
@@ -112,13 +124,23 @@ export function CommentSection({
 
       {thread.length > 0 && (
         <ul className="comment-thread">
-          {thread.map((c) => (
-            <li key={c.id}>
-              <strong>{c.author_name}</strong>
-              <time dateTime={c.date}>{formatDate(c.date)}</time>
-              <div dangerouslySetInnerHTML={{ __html: c.content.rendered }} />
-            </li>
-          ))}
+          {thread.map((c) => {
+            const profile = c.author ? commenterProfiles?.get(c.author) : undefined;
+            return (
+              <li key={c.id}>
+                {profile ? (
+                  <Link href={`/members/${profile.slug}`} className="comment-author-link">
+                    <img src={profile.avatar} alt="" className="comment-author-icon" loading="lazy" />
+                    <strong>{profile.name}</strong>
+                  </Link>
+                ) : (
+                  <strong>{c.author_name}</strong>
+                )}
+                <time dateTime={c.date}>{formatDate(c.date)}</time>
+                <div dangerouslySetInnerHTML={{ __html: c.content.rendered }} />
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

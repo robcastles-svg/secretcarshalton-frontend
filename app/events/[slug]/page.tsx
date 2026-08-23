@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
 import { getSessionToken } from "@/lib/auth";
 import {
@@ -8,6 +9,7 @@ import {
   getEventRsvpStatus,
   getFeaturedImage,
   getMemberMe,
+  getMembersByIds,
   getRecentScEventSlugs,
   getScEventBySlug,
   getScEventTags,
@@ -92,6 +94,10 @@ export default async function EventPage({
     sessionToken ? getEventRsvpStatus(sessionToken, event.id) : Promise.resolve(null),
   ]);
 
+  const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
+    () => new Map<number, { slug: string; name: string; avatar: string }>()
+  );
+
   const isOwner = Boolean(profile && profile.id === event.author);
   const canEdit = isOwner || Boolean(profile?.is_editor);
 
@@ -165,6 +171,11 @@ export default async function EventPage({
                 {endDate ? ` – ${formatTime(endDate)}` : ""}
               </p>
             )}
+            {fullThread.length > 0 && (
+              <div className="event-meta-row">
+                <CommentCountLink count={fullThread.length} />
+              </div>
+            )}
             {eventTypes.length > 0 && (
               <p className="event-meta-row">
                 <span className="event-meta-label">Event Type</span>
@@ -219,7 +230,12 @@ export default async function EventPage({
           initialCount={rsvpStatus?.going_count ?? event.sc_event_rsvp_count ?? 0}
         />
 
-        <CommentSection postId={event.id} comments={fullThread} isLoggedIn={Boolean(sessionToken)} />
+        <CommentSection
+          postId={event.id}
+          comments={fullThread}
+          isLoggedIn={Boolean(sessionToken)}
+          commenterProfiles={commenterProfileMap}
+        />
       </div>
 
       <aside className="post-sidebar">

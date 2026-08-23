@@ -106,6 +106,16 @@ class SC_Membership_REST {
 
 		register_rest_route(
 			'sc-membership/v1',
+			'/members-by-id',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_members_by_id' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
 			'/members/(?P<slug>[^/]+)',
 			array(
 				'methods'             => 'GET',
@@ -300,6 +310,43 @@ class SC_Membership_REST {
 			},
 			$users
 		);
+	}
+
+	/**
+	 * Batch id -> {slug, avatar} lookup so a comment thread can link each
+	 * commenter's name/icon to their public profile without either
+	 * fetching all ~500 members per page view or hitting WP core's
+	 * /wp/v2/users (blocked for anonymous requests — "rest_user_cannot_view").
+	 * Same exclusions as get_members(): staff and pending-review accounts
+	 * don't get a public profile link, so their comments render as plain
+	 * text same as an unregistered/guest commenter (author id 0).
+	 */
+	public static function get_members_by_id( WP_REST_Request $request ) {
+		$ids = array_filter( array_map( 'intval', explode( ',', (string) $request->get_param( 'ids' ) ) ) );
+		if ( empty( $ids ) ) {
+			return array();
+		}
+
+		$users = get_users(
+			array(
+				'include'       => $ids,
+				'role__not_in'  => array( 'administrator' ),
+			)
+		);
+
+		$result = array();
+		foreach ( $users as $user ) {
+			if ( SC_Membership_DB::is_pending_review( $user->ID ) ) {
+				continue;
+			}
+			$result[] = array(
+				'id'     => $user->ID,
+				'slug'   => $user->user_nicename,
+				'name'   => self::clean_display_name( $user->data->display_name ),
+				'avatar' => get_avatar_url( $user->ID, array( 'size' => 48 ) ),
+			);
+		}
+		return $result;
 	}
 
 	/**

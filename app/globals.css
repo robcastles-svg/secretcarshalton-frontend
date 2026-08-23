@@ -1130,6 +1130,25 @@ img {
   color: #555;
 }
 
+.member-profile-breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.member-profile-breadcrumb a {
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.member-profile-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
 .member-profile-header {
   display: flex;
   align-items: center;
@@ -1600,6 +1619,31 @@ img {
   margin: 1.5rem 0 1rem;
 }
 
+.post-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.post-meta-row time {
+  margin: 0;
+}
+
+.comment-count-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #777;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.comment-count-link:hover {
+  color: var(--color-active-dark);
+}
+
 .post-content img {
   width: 100%;
   border-radius: 4px;
@@ -1871,6 +1915,26 @@ img {
 
 .comment-thread strong {
   display: block;
+}
+
+.comment-author-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.comment-author-link:hover strong {
+  text-decoration: underline;
+}
+
+.comment-author-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .comment-thread time {

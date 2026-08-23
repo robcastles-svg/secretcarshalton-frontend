@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PasswordInput } from "@/app/_components/PasswordInput";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +33,11 @@ export default function LoginPage() {
     });
 
     if (res.ok) {
-      router.push("/dashboard");
+      // Only ever an internal path (set by pages that redirect here when
+      // logged-out, e.g. /members) — never followed blind, so an open
+      // redirect isn't a risk even though it comes from a query param.
+      const next = searchParams.get("next");
+      router.push(next && next.startsWith("/") ? next : "/dashboard");
       router.refresh();
     } else {
       const data = await res.json().catch(() => ({}));

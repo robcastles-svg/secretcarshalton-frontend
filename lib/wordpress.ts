@@ -285,17 +285,57 @@ export async function getLatestPostInCategories(
 export interface WPComment {
   id: number;
   post: number;
+  // Optional: getLatestComments doesn't request this field (it doesn't
+  // need it), so it's only reliably present via getCommentsForPost.
+  author?: number;
   author_name: string;
   content: WPRendered;
   date: string;
 }
 
-/** Real (non-admin) comments on a single post, newest first. */
+/**
+ * Real (non-admin) comments on a single post, newest first. Reads from
+ * staging (scDirectoryFetch), not the live site — sc-events/sc-listings
+ * only exist on staging, so a post there has no matching ID on live at
+ * all (comments would always read back empty); staging also carries a
+ * full mirror of live's historical post comments, and it's where every
+ * new member comment actually gets written (submitComment always posts
+ * to WP_STAGING_ROOT), so reading from the same place as the write
+ * target is what makes a just-submitted comment actually reappear.
+ */
 export async function getCommentsForPost(postId: number, count: number): Promise<WPComment[]> {
-  const comments = await wpFetch<WPComment[]>(
-    `/comments?post=${postId}&per_page=${count * 2}&orderby=date&order=desc&_fields=id,post,author_name,content,date`
+  const comments = await scDirectoryFetch<WPComment[]>(
+    `/comments?post=${postId}&per_page=${count * 2}&orderby=date&order=desc&_fields=id,post,author,author_name,content,date`
   );
   return comments.filter((c) => c.author_name !== "Secret Carshalton").slice(0, count);
+}
+
+/**
+ * Batch id -> profile lookup for a comment thread's authors, so a
+ * commenter's name/icon can link to their public member profile. WP
+ * core's /wp/v2/users blocks anonymous listing outright
+ * ("rest_user_cannot_view"), hence the dedicated sc-membership route.
+ * Guest/anonymous comments (author id 0) and staff/pending-review
+ * accounts simply won't appear in the result — callers should render
+ * those as plain text, same as today.
+ */
+export async function getMembersByIds(
+  ids: number[]
+): Promise<Map<number, { slug: string; name: string; avatar: string }>> {
+  const realIds = Array.from(new Set(ids.filter((id) => id > 0)));
+  if (realIds.length === 0) return new Map();
+  try {
+    const res = await fetchWithRetry(
+      `${WP_STAGING_ROOT}/sc-membership/v1/members-by-id?ids=${realIds.join(",")}`,
+      { next: { revalidate: REVALIDATE_SECONDS }, signal: AbortSignal.timeout(15_000) },
+      3
+    );
+    if (!res.ok) return new Map();
+    const members: Array<{ id: number; slug: string; name: string; avatar: string }> = await res.json();
+    return new Map(members.map((m) => [m.id, { slug: m.slug, name: m.name, avatar: m.avatar }]));
+  } catch {
+    return new Map();
+  }
 }
 
 /**

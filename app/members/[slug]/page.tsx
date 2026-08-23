@@ -69,6 +69,11 @@ export default async function MemberProfilePage({
 
   return (
     <main className="container">
+      <div className="member-profile-breadcrumb">
+        <span className="post-category">Member profile</span>
+        <Link href="/members">&larr; All members</Link>
+      </div>
+
       <div className="member-profile-header">
         {avatar && <img src={avatar} alt="" className="member-profile-avatar" />}
         <div>
