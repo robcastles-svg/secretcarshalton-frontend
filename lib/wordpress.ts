@@ -16,6 +16,28 @@ export interface WPFeaturedMedia {
   alt_text: string;
 }
 
+/**
+ * Yoast SEO (active on the live site) injects this into every post/page's
+ * REST response automatically — no _fields restriction needed, it's just
+ * been sitting unread. It carries whatever an editor customised in the
+ * Yoast metabox: a hand-tuned title/description, a dedicated social share
+ * image (can differ from the featured image — see the "tree-og.jpg" case
+ * that's exactly why this exists), canonical, and noindex/nofollow. Only
+ * the fields this frontend actually reads are typed; Yoast's payload has
+ * many more (schema graph, breadcrumbs, etc.) left alone for now.
+ */
+export interface WPYoastHead {
+  title?: string;
+  description?: string;
+  robots?: { index?: string; follow?: string };
+  og_title?: string;
+  og_description?: string;
+  og_image?: Array<{ url: string }>;
+  twitter_title?: string;
+  twitter_description?: string;
+  twitter_image?: string;
+}
+
 export interface WPContentItem {
   id: number;
   slug: string;
@@ -30,6 +52,7 @@ export interface WPContentItem {
   featured_media?: number;
   categories?: number[];
   tags?: number[];
+  yoast_head_json?: WPYoastHead;
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
   };

@@ -59,25 +59,39 @@ export async function generateMetadata({
   const item = (await getPostBySlug(slug).catch(() => null)) ?? (await getPageBySlug(slug).catch(() => null));
   if (!item) return {};
 
-  const title = stripHtml(item.title.rendered);
-  const description = stripHtml(item.excerpt.rendered) || undefined;
+  // Yoast's own title/description/social-image overrides, when an editor
+  // has set them, win over the raw post fields — this is exactly the data
+  // that's tuned for Google/social and was otherwise being silently
+  // dropped by generating metadata from scratch instead of reading it.
+  const yoast = item.yoast_head_json;
   const image = getFeaturedImage(item);
+  const socialImage = yoast?.og_image?.[0]?.url || image?.source_url;
+
+  const title = yoast?.title || stripHtml(item.title.rendered);
+  const description = yoast?.description || stripHtml(item.excerpt.rendered) || undefined;
+  const ogTitle = yoast?.og_title || title;
+  const ogDescription = yoast?.og_description || description;
+  const twitterImage = yoast?.twitter_image || socialImage;
 
   return {
     title,
     description,
     alternates: { canonical: `/${slug}` },
+    robots:
+      yoast?.robots?.index === "noindex"
+        ? { index: false, follow: yoast.robots.follow !== "nofollow" }
+        : undefined,
     openGraph: {
-      title,
-      description,
-      images: image ? [image.source_url] : undefined,
+      title: ogTitle,
+      description: ogDescription,
+      images: socialImage ? [socialImage] : undefined,
       type: "article",
     },
     twitter: {
       card: "summary_large_image",
-      title,
-      description,
-      images: image ? [image.source_url] : undefined,
+      title: yoast?.twitter_title || ogTitle,
+      description: yoast?.twitter_description || ogDescription,
+      images: twitterImage ? [twitterImage] : undefined,
     },
   };
 }
