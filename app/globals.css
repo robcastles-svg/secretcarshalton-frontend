@@ -1605,9 +1605,18 @@ img {
   margin-top: 0;
 }
 
+/* minmax(0, 1fr), not a bare 1fr: 1fr alone is really minmax(auto, 1fr),
+   whose floor is its content's min-content width — a classic-editor
+   image with an inline style="width:1080px" (years of old posts have
+   these) can force that column wider than its fair share, shoving the
+   300px sidebar out of position or off the right edge. Same failure
+   mode already hit and fixed on the member directory grid earlier. The
+   figure/wp-caption max-width guard below is the belt to this grid
+   fix's suspenders — either alone would stop this, both together is
+   the more robust fix. */
 .post-layout {
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: minmax(0, 1fr) 300px;
   gap: 3rem;
   align-items: start;
 }
@@ -1662,6 +1671,15 @@ img {
 .post-content figure,
 .post-content .wp-caption {
   margin: 1.5rem 0;
+  /* max-width, not width — this needs to win over the inline
+     style="width:1080px" classic-editor posts carry (confirmed on a
+     real post), and max-width always wins that fight regardless of
+     specificity/!important since it's a different property than the
+     inline width, not competing for the same one. Without this, an
+     oversized figure forces .post-layout's content column wider than
+     intended at every screen size, not just mobile — see .post-layout's
+     own comment for the knock-on effect that has on the sidebar. */
+  max-width: 100%;
 }
 
 /* Matches the live site's caption treatment: bold caption text directly
@@ -2047,11 +2065,26 @@ img {
      specificity — confirmed against real post HTML, not a guess. The
      keyline caption border stays full-bleed for free (its own box
      inherits the bled parent's width); inner padding keeps the caption
-     *text* off the screen edge. */
+     *text* off the screen edge.
+
+     Both a bare ".post-content > X" and a ".post-content > div > X" form
+     are listed for every selector below: splitContentIntoParagraphChunks
+     (app/[slug]/page.tsx) wraps every paragraph/heading/etc. of a real
+     blog post in its own <div> so ads can be interleaved between them,
+     which puts a post's actual figures/images one level deeper than
+     .post-content's direct children — confirmed on a real post where
+     this exact rule, direct-child-only, silently matched nothing.
+     Directory listing descriptions reuse .post-content too but render
+     straight from WordPress with no such wrapping, hence keeping the
+     bare form as well rather than replacing it. */
   .post-content > img,
   .post-content > figure,
   .post-content > .wp-caption,
-  .post-content > p:has(> img:only-child) {
+  .post-content > p:has(> img:only-child),
+  .post-content > div > img,
+  .post-content > div > figure,
+  .post-content > div > .wp-caption,
+  .post-content > div > p:has(> img:only-child) {
     width: 100vw !important;
     max-width: 100vw !important;
     margin-left: calc(50% - 50vw) !important;
@@ -2061,13 +2094,18 @@ img {
 
   .post-content > figure img,
   .post-content > .wp-caption img,
-  .post-content > p:has(> img:only-child) > img {
+  .post-content > p:has(> img:only-child) > img,
+  .post-content > div > figure img,
+  .post-content > div > .wp-caption img,
+  .post-content > div > p:has(> img:only-child) > img {
     width: 100% !important;
     border-radius: 0 !important;
   }
 
   .post-content > figure figcaption,
-  .post-content > .wp-caption .wp-caption-text {
+  .post-content > .wp-caption .wp-caption-text,
+  .post-content > div > figure figcaption,
+  .post-content > div > .wp-caption .wp-caption-text {
     padding: 0 1.5rem 0.5rem;
   }
 }
