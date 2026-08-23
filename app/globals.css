@@ -2116,11 +2116,18 @@ img {
     border-radius: 0 !important;
   }
 
+  /* The image above stays full-bleed (100vw), but the caption's keyline
+     border sits on the caption's own box edge — padding alone insets the
+     text, not the border, so the line was drawing edge-to-edge same as
+     the image. margin (which narrows the box itself) brings the line in
+     from each side while the photo above it stays full width. */
   .post-content > figure figcaption,
   .post-content > .wp-caption .wp-caption-text,
   .post-content > div > figure figcaption,
   .post-content > div > .wp-caption .wp-caption-text {
-    padding: 0 1.5rem 0.5rem;
+    margin-left: 1.5rem !important;
+    margin-right: 1.5rem !important;
+    padding: 0 0 0.5rem;
   }
 }
 
