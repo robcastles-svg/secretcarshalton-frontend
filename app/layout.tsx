@@ -163,8 +163,8 @@ export default async function RootLayout({
             <Link href="/" className="site-logo">
               <img src="/logo.png" alt="Secret Carshalton" className="site-logo-img" />
             </Link>
-            {/* Leaderboard ad slot — admin-managed via sc-ads, weighted-random rotation. */}
-            <AdSlot placement="leaderboard" className="ad-slot ad-leaderboard" />
+            {/* Leaderboard ad slot — admin-managed via sc-ads, weighted-random rotation, re-rolls on every navigation. */}
+            <AdSlot placement="leaderboard" className="ad-slot ad-leaderboard" refreshOnNavigate />
           </div>
           <div className="container primary-nav-row">
             <nav className="primary-nav">
