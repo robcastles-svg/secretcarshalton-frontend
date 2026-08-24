@@ -1230,6 +1230,54 @@ export async function getLatestAddedScEvents(count: number): Promise<WPScEvent[]
 }
 
 // ---------------------------------------------------------------------------
+// sc-jobs — Jobs Board (staging only, see WP_STAGING_ROOT note). Phase 1:
+// API-sourced (Reed) listings only, no member submission yet — see the
+// sc-jobs plugin's own docblock.
+// ---------------------------------------------------------------------------
+
+export interface WPJobMeta {
+  source: "api" | "member";
+  featured: boolean;
+  expiry_date: string;
+  external_url: string;
+  job_company: string;
+  job_salary_text: string;
+}
+
+export interface WPJobListing {
+  id: number;
+  slug: string;
+  link: string;
+  date: string;
+  title: WPRendered;
+  content: WPRendered;
+  meta: WPJobMeta;
+  job_sector: number[];
+  job_location: number[];
+}
+
+export interface WPJobTerm {
+  id: number;
+  slug: string;
+  name: string;
+  count: number;
+}
+
+export function getJobListings(perPage = 100) {
+  return scDirectoryFetch<WPJobListing[]>(
+    `/job-listings?per_page=${perPage}&orderby=date&order=desc&_fields=id,slug,link,date,title,content,meta,job_sector,job_location`
+  );
+}
+
+export function getJobLocations() {
+  return scDirectoryFetch<WPJobTerm[]>(`/job_location?per_page=50`);
+}
+
+export function getJobSectors() {
+  return scDirectoryFetch<WPJobTerm[]>(`/job_sector?per_page=50`);
+}
+
+// ---------------------------------------------------------------------------
 // sc-membership — auth bridge + member dashboard data (staging only)
 // ---------------------------------------------------------------------------
 

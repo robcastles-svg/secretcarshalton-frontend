@@ -44,6 +44,7 @@ const PRIMARY_NAV = [
   { label: "Stories", href: "/stories" },
   { label: "Walks", href: "/walks" },
   { label: "Directory", href: "/directory" },
+  { label: "Jobs Board", href: "/jobs" },
   { label: "Spotlight", href: "/people" },
   { label: "About", href: "/about-secret-carshalton" },
 ];
