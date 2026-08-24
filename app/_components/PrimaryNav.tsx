@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useActiveNavSectionOverride } from "./ActiveNavSection";
@@ -21,9 +22,18 @@ export function PrimaryNav({ items }: { items: Array<{ label: string; href: stri
         const isActive =
           override !== null ? override === item.label : item.href !== "/" && pathname.startsWith(item.href);
         return (
-          <Link key={item.label} href={item.href} className={isActive ? "active" : undefined}>
-            {item.label}
-          </Link>
+          <Fragment key={item.label}>
+            <Link href={item.href} className={isActive ? "active" : undefined}>
+              {item.label}
+            </Link>
+            {/* Forces the same wrap point on every page at narrow widths —
+                without it, flex-wrap breaks wherever the row runs out of
+                room, which shifts depending on which link is currently
+                bold (the active one), making the nav a different width
+                from page to page. Only takes effect below 720px; see
+                .nav-line-break in globals.css. */}
+            {item.label === "Directory" && <span className="nav-line-break" aria-hidden="true" />}
+          </Fragment>
         );
       })}
     </>

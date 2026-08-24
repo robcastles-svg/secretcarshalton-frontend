@@ -199,6 +199,13 @@ button.button-pill {
   color: #555;
 }
 
+/* Off by default (desktop nav fits on one line) — only becomes a real
+   flex item, forcing a break, inside the 720px nav-wrap media query
+   below. */
+.nav-line-break {
+  display: none;
+}
+
 .quick-links-bar {
   background: #c58a9a;
 }
@@ -262,6 +269,12 @@ button.button-pill {
     justify-content: center;
     gap: 1rem 1.25rem;
     width: 100%;
+  }
+
+  .nav-line-break {
+    display: block;
+    flex-basis: 100%;
+    height: 0;
   }
 
   .quick-links-inner {
