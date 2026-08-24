@@ -2143,6 +2143,28 @@ a.card-category:hover {
   border-radius: 4px;
 }
 
+/* WP's oEmbed iframes (YouTube etc.) carry their own fixed pixel
+   width/height attributes — a portrait video embed (e.g. a YouTube
+   Short at 563x1000) was rendering at that raw size regardless of the
+   article column's width, overflowing on mobile and leaving an
+   oddly tall block on desktop. height: auto lets the browser scale it
+   from the embed's own width/height attributes (its intrinsic aspect
+   ratio, same mechanism as an <img>) down to the column width instead. */
+.post-content iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+.related-stories {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid #eee;
+}
+
+.related-stories h2 {
+  margin: 0 0 1rem;
+}
+
 .post-content figure,
 .post-content .wp-caption {
   margin: 1.5rem 0;

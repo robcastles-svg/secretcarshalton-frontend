@@ -175,17 +175,28 @@ class SC_Post_Views_DB {
 	 * week of data regardless of what day it is). The baseline row is
 	 * always excluded here since it predates any real "today"/"this
 	 * week" by definition.
+	 *
+	 * This table has no post_type or category of its own — it's just
+	 * (post_id, views) — so a "Top stories" sidebar built straight from it
+	 * could surface an Event or Directory listing (also tracked by this
+	 * same plugin, see EVENT_LISTING_POST_TYPES) or a Spotlight/People
+	 * article alongside real News/Stories/Walks content. $post_types and
+	 * $category_slugs filter those out using WP's own post/taxonomy APIs
+	 * rather than a hand-rolled taxonomy JOIN — overfetches candidates
+	 * (5x the limit) when filtering, since some will get excluded.
 	 */
-	public static function top( $window, $limit ) {
+	public static function top( $window, $limit, $post_types = null, $category_slugs = null ) {
 		global $wpdb;
 		$table = self::table();
 		$limit = max( 1, (int) $limit );
+		$filtering = $post_types || $category_slugs;
+		$fetch_limit = $filtering ? max( $limit * 5, 50 ) : $limit;
 
 		$since = 'today' === $window
 			? current_time( 'Y-m-d' )
 			: gmdate( 'Y-m-d', strtotime( current_time( 'Y-m-d' ) . ' -6 days' ) );
 
-		return $wpdb->get_results(
+		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT post_id, SUM(views) AS total_views, " . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				'SUBSTRING_INDEX(GROUP_CONCAT(post_slug ORDER BY view_date DESC), \',\', 1) AS post_slug, ' .
@@ -197,8 +208,52 @@ class SC_Post_Views_DB {
 				'LIMIT %d',
 				$since,
 				current_time( 'Y-m-d' ),
-				$limit
+				$fetch_limit
 			)
 		);
+
+		if ( ! $filtering ) {
+			return $rows;
+		}
+
+		$allowed_category_ids = $category_slugs ? self::resolve_category_ids_with_children( $category_slugs ) : null;
+
+		$rows = array_values(
+			array_filter(
+				$rows,
+				function ( $row ) use ( $post_types, $allowed_category_ids ) {
+					$post_id = (int) $row->post_id;
+					if ( $post_types && ! in_array( get_post_type( $post_id ), $post_types, true ) ) {
+						return false;
+					}
+					if ( null !== $allowed_category_ids ) {
+						$cats = wp_get_post_categories( $post_id );
+						if ( ! array_intersect( $cats, $allowed_category_ids ) ) {
+							return false;
+						}
+					}
+					return true;
+				}
+			)
+		);
+
+		return array_slice( $rows, 0, $limit );
+	}
+
+	/** A category slug plus every child category's id — e.g. 'stories' resolves to the Stories parent and every area (Beddington, Carshalton Village, ...) under it. */
+	private static function resolve_category_ids_with_children( $slugs ) {
+		$ids = array();
+		foreach ( $slugs as $slug ) {
+			$term = get_category_by_slug( $slug );
+			if ( ! $term ) {
+				continue;
+			}
+			$ids[] = $term->term_id;
+			$children = get_term_children( $term->term_id, 'category' );
+			if ( ! is_wp_error( $children ) ) {
+				$ids = array_merge( $ids, $children );
+			}
+		}
+		return array_unique( $ids );
 	}
 }

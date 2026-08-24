@@ -6,6 +6,7 @@ import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
 import { AdSlot } from "@/app/_components/AdSlot";
 import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
+import { ContentList } from "@/app/_components/ContentList";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { getSessionToken } from "@/lib/auth";
 import {
@@ -17,6 +18,7 @@ import {
   getMembersByIds,
   getPageBySlug,
   getPostBySlug,
+  getPostsByCategory,
   getPostViewCount,
   getRecentPostSlugs,
   getTags,
@@ -180,6 +182,16 @@ export default async function ContentPage({
   const tag = allTags.find((t) => post.tags?.includes(t.id));
   const navSection = navSectionForCategories(post.categories, allCategories);
 
+  // Same category as this post, itself excluded — reuses getPostsByCategory
+  // (already the shared fetch for news/walks/stories/people listings) so
+  // "related" means genuinely the same section a reader browsing that
+  // category would see, not a separate relevance algorithm.
+  const relatedPosts = category
+    ? (await getPostsByCategory(category.id).catch(() => []))
+        .filter((p) => p.id !== post.id)
+        .slice(0, 4)
+    : [];
+
   const articleSchema = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
@@ -246,6 +258,13 @@ export default async function ContentPage({
               </Fragment>
             ))}
           </div>
+
+          {relatedPosts.length > 0 && (
+            <section className="related-stories">
+              <h2>Related stories</h2>
+              <ContentList items={relatedPosts} />
+            </section>
+          )}
 
           <CommentSection
             postId={post.id}

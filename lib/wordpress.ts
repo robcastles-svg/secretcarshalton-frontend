@@ -263,8 +263,16 @@ export interface TopViewedPost {
 
 async function getTopPosts(window: "today" | "week", limit: number): Promise<TopViewedPost[]> {
   try {
+    // sc-post-views also tracks events and directory listings (same view
+    // counter, different post types), and a plain post could be a
+    // Spotlight/People article — none of which belong in a "Top stories"
+    // widget, and events/listings would even build a broken /${slug} link
+    // here (their real URL needs a /events/ or /directory/ prefix this
+    // component doesn't know to add). post_type=post plus this specific
+    // category list keeps it to what these widgets are actually labelled:
+    // "Top stories".
     const res = await fetchWithRetry(
-      `${WP_STAGING_ROOT}/sc-post-views/v1/top?window=${window}&limit=${limit}`,
+      `${WP_STAGING_ROOT}/sc-post-views/v1/top?window=${window}&limit=${limit}&post_type=post&categories=news,stories,walks`,
       { next: { revalidate: 300 }, signal: AbortSignal.timeout(15_000) },
       3
     );

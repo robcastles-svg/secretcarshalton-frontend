@@ -82,7 +82,19 @@ class SC_Post_Views_REST {
 			$limit = 10;
 		}
 
-		$rows = SC_Post_Views_DB::top( $window, $limit );
+		/**
+		 * Both optional, comma-separated — e.g. post_type=post to exclude
+		 * events/listings (also tracked by this same plugin), and
+		 * categories=news,stories,walks so a "Top stories" sidebar only
+		 * ever surfaces News/Stories/Walks content, not Spotlight/People.
+		 */
+		$post_type_param = (string) $request->get_param( 'post_type' );
+		$post_types       = $post_type_param ? array_map( 'sanitize_key', explode( ',', $post_type_param ) ) : null;
+
+		$categories_param = (string) $request->get_param( 'categories' );
+		$category_slugs   = $categories_param ? array_map( 'sanitize_title', explode( ',', $categories_param ) ) : null;
+
+		$rows = SC_Post_Views_DB::top( $window, $limit, $post_types, $category_slugs );
 
 		return array_map(
 			function ( $row ) {
