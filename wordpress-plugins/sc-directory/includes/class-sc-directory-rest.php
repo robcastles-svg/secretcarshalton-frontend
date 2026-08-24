@@ -499,6 +499,21 @@ class SC_Directory_REST {
 
 		if ( $uploaded ) {
 			update_post_meta( $post_id, 'sc_gallery', array_merge( $gallery, $uploaded ) );
+
+			/*
+			 * Neither the submit nor edit form has ever had a separate
+			 * "featured image" field — photos only ever land in the
+			 * gallery. Without this, a listing with real uploaded photos
+			 * still shows no image anywhere on the frontend (cards, the
+			 * listing page's slider) until an admin manually sets one in
+			 * wp-admin, which is why gallery photos looked like they
+			 * "weren't showing" — they were saved, just never visible.
+			 * First photo ever uploaded becomes the cover image; leaves an
+			 * existing featured image (however it was set) alone.
+			 */
+			if ( ! get_post_thumbnail_id( $post_id ) ) {
+				set_post_thumbnail( $post_id, $uploaded[0] );
+			}
 		}
 		return count( $uploaded );
 	}
