@@ -50,6 +50,27 @@ class SC_Membership_REST {
 			)
 		);
 
+		/**
+		 * Core doesn't expose comment_count on the post REST object by
+		 * default (it's a wp_posts column, not a registered REST field) —
+		 * needed so post-list cards (news/walks/stories/etc.) can show a
+		 * comment-count bubble without a separate request per card. WP only
+		 * increments this column for approved comments, so it already
+		 * excludes the pending ones every comment lands in first.
+		 */
+		register_rest_field(
+			'post',
+			'comment_count',
+			array(
+				'get_callback' => function ( $post ) {
+					return (int) get_post( $post['id'] )->comment_count;
+				},
+				'schema'       => array(
+					'type' => 'integer',
+				),
+			)
+		);
+
 		register_rest_route(
 			'sc-membership/v1',
 			'/me',

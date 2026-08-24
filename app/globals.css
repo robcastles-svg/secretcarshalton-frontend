@@ -473,6 +473,7 @@ button.button-pill {
 .post-list li a {
   display: block;
   text-decoration: none;
+  position: relative;
 }
 
 .post-list li img {
@@ -481,6 +482,22 @@ button.button-pill {
   aspect-ratio: 4 / 3;
   object-fit: cover;
   margin-bottom: 0.75rem;
+}
+
+.card-comment-count {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(26, 26, 26, 0.75);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: 999px;
 }
 
 /* The clipping frame every event card image (or CloudsPlaceholder

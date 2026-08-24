@@ -52,6 +52,9 @@ export interface WPContentItem {
   featured_media?: number;
   categories?: number[];
   tags?: number[];
+  // Registered via sc-membership's REST field (core doesn't expose this by
+  // default) — only present when requested in _fields.
+  comment_count?: number;
   yoast_head_json?: WPYoastHead;
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
@@ -174,7 +177,7 @@ async function wpFetch<T>(path: string): Promise<T> {
 
 export function getPosts(perPage = 12) {
   return wpFetch<WPContentItem[]>(
-    `/posts?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
+    `/posts?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,comment_count,_links&_embed=wp:featuredmedia`
   );
 }
 
@@ -475,7 +478,7 @@ export async function getPostsByCategory(categoryId: number): Promise<WPContentI
   let page = 1;
   while (true) {
     const batch = await wpFetch<WPContentItem[]>(
-      `/posts?categories=${categoryId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,_links&_embed=wp:featuredmedia`
+      `/posts?categories=${categoryId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,comment_count,_links&_embed=wp:featuredmedia`
     );
     posts.push(...batch);
     if (batch.length < 100) break;
@@ -500,7 +503,7 @@ export async function getPostsByTag(tagId: number): Promise<WPContentItem[]> {
   let page = 1;
   while (true) {
     const batch = await wpFetch<WPContentItem[]>(
-      `/posts?tags=${tagId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,_links&_embed=wp:featuredmedia`
+      `/posts?tags=${tagId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,comment_count,_links&_embed=wp:featuredmedia`
     );
     posts.push(...batch);
     if (batch.length < 100) break;
