@@ -44,7 +44,6 @@ const PRIMARY_NAV = [
   { label: "Stories", href: "/stories" },
   { label: "Walks", href: "/walks" },
   { label: "Directory", href: "/directory" },
-  { label: "Jobs Board", href: "/jobs" },
   { label: "Spotlight", href: "/people" },
   { label: "About", href: "/about-secret-carshalton" },
 ];
@@ -84,6 +83,16 @@ function CommunityIcon() {
   );
 }
 
+function JobsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 13h18" />
+    </svg>
+  );
+}
+
 /**
  * These now point at the real directory categories (confirmed by
  * inspecting the live Sabai Directory admin — "Places to go", "Places to
@@ -94,6 +103,7 @@ const QUICK_LINKS_NAV = [
   { label: "Visit", href: "/directory?category=places-to-go", Icon: VisitIcon },
   { label: "Stay", href: "/directory?category=places-to-stay", Icon: StayIcon },
   { label: "Community", href: "/directory?category=groups-to-join", Icon: CommunityIcon },
+  { label: "Jobs", href: "/jobs", Icon: JobsIcon },
 ];
 
 export default async function RootLayout({
