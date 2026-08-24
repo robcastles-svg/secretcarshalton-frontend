@@ -473,7 +473,6 @@ button.button-pill {
 .post-list li a {
   display: block;
   text-decoration: none;
-  position: relative;
 }
 
 .post-list li img {
@@ -484,20 +483,29 @@ button.button-pill {
   margin-bottom: 0.75rem;
 }
 
-.card-comment-count {
-  position: absolute;
-  top: 0.6rem;
-  right: 0.6rem;
-  z-index: 1;
+/* Sits alongside the date, bottom-right of the card — same plain
+   icon+count treatment as .comment-count-link on the post itself,
+   just right-aligned via the shared row instead of inline with a link. */
+.post-list .card-meta-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 0.4rem;
+}
+
+.post-list .card-meta-row time {
+  margin: 0;
+}
+
+.card-comment-count {
+  display: inline-flex;
+  align-items: center;
   gap: 0.3rem;
-  background: rgba(26, 26, 26, 0.75);
-  color: #fff;
-  font-size: 0.8rem;
+  color: #777;
+  font-size: 0.85rem;
   font-weight: 600;
-  padding: 0.25rem 0.55rem;
-  border-radius: 999px;
 }
 
 /* The clipping frame every event card image (or CloudsPlaceholder

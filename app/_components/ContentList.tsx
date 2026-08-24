@@ -23,6 +23,20 @@ export function ContentList({
           <li key={item.id}>
             <Link href={`/${item.slug}`}>
               {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
+              <div className="card-text">
+                {tag && <span className="card-tag">{tag.name}</span>}
+                <span className="card-title" dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
+                {category && <span className="card-category">{category.name}</span>}
+              </div>
+            </Link>
+            <div className="card-meta-row">
+              <time dateTime={item.date}>
+                {new Date(item.date).toLocaleDateString("en-GB", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </time>
               {commentCount > 0 && (
                 <span className="card-comment-count" aria-label={`${commentCount} comment${commentCount === 1 ? "" : "s"}`}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -31,19 +45,7 @@ export function ContentList({
                   {commentCount}
                 </span>
               )}
-              <div className="card-text">
-                {tag && <span className="card-tag">{tag.name}</span>}
-                <span className="card-title" dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
-                {category && <span className="card-category">{category.name}</span>}
-              </div>
-            </Link>
-            <time dateTime={item.date}>
-              {new Date(item.date).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </time>
+            </div>
             <div dangerouslySetInnerHTML={{ __html: item.excerpt.rendered }} />
           </li>
         );
