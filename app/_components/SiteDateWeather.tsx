@@ -21,8 +21,8 @@ function describeWeatherCode(code: number): string {
   return "Weather unavailable";
 }
 
-/** Same WMO buckets as describeWeatherCode, mapped to one of a handful of small inline icons — no icon set to install, just a few plain SVGs. */
-function WeatherIcon({ code }: { code: number }) {
+/** Same WMO buckets as describeWeatherCode, mapped to one of a handful of small inline icons — no icon set to install, just a few plain SVGs. isDay swaps the sun for a moon on the two clear-ish codes, since those are the only two that were showing a bright sun regardless of the actual time in Carshalton. */
+function WeatherIcon({ code, isDay }: { code: number; isDay: boolean }) {
   const common = {
     width: 16,
     height: 16,
@@ -31,6 +31,17 @@ function WeatherIcon({ code }: { code: number }) {
   };
 
   if (code === 0) {
+    if (!isDay) {
+      // Crescent moon
+      return (
+        <svg {...common} fill="none">
+          <path
+            d="M15.5 4.5a8 8 0 1 0 4 12.9A9 9 0 0 1 15.5 4.5Z"
+            fill="#d8dee8"
+          />
+        </svg>
+      );
+    }
     // Sun
     return (
       <svg {...common} fill="none" stroke="#f5c542" strokeWidth="2" strokeLinecap="round">
@@ -40,6 +51,18 @@ function WeatherIcon({ code }: { code: number }) {
     );
   }
   if (code <= 2) {
+    if (!isDay) {
+      // Moon behind cloud
+      return (
+        <svg {...common} fill="none">
+          <path d="M13.5 3.5a6 6 0 1 0 3 9.6A6.7 6.7 0 0 1 13.5 3.5Z" fill="#d8dee8" />
+          <path
+            d="M6 18a4 4 0 0 1 .3-8 5 5 0 0 1 9.6 1.2A3.6 3.6 0 0 1 15.5 18H6Z"
+            fill="#cdd6dd"
+          />
+        </svg>
+      );
+    }
     // Sun behind cloud
     return (
       <svg {...common} fill="none">
@@ -133,21 +156,26 @@ function formatToday(): string {
  */
 export function SiteDateWeather() {
   const [today, setToday] = useState<string | null>(null);
-  const [weather, setWeather] = useState<{ code: number; label: string } | null>(null);
+  const [weather, setWeather] = useState<{ code: number; isDay: boolean; label: string } | null>(null);
 
   useEffect(() => {
     setToday(formatToday());
 
     let cancelled = false;
     fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weather_code&timezone=Europe%2FLondon`
+      `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,weather_code,is_day&timezone=Europe%2FLondon`
     )
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (cancelled || !data?.current) return;
         const temp = Math.round(data.current.temperature_2m);
         const code = data.current.weather_code;
-        setWeather({ code, label: `${temp}°C, ${describeWeatherCode(code)}` });
+        // is_day is Open-Meteo's own sun-position flag (1/0) for the
+        // requested location — real sunrise/sunset for today in
+        // Carshalton, not a guessed hour range that'd drift with the
+        // seasons.
+        const isDay = data.current.is_day === 1;
+        setWeather({ code, isDay, label: `${temp}°C, ${describeWeatherCode(code)}` });
       })
       .catch(() => {
         if (!cancelled) setWeather(null);
@@ -164,7 +192,7 @@ export function SiteDateWeather() {
       <span>{today}</span>
       {weather && (
         <span className="site-date-weather-forecast">
-          <WeatherIcon code={weather.code} />
+          <WeatherIcon code={weather.code} isDay={weather.isDay} />
           {weather.label} in Carshalton
         </span>
       )}
