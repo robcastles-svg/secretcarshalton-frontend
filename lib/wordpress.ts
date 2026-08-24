@@ -382,7 +382,7 @@ export async function getCommentsForPost(postId: number, count: number): Promise
  */
 export async function getMembersByIds(
   ids: number[]
-): Promise<Map<number, { slug: string; name: string; avatar: string }>> {
+): Promise<Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>> {
   const realIds = Array.from(new Set(ids.filter((id) => id > 0)));
   if (realIds.length === 0) return new Map();
   try {
@@ -392,8 +392,9 @@ export async function getMembersByIds(
       3
     );
     if (!res.ok) return new Map();
-    const members: Array<{ id: number; slug: string; name: string; avatar: string }> = await res.json();
-    return new Map(members.map((m) => [m.id, { slug: m.slug, name: m.name, avatar: m.avatar }]));
+    const members: Array<{ id: number; slug: string; name: string; avatar: string; joined_at: string }> =
+      await res.json();
+    return new Map(members.map((m) => [m.id, { slug: m.slug, name: m.name, avatar: m.avatar, joinedAt: m.joined_at }]));
   } catch {
     return new Map();
   }
@@ -1431,8 +1432,17 @@ export interface MyEvent {
   status: string;
   slug: string;
   start: string;
+  views: number;
 }
 
+/**
+ * View counts aren't part of sc-events' own /mine response — they come
+ * from the separate sc-post-views store (see getPostViewCount), keyed by
+ * the same numeric post id regardless of post type. Fetched here rather
+ * than pushed into sc-events' PHP so that plugin stays unaware of
+ * sc-post-views entirely, same loose coupling sc-post-views' own docblock
+ * describes from the other side.
+ */
 export async function getMyEvents(token: string): Promise<MyEvent[]> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/mine`, {
@@ -1441,7 +1451,10 @@ export async function getMyEvents(token: string): Promise<MyEvent[]> {
       signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) return [];
-    return res.json();
+    const events: Array<Omit<MyEvent, "views">> = await res.json();
+    return Promise.all(
+      events.map(async (event) => ({ ...event, views: await getPostViewCount(event.id) }))
+    );
   } catch {
     return [];
   }

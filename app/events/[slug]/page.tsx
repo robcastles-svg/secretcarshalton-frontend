@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
+import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { getSessionToken } from "@/lib/auth";
 import {
   getCommentsForPost,
@@ -95,7 +96,7 @@ export default async function EventPage({
   ]);
 
   const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
-    () => new Map<number, { slug: string; name: string; avatar: string }>()
+    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
   );
 
   const isOwner = Boolean(profile && profile.id === event.author);
@@ -134,6 +135,7 @@ export default async function EventPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
       />
+      <PostViewTracker postId={event.id} slug={event.slug} title={stripHtml(event.title.rendered)} />
       <div className="post-body">
         <div className="event-hero">
           {startDate && (

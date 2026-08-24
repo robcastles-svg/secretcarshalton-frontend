@@ -2125,6 +2125,14 @@ a.card-category:hover {
   margin-bottom: 0.75rem;
 }
 
+.directory-listing-stats {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eee;
+}
+
 .sidebar-comment-list {
   list-style: none;
   padding: 0;
@@ -2797,6 +2805,12 @@ a.card-category:hover {
   margin-left: auto;
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+.dashboard-my-list-views {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: #888;
 }
 
 .dashboard-my-comments > li {

@@ -339,11 +339,18 @@ class SC_Membership_REST {
 			if ( SC_Membership_DB::is_pending_review( $user->ID ) ) {
 				continue;
 			}
+			// Same "member since" the private dashboard already shows via
+			// get_me() — SC_Membership_DB::get_or_create_member()'s
+			// joined_at, not core's user_registered (see that method's own
+			// docblock for why: it's set the first time a member earns
+			// points, same field, same meaning, just reused publicly here).
+			$member   = SC_Membership_DB::get_or_create_member( $user->ID );
 			$result[] = array(
-				'id'     => $user->ID,
-				'slug'   => $user->user_nicename,
-				'name'   => self::clean_display_name( $user->data->display_name ),
-				'avatar' => get_avatar_url( $user->ID, array( 'size' => 48 ) ),
+				'id'        => $user->ID,
+				'slug'      => $user->user_nicename,
+				'name'      => self::clean_display_name( $user->data->display_name ),
+				'avatar'    => get_avatar_url( $user->ID, array( 'size' => 48 ) ),
+				'joined_at' => $member->joined_at,
 			);
 		}
 		return $result;

@@ -15,6 +15,21 @@ class SC_Post_Views_DB {
 	 */
 	const BASELINE_DATE = '1970-01-01';
 
+	/**
+	 * Events and listings never had a third-party counter to backfill real
+	 * history from (unlike posts — see SC_Post_Views_Admin), so a brand new
+	 * one would otherwise show "0 views" the moment it's published. Giving
+	 * every one of them the same starting baseline row real posts get
+	 * (see BASELINE_DATE) means "views" always reads as a real, growing
+	 * number — 10 plus whatever's accumulated since — never a discouraging
+	 * zero. Post type slugs kept as plain strings rather than referencing
+	 * SC_Events_CPT/SC_Directory_CPT directly: this plugin has no load-order
+	 * dependency on either of those (same reasoning as this file's own
+	 * "arbitrary numeric key" docblock in sc-post-views.php).
+	 */
+	const EVENT_LISTING_POST_TYPES   = array( 'sc_event', 'sc_listing' );
+	const EVENT_LISTING_BASELINE_VIEWS = 10;
+
 	public static function table() {
 		global $wpdb;
 		return $wpdb->prefix . 'sc_post_views';
@@ -64,6 +79,46 @@ class SC_Post_Views_DB {
 				$today
 			)
 		);
+	}
+
+	/**
+	 * Gives one post (event or listing) its 10-view starting baseline, if it
+	 * doesn't already have one — INSERT IGNORE against the (post_id,
+	 * view_date) unique key makes this safe to call repeatedly (a one-time
+	 * backfill for existing posts, plus a per-post call whenever a new one
+	 * is published — see sc-post-views.php's transition_post_status hook)
+	 * without ever double-counting.
+	 */
+	public static function ensure_event_listing_baseline( $post_id ) {
+		global $wpdb;
+		$table = self::table();
+
+		$wpdb->query(
+			$wpdb->prepare(
+				"INSERT IGNORE INTO {$table} (post_id, post_slug, post_title, view_date, views) " . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'VALUES (%d, %s, %s, %s, %d)',
+				$post_id,
+				'',
+				'',
+				self::BASELINE_DATE,
+				self::EVENT_LISTING_BASELINE_VIEWS
+			)
+		);
+	}
+
+	/** One-time backfill: every existing sc_event/sc_listing post gets its 10-view baseline. */
+	public static function seed_event_listing_baselines() {
+		$ids = get_posts(
+			array(
+				'post_type'      => self::EVENT_LISTING_POST_TYPES,
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+			)
+		);
+		foreach ( $ids as $post_id ) {
+			self::ensure_event_listing_baseline( $post_id );
+		}
 	}
 
 	/** All-time total for one post — baseline row (if any) plus every day since. */

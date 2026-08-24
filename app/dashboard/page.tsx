@@ -177,6 +177,9 @@ export default async function DashboardPage() {
                 ) : (
                   <span>{event.title}</span>
                 )}
+                <span className="dashboard-my-list-views">
+                  {event.views} view{event.views === 1 ? "" : "s"}
+                </span>
                 <Link href={`/events/${event.slug}/edit`} className="dashboard-my-list-edit">
                   Edit
                 </Link>

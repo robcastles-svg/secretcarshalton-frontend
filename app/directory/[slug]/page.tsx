@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
+import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { listingSocials } from "@/app/_components/SocialIcons";
 import { ClaimListingButton } from "./_components/ClaimListingButton";
 import { getSessionToken } from "@/lib/auth";
@@ -14,8 +15,13 @@ import {
   getFeaturedImage,
   getMemberMe,
   getMembersByIds,
+  getPostViewCount,
   stripHtml,
 } from "@/lib/wordpress";
+
+function formatJoinDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+}
 
 export const revalidate = 3600;
 
@@ -53,15 +59,20 @@ export default async function DirectoryListingPage({
 
   if (!listing) notFound();
 
-  const [profile, fullThread] = await Promise.all([
+  const [profile, fullThread, viewCount] = await Promise.all([
     sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
     getCommentsForPost(listing.id, 50).catch(() => []),
+    getPostViewCount(listing.id),
   ]);
   const canEdit = Boolean(profile && (profile.id === listing.author || profile.is_editor));
 
-  const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
-    () => new Map<number, { slug: string; name: string; avatar: string }>()
+  // Same batch lookup as the comment thread's authors, plus the listing's
+  // own owner (who may never have commented) — one request covers both the
+  // "member since" line below and CommentSection's commenter links.
+  const profileMap = await getMembersByIds([listing.author, ...fullThread.map((c) => c.author ?? 0)]).catch(
+    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
   );
+  const owner = profileMap.get(listing.author);
 
   const image = getFeaturedImage(listing);
   const { meta } = listing;
@@ -106,6 +117,7 @@ export default async function DirectoryListingPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
       />
+      <PostViewTracker postId={listing.id} slug={listing.slug} title={stripHtml(listing.title.rendered)} />
       <div className="post-body directory-listing-card">
         {image && <img src={image.source_url} alt={image.alt_text} />}
         <div className="directory-listing-card-body">
@@ -186,7 +198,7 @@ export default async function DirectoryListingPage({
             postId={listing.id}
             comments={fullThread}
             isLoggedIn={Boolean(sessionToken)}
-            commenterProfiles={commenterProfileMap}
+            commenterProfiles={profileMap}
           />
         </div>
       </div>
@@ -205,6 +217,10 @@ export default async function DirectoryListingPage({
               <a href={meta.sc_website}>{meta.sc_website.replace(/^https?:\/\//, "")}</a>
             </p>
           )}
+          <p className="directory-listing-stats">
+            {viewCount} view{viewCount === 1 ? "" : "s"}
+            {owner && <> · Member since {formatJoinDate(owner.joinedAt)}</>}
+          </p>
         </div>
 
         {(mapQuery || (meta.sc_lat && meta.sc_lng)) && (

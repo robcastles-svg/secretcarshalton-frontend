@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface Ad {
   id: number;
@@ -15,6 +16,11 @@ interface Ad {
  * the sc-ads REST endpoint makes happens fresh on every pageview instead
  * of being frozen for the page's ISR revalidation window — the same
  * per-load rotation AdRotate itself did.
+ *
+ * Slots like the header leaderboard live in the root layout, which the App
+ * Router keeps mounted across client-side <Link> navigations — without
+ * `pathname` in the effect's deps, the ad picked on first load would sit
+ * frozen through an entire visit instead of re-rolling on every page.
  */
 export function AdSlot({
   placement,
@@ -28,6 +34,7 @@ export function AdSlot({
   placeholderText?: string;
 }) {
   const [ad, setAd] = useState<Ad | null | undefined>(undefined);
+  const pathname = usePathname();
 
   useEffect(() => {
     let cancelled = false;
@@ -42,7 +49,7 @@ export function AdSlot({
     return () => {
       cancelled = true;
     };
-  }, [placement]);
+  }, [placement, pathname]);
 
   if (ad === undefined) return null;
 

@@ -157,7 +157,7 @@ export default async function ContentPage({
   ]);
 
   const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
-    () => new Map<number, { slug: string; name: string; avatar: string }>()
+    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
   );
 
   // Mirrors the live site's real in-article ad positions (groups 5 and 7
