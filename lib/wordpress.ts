@@ -1277,6 +1277,13 @@ export function getJobSectors() {
   return scDirectoryFetch<WPJobTerm[]>(`/job_sector?per_page=50`);
 }
 
+export async function getJobListingBySlug(slug: string): Promise<WPJobListing | null> {
+  const jobs = await scDirectoryFetch<WPJobListing[]>(
+    `/job-listings?slug=${encodeURIComponent(slug)}`
+  );
+  return jobs[0] ?? null;
+}
+
 // ---------------------------------------------------------------------------
 // sc-membership — auth bridge + member dashboard data (staging only)
 // ---------------------------------------------------------------------------

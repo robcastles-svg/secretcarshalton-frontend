@@ -41,6 +41,12 @@ export default async function JobsPage({
         </div>
       </div>
 
+      <p className="job-external-disclaimer">
+        These listings are pulled in automatically from external job sites (via the Reed API) — Secret
+        Carshalton doesn&apos;t manage or vet them. Click a job to read the details here, then apply on the
+        original site.
+      </p>
+
       {locations.length > 0 && (
         <nav className="directory-category-nav">
           <Link href="/jobs" className={!activeLocation ? "active" : undefined}>
@@ -66,24 +72,17 @@ export default async function JobsPage({
         <ul className="job-list">
           {filteredJobs.map((job) => (
             <li key={job.id} className="job-card">
-              <div className="job-card-main">
+              <Link href={`/jobs/${job.slug}`} className="job-card-main">
                 <span className="card-title" dangerouslySetInnerHTML={{ __html: job.title.rendered }} />
                 <div className="job-card-meta">
                   {job.meta.job_company && <span>{job.meta.job_company}</span>}
                   {job.meta.job_salary_text && <span>{job.meta.job_salary_text}</span>}
                   <time dateTime={job.date}>Posted {formatDate(job.date)}</time>
                 </div>
-              </div>
-              {job.meta.external_url && (
-                <a
-                  href={job.meta.external_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="button-pill job-card-apply"
-                >
-                  View &amp; apply
-                </a>
-              )}
+              </Link>
+              <Link href={`/jobs/${job.slug}`} className="button-pill job-card-apply">
+                View details
+              </Link>
             </li>
           ))}
         </ul>
