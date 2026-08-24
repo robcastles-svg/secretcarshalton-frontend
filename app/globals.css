@@ -3044,6 +3044,16 @@ a.card-category:hover {
   }
 }
 
+/* Featured listings' own row, kept off the masonry grid above deliberately —
+   .directory-list's column-count layout fills one column top-to-bottom
+   before starting the next, so featured-first sorting into that same list
+   only ever put them at the top of column 1, not across the top of the
+   page. This stays on .post-list's plain row-based grid at every width, so
+   "along the top on desktop" is just what the grid does by default. */
+.directory-featured-list {
+  margin-bottom: 2.5rem;
+}
+
 @media (max-width: 720px) {
   /* The image is the first thing in the card with nothing above it, so
      making the card the positioning context puts the badge right over

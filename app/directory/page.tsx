@@ -25,9 +25,15 @@ export default async function DirectoryPage({
     : getDirectoryListings()
   ).catch(() => []);
 
-  // Featured listings first — both on the unfiltered "All" view and within
-  // whichever category is being browsed, per how featuring is meant to work.
-  const listings = [...rawListings].sort((a, b) => Number(b.meta.sc_featured) - Number(a.meta.sc_featured));
+  // Featured listings get their own row above the rest — both on the
+  // unfiltered "All" view and within whichever category is being browsed.
+  // Sorting featured-first into one shared masonry list (the previous
+  // approach) only put them at the top of the *first* CSS column on
+  // desktop, since column-based masonry fills one column fully before
+  // starting the next — splitting them into a separate, non-masonry grid
+  // is what actually gets every featured listing into the top row.
+  const featuredListings = rawListings.filter((l) => l.meta.sc_featured);
+  const regularListings = rawListings.filter((l) => !l.meta.sc_featured);
 
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
 
@@ -61,24 +67,44 @@ export default async function DirectoryPage({
         ))}
       </nav>
 
-      {listings.length === 0 ? (
+      {featuredListings.length === 0 && regularListings.length === 0 ? (
         <p className="directory-empty">
           No listings here yet — the directory is being rebuilt; real listings are on the way.
         </p>
       ) : (
-        <ul className="post-list directory-list">
-          {listings.map((listing) => (
-            <DirectoryListingCard
-              key={listing.id}
-              listing={listing}
-              categoriesList={
-                listing.sc_listing_category
-                  ?.map((id) => categoriesById.get(id))
-                  .filter((c): c is (typeof categories)[number] => Boolean(c))
-              }
-            />
-          ))}
-        </ul>
+        <>
+          {featuredListings.length > 0 && (
+            <ul className="post-list directory-featured-list">
+              {featuredListings.map((listing) => (
+                <DirectoryListingCard
+                  key={listing.id}
+                  listing={listing}
+                  categoriesList={
+                    listing.sc_listing_category
+                      ?.map((id) => categoriesById.get(id))
+                      .filter((c): c is (typeof categories)[number] => Boolean(c))
+                  }
+                />
+              ))}
+            </ul>
+          )}
+
+          {regularListings.length > 0 && (
+            <ul className="post-list directory-list">
+              {regularListings.map((listing) => (
+                <DirectoryListingCard
+                  key={listing.id}
+                  listing={listing}
+                  categoriesList={
+                    listing.sc_listing_category
+                      ?.map((id) => categoriesById.get(id))
+                      .filter((c): c is (typeof categories)[number] => Boolean(c))
+                  }
+                />
+              ))}
+            </ul>
+          )}
+        </>
       )}
     </main>
   );
