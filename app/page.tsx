@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ContentList } from "@/app/_components/ContentList";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
+import { EventImage } from "@/app/_components/EventImage";
+import { eventTopicsFor, EventTopics } from "@/app/_components/EventTopics";
 import {
   getCategoryBySlug,
   getDirectoryListings,
@@ -111,37 +113,27 @@ export default async function HomePage() {
               {events.map((event) => {
                 const image = getFeaturedImage(event);
                 const startDate = parseEventDate(event.meta.sc_start);
-                const eventTopics = eventTags.filter((t) => event.sc_event_tag?.includes(t.id));
+                const topics = eventTopicsFor(eventTags, event.sc_event_tag);
                 return (
                   <li key={event.id}>
                     <Link href={`/events/${event.slug}`}>
-                      {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
-                      <div>
-                        <div className="event-card-heading">
-                          {startDate && (
-                            <div className="event-card-date-badge">
-                              <span className="event-card-date-badge-weekday">
-                                {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
-                              </span>
-                              <span className="event-card-date-badge-day">{startDate.getDate()}</span>
-                              <span className="event-card-date-badge-month">
-                                {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
-                              </span>
-                            </div>
-                          )}
-                          <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-                        </div>
-                        {eventTopics.length > 0 && (
-                          <div className="event-row-topics">
-                            {eventTopics.map((topic) => (
-                              <span key={topic.id} className="card-category">
-                                {topic.name}
-                              </span>
-                            ))}
+                      <EventImage image={image} alt={stripHtml(event.title.rendered)} />
+                      <div className="event-card-heading">
+                        {startDate && (
+                          <div className="event-card-date-badge">
+                            <span className="event-card-date-badge-weekday">
+                              {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
+                            </span>
+                            <span className="event-card-date-badge-day">{startDate.getDate()}</span>
+                            <span className="event-card-date-badge-month">
+                              {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
+                            </span>
                           </div>
                         )}
+                        <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
                       </div>
                     </Link>
+                    <EventTopics topics={topics} className="event-row-topics" />
                   </li>
                 );
               })}

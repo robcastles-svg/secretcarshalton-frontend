@@ -451,11 +451,42 @@ img {
   margin-bottom: 0.75rem;
 }
 
-.event-card-media {
+/* The clipping frame every event card image (or CloudsPlaceholder
+   fallback, when there's no featured image) sits in — owns sizing per
+   context below, and clips the hover-zoom transform so it never spills
+   past the card's rounded corners. */
+.event-image-frame {
+  overflow: hidden;
+  background: #dce9f3;
+}
+
+.event-image-frame img,
+.event-image-frame svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+.post-list li:hover .event-image-frame img,
+.post-list li:hover .event-image-frame svg,
+.event-row-list li:hover .event-image-frame img,
+.event-row-list li:hover .event-image-frame svg {
+  transform: scale(1.08);
+}
+
+.post-list .event-image-frame {
+  width: 100%;
+  aspect-ratio: 4 / 3;
   margin-bottom: 0.75rem;
 }
 
-.event-card-media img {
+/* Beats .post-list li img's (0,1,2) specificity, which would otherwise
+   also apply its own aspect-ratio/margin-bottom directly to the <img>
+   inside the frame. */
+.post-list .event-image-frame img {
+  aspect-ratio: auto;
   margin-bottom: 0;
 }
 
@@ -490,6 +521,32 @@ img {
    stripped back to 0 here. */
 .post-list .event-card-heading .card-title {
   margin: 0;
+}
+
+/* Topic pills sit on their own line directly under the headline, offset
+   to line up with the title text rather than the date tile to its left
+   (badge width + the heading's flex gap) — a plain sibling of the
+   card's own <Link> rather than nested inside it, since the pills are
+   separately-clickable <a> tags and anchors can't nest. nowrap +
+   overflow-x:auto keeps a busy event's topics on one line instead of
+   wrapping and making the card taller. */
+.post-list .event-card-topics {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0.4rem;
+  margin: 0.4rem 1rem 0 calc(1rem + 44px + 0.6rem);
+  padding-bottom: 0.15rem;
+}
+
+/* Beats .post-list li a's (0,1,2) specificity, which would otherwise
+   force these pills to display:block (breaking the one-line layout
+   above) and strip their underline — that rule targets the card's own
+   link, not these separately-clickable topic pills. */
+.post-list .event-card-topics .card-category {
+  display: inline-block;
+  flex-shrink: 0;
+  text-decoration: none;
 }
 
 .event-card-date-badge-weekday {
@@ -548,13 +605,20 @@ img {
 }
 
 /* Base pill look, usable outside .post-list too (event-row-list's topic
-   tags on the homepage / "Latest events added" aren't inside .post-list). */
+   tags on the homepage / "Latest events added" aren't inside .post-list).
+   Doubles as a link style now that events' topic pills are clickable
+   (directory's category pills are plain <span>s, so :hover is a no-op
+   there — harmless). */
 .card-category {
   display: inline-block;
   color: #777;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
+}
+
+a.card-category:hover {
+  color: #c2607a;
 }
 
 .post-list .card-category {
@@ -817,22 +881,29 @@ img {
   gap: 1.25rem;
 }
 
+/* The card "box" (background/shadow/radius/padding) lives on the <li>,
+   not the link — the topic pills below sit as a sibling of the <a> (they
+   need their own href, and anchors can't nest), so both need to render
+   inside the same visual card. */
+.event-row-list li {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 0.75rem;
+  overflow: hidden;
+}
+
 .event-row-list li a {
   display: grid;
   grid-template-columns: 120px 1fr;
   gap: 1rem;
   text-decoration: none;
   color: inherit;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: 0.75rem;
 }
 
-.event-row-list img {
+.event-row-list .event-image-frame {
   width: 120px;
   height: 90px;
-  object-fit: cover;
   border-radius: 4px;
 }
 
@@ -847,11 +918,22 @@ img {
 }
 
 .event-row-topics {
-  margin-top: 0.35rem;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0 calc(120px + 1rem);
+  padding-bottom: 0.1rem;
 }
 
-.event-row-topics .card-category {
-  margin-right: 0.6rem;
+/* Beats .event-row-list li a's (0,1,2) specificity — that rule targets
+   the card's own link (the grid/image/title layout), not these
+   separately-clickable topic pills, which just need to be plain inline
+   pills, not another 120px-column grid. */
+.event-row-list .event-row-topics .card-category {
+  display: inline-block;
+  flex-shrink: 0;
+  text-decoration: none;
 }
 
 .feature-row {
@@ -907,10 +989,24 @@ img {
     grid-template-columns: 1fr;
   }
 
-  .event-row-list img,
+  .event-row-list .event-image-frame,
   .feature-row img {
     width: 100%;
   }
+
+  /* Image stacks above the text column at this width, so the topics'
+     desktop offset (aligning them under the title next to a 120px
+     image) no longer applies — back to flush with the card's own
+     padding. */
+  .event-row-topics {
+    margin-left: 0;
+  }
+}
+
+.events-load-more {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
 }
 
 /* Events page: countdown, category tiles, view switch, month calendar */

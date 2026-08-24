@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { EventImage } from "@/app/_components/EventImage";
+import { eventTopicsFor, EventTopics } from "@/app/_components/EventTopics";
 import {
   getFeaturedImage,
   getLatestAddedScEvents,
@@ -8,11 +10,13 @@ import {
   getScEvents,
   getUpcomingScEvents,
   parseEventDate,
+  stripHtml,
 } from "@/lib/wordpress";
 import { EventCalendarMonth } from "./_components/EventCalendarMonth";
 import { EventCategoryTiles } from "./_components/EventCategoryTiles";
 import { EventCountdown } from "./_components/EventCountdown";
 import { EventTagTiles } from "./_components/EventTagTiles";
+import { EventsGrid } from "./_components/EventsGrid";
 
 export const revalidate = 3600;
 
@@ -101,43 +105,7 @@ export default async function EventsPage({
       {isCalendar ? (
         <EventCalendarMonth year={calendarYear} month={calendarMonth} events={calendarEvents} />
       ) : (
-        <ul className="post-list">
-          {listEvents.map((event) => {
-            const image = getFeaturedImage(event);
-            const startDate = parseEventDate(event.meta.sc_start);
-            const eventTopics = tags.filter((t) => event.sc_event_tag?.includes(t.id));
-            return (
-              <li key={event.id}>
-                <Link href={`/events/${event.slug}`}>
-                  {image && (
-                    <div className="event-card-media">
-                      <img src={image.source_url} alt={image.alt_text} loading="lazy" />
-                    </div>
-                  )}
-                  <div className="event-card-heading">
-                    {startDate && (
-                      <div className="event-card-date-badge">
-                        <span className="event-card-date-badge-weekday">
-                          {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
-                        </span>
-                        <span className="event-card-date-badge-day">{startDate.getDate()}</span>
-                        <span className="event-card-date-badge-month">
-                          {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                    <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-                  </div>
-                </Link>
-                {eventTopics.map((topic) => (
-                  <span key={topic.id} className="card-category">
-                    {topic.name}
-                  </span>
-                ))}
-              </li>
-            );
-          })}
-        </ul>
+        <EventsGrid events={listEvents} tags={tags} />
       )}
 
       {latestAdded.length > 0 && (
@@ -147,37 +115,27 @@ export default async function EventsPage({
             {latestAdded.map((event) => {
               const image = getFeaturedImage(event);
               const startDate = parseEventDate(event.meta.sc_start);
-              const eventTopics = tags.filter((t) => event.sc_event_tag?.includes(t.id));
+              const topics = eventTopicsFor(tags, event.sc_event_tag);
               return (
                 <li key={event.id}>
                   <Link href={`/events/${event.slug}`}>
-                    {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
-                    <div>
-                      <div className="event-card-heading">
-                        {startDate && (
-                          <div className="event-card-date-badge">
-                            <span className="event-card-date-badge-weekday">
-                              {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
-                            </span>
-                            <span className="event-card-date-badge-day">{startDate.getDate()}</span>
-                            <span className="event-card-date-badge-month">
-                              {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
-                            </span>
-                          </div>
-                        )}
-                        <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-                      </div>
-                      {eventTopics.length > 0 && (
-                        <div className="event-row-topics">
-                          {eventTopics.map((topic) => (
-                            <span key={topic.id} className="card-category">
-                              {topic.name}
-                            </span>
-                          ))}
+                    <EventImage image={image} alt={stripHtml(event.title.rendered)} />
+                    <div className="event-card-heading">
+                      {startDate && (
+                        <div className="event-card-date-badge">
+                          <span className="event-card-date-badge-weekday">
+                            {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
+                          </span>
+                          <span className="event-card-date-badge-day">{startDate.getDate()}</span>
+                          <span className="event-card-date-badge-month">
+                            {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
+                          </span>
                         </div>
                       )}
+                      <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
                     </div>
                   </Link>
+                  <EventTopics topics={topics} className="event-row-topics" />
                 </li>
               );
             })}
