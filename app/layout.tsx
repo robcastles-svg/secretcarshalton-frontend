@@ -53,6 +53,35 @@ const UTILITY_NAV = [
   { label: "Advertise", href: "/advertising-contact" },
 ];
 
+function VisitIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M12 21s7-6.7 7-12a7 7 0 1 0-14 0c0 5.3 7 12 7 12Z" strokeLinejoin="round" />
+      <circle cx="12" cy="9" r="2.4" />
+    </svg>
+  );
+}
+
+function StayIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <path d="M3 11.5 12 4l9 7.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function CommunityIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <circle cx="9" cy="8" r="3" />
+      <circle cx="17" cy="9" r="2.3" />
+      <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M15 14.5c2.6.6 4.5 2.9 4.5 5.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /**
  * These now point at the real directory categories (confirmed by
  * inspecting the live Sabai Directory admin — "Places to go", "Places to
@@ -60,9 +89,9 @@ const UTILITY_NAV = [
  * guess). Was a placeholder pointing at /walks, /directory, /people.
  */
 const QUICK_LINKS_NAV = [
-  { label: "Visit", href: "/directory?category=places-to-go" },
-  { label: "Stay", href: "/directory?category=places-to-stay" },
-  { label: "Community", href: "/directory?category=groups-to-join" },
+  { label: "Visit", href: "/directory?category=places-to-go", Icon: VisitIcon },
+  { label: "Stay", href: "/directory?category=places-to-stay", Icon: StayIcon },
+  { label: "Community", href: "/directory?category=groups-to-join", Icon: CommunityIcon },
 ];
 
 export default async function RootLayout({
@@ -122,6 +151,7 @@ export default async function RootLayout({
           <div className="container quick-links-inner">
             {QUICK_LINKS_NAV.map((item) => (
               <Link key={item.label} href={item.href}>
+                <item.Icon />
                 {item.label.toUpperCase()}
               </Link>
             ))}
