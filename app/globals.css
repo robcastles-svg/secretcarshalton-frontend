@@ -68,6 +68,12 @@ img {
   color: #fff;
 }
 
+.site-date-weather-forecast {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 /* Utility bar */
 .utility-bar {
   background: #f5f5f5;
