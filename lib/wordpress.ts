@@ -821,6 +821,8 @@ export interface WPScEventMeta {
   sc_venue_address: string;
   sc_organizer: string;
   sc_event_url: string;
+  /** The "Coming up next" hero slot's paid-upgrade flag — admin-set only, see SC_Events_Meta. */
+  sc_event_featured: boolean;
 }
 
 export interface WPScEvent {

@@ -56,8 +56,13 @@ export default async function EventsPage({
   const listEvents = upcoming.filter(matchesFilters);
   const calendarEvents = allEvents.filter(matchesFilters);
 
-  const next = upcoming[0];
+  // A paid-upgrade "featured" event (see SC_Events_Meta::sc_event_featured)
+  // takes the "Coming up next" hero slot over whatever's chronologically
+  // soonest — that's the whole point of the upgrade. Falls back to the
+  // soonest upcoming event when nothing's currently featured.
+  const next = upcoming.find((e) => e.meta.sc_event_featured) ?? upcoming[0];
   const nextStart = next ? parseEventDate(next.meta.sc_start) : null;
+  const nextImage = next ? getFeaturedImage(next) : null;
 
   return (
     <main className="container">
@@ -77,6 +82,9 @@ export default async function EventsPage({
           slug={next.slug}
           startIso={nextStart.toISOString()}
           venueName={next.meta.sc_venue_name}
+          image={nextImage}
+          imageAlt={stripHtml(next.title.rendered)}
+          featured={Boolean(next.meta.sc_event_featured)}
         />
       )}
 

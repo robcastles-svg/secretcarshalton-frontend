@@ -13,6 +13,7 @@ import {
   stripHtml,
 } from "@/lib/wordpress";
 import { ExpandableList } from "@/app/_components/ExpandableList";
+import { EventImage } from "@/app/_components/EventImage";
 import { BanMemberButton } from "./_components/BanMemberButton";
 
 export const revalidate = 3600;
@@ -66,6 +67,12 @@ export default async function MemberProfilePage({
     const start = parseEventDate(event.meta.sc_start);
     return start === null || start.getTime() < now;
   });
+  // The one paid-upgrade event (see SC_Events_Meta::sc_event_featured)
+  // currently sitting in the "Coming up next" hero slot on /events, if
+  // this member owns it — surfaced separately from the plain upcoming
+  // list below since it's the thing they're actively paying to promote.
+  const promotedEvent = upcomingEvents.find((event) => event.meta.sc_event_featured);
+  const promotedStart = promotedEvent ? parseEventDate(promotedEvent.meta.sc_start) : null;
 
   return (
     <main className="container">
@@ -107,6 +114,20 @@ export default async function MemberProfilePage({
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {promotedEvent && promotedStart && (
+        <section className="dashboard-section">
+          <h2>Promoted event</h2>
+          <Link href={`/events/${promotedEvent.slug}`} className="member-promoted-event">
+            <EventImage image={getFeaturedImage(promotedEvent)} alt={stripHtml(promotedEvent.title.rendered)} />
+            <div className="member-promoted-event-body">
+              <span className="directory-badge">Featured</span>
+              <span className="card-title" dangerouslySetInnerHTML={{ __html: promotedEvent.title.rendered }} />
+              <time dateTime={promotedStart.toISOString()}>{formatEventDate(promotedStart)}</time>
+            </div>
+          </Link>
         </section>
       )}
 

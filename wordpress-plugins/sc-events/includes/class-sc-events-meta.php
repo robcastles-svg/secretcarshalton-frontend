@@ -29,6 +29,18 @@ class SC_Events_Meta {
 		 * docblock — never accepted at face value from the request.
 		 */
 		'sc_event_listing_id' => 'integer',
+		/**
+		 * The "Coming up next" hero slot's paid-upgrade flag — an admin-set
+		 * override so a specific event (bought/promoted, not necessarily
+		 * the chronologically soonest one) takes that prominent spot
+		 * instead. Registered the same way as every other field here, but
+		 * deliberately never touched by update_event/submit_event — same
+		 * "exposed to REST, but only an admin can actually set it" pattern
+		 * SC_Directory_Meta uses for sc_featured. Automating who can buy
+		 * this slot (and for how long) is future work; for now it's a
+		 * manual wp-admin toggle, one event at a time.
+		 */
+		'sc_event_featured' => 'boolean',
 	);
 
 	public static function register() {

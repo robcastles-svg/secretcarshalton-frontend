@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { EventImage } from "@/app/_components/EventImage";
 
 interface Remaining {
   days: number;
@@ -20,17 +21,29 @@ function timeRemaining(target: number): Remaining {
   };
 }
 
-/** Matches EventON's live "Coming up Next in ___" countdown — ticks client-side. */
+/**
+ * Matches EventON's live "Coming up Next in ___" countdown — ticks
+ * client-side. Normally shows whichever event is chronologically
+ * soonest, but a paid-upgrade "featured" event (SC_Events_Meta's
+ * sc_event_featured, admin-set) takes this slot instead when one exists
+ * — see the `featured` prop and how /events/page.tsx picks heroEvent.
+ */
 export function EventCountdown({
   title,
   slug,
   startIso,
   venueName,
+  image,
+  imageAlt,
+  featured,
 }: {
   title: string;
   slug: string;
   startIso: string;
   venueName?: string;
+  image: { source_url: string; alt_text: string } | null;
+  imageAlt: string;
+  featured?: boolean;
 }) {
   const target = new Date(startIso).getTime();
   const [remaining, setRemaining] = useState<Remaining | null>(null);
@@ -43,25 +56,31 @@ export function EventCountdown({
 
   return (
     <Link href={`/events/${slug}`} className="event-countdown">
-      <span className="event-countdown-label">Coming up next</span>
-      {remaining && (
-        <span className="event-countdown-timer">
-          <span>
-            <strong>{remaining.days}</strong> {remaining.days === 1 ? "day" : "days"}
+      <div className="event-countdown-media">
+        <EventImage image={image} alt={imageAlt} />
+        {featured && <span className="event-countdown-featured-badge">Featured</span>}
+      </div>
+      <div className="event-countdown-body">
+        <span className="event-countdown-label">Coming up next</span>
+        {remaining && (
+          <span className="event-countdown-timer">
+            <span>
+              <strong>{remaining.days}</strong> {remaining.days === 1 ? "day" : "days"}
+            </span>
+            <span>
+              <strong>{String(remaining.hours).padStart(2, "0")}</strong>hrs
+            </span>
+            <span>
+              <strong>{String(remaining.minutes).padStart(2, "0")}</strong>min
+            </span>
+            <span>
+              <strong>{String(remaining.seconds).padStart(2, "0")}</strong>sec
+            </span>
           </span>
-          <span>
-            <strong>{String(remaining.hours).padStart(2, "0")}</strong>hrs
-          </span>
-          <span>
-            <strong>{String(remaining.minutes).padStart(2, "0")}</strong>min
-          </span>
-          <span>
-            <strong>{String(remaining.seconds).padStart(2, "0")}</strong>sec
-          </span>
-        </span>
-      )}
-      <span className="event-countdown-title" dangerouslySetInnerHTML={{ __html: title }} />
-      {venueName && <span className="event-countdown-venue">{venueName}</span>}
+        )}
+        <span className="event-countdown-title" dangerouslySetInnerHTML={{ __html: title }} />
+        {venueName && <span className="event-countdown-venue">{venueName}</span>}
+      </div>
     </Link>
   );
 }
