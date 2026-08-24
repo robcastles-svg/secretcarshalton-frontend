@@ -49,6 +49,25 @@ img {
   white-space: nowrap;
 }
 
+/* Date/weather strip — the very first thing on every page. */
+.site-date-weather-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  background: #1a1a1a;
+  color: #ddd;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  padding: 0.4rem 1.5rem;
+}
+
+.site-date-weather-bar span:first-child {
+  font-weight: 600;
+  color: #fff;
+}
+
 /* Utility bar */
 .utility-bar {
   background: #f5f5f5;

@@ -6,6 +6,7 @@ import { getSessionToken } from "@/lib/auth";
 import { AdSlot } from "./_components/AdSlot";
 import { BackToTop } from "./_components/BackToTop";
 import { PrimaryNav } from "./_components/PrimaryNav";
+import { SiteDateWeather } from "./_components/SiteDateWeather";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -115,6 +116,7 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
         />
+        <SiteDateWeather />
         <div className={`utility-bar${sessionToken ? " utility-bar-loggedin" : ""}`}>
           <div className="container utility-bar-inner">
             {UTILITY_NAV.map((item) =>
