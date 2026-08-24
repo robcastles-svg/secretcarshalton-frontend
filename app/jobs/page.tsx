@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
-import { getJobListings, getJobLocations } from "@/lib/wordpress";
+import { getJobListings } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -10,24 +10,12 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 }
 
-export default async function JobsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ location?: string }>;
-}) {
-  const { location } = await searchParams;
-
+export default async function JobsPage() {
   // Staging (which this reads from — see lib/wordpress.ts's WP_STAGING_ROOT
   // note) has proven unreliable to reach from Vercel's runtime; never let
   // that hang or crash this page — an empty board is recoverable, a dead
   // page isn't.
-  const [jobs, locations] = await Promise.all([
-    getJobListings().catch(() => []),
-    getJobLocations().catch(() => []),
-  ]);
-
-  const activeLocation = location ? locations.find((l) => l.slug === location) : null;
-  const filteredJobs = activeLocation ? jobs.filter((j) => j.job_location.includes(activeLocation.id)) : jobs;
+  const jobs = await getJobListings().catch(() => []);
 
   return (
     <main className="container">
@@ -47,30 +35,13 @@ export default async function JobsPage({
         original site.
       </p>
 
-      {locations.length > 0 && (
-        <nav className="directory-category-nav">
-          <Link href="/jobs" className={!activeLocation ? "active" : undefined}>
-            All areas
-          </Link>
-          {locations.map((l) => (
-            <Link
-              key={l.id}
-              href={`/jobs?location=${l.slug}`}
-              className={activeLocation?.slug === l.slug ? "active" : undefined}
-            >
-              {l.name} ({l.count})
-            </Link>
-          ))}
-        </nav>
-      )}
-
-      {filteredJobs.length === 0 ? (
+      {jobs.length === 0 ? (
         <p className="directory-empty">
           No jobs listed yet — check back soon, this board updates automatically every day.
         </p>
       ) : (
         <ul className="job-list">
-          {filteredJobs.map((job) => (
+          {jobs.map((job) => (
             <li key={job.id} className="job-card">
               <Link href={`/jobs/${job.slug}`} className="job-card-main">
                 <span className="card-title" dangerouslySetInnerHTML={{ __html: job.title.rendered }} />
