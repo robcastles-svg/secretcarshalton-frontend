@@ -75,18 +75,6 @@ export default async function EventsPage({
         </Link>
       </div>
 
-      {next && nextStart && (
-        <EventCountdown
-          title={next.title.rendered}
-          slug={next.slug}
-          startIso={nextStart.toISOString()}
-          venueName={next.meta.sc_venue_name}
-          image={nextImage}
-          imageAlt={stripHtml(next.title.rendered)}
-          featured={Boolean(next.meta.sc_event_featured)}
-        />
-      )}
-
       <EventCategoryTiles
         categories={categories}
         activeSlug={activeCategory?.slug}
@@ -108,6 +96,18 @@ export default async function EventsPage({
           Calendar
         </Link>
       </div>
+
+      {next && nextStart && (
+        <EventCountdown
+          title={next.title.rendered}
+          slug={next.slug}
+          startIso={nextStart.toISOString()}
+          venueName={next.meta.sc_venue_name}
+          image={nextImage}
+          imageAlt={stripHtml(next.title.rendered)}
+          featured={Boolean(next.meta.sc_event_featured)}
+        />
+      )}
 
       {isCalendar ? (
         <EventCalendarMonth year={calendarYear} month={calendarMonth} events={calendarEvents} />
