@@ -11,7 +11,7 @@ export default async function PeoplePage() {
   return (
     <main className="container">
       <h1>
-        In the Spotlight
+        Business Spotlight
         <CategoryKeyIcon />
       </h1>
       <ContentList items={posts} />
