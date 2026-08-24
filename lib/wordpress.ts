@@ -52,8 +52,9 @@ export interface WPContentItem {
   featured_media?: number;
   categories?: number[];
   tags?: number[];
-  // Registered via sc-membership's REST field (core doesn't expose this by
-  // default) — only present when requested in _fields.
+  // Not a real WP REST field — attached by attachCommentCounts() after the
+  // fact via core's own /comments endpoint. Only present on results from
+  // functions that call it (getPosts, getPostsByCategory, getPostsByTag).
   comment_count?: number;
   yoast_head_json?: WPYoastHead;
   _embedded?: {
@@ -175,10 +176,40 @@ async function wpFetch<T>(path: string): Promise<T> {
   return res.json();
 }
 
-export function getPosts(perPage = 12) {
-  return wpFetch<WPContentItem[]>(
-    `/posts?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,comment_count,_links&_embed=wp:featuredmedia`
+/**
+ * comment_count isn't a field core exposes on the post REST object (it's a
+ * wp_posts column, not registered for REST) — and there's no plugin on the
+ * live site (where these posts actually live) to add it either. Core's own
+ * /comments endpoint already returns only approved comments to logged-out
+ * requests, same as the comment_count column would, so tallying those by
+ * post id gets a real count with no plugin changes needed.
+ */
+async function attachCommentCounts(posts: WPContentItem[]): Promise<WPContentItem[]> {
+  if (posts.length === 0) return posts;
+  const counts = new Map<number, number>();
+  const ids = posts.map((p) => p.id);
+
+  for (let i = 0; i < ids.length; i += 100) {
+    const chunk = ids.slice(i, i + 100);
+    let page = 1;
+    while (true) {
+      const batch = await wpFetch<{ post: number }[]>(
+        `/comments?post=${chunk.join(",")}&per_page=100&page=${page}&_fields=post`
+      ).catch(() => []);
+      for (const c of batch) counts.set(c.post, (counts.get(c.post) ?? 0) + 1);
+      if (batch.length < 100) break;
+      page++;
+    }
+  }
+
+  return posts.map((p) => ({ ...p, comment_count: counts.get(p.id) ?? 0 }));
+}
+
+export async function getPosts(perPage = 12) {
+  const posts = await wpFetch<WPContentItem[]>(
+    `/posts?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
   );
+  return attachCommentCounts(posts);
 }
 
 /**
@@ -478,13 +509,13 @@ export async function getPostsByCategory(categoryId: number): Promise<WPContentI
   let page = 1;
   while (true) {
     const batch = await wpFetch<WPContentItem[]>(
-      `/posts?categories=${categoryId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,comment_count,_links&_embed=wp:featuredmedia`
+      `/posts?categories=${categoryId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,_links&_embed=wp:featuredmedia`
     );
     posts.push(...batch);
     if (batch.length < 100) break;
     page++;
   }
-  return posts;
+  return attachCommentCounts(posts);
 }
 
 /**
@@ -503,13 +534,13 @@ export async function getPostsByTag(tagId: number): Promise<WPContentItem[]> {
   let page = 1;
   while (true) {
     const batch = await wpFetch<WPContentItem[]>(
-      `/posts?tags=${tagId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,comment_count,_links&_embed=wp:featuredmedia`
+      `/posts?tags=${tagId}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,_links&_embed=wp:featuredmedia`
     );
     posts.push(...batch);
     if (batch.length < 100) break;
     page++;
   }
-  return posts;
+  return attachCommentCounts(posts);
 }
 
 export async function mapWithConcurrency<T, R>(
