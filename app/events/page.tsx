@@ -105,11 +105,16 @@ export default async function EventsPage({
           {listEvents.map((event) => {
             const image = getFeaturedImage(event);
             const startDate = parseEventDate(event.meta.sc_start);
+            const eventTopics = tags.filter((t) => event.sc_event_tag?.includes(t.id));
             return (
               <li key={event.id}>
                 <Link href={`/events/${event.slug}`}>
-                  <div className="event-card-media">
-                    {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
+                  {image && (
+                    <div className="event-card-media">
+                      <img src={image.source_url} alt={image.alt_text} loading="lazy" />
+                    </div>
+                  )}
+                  <div className="event-card-heading">
                     {startDate && (
                       <div className="event-card-date-badge">
                         <span className="event-card-date-badge-weekday">
@@ -121,22 +126,14 @@ export default async function EventsPage({
                         </span>
                       </div>
                     )}
+                    <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
                   </div>
-                  <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
                 </Link>
-                {startDate && (
-                  <time className="event-card-date" dateTime={startDate.toISOString()}>
-                    {startDate.toLocaleString("en-GB", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
-                    {event.meta.sc_venue_name ? ` — ${event.meta.sc_venue_name}` : ""}
-                  </time>
-                )}
+                {eventTopics.map((topic) => (
+                  <span key={topic.id} className="card-category">
+                    {topic.name}
+                  </span>
+                ))}
               </li>
             );
           })}
@@ -150,16 +147,34 @@ export default async function EventsPage({
             {latestAdded.map((event) => {
               const image = getFeaturedImage(event);
               const startDate = parseEventDate(event.meta.sc_start);
+              const eventTopics = tags.filter((t) => event.sc_event_tag?.includes(t.id));
               return (
                 <li key={event.id}>
                   <Link href={`/events/${event.slug}`}>
                     {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
                     <div>
-                      <span dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-                      {startDate && (
-                        <time dateTime={startDate.toISOString()}>
-                          {startDate.toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
-                        </time>
+                      <div className="event-card-heading">
+                        {startDate && (
+                          <div className="event-card-date-badge">
+                            <span className="event-card-date-badge-weekday">
+                              {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
+                            </span>
+                            <span className="event-card-date-badge-day">{startDate.getDate()}</span>
+                            <span className="event-card-date-badge-month">
+                              {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                        <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
+                      </div>
+                      {eventTopics.length > 0 && (
+                        <div className="event-row-topics">
+                          {eventTopics.map((topic) => (
+                            <span key={topic.id} className="card-category">
+                              {topic.name}
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </Link>

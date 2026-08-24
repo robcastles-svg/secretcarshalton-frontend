@@ -9,6 +9,7 @@ import {
   getLatestPostInCategories,
   getPosts,
   getCategories,
+  getScEventTags,
   getTopPostsThisWeek,
   getUpcomingScEvents,
   parseEventDate,
@@ -32,11 +33,12 @@ export default async function HomePage() {
   // Every branch below already renders fine with an empty/null result
   // (the "no posts" state, conditionally-rendered sections), so catching
   // here just lets that existing degrade-gracefully behavior actually work.
-  const [recentPosts, walksCategory, allCategories, events, directoryListings] = await Promise.all([
+  const [recentPosts, walksCategory, allCategories, events, eventTags, directoryListings] = await Promise.all([
     getPosts(20).catch(() => []),
     getCategoryBySlug("walks").catch(() => null),
     getCategories().catch(() => []),
     getUpcomingScEvents(4).catch(() => []),
+    getScEventTags().catch(() => []),
     getDirectoryListings(10).catch(() => []),
   ]);
 
@@ -109,22 +111,34 @@ export default async function HomePage() {
               {events.map((event) => {
                 const image = getFeaturedImage(event);
                 const startDate = parseEventDate(event.meta.sc_start);
+                const eventTopics = eventTags.filter((t) => event.sc_event_tag?.includes(t.id));
                 return (
                   <li key={event.id}>
                     <Link href={`/events/${event.slug}`}>
                       {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
                       <div>
-                        <span dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-                        {startDate && (
-                          <time dateTime={startDate.toISOString()}>
-                            {startDate.toLocaleString("en-GB", {
-                              weekday: "short",
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                            {event.meta.sc_venue_name ? ` — ${event.meta.sc_venue_name}` : ""}
-                          </time>
+                        <div className="event-card-heading">
+                          {startDate && (
+                            <div className="event-card-date-badge">
+                              <span className="event-card-date-badge-weekday">
+                                {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
+                              </span>
+                              <span className="event-card-date-badge-day">{startDate.getDate()}</span>
+                              <span className="event-card-date-badge-month">
+                                {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                          <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
+                        </div>
+                        {eventTopics.length > 0 && (
+                          <div className="event-row-topics">
+                            {eventTopics.map((topic) => (
+                              <span key={topic.id} className="card-category">
+                                {topic.name}
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </div>
                     </Link>

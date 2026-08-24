@@ -452,7 +452,6 @@ img {
 }
 
 .event-card-media {
-  position: relative;
   margin-bottom: 0.75rem;
 }
 
@@ -460,18 +459,37 @@ img {
   margin-bottom: 0;
 }
 
+/* Date tile sits beside the headline (see .event-card-heading) rather than
+   overlaid on the image — no longer absolutely positioned. Used both on
+   the /events list (inside .post-list) and the row-list cards (homepage,
+   "Latest events added"). */
 .event-card-date-badge {
-  position: absolute;
-  top: 0.6rem;
-  left: 0.6rem;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 50px;
-  padding: 0.3rem 0.2rem;
+  width: 44px;
+  padding: 0.25rem 0.2rem;
   border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  background: #f6f6f6;
+}
+
+.event-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.post-list .event-card-heading {
+  margin: 0 1rem;
+}
+
+/* .post-list .card-title already gets a 1rem left/right margin (see the
+   shared rule below) — inside .event-card-heading that margin is now
+   redundant with the heading's own inset and the flex gap, so it's
+   stripped back to 0 here. */
+.post-list .event-card-heading .card-title {
+  margin: 0;
 }
 
 .event-card-date-badge-weekday {
@@ -529,13 +547,18 @@ img {
   margin-bottom: 0.25rem;
 }
 
-.post-list .card-category {
+/* Base pill look, usable outside .post-list too (event-row-list's topic
+   tags on the homepage / "Latest events added" aren't inside .post-list). */
+.card-category {
   display: inline-block;
-  margin-top: 0.35rem;
   color: #777;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
+}
+
+.post-list .card-category {
+  margin-top: 0.35rem;
 }
 
 .post-list time {
@@ -590,12 +613,6 @@ img {
     -webkit-line-clamp: 3;
     overflow: hidden;
   }
-}
-
-.post-list time.event-card-date {
-  color: #1a1a1a;
-  font-size: 1rem;
-  font-weight: 700;
 }
 
 .event-hero {
@@ -819,17 +836,22 @@ img {
   border-radius: 4px;
 }
 
-.event-row-list span {
+.event-row-list .card-title {
   display: block;
   font-weight: 700;
   color: #1a1a1a;
 }
 
-.event-row-list time {
-  display: block;
-  color: #777;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
+.event-row-list .event-card-heading {
+  gap: 0.5rem;
+}
+
+.event-row-topics {
+  margin-top: 0.35rem;
+}
+
+.event-row-topics .card-category {
+  margin-right: 0.6rem;
 }
 
 .feature-row {
