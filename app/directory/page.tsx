@@ -71,7 +71,11 @@ export default async function DirectoryPage({
             <DirectoryListingCard
               key={listing.id}
               listing={listing}
-              category={listing.sc_listing_category?.map((id) => categoriesById.get(id)).find(Boolean)}
+              categoriesList={
+                listing.sc_listing_category
+                  ?.map((id) => categoriesById.get(id))
+                  .filter((c): c is (typeof categories)[number] => Boolean(c))
+              }
             />
           ))}
         </ul>

@@ -609,14 +609,26 @@ export interface WPListingMeta {
   sc_address_country: string;
   sc_website: string;
   sc_phone: string;
+  sc_email: string;
+  sc_tagline: string;
   sc_facebook: string;
   sc_instagram: string;
   sc_twitter: string;
+  sc_linkedin: string;
+  sc_youtube: string;
+  sc_lat: string;
+  sc_lng: string;
   sc_featured: boolean;
   sc_verified: boolean;
   sc_claimed: boolean;
   sc_plan: string;
   sc_claim_expires_at: string;
+}
+
+export interface WPListingGalleryImage {
+  id: number;
+  url: string;
+  alt: string;
 }
 
 export interface WPListing {
@@ -630,6 +642,8 @@ export interface WPListing {
   meta: WPListingMeta;
   /** True once a claim has been requested but not yet approved — see SC_Directory_REST::claim_listing. */
   sc_claim_pending?: boolean;
+  /** Resolved from the sc_gallery attachment-ID meta server-side — see SC_Directory_REST's sc_gallery_images REST field. */
+  sc_gallery_images?: WPListingGalleryImage[];
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
   };
@@ -657,7 +671,7 @@ async function scDirectoryFetch<T>(path: string): Promise<T> {
 
 export function getDirectoryListings(perPage = 100) {
   return scDirectoryFetch<WPListing[]>(
-    `/sc-listings?per_page=${perPage}&_fields=id,slug,link,title,content,author,sc_listing_category,meta,_links&_embed=wp:featuredmedia`
+    `/sc-listings?per_page=${perPage}&_fields=id,slug,link,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,_links&_embed=wp:featuredmedia`
   );
 }
 
@@ -670,7 +684,7 @@ export async function getDirectoryListingBySlug(slug: string): Promise<WPListing
 
 export function getDirectoryListingsByCategory(categoryId: number, perPage = 100) {
   return scDirectoryFetch<WPListing[]>(
-    `/sc-listings?sc_listing_category=${categoryId}&per_page=${perPage}&_fields=id,slug,link,title,content,author,sc_listing_category,meta,_links&_embed=wp:featuredmedia`
+    `/sc-listings?sc_listing_category=${categoryId}&per_page=${perPage}&_fields=id,slug,link,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,_links&_embed=wp:featuredmedia`
   );
 }
 
@@ -688,7 +702,7 @@ export function getDirectoryCategories() {
 /** For a member's public profile page — "listings they've submitted." WP's core REST author param needs no custom route. */
 export function getDirectoryListingsByAuthor(authorId: number) {
   return scDirectoryFetch<WPListing[]>(
-    `/sc-listings?author=${authorId}&per_page=50&_fields=id,slug,link,title,content,author,sc_listing_category,meta,_links&_embed=wp:featuredmedia`
+    `/sc-listings?author=${authorId}&per_page=50&_fields=id,slug,link,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,_links&_embed=wp:featuredmedia`
   );
 }
 
@@ -703,7 +717,7 @@ export function getDirectoryListingsByAuthor(authorId: number) {
 export async function updateDirectoryListing(
   token: string,
   listingId: number,
-  data: Record<string, string>
+  data: Record<string, string | string[]>
 ): Promise<{ id: number; status: string } | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/${listingId}`, {
@@ -718,6 +732,75 @@ export async function updateDirectoryListing(
       return { code: body.code ?? "update_failed", message: body.message ?? "Could not update the listing." };
     }
     return { id: body.id, status: body.status };
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Adding photos to a listing's gallery — multipart, so the FormData (built client-side from <input type="file">) is forwarded as-is rather than JSON-encoded. */
+export async function uploadListingPhotos(
+  token: string,
+  listingId: number,
+  formData: FormData
+): Promise<{ gallery: number[] } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/${listingId}/photos`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "upload_failed", message: body.message ?? "Could not upload photo(s)." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+export async function deleteListingPhoto(
+  token: string,
+  listingId: number,
+  attachmentId: number
+): Promise<{ gallery: number[] } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/${listingId}/photos/delete`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ attachment_id: attachmentId }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "delete_failed", message: body.message ?? "Could not remove photo." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Owner-initiated renewal — extends (or reinstates, if it already lapsed) a claim's expiry by a year. See SC_Directory_REST::renew_claim. */
+export async function renewListingClaim(
+  token: string,
+  listingId: number
+): Promise<{ status: string; expires_at: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/${listingId}/renew-claim`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "renew_failed", message: body.message ?? "Could not renew the claim." };
+    }
+    return body;
   } catch {
     return NETWORK_ERROR;
   }
@@ -1276,7 +1359,7 @@ export async function resendVerification(
 
 export async function submitListing(
   token: string,
-  data: Record<string, string>
+  data: Record<string, string | string[]>
 ): Promise<{ status: string; id: number } | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/submit`, {

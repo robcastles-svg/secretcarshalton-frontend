@@ -262,6 +262,7 @@ class SC_Directory_Admin {
 		if ( $listing_id && $user_id && in_array( $decision, array( 'approved', 'rejected' ), true ) ) {
 			if ( 'approved' === $decision ) {
 				update_post_meta( $listing_id, 'sc_claimed', '1' );
+				update_post_meta( $listing_id, 'sc_claim_expires_at', gmdate( 'Y-m-d\TH:i:s', strtotime( '+1 year' ) ) );
 				wp_update_post(
 					array(
 						'ID'          => $listing_id,

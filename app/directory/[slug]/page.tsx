@@ -1,14 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CommentCountLink } from "@/app/_components/CommentCountLink";
+import { CommentSection } from "@/app/_components/CommentSection";
+import { listingSocials } from "@/app/_components/SocialIcons";
 import { ClaimListingButton } from "./_components/ClaimListingButton";
 import { getSessionToken } from "@/lib/auth";
 import {
+  getCommentsForPost,
   getDirectoryCategories,
   getDirectoryListingBySlug,
   getDirectoryListings,
   getFeaturedImage,
   getMemberMe,
+  getMembersByIds,
+  stripHtml,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -47,13 +53,22 @@ export default async function DirectoryListingPage({
 
   if (!listing) notFound();
 
-  const profile = sessionToken ? await getMemberMe(sessionToken) : null;
+  const [profile, fullThread] = await Promise.all([
+    sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
+    getCommentsForPost(listing.id, 50).catch(() => []),
+  ]);
   const canEdit = Boolean(profile && (profile.id === listing.author || profile.is_editor));
+
+  const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
+    () => new Map<number, { slug: string; name: string; avatar: string }>()
+  );
 
   const image = getFeaturedImage(listing);
   const { meta } = listing;
   const verified = meta.sc_claimed || meta.sc_verified;
-  const category = categories.find((c) => listing.sc_listing_category?.includes(c.id));
+  const matchedCategories = categories.filter((c) => listing.sc_listing_category?.includes(c.id));
+  const socials = listingSocials(meta);
+  const gallery = listing.sc_gallery_images ?? [];
   const addressParts = [
     meta.sc_address_street,
     meta.sc_address_town,
@@ -61,6 +76,10 @@ export default async function DirectoryListingPage({
     meta.sc_address_postcode,
   ].filter(Boolean);
   const mapQuery = addressParts.join(", ");
+  const mapSrc =
+    meta.sc_lat && meta.sc_lng
+      ? `https://www.google.com/maps?q=${meta.sc_lat},${meta.sc_lng}&z=15&output=embed`
+      : `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`;
 
   const businessSchema = {
     "@context": "https://schema.org",
@@ -113,16 +132,17 @@ export default async function DirectoryListingPage({
               </Link>
             )}
           </div>
-          {(category || meta.sc_featured) && (
+          {meta.sc_tagline && <p className="directory-tagline">{meta.sc_tagline}</p>}
+          {(matchedCategories.length > 0 || meta.sc_featured) && (
             <div className="directory-badges">
-              {category && (
-                <Link href={`/directory?category=${category.slug}`} className="directory-category-pill">
+              {matchedCategories.map((category) => (
+                <Link key={category.id} href={`/directory?category=${category.slug}`} className="directory-category-pill">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z" />
                   </svg>
                   {category.name}
                 </Link>
-              )}
+              ))}
               {meta.sc_featured && <span className="directory-badge">Featured</span>}
             </div>
           )}
@@ -135,7 +155,39 @@ export default async function DirectoryListingPage({
               />
             </div>
           )}
+          {fullThread.length > 0 && (
+            <p className="event-meta-row">
+              <CommentCountLink count={fullThread.length} />
+            </p>
+          )}
           <div className="post-content" dangerouslySetInnerHTML={{ __html: listing.content.rendered }} />
+
+          {gallery.length > 0 && (
+            <ul className="directory-gallery-grid directory-gallery-view">
+              {gallery.map((photo) => (
+                <li key={photo.id}>
+                  <img src={photo.url} alt={photo.alt || stripHtml(listing.title.rendered)} loading="lazy" />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {socials.length > 0 && (
+            <div className="directory-card-socials directory-detail-socials">
+              {socials.map(({ key, url, Icon }) => (
+                <a key={key} href={url} target="_blank" rel="noopener noreferrer" aria-label={key}>
+                  <Icon />
+                </a>
+              ))}
+            </div>
+          )}
+
+          <CommentSection
+            postId={listing.id}
+            comments={fullThread}
+            isLoggedIn={Boolean(sessionToken)}
+            commenterProfiles={commenterProfileMap}
+          />
         </div>
       </div>
       <aside className="post-sidebar">
@@ -143,6 +195,11 @@ export default async function DirectoryListingPage({
           <h2>Details</h2>
           {addressParts.length > 0 && <p>{addressParts.join(", ")}</p>}
           {meta.sc_phone && <p>{meta.sc_phone}</p>}
+          {meta.sc_email && (
+            <p>
+              <a href={`mailto:${meta.sc_email}`}>{meta.sc_email}</a>
+            </p>
+          )}
           {meta.sc_website && (
             <p>
               <a href={meta.sc_website}>{meta.sc_website.replace(/^https?:\/\//, "")}</a>
@@ -150,7 +207,7 @@ export default async function DirectoryListingPage({
           )}
         </div>
 
-        {mapQuery && (
+        {(mapQuery || (meta.sc_lat && meta.sc_lng)) && (
           <div className="sidebar-block event-map">
             <iframe
               title="Listing location map"
@@ -158,7 +215,7 @@ export default async function DirectoryListingPage({
               height="220"
               style={{ border: 0 }}
               loading="lazy"
-              src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`}
+              src={mapSrc}
             />
           </div>
         )}

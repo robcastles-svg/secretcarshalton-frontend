@@ -1,48 +1,20 @@
 import Link from "next/link";
+import { listingSocials } from "@/app/_components/SocialIcons";
 import { getFeaturedImage, stripHtml, type WPDirectoryCategory, type WPListing } from "@/lib/wordpress";
-
-function FacebookIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M13.5 21v-8h2.7l.4-3.1h-3.1V8c0-.9.25-1.5 1.55-1.5H16.7V3.7C16.4 3.66 15.4 3.5 14.2 3.5c-2.4 0-4 1.46-4 4.15V10H7.5v3.1h2.7V21h3.3Z" />
-    </svg>
-  );
-}
-
-function InstagramIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <rect x="3" y="3" width="18" height="18" rx="5" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-function TwitterIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-      <path d="M4 4l16 16M20 4 4 20" />
-    </svg>
-  );
-}
 
 /** The <li> card used both on /directory itself and the homepage's directory section — same markup, one place to keep them in sync. */
 export function DirectoryListingCard({
   listing,
-  category,
+  categoriesList,
 }: {
   listing: WPListing;
-  /** Only passed on /directory's category pages — the homepage's 3-latest grid doesn't show it. */
-  category?: WPDirectoryCategory;
+  /** Only passed on /directory's category pages — the homepage's 3-latest grid doesn't show it. All matched categories, not just one — a listing can belong to more than one. */
+  categoriesList?: WPDirectoryCategory[];
 }) {
   const image = getFeaturedImage(listing);
   const verified = listing.meta.sc_claimed || listing.meta.sc_verified;
-  const socials = [
-    { key: "facebook", url: listing.meta.sc_facebook, Icon: FacebookIcon },
-    { key: "instagram", url: listing.meta.sc_instagram, Icon: InstagramIcon },
-    { key: "twitter", url: listing.meta.sc_twitter, Icon: TwitterIcon },
-  ].filter((s) => s.url);
+  const socials = listingSocials(listing.meta);
+  const excerpt = listing.meta.sc_tagline || stripHtml(listing.content.rendered).slice(0, 120);
 
   return (
     <li>
@@ -66,8 +38,12 @@ export function DirectoryListingCard({
         </span>
       </Link>
       {listing.meta.sc_featured && <span className="directory-badge">Featured</span>}
-      {category && <span className="card-category">{category.name}</span>}
-      <p>{stripHtml(listing.content.rendered).slice(0, 120)}</p>
+      {categoriesList?.map((category) => (
+        <span key={category.id} className="card-category">
+          {category.name}
+        </span>
+      ))}
+      <p>{excerpt}</p>
       {socials.length > 0 && (
         <div className="directory-card-socials">
           {socials.map(({ key, url, Icon }) => (

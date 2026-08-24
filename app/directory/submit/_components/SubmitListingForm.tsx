@@ -4,11 +4,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { WPDirectoryCategory } from "@/lib/wordpress";
 
+/** New listings always start on the free plan (see SC_Directory_REST::submit_listing) — one photo cap to match. */
+const FREE_PHOTO_LIMIT = 3;
+
 export function SubmitListingForm({ categories }: { categories: WPDirectoryCategory[] }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [photos, setPhotos] = useState<File[]>([]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -23,14 +27,24 @@ export function SubmitListingForm({ categories }: { categories: WPDirectoryCateg
       body: JSON.stringify(data),
     });
 
-    if (res.ok) {
-      setDone(true);
-      router.refresh();
-    } else {
+    if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       setError(body.error || "Something went wrong — please try again.");
       setSubmitting(false);
+      return;
     }
+
+    const { id } = await res.json();
+    if (id && photos.length > 0) {
+      const photoData = new FormData();
+      photos.slice(0, FREE_PHOTO_LIMIT).forEach((file) => photoData.append("photos[]", file));
+      // Best-effort — the listing itself is already submitted; a failed photo
+      // upload shouldn't block confirming the submission, just skip the gallery.
+      await fetch(`/api/directory/${id}/photos`, { method: "POST", body: photoData }).catch(() => {});
+    }
+
+    setDone(true);
+    router.refresh();
   }
 
   if (done) {
@@ -53,6 +67,10 @@ export function SubmitListingForm({ categories }: { categories: WPDirectoryCateg
             </option>
           ))}
         </select>
+      </label>
+      <label>
+        Short tagline
+        <input type="text" name="tagline" maxLength={140} placeholder="A one-line summary shown on listing cards" />
       </label>
       <label>
         Description
@@ -83,6 +101,10 @@ export function SubmitListingForm({ categories }: { categories: WPDirectoryCateg
         <input type="tel" name="phone" />
       </label>
       <label>
+        Email
+        <input type="email" name="email" />
+      </label>
+      <label>
         Website
         <input type="url" name="website" placeholder="https://" />
       </label>
@@ -98,6 +120,24 @@ export function SubmitListingForm({ categories }: { categories: WPDirectoryCateg
         Twitter / X
         <input type="url" name="twitter" placeholder="https://x.com/…" />
       </label>
+      <label>
+        LinkedIn
+        <input type="url" name="linkedin" placeholder="https://linkedin.com/company/…" />
+      </label>
+      <label>
+        YouTube
+        <input type="url" name="youtube" placeholder="https://youtube.com/@…" />
+      </label>
+      <label>
+        Photos (up to {FREE_PHOTO_LIMIT})
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(e) => setPhotos(Array.from(e.target.files ?? []).slice(0, FREE_PHOTO_LIMIT))}
+        />
+      </label>
+      {photos.length > 0 && <p className="auth-hint">{photos.length} photo(s) selected.</p>}
       {error && <p className="auth-error">{error}</p>}
       <button type="submit" className="button-pill" disabled={submitting}>
         {submitting ? "Submitting…" : "Submit listing"}

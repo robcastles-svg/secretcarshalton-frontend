@@ -10,10 +10,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * their *own* listing needs the same workaround events already has
  * (update_listing/check_owns_listing below): Subscriber has no
  * edit_posts capability at all, so core REST 403s them regardless of
- * ownership. Beyond that: claiming an unclaimed listing, and requesting
- * a paid/featured upgrade.
+ * ownership. Beyond that: claiming an unclaimed listing, requesting a
+ * paid/featured upgrade, managing the photo gallery, and renewing a
+ * claim before/after it expires.
  */
 class SC_Directory_REST {
+
+	/** Plan-gated limits — mirrors the old Sabai paid-plan add-on caps, minus the multi-location/leads add-ons Rob doesn't want rebuilt. */
+	const FREE_CATEGORY_LIMIT = 1;
+	const PAID_CATEGORY_LIMIT = 3;
+	const FREE_PHOTO_LIMIT    = 3;
+	const PAID_PHOTO_LIMIT    = 10;
 
 	public static function register_routes() {
 		register_rest_route(
@@ -25,6 +32,16 @@ class SC_Directory_REST {
 				'permission_callback' => function () {
 					return is_user_logged_in();
 				},
+			)
+		);
+
+		register_rest_route(
+			'sc-directory/v1',
+			'/(?P<id>\d+)/renew-claim',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'renew_claim' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_listing' ),
 			)
 		);
 
@@ -76,12 +93,72 @@ class SC_Directory_REST {
 			)
 		);
 
+		/**
+		 * sc_gallery (registered in SC_Directory_Meta) only stores
+		 * attachment IDs — resolving those to actual URLs here, rather
+		 * than making the frontend issue a follow-up wp/v2/media request
+		 * per listing, the same reasoning _embed already gets for the
+		 * single featured image.
+		 */
+		register_rest_field(
+			SC_Directory_CPT::POST_TYPE,
+			'sc_gallery_images',
+			array(
+				'get_callback' => function ( $post ) {
+					$ids = (array) get_post_meta( $post['id'], 'sc_gallery', true );
+					return array_values(
+						array_filter(
+							array_map(
+								function ( $attachment_id ) {
+									$attachment_id = (int) $attachment_id;
+									$src           = wp_get_attachment_image_src( $attachment_id, 'large' );
+									if ( ! $src ) {
+										return null;
+									}
+									return array(
+										'id'  => $attachment_id,
+										'url' => $src[0],
+										'alt' => get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ),
+									);
+								},
+								$ids
+							)
+						)
+					);
+				},
+				'schema'       => array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'object' ),
+				),
+			)
+		);
+
 		register_rest_route(
 			'sc-directory/v1',
 			'/(?P<id>\d+)',
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( __CLASS__, 'update_listing' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_listing' ),
+			)
+		);
+
+		register_rest_route(
+			'sc-directory/v1',
+			'/(?P<id>\d+)/photos',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'upload_photos' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_listing' ),
+			)
+		);
+
+		register_rest_route(
+			'sc-directory/v1',
+			'/(?P<id>\d+)/photos/delete',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'delete_photo' ),
 				'permission_callback' => array( __CLASS__, 'check_owns_listing' ),
 			)
 		);
@@ -109,6 +186,79 @@ class SC_Directory_REST {
 			return new WP_Error( 'forbidden', 'You can only edit your own listing.', array( 'status' => 403 ) );
 		}
 		return true;
+	}
+
+	/**
+	 * Normalizes whatever shape the categories arrived in — a single
+	 * `category` slug (old clients, or a free-plan submit form that only
+	 * ever sends one), or a `categories[]` array (the multi-category
+	 * form) — into a deduplicated list of slugs, capped to what the
+	 * listing's plan allows. Only slugs that actually exist as terms are
+	 * kept, same guard the original single-category code had.
+	 */
+	private static function resolve_categories( WP_REST_Request $request, $plan ) {
+		$raw = $request->get_param( 'categories' );
+		if ( null === $raw ) {
+			$raw = $request->get_param( 'category' );
+		}
+		if ( null === $raw ) {
+			return null;
+		}
+
+		$slugs = array();
+		foreach ( (array) $raw as $slug ) {
+			$slug = sanitize_key( (string) $slug );
+			if ( $slug && term_exists( $slug, SC_Directory_CPT::TAXONOMY ) && ! in_array( $slug, $slugs, true ) ) {
+				$slugs[] = $slug;
+			}
+		}
+
+		$limit = 'paid' === $plan ? self::PAID_CATEGORY_LIMIT : self::FREE_CATEGORY_LIMIT;
+		return array_slice( $slugs, 0, $limit );
+	}
+
+	/**
+	 * Geocodes the listing's current address via OSM Nominatim (free,
+	 * no API key — unlike Google's Geocoding API, which would need
+	 * billing Rob has deliberately not set up) and stores the result as
+	 * sc_lat/sc_lng. Best-effort: an unresolved or ambiguous address just
+	 * leaves lat/lng unset, and the frontend map falls back to a live
+	 * text-query embed in that case. Nominatim's usage policy wants a
+	 * real User-Agent and no more than ~1 req/sec, both fine for this
+	 * site's submission volume.
+	 */
+	private static function geocode_address( $post_id ) {
+		$parts = array_filter(
+			array(
+				get_post_meta( $post_id, 'sc_address_street', true ),
+				get_post_meta( $post_id, 'sc_address_town', true ),
+				get_post_meta( $post_id, 'sc_address_region', true ),
+				get_post_meta( $post_id, 'sc_address_postcode', true ),
+				get_post_meta( $post_id, 'sc_address_country', true ),
+			)
+		);
+		if ( empty( $parts ) ) {
+			return;
+		}
+
+		$response = wp_remote_get(
+			'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' . rawurlencode( implode( ', ', $parts ) ),
+			array(
+				'timeout' => 8,
+				'headers' => array( 'User-Agent' => 'SecretCarshalton.com listing geocoder (admin@secretcarshalton.com)' ),
+			)
+		);
+		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
+			return;
+		}
+
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+		if ( empty( $body[0]['lat'] ) || empty( $body[0]['lon'] ) ) {
+			return;
+		}
+
+		update_post_meta( $post_id, 'sc_lat', sanitize_text_field( $body[0]['lat'] ) );
+		update_post_meta( $post_id, 'sc_lng', sanitize_text_field( $body[0]['lon'] ) );
 	}
 
 	/**
@@ -141,38 +291,53 @@ class SC_Directory_REST {
 			}
 		}
 
-		if ( null !== $request->get_param( 'category' ) ) {
-			$category = sanitize_key( (string) $request->get_param( 'category' ) );
-			if ( $category && term_exists( $category, SC_Directory_CPT::TAXONOMY ) ) {
-				wp_set_object_terms( $post_id, $category, SC_Directory_CPT::TAXONOMY );
-			}
+		$plan       = get_post_meta( $post_id, 'sc_plan', true ) ?: 'free';
+		$categories = self::resolve_categories( $request, $plan );
+		if ( null !== $categories && ! empty( $categories ) ) {
+			wp_set_object_terms( $post_id, $categories, SC_Directory_CPT::TAXONOMY );
 		}
 
-		$meta_fields = array(
+		$text_fields = array(
 			'address_street'   => 'sc_address_street',
 			'address_town'     => 'sc_address_town',
 			'address_region'   => 'sc_address_region',
 			'address_postcode' => 'sc_address_postcode',
 			'address_country'  => 'sc_address_country',
 			'phone'            => 'sc_phone',
+			'tagline'          => 'sc_tagline',
 		);
-		foreach ( $meta_fields as $param => $meta_key ) {
+		foreach ( $text_fields as $param => $meta_key ) {
 			if ( null === $request->get_param( $param ) ) {
 				continue;
 			}
 			update_post_meta( $post_id, $meta_key, sanitize_text_field( (string) $request->get_param( $param ) ) );
 		}
+
+		if ( null !== $request->get_param( 'email' ) ) {
+			update_post_meta( $post_id, 'sc_email', sanitize_email( (string) $request->get_param( 'email' ) ) );
+		}
+
 		$url_fields = array(
 			'website'   => 'sc_website',
 			'facebook'  => 'sc_facebook',
 			'instagram' => 'sc_instagram',
 			'twitter'   => 'sc_twitter',
+			'linkedin'  => 'sc_linkedin',
+			'youtube'   => 'sc_youtube',
 		);
 		foreach ( $url_fields as $param => $meta_key ) {
 			if ( null === $request->get_param( $param ) ) {
 				continue;
 			}
 			update_post_meta( $post_id, $meta_key, esc_url_raw( (string) $request->get_param( $param ) ) );
+		}
+
+		$address_params = array( 'address_street', 'address_town', 'address_region', 'address_postcode', 'address_country' );
+		foreach ( $address_params as $param ) {
+			if ( null !== $request->get_param( $param ) ) {
+				self::geocode_address( $post_id );
+				break;
+			}
 		}
 
 		return array( 'status' => get_post_status( $post_id ), 'id' => $post_id );
@@ -242,9 +407,9 @@ class SC_Directory_REST {
 			return new WP_Error( 'submit_failed', $post_id->get_error_message(), array( 'status' => 400 ) );
 		}
 
-		$category = sanitize_key( (string) $request->get_param( 'category' ) );
-		if ( $category && term_exists( $category, SC_Directory_CPT::TAXONOMY ) ) {
-			wp_set_object_terms( $post_id, $category, SC_Directory_CPT::TAXONOMY );
+		$categories = self::resolve_categories( $request, 'free' );
+		if ( ! empty( $categories ) ) {
+			wp_set_object_terms( $post_id, $categories, SC_Directory_CPT::TAXONOMY );
 		}
 
 		$meta = array(
@@ -255,9 +420,13 @@ class SC_Directory_REST {
 			'sc_address_country'  => sanitize_text_field( (string) $request->get_param( 'address_country' ) ),
 			'sc_website'          => esc_url_raw( (string) $request->get_param( 'website' ) ),
 			'sc_phone'            => sanitize_text_field( (string) $request->get_param( 'phone' ) ),
+			'sc_email'            => sanitize_email( (string) $request->get_param( 'email' ) ),
+			'sc_tagline'          => sanitize_text_field( (string) $request->get_param( 'tagline' ) ),
 			'sc_facebook'         => esc_url_raw( (string) $request->get_param( 'facebook' ) ),
 			'sc_instagram'        => esc_url_raw( (string) $request->get_param( 'instagram' ) ),
 			'sc_twitter'          => esc_url_raw( (string) $request->get_param( 'twitter' ) ),
+			'sc_linkedin'         => esc_url_raw( (string) $request->get_param( 'linkedin' ) ),
+			'sc_youtube'          => esc_url_raw( (string) $request->get_param( 'youtube' ) ),
 			'sc_claimed'          => '1', // The submitter is the owner by definition.
 			'sc_featured'         => '0',
 			'sc_verified'         => '0',
@@ -267,9 +436,106 @@ class SC_Directory_REST {
 			update_post_meta( $post_id, $key, $value );
 		}
 
+		self::geocode_address( $post_id );
+		self::save_uploaded_photos( $request, $post_id, self::FREE_PHOTO_LIMIT );
+
 		do_action( 'sc_directory_listing_submitted', $user_id, $post_id );
 
 		return array( 'status' => 'pending', 'id' => $post_id );
+	}
+
+	/**
+	 * Shared by submit_listing (initial photos) and upload_photos (adding
+	 * more later) — sideloads each uploaded file as a media attachment
+	 * parented to the listing, appends its ID to sc_gallery, and stops
+	 * once the plan's photo cap is reached rather than erroring, so a
+	 * free-plan owner selecting 5 files at once just gets the first 3.
+	 */
+	private static function save_uploaded_photos( WP_REST_Request $request, $post_id, $limit ) {
+		$files = $request->get_file_params();
+		if ( empty( $files['photos'] ) ) {
+			return 0;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+
+		$gallery = (array) get_post_meta( $post_id, 'sc_gallery', true );
+		$uploaded = array();
+
+		$file_list = $files['photos'];
+		// A single-file upload arrives as one assoc array; multiple files
+		// arrive as parallel arrays keyed by index — normalize to a list.
+		$is_multi = isset( $file_list['name'] ) && is_array( $file_list['name'] );
+		$count    = $is_multi ? count( $file_list['name'] ) : 1;
+
+		for ( $i = 0; $i < $count; $i++ ) {
+			if ( count( $gallery ) + count( $uploaded ) >= $limit ) {
+				break;
+			}
+			$single = $is_multi
+				? array(
+					'name'     => $file_list['name'][ $i ],
+					'type'     => $file_list['type'][ $i ],
+					'tmp_name' => $file_list['tmp_name'][ $i ],
+					'error'    => $file_list['error'][ $i ],
+					'size'     => $file_list['size'][ $i ],
+				)
+				: $file_list;
+
+			if ( ! empty( $single['error'] ) || empty( $single['tmp_name'] ) ) {
+				continue;
+			}
+
+			$_FILES['sc_directory_photo'] = $single;
+			$attachment_id                = media_handle_upload( 'sc_directory_photo', $post_id );
+			unset( $_FILES['sc_directory_photo'] );
+
+			if ( ! is_wp_error( $attachment_id ) ) {
+				$uploaded[] = $attachment_id;
+			}
+		}
+
+		if ( $uploaded ) {
+			update_post_meta( $post_id, 'sc_gallery', array_merge( $gallery, $uploaded ) );
+		}
+		return count( $uploaded );
+	}
+
+	/** Adding photos to an existing listing after submission — the edit page's gallery manager. */
+	public static function upload_photos( WP_REST_Request $request ) {
+		$post_id = (int) $request->get_param( 'id' );
+		$plan    = get_post_meta( $post_id, 'sc_plan', true ) ?: 'free';
+		$limit   = 'paid' === $plan ? self::PAID_PHOTO_LIMIT : self::FREE_PHOTO_LIMIT;
+
+		$existing = (array) get_post_meta( $post_id, 'sc_gallery', true );
+		if ( count( $existing ) >= $limit ) {
+			return new WP_Error( 'photo_limit', "This listing's plan allows up to {$limit} photos.", array( 'status' => 400 ) );
+		}
+
+		$added = self::save_uploaded_photos( $request, $post_id, $limit );
+		if ( 0 === $added ) {
+			return new WP_Error( 'upload_failed', 'No photos were uploaded — check the file(s) and try again.', array( 'status' => 400 ) );
+		}
+
+		return array( 'gallery' => array_map( 'intval', (array) get_post_meta( $post_id, 'sc_gallery', true ) ) );
+	}
+
+	public static function delete_photo( WP_REST_Request $request ) {
+		$post_id       = (int) $request->get_param( 'id' );
+		$attachment_id = (int) $request->get_param( 'attachment_id' );
+
+		$gallery = (array) get_post_meta( $post_id, 'sc_gallery', true );
+		if ( ! in_array( $attachment_id, array_map( 'intval', $gallery ), true ) ) {
+			return new WP_Error( 'not_found', 'That photo is not part of this listing.', array( 'status' => 404 ) );
+		}
+
+		$gallery = array_values( array_diff( array_map( 'intval', $gallery ), array( $attachment_id ) ) );
+		update_post_meta( $post_id, 'sc_gallery', $gallery );
+		wp_delete_attachment( $attachment_id, true );
+
+		return array( 'gallery' => $gallery );
 	}
 
 	/**
@@ -310,6 +576,24 @@ class SC_Directory_REST {
 		do_action( 'sc_directory_listing_claim_requested', $user_id, $listing_id );
 
 		return array( 'status' => 'pending' );
+	}
+
+	/**
+	 * Lets an already-verified owner push their claim's expiry out
+	 * another year themselves — no need to go back through admin review,
+	 * since check_owns_listing already proved they're the listing's
+	 * author. Works whether called before expiry (extends it) or after
+	 * SC_Directory_Hooks::expire_claims() has already flipped sc_claimed
+	 * back off (re-claims it) — a lapsed owner clicking "Renew" shouldn't
+	 * have to file a fresh claim request just because they were slow.
+	 */
+	public static function renew_claim( WP_REST_Request $request ) {
+		$listing_id = (int) $request->get_param( 'id' );
+
+		update_post_meta( $listing_id, 'sc_claimed', '1' );
+		update_post_meta( $listing_id, 'sc_claim_expires_at', gmdate( 'Y-m-d\TH:i:s', strtotime( '+1 year' ) ) );
+
+		return array( 'status' => 'renewed', 'expires_at' => get_post_meta( $listing_id, 'sc_claim_expires_at', true ) );
 	}
 
 	public static function request_upgrade( WP_REST_Request $request ) {
