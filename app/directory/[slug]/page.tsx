@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
+import { DirectoryImageSlider } from "@/app/_components/DirectoryImageSlider";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { listingSocials } from "@/app/_components/SocialIcons";
 import { ClaimListingButton } from "./_components/ClaimListingButton";
@@ -76,6 +77,11 @@ export default async function DirectoryListingPage({
   const matchedCategories = categories.filter((c) => listing.sc_listing_category?.includes(c.id));
   const socials = listingSocials(meta);
   const gallery = listing.sc_gallery_images ?? [];
+  const listingTitle = stripHtml(listing.title.rendered);
+  const sliderImages = [
+    ...(image ? [{ url: image.source_url, alt: image.alt_text || listingTitle }] : []),
+    ...gallery.map((photo) => ({ url: photo.url, alt: photo.alt || listingTitle })),
+  ];
   const addressParts = [
     meta.sc_address_street,
     meta.sc_address_town,
@@ -87,6 +93,9 @@ export default async function DirectoryListingPage({
     meta.sc_lat && meta.sc_lng
       ? `https://www.google.com/maps?q=${meta.sc_lat},${meta.sc_lng}&z=15&output=embed`
       : `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`;
+
+  const ratings = fullThread.map((c) => c.rating).filter((r): r is number => typeof r === "number");
+  const averageRating = ratings.length ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length : null;
 
   const businessSchema = {
     "@context": "https://schema.org",
@@ -105,6 +114,13 @@ export default async function DirectoryListingPage({
           addressCountry: meta.sc_address_country || "GB",
         }
       : undefined,
+    aggregateRating: averageRating
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: averageRating.toFixed(1),
+          reviewCount: ratings.length,
+        }
+      : undefined,
   };
 
   return (
@@ -115,7 +131,7 @@ export default async function DirectoryListingPage({
       />
       <PostViewTracker postId={listing.id} slug={listing.slug} title={stripHtml(listing.title.rendered)} />
       <div className="post-body directory-listing-card">
-        {image && <img src={image.source_url} alt={image.alt_text} />}
+        <DirectoryImageSlider images={sliderImages} />
         <div className="directory-listing-card-body">
           <div className="page-header-row">
             <h1>
@@ -165,20 +181,10 @@ export default async function DirectoryListingPage({
           )}
           {fullThread.length > 0 && (
             <p className="event-meta-row">
-              <CommentCountLink count={fullThread.length} />
+              <CommentCountLink count={fullThread.length} kind="review" />
             </p>
           )}
           <div className="post-content" dangerouslySetInnerHTML={{ __html: listing.content.rendered }} />
-
-          {gallery.length > 0 && (
-            <ul className="directory-gallery-grid directory-gallery-view">
-              {gallery.map((photo) => (
-                <li key={photo.id}>
-                  <img src={photo.url} alt={photo.alt || stripHtml(listing.title.rendered)} loading="lazy" />
-                </li>
-              ))}
-            </ul>
-          )}
 
           {socials.length > 0 && (
             <div className="directory-card-socials directory-detail-socials">
@@ -195,6 +201,8 @@ export default async function DirectoryListingPage({
             comments={fullThread}
             isLoggedIn={Boolean(sessionToken)}
             commenterProfiles={profileMap}
+            currentUserId={profile?.id}
+            kind="review"
           />
         </div>
       </div>

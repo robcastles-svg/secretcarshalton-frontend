@@ -352,6 +352,9 @@ export interface WPComment {
   author_name: string;
   content: WPRendered;
   date: string;
+  // 1-5, only ever set on directory-listing reviews — see sc-membership's
+  // register_rest_field('comment', 'rating', ...). null/absent elsewhere.
+  rating?: number | null;
 }
 
 /**
@@ -366,7 +369,7 @@ export interface WPComment {
  */
 export async function getCommentsForPost(postId: number, count: number): Promise<WPComment[]> {
   const comments = await scDirectoryFetch<WPComment[]>(
-    `/comments?post=${postId}&per_page=${count * 2}&orderby=date&order=desc&_fields=id,post,author,author_name,content,date`
+    `/comments?post=${postId}&per_page=${count * 2}&orderby=date&order=desc&_fields=id,post,author,author_name,content,date,rating`
   );
   return comments.filter((c) => c.author_name !== "Secret Carshalton").slice(0, count);
 }
@@ -1404,6 +1407,15 @@ export interface SubmittedComment {
   author_name: string;
   date: string;
   content: WPRendered;
+  rating: number | null;
+}
+
+export interface EditedComment {
+  id: number;
+  status: "approved" | "unapproved" | "spam" | "trash";
+  date: string;
+  content: WPRendered;
+  rating: number | null;
 }
 
 export interface MyListing {
@@ -1526,13 +1538,35 @@ export async function submitComment(
   token: string,
   postId: number,
   content: string,
-  parent?: number
+  parent?: number,
+  rating?: number
 ): Promise<SubmittedComment | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/comments`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ post_id: postId, content, parent: parent ?? 0 }),
+      body: JSON.stringify({ post_id: postId, content, parent: parent ?? 0, rating }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Editing puts the comment/review back into moderation — see SC_Membership_REST::update_comment's own docblock for why. Only the owner, within a week of posting; the REST route enforces both, this is just the transport. */
+export async function editComment(
+  token: string,
+  commentId: number,
+  content: string,
+  rating?: number
+): Promise<EditedComment | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/comments/${commentId}/edit`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ content, rating }),
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });

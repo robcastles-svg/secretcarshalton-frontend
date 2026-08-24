@@ -2105,11 +2105,97 @@ a.card-category:hover {
   overflow: hidden;
 }
 
-.directory-listing-card > img {
-  display: block;
+.directory-listing-card > .directory-image-slider {
   width: 100%;
   height: 320px;
+}
+
+/* Featured image + gallery photos as one slider — see DirectoryImageSlider. */
+.directory-image-slider {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #dce9f3;
+  overflow: hidden;
+}
+
+.directory-image-slider-single img,
+.directory-image-slider-viewport {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.directory-image-slider img {
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+}
+
+.directory-image-slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.directory-image-slider-arrow:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.directory-image-slider-prev {
+  left: 0.75rem;
+}
+
+.directory-image-slider-next {
+  right: 0.75rem;
+}
+
+.directory-image-slider-dots {
+  position: absolute;
+  bottom: 0.85rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.4rem;
+}
+
+.directory-image-slider-dots button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.directory-image-slider-dots button.active {
+  background: #fff;
+}
+
+.directory-image-slider-count {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.85rem;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
 }
 
 .directory-listing-card-body {
@@ -2290,27 +2376,26 @@ a.card-category:hover {
   margin: 0;
 }
 
-/* Styled to look like the real textarea it stands in for, so a logged-out
-   visitor sees an inviting place to comment rather than just a login
-   prompt — clicking it (like clicking into the real box) sends them to
-   log in first. */
-.comment-box-teaser {
-  display: block;
-  max-width: 640px;
-  padding: 0.75rem 1rem;
+/* Same real textarea a logged-in visitor gets (.comment-form is shared),
+   just with no submit button under it — guest-box-teaser used to be a
+   smaller single-line stand-in, but Rob wants it reading as the genuine
+   box. Typing/focusing it can't post anything (no session), so it nudges
+   toward logging in instead via .comment-guest-prompt below. */
+.comment-form-guest {
   margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #fff;
-  color: #888;
-  font-size: 1rem;
-  text-decoration: none;
-  box-sizing: border-box;
 }
 
-.comment-box-teaser:hover {
-  border-color: var(--color-active);
-  color: var(--color-active-dark);
+.comment-form-guest textarea {
+  color: #444;
+}
+
+.comment-guest-prompt {
+  margin: 0;
+  font-weight: 600;
+}
+
+.comment-guest-prompt a {
+  color: #c2607a;
 }
 
 .comment-login-promo {
@@ -2409,6 +2494,70 @@ a.card-category:hover {
 .comment-thread p {
   margin: 0;
   color: #333;
+}
+
+.star-rating-input {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.star-rating-input button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.star-rating-display {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.star-filled {
+  color: #f0a500;
+}
+
+.star-empty {
+  color: #ddd;
+}
+
+.comment-edit-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #c2607a;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.comment-editing {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1.5rem;
+}
+
+.comment-edit-form {
+  max-width: 100%;
+}
+
+.comment-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.comment-edit-cancel {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #888;
+  font-weight: 600;
+  cursor: pointer;
 }
 
 /* Stories-by-theme index */

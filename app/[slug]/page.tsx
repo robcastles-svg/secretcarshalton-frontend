@@ -12,6 +12,7 @@ import {
   getCategories,
   getCommentsForPost,
   getFeaturedImage,
+  getMemberMe,
   getMembersByIds,
   getPageBySlug,
   getPostBySlug,
@@ -156,9 +157,12 @@ export default async function ContentPage({
     getTopPostsToday(6),
   ]);
 
-  const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
-    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
-  );
+  const [commenterProfileMap, profile] = await Promise.all([
+    getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
+      () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
+    ),
+    sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
+  ]);
 
   // Mirrors the live site's real in-article ad positions (groups 5 and 7
   // sampled mid-article and near the end) — only inserted when the post
@@ -244,6 +248,7 @@ export default async function ContentPage({
             comments={fullThread}
             isLoggedIn={Boolean(sessionToken)}
             commenterProfiles={commenterProfileMap}
+            currentUserId={profile?.id}
           />
         </div>
 

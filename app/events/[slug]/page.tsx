@@ -237,6 +237,7 @@ export default async function EventPage({
           comments={fullThread}
           isLoggedIn={Boolean(sessionToken)}
           commenterProfiles={commenterProfileMap}
+          currentUserId={profile?.id}
         />
       </div>
 

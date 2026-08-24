@@ -26,6 +26,30 @@ class SC_Membership_REST {
 	}
 
 	public static function register_routes() {
+		/**
+		 * Star rating for a review — stored as comment meta (sc_rating,
+		 * 1-5), not a custom REST route: the frontend already reads
+		 * comments straight from WP core's own /wp/v2/comments?post=
+		 * endpoint (see getCommentsForPost), so surfacing this as a REST
+		 * field on core's comment object type is the one place it needs to
+		 * be added, rather than a second parallel comments endpoint. Only
+		 * meaningful on directory-listing reviews in practice, but exposed
+		 * on every comment — harmless null for the ones without one.
+		 */
+		register_rest_field(
+			'comment',
+			'rating',
+			array(
+				'get_callback' => function ( $comment ) {
+					$rating = get_comment_meta( $comment['id'], 'sc_rating', true );
+					return '' === $rating ? null : (int) $rating;
+				},
+				'schema'       => array(
+					'type' => array( 'integer', 'null' ),
+				),
+			)
+		);
+
 		register_rest_route(
 			'sc-membership/v1',
 			'/me',
@@ -66,6 +90,25 @@ class SC_Membership_REST {
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( __CLASS__, 'submit_comment' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/comments/(?P<id>\d+)/edit',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'update_comment' ),
+				/**
+				 * Wide open like /comments above — update_comment() itself
+				 * does the real check (own comment, still within the edit
+				 * window) and 403s otherwise, same division of labour as
+				 * every other ownership-gated route in this codebase (see
+				 * check_owns_listing for the directory equivalent).
+				 */
 				'permission_callback' => function () {
 					return is_user_logged_in();
 				},
@@ -490,19 +533,47 @@ class SC_Membership_REST {
 		return array( 'status' => 'pending' );
 	}
 
+	/** A week to edit your own comment/review after posting — see update_comment(). */
+	const COMMENT_EDIT_WINDOW = WEEK_IN_SECONDS;
+
+	/** 1-5 or null — anything else (0, out of range, non-numeric) is treated as "no rating given". */
+	private static function sanitize_rating( $raw ) {
+		$rating = (int) $raw;
+		return ( $rating >= 1 && $rating <= 5 ) ? $rating : null;
+	}
+
+	/**
+	 * Forces every comment straight to the moderation queue, regardless of
+	 * the site's own Discussion settings (comment_previously_approved would
+	 * otherwise auto-approve a returning commenter's second-and-later
+	 * comments) — Rob wants every comment/review reviewed before it's
+	 * public, no exceptions. wp_new_comment() always overwrites whatever
+	 * comment_approved a caller passes in with wp_allow_comment()'s own
+	 * decision, so the only way to force this is a pre_comment_approved
+	 * filter around the call — removed again immediately after so it
+	 * doesn't leak into some other plugin's unrelated wp_new_comment() call
+	 * later in the same request.
+	 */
+	private static function force_pending( $approved ) {
+		return 0;
+	}
+
 	/**
 	 * Members comment as themselves (their real WP user), not anonymously —
 	 * comment_author/email come from the account, not the request body, so
 	 * there's no way to spoof another name. Goes through wp_new_comment()
 	 * rather than wp_insert_comment() directly so normal WP moderation
-	 * (blacklist, held-for-moderation defaults, the comment_post hook that
+	 * (blacklist, the comment_post hook that
 	 * SC_Membership_Hooks::on_comment_approved() listens for) all still
-	 * apply exactly as they would for a native comment-form submission.
+	 * apply exactly as they would for a native comment-form submission —
+	 * held for moderation is forced on top via force_pending() above,
+	 * rather than left to site settings.
 	 */
 	public static function submit_comment( WP_REST_Request $request ) {
 		$post_id = (int) $request->get_param( 'post_id' );
 		$content = trim( (string) $request->get_param( 'content' ) );
 		$parent  = (int) $request->get_param( 'parent' );
+		$rating  = self::sanitize_rating( $request->get_param( 'rating' ) );
 
 		if ( ! $post_id || ! get_post( $post_id ) ) {
 			return new WP_Error( 'invalid_post', 'That post does not exist.', array( 'status' => 404 ) );
@@ -541,6 +612,7 @@ class SC_Membership_REST {
 		 */
 		remove_all_filters( 'preprocess_comment' );
 
+		add_filter( 'pre_comment_approved', array( __CLASS__, 'force_pending' ) );
 		$comment_id = wp_new_comment(
 			wp_slash(
 				array(
@@ -561,9 +633,14 @@ class SC_Membership_REST {
 			),
 			true
 		);
+		remove_filter( 'pre_comment_approved', array( __CLASS__, 'force_pending' ) );
 
 		if ( is_wp_error( $comment_id ) ) {
 			return new WP_Error( 'comment_failed', $comment_id->get_error_message(), array( 'status' => 400 ) );
+		}
+
+		if ( null !== $rating ) {
+			update_comment_meta( $comment_id, 'sc_rating', $rating );
 		}
 
 		$comment = get_comment( $comment_id );
@@ -574,6 +651,66 @@ class SC_Membership_REST {
 			'author_name' => $comment->comment_author,
 			'date'        => $comment->comment_date,
 			'content'     => array( 'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ) ),
+			'rating'      => $rating,
+		);
+	}
+
+	/**
+	 * Lets a member edit their own comment/review within a week of posting
+	 * — after that the edit window's closed and this just 403s. Editing
+	 * puts it back into the moderation queue (same as a brand new comment:
+	 * force_pending applies here too) since the content someone's about to
+	 * see has changed, and re-notifies the moderator the same way a fresh
+	 * comment would (wp_new_comment() does that automatically; a plain
+	 * wp_update_comment() does not, so it's called explicitly below).
+	 */
+	public static function update_comment( WP_REST_Request $request ) {
+		$comment_id = (int) $request->get_param( 'id' );
+		$content    = trim( (string) $request->get_param( 'content' ) );
+		$rating     = self::sanitize_rating( $request->get_param( 'rating' ) );
+
+		$comment = get_comment( $comment_id );
+		if ( ! $comment ) {
+			return new WP_Error( 'not_found', 'That comment no longer exists.', array( 'status' => 404 ) );
+		}
+
+		if ( (int) $comment->user_id !== get_current_user_id() ) {
+			return new WP_Error( 'not_owner', 'You can only edit your own comments.', array( 'status' => 403 ) );
+		}
+
+		$posted_at = strtotime( $comment->comment_date_gmt . ' UTC' );
+		if ( ! $posted_at || ( time() - $posted_at ) > self::COMMENT_EDIT_WINDOW ) {
+			return new WP_Error( 'edit_window_closed', 'Comments can only be edited within a week of posting.', array( 'status' => 403 ) );
+		}
+
+		if ( '' === $content ) {
+			return new WP_Error( 'empty_comment', 'Comment cannot be empty.', array( 'status' => 400 ) );
+		}
+
+		wp_update_comment(
+			array(
+				'comment_ID'       => $comment_id,
+				'comment_content'  => wp_slash( $content ),
+				'comment_approved' => 0,
+			)
+		);
+
+		if ( null !== $rating ) {
+			update_comment_meta( $comment_id, 'sc_rating', $rating );
+		} else {
+			delete_comment_meta( $comment_id, 'sc_rating' );
+		}
+
+		wp_notify_moderator( $comment_id );
+
+		$comment = get_comment( $comment_id );
+
+		return array(
+			'id'      => (int) $comment_id,
+			'status'  => wp_get_comment_status( $comment_id ),
+			'date'    => $comment->comment_date,
+			'content' => array( 'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ) ),
+			'rating'  => $rating,
 		);
 	}
 
