@@ -32,7 +32,7 @@ export function PrimaryNav({ items }: { items: Array<{ label: string; href: stri
                 bold (the active one), making the nav a different width
                 from page to page. Only takes effect below 720px; see
                 .nav-line-break in globals.css. */}
-            {item.label === "Directory" && <span className="nav-line-break" aria-hidden="true" />}
+            {item.label === "Walks" && <span className="nav-line-break" aria-hidden="true" />}
           </Fragment>
         );
       })}
