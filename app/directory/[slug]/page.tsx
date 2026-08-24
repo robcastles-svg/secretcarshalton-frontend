@@ -19,7 +19,7 @@ import {
   stripHtml,
 } from "@/lib/wordpress";
 
-function formatJoinDate(iso: string) {
+function formatListedSince(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
 }
 
@@ -66,13 +66,9 @@ export default async function DirectoryListingPage({
   ]);
   const canEdit = Boolean(profile && (profile.id === listing.author || profile.is_editor));
 
-  // Same batch lookup as the comment thread's authors, plus the listing's
-  // own owner (who may never have commented) — one request covers both the
-  // "member since" line below and CommentSection's commenter links.
-  const profileMap = await getMembersByIds([listing.author, ...fullThread.map((c) => c.author ?? 0)]).catch(
+  const profileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
     () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
   );
-  const owner = profileMap.get(listing.author);
 
   const image = getFeaturedImage(listing);
   const { meta } = listing;
@@ -218,8 +214,7 @@ export default async function DirectoryListingPage({
             </p>
           )}
           <p className="directory-listing-stats">
-            {viewCount} view{viewCount === 1 ? "" : "s"}
-            {owner && <> · Member since {formatJoinDate(owner.joinedAt)}</>}
+            {viewCount} view{viewCount === 1 ? "" : "s"} · Listed since {formatListedSince(listing.date)}
           </p>
         </div>
 

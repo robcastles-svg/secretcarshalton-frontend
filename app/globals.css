@@ -3049,10 +3049,9 @@ a.card-category:hover {
    before starting the next, so featured-first sorting into that same list
    only ever put them at the top of column 1, not across the top of the
    page. This stays on .post-list's plain row-based grid at every width, so
-   "along the top on desktop" is just what the grid does by default. */
-.directory-featured-list {
-  margin-bottom: 2.5rem;
-}
+   "along the top on desktop" is just what the grid does by default. No
+   extra margin below it — the regular grid picks up directly after, same
+   gap as between any other pair of cards. */
 
 @media (max-width: 720px) {
   /* The image is the first thing in the card with nothing above it, so

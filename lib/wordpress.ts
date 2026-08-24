@@ -636,6 +636,8 @@ export interface WPListing {
   id: number;
   slug: string;
   link: string;
+  /** When this listing was created — WP's own real post date, not synthesized. Shown as "Listed since" on the listing page. */
+  date: string;
   title: WPRendered;
   content: WPRendered;
   author: number;
@@ -672,7 +674,7 @@ async function scDirectoryFetch<T>(path: string): Promise<T> {
 
 export function getDirectoryListings(perPage = 100) {
   return scDirectoryFetch<WPListing[]>(
-    `/sc-listings?per_page=${perPage}&_fields=id,slug,link,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,_links&_embed=wp:featuredmedia`
+    `/sc-listings?per_page=${perPage}&_fields=id,slug,link,date,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,_links&_embed=wp:featuredmedia`
   );
 }
 
@@ -685,7 +687,7 @@ export async function getDirectoryListingBySlug(slug: string): Promise<WPListing
 
 export function getDirectoryListingsByCategory(categoryId: number, perPage = 100) {
   return scDirectoryFetch<WPListing[]>(
-    `/sc-listings?sc_listing_category=${categoryId}&per_page=${perPage}&_fields=id,slug,link,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,_links&_embed=wp:featuredmedia`
+    `/sc-listings?sc_listing_category=${categoryId}&per_page=${perPage}&_fields=id,slug,link,date,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,_links&_embed=wp:featuredmedia`
   );
 }
 
@@ -703,7 +705,7 @@ export function getDirectoryCategories() {
 /** For a member's public profile page — "listings they've submitted." WP's core REST author param needs no custom route. */
 export function getDirectoryListingsByAuthor(authorId: number) {
   return scDirectoryFetch<WPListing[]>(
-    `/sc-listings?author=${authorId}&per_page=50&_fields=id,slug,link,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,_links&_embed=wp:featuredmedia`
+    `/sc-listings?author=${authorId}&per_page=50&_fields=id,slug,link,date,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,_links&_embed=wp:featuredmedia`
   );
 }
 

@@ -16,18 +16,19 @@ class SC_Post_Views_DB {
 	const BASELINE_DATE = '1970-01-01';
 
 	/**
-	 * Events and listings never had a third-party counter to backfill real
-	 * history from (unlike posts — see SC_Post_Views_Admin), so a brand new
-	 * one would otherwise show "0 views" the moment it's published. Giving
-	 * every one of them the same starting baseline row real posts get
-	 * (see BASELINE_DATE) means "views" always reads as a real, growing
-	 * number — 10 plus whatever's accumulated since — never a discouraging
-	 * zero. Post type slugs kept as plain strings rather than referencing
-	 * SC_Events_CPT/SC_Directory_CPT directly: this plugin has no load-order
-	 * dependency on either of those (same reasoning as this file's own
-	 * "arbitrary numeric key" docblock in sc-post-views.php).
+	 * Events get a synthetic starting baseline (see EVENT_LISTING_BASELINE_VIEWS
+	 * below) since they never had a third-party counter to backfill real
+	 * history from, the way posts did (see SC_Post_Views_Admin). Listings
+	 * are deliberately NOT in this list — Rob wants directory listings
+	 * showing only real accumulated views, no synthetic floor, even if that
+	 * means a new one reads "0 views" for a while. (sc_listing WAS in this
+	 * list briefly; see remove_listing_baselines() below for the one-time
+	 * cleanup that undid it.) Post type kept as a plain string rather than
+	 * referencing SC_Events_CPT directly: this plugin has no load-order
+	 * dependency on it (same reasoning as this file's own "arbitrary
+	 * numeric key" docblock in sc-post-views.php).
 	 */
-	const EVENT_LISTING_POST_TYPES   = array( 'sc_event', 'sc_listing' );
+	const EVENT_LISTING_POST_TYPES   = array( 'sc_event' );
 	const EVENT_LISTING_BASELINE_VIEWS = 10;
 
 	public static function table() {
@@ -106,7 +107,7 @@ class SC_Post_Views_DB {
 		);
 	}
 
-	/** One-time backfill: every existing sc_event/sc_listing post gets its 10-view baseline. */
+	/** One-time backfill: every existing post of a EVENT_LISTING_POST_TYPES type gets its baseline. */
 	public static function seed_event_listing_baselines() {
 		$ids = get_posts(
 			array(
@@ -119,6 +120,39 @@ class SC_Post_Views_DB {
 		foreach ( $ids as $post_id ) {
 			self::ensure_event_listing_baseline( $post_id );
 		}
+	}
+
+	/**
+	 * One-time cleanup, run once via sc-post-views.php's plugins_loaded hook:
+	 * undoes seed_event_listing_baselines() for sc_listing specifically, now
+	 * that EVENT_LISTING_POST_TYPES no longer includes it — deletes the
+	 * synthetic BASELINE_DATE row (if any) for every sc_listing post, so
+	 * total_for() goes back to reporting only real recorded views for
+	 * listings. Events are untouched.
+	 */
+	public static function remove_listing_baselines() {
+		global $wpdb;
+		$table = self::table();
+
+		$ids = get_posts(
+			array(
+				'post_type'      => 'sc_listing',
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+			)
+		);
+		if ( empty( $ids ) ) {
+			return;
+		}
+
+		$placeholders = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$table} WHERE view_date = %s AND post_id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				array_merge( array( self::BASELINE_DATE ), $ids )
+			)
+		);
 	}
 
 	/** All-time total for one post — baseline row (if any) plus every day since. */
