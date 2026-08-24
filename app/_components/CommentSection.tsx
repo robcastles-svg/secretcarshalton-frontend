@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { WPComment } from "@/lib/wordpress";
+import { LoginModal } from "@/app/_components/LoginModal";
 
 const EDIT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -106,6 +107,7 @@ export function CommentSection({
   const [pendingNotice, setPendingNotice] = useState<string | null>(null);
   const [guestPrompt, setGuestPrompt] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -154,7 +156,10 @@ export function CommentSection({
         <p className="comment-login-hint">
           {!isLoggedIn && (
             <>
-              <Link href="/login">Login</Link>/<Link href="/register">Register</Link> to{" "}
+              <button type="button" className="comment-login-hint-link" onClick={() => setShowLoginModal(true)}>
+                Login
+              </button>
+              /<Link href="/register">Register</Link> to{" "}
               {isReview ? "leave a review." : "ask a question or leave feedback."}
             </>
           )}
@@ -190,7 +195,9 @@ export function CommentSection({
             />
             {guestPrompt && (
               <p className="comment-guest-prompt">
-                <Link href="/login">Please login to {noun}</Link>
+                <button type="button" className="comment-guest-prompt-link" onClick={() => setShowLoginModal(true)}>
+                  Please login to {noun}
+                </button>
               </p>
             )}
           </div>
@@ -203,14 +210,16 @@ export function CommentSection({
               <li>Connect with friends</li>
             </ul>
             <div className="comment-login-actions">
-              <Link href="/login" className="button-pill">
+              <button type="button" className="button-pill" onClick={() => setShowLoginModal(true)}>
                 Log in
-              </Link>
+              </button>
               <Link href="/register">Register</Link>
             </div>
           </div>
         </>
       )}
+
+      {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
 
       <div className="comment-count">
         {thread.length} {nounPlural.toUpperCase()}
