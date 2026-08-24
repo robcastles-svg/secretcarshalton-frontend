@@ -485,14 +485,18 @@ button.button-pill {
 
 /* Sits alongside the date, bottom-right of the card — same plain
    icon+count treatment as .comment-count-link on the post itself,
-   just right-aligned via the shared row instead of inline with a link. */
+   just right-aligned via the shared row instead of inline with a link.
+   margin-top: auto pins it to the actual bottom of the card (.post-list
+   li is a column flexbox) so it lines up across a row of cards
+   regardless of how many lines the title/tag/category above take up. */
 .post-list .card-meta-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-left: 1rem;
   margin-right: 1rem;
-  margin-top: 0.4rem;
+  margin-top: auto;
+  padding-top: 0.4rem;
 }
 
 .post-list .card-meta-row time {
@@ -506,6 +510,11 @@ button.button-pill {
   color: #777;
   font-size: 0.85rem;
   font-weight: 600;
+  text-decoration: none;
+}
+
+.card-comment-count:hover {
+  color: var(--color-active-dark);
 }
 
 /* The clipping frame every event card image (or CloudsPlaceholder
