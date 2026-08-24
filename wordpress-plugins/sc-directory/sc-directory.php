@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Directory
  * Description: Business directory. Replaces Sabai Directory with a REST-first implementation on the same categories/claim/plan model, hooked into sc-membership for claim points and upgrade approval.
- * Version: 0.3.2
+ * Version: 0.3.3
  * Author: Secret Carshalton
  * Text Domain: sc-directory
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_DIRECTORY_VERSION', '0.3.2' );
+define( 'SC_DIRECTORY_VERSION', '0.3.3' );
 define( 'SC_DIRECTORY_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_DIRECTORY_DIR . 'includes/class-sc-directory-cpt.php';

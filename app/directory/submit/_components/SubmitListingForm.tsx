@@ -86,6 +86,18 @@ export function SubmitListingForm({ categories }: { categories: WPDirectoryCateg
         Website
         <input type="url" name="website" placeholder="https://" />
       </label>
+      <label>
+        Facebook
+        <input type="url" name="facebook" placeholder="https://facebook.com/…" />
+      </label>
+      <label>
+        Instagram
+        <input type="url" name="instagram" placeholder="https://instagram.com/…" />
+      </label>
+      <label>
+        Twitter / X
+        <input type="url" name="twitter" placeholder="https://x.com/…" />
+      </label>
       {error && <p className="auth-error">{error}</p>}
       <button type="submit" className="button-pill" disabled={submitting}>
         {submitting ? "Submitting…" : "Submit listing"}

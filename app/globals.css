@@ -2678,6 +2678,60 @@ img {
   margin: 0.25rem 0 1.25rem;
 }
 
+.directory-card-socials {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0.6rem 1rem 0;
+}
+
+.directory-card-socials a {
+  color: #777;
+}
+
+.directory-card-socials a:hover {
+  color: #c2607a;
+}
+
+/* Masonry layout for the directory's category grids on desktop — cards of
+   very different heights (a long description vs. none, social icons vs.
+   not) left tall gaps under short cards in the plain grid. CSS columns
+   isn't true masonry (items flow down each column before wrapping to the
+   next, not strictly by shortest-column), but it's the simplest approach
+   that needs no JS and packs the same way visually. Desktop only — a
+   single mobile column has nothing to pack. */
+@media (min-width: 861px) {
+  .directory-list {
+    display: block;
+    column-count: 3;
+    column-gap: 2rem;
+  }
+
+  .directory-list li {
+    display: inline-block;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 720px) {
+  /* The image is the first thing in the card with nothing above it, so
+     making the card the positioning context puts the badge right over
+     the photo's top-right corner without touching the desktop layout
+     (which keeps the badge in normal flow, under the title). */
+  .post-list li {
+    position: relative;
+  }
+
+  .post-list .directory-badge {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    margin: 0;
+    z-index: 1;
+  }
+}
+
 .claim-pending-notice {
   color: var(--color-active-dark);
   font-weight: 600;

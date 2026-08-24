@@ -29,6 +29,8 @@ export default async function DirectoryPage({
   // whichever category is being browsed, per how featuring is meant to work.
   const listings = [...rawListings].sort((a, b) => Number(b.meta.sc_featured) - Number(a.meta.sc_featured));
 
+  const categoriesById = new Map(categories.map((c) => [c.id, c]));
+
   return (
     <main className="container">
       <div className="page-header-row">
@@ -66,7 +68,11 @@ export default async function DirectoryPage({
       ) : (
         <ul className="post-list directory-list">
           {listings.map((listing) => (
-            <DirectoryListingCard key={listing.id} listing={listing} />
+            <DirectoryListingCard
+              key={listing.id}
+              listing={listing}
+              category={listing.sc_listing_category?.map((id) => categoriesById.get(id)).find(Boolean)}
+            />
           ))}
         </ul>
       )}

@@ -15,6 +15,9 @@ export interface EditListingInitial {
   address_country: string;
   phone: string;
   website: string;
+  facebook: string;
+  instagram: string;
+  twitter: string;
 }
 
 export function EditListingForm({
@@ -50,6 +53,9 @@ export function EditListingForm({
       "address_country",
       "phone",
       "website",
+      "facebook",
+      "instagram",
+      "twitter",
     ]) {
       data[key] = String(form.get(key) ?? "");
     }
@@ -118,6 +124,18 @@ export function EditListingForm({
       <label>
         Website
         <input type="url" name="website" placeholder="https://" defaultValue={initial.website} />
+      </label>
+      <label>
+        Facebook
+        <input type="url" name="facebook" placeholder="https://facebook.com/…" defaultValue={initial.facebook} />
+      </label>
+      <label>
+        Instagram
+        <input type="url" name="instagram" placeholder="https://instagram.com/…" defaultValue={initial.instagram} />
+      </label>
+      <label>
+        Twitter / X
+        <input type="url" name="twitter" placeholder="https://x.com/…" defaultValue={initial.twitter} />
       </label>
       {error && <p className="auth-error">{error}</p>}
       <button type="submit" className="button-pill button-pill-active" disabled={submitting}>

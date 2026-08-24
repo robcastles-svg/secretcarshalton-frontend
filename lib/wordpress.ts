@@ -609,6 +609,9 @@ export interface WPListingMeta {
   sc_address_country: string;
   sc_website: string;
   sc_phone: string;
+  sc_facebook: string;
+  sc_instagram: string;
+  sc_twitter: string;
   sc_featured: boolean;
   sc_verified: boolean;
   sc_claimed: boolean;

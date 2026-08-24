@@ -162,8 +162,17 @@ class SC_Directory_REST {
 			}
 			update_post_meta( $post_id, $meta_key, sanitize_text_field( (string) $request->get_param( $param ) ) );
 		}
-		if ( null !== $request->get_param( 'website' ) ) {
-			update_post_meta( $post_id, 'sc_website', esc_url_raw( (string) $request->get_param( 'website' ) ) );
+		$url_fields = array(
+			'website'   => 'sc_website',
+			'facebook'  => 'sc_facebook',
+			'instagram' => 'sc_instagram',
+			'twitter'   => 'sc_twitter',
+		);
+		foreach ( $url_fields as $param => $meta_key ) {
+			if ( null === $request->get_param( $param ) ) {
+				continue;
+			}
+			update_post_meta( $post_id, $meta_key, esc_url_raw( (string) $request->get_param( $param ) ) );
 		}
 
 		return array( 'status' => get_post_status( $post_id ), 'id' => $post_id );
@@ -246,6 +255,9 @@ class SC_Directory_REST {
 			'sc_address_country'  => sanitize_text_field( (string) $request->get_param( 'address_country' ) ),
 			'sc_website'          => esc_url_raw( (string) $request->get_param( 'website' ) ),
 			'sc_phone'            => sanitize_text_field( (string) $request->get_param( 'phone' ) ),
+			'sc_facebook'         => esc_url_raw( (string) $request->get_param( 'facebook' ) ),
+			'sc_instagram'        => esc_url_raw( (string) $request->get_param( 'instagram' ) ),
+			'sc_twitter'          => esc_url_raw( (string) $request->get_param( 'twitter' ) ),
 			'sc_claimed'          => '1', // The submitter is the owner by definition.
 			'sc_featured'         => '0',
 			'sc_verified'         => '0',

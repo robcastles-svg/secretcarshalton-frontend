@@ -60,6 +60,7 @@ export default async function DirectoryListingPage({
     meta.sc_address_region,
     meta.sc_address_postcode,
   ].filter(Boolean);
+  const mapQuery = addressParts.join(", ");
 
   const businessSchema = {
     "@context": "https://schema.org",
@@ -148,6 +149,19 @@ export default async function DirectoryListingPage({
             </p>
           )}
         </div>
+
+        {mapQuery && (
+          <div className="sidebar-block event-map">
+            <iframe
+              title="Listing location map"
+              width="100%"
+              height="220"
+              style={{ border: 0 }}
+              loading="lazy"
+              src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`}
+            />
+          </div>
+        )}
       </aside>
     </main>
   );

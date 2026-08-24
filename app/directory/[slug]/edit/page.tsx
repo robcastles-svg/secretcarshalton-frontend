@@ -57,6 +57,9 @@ export default async function EditListingPage({
           address_country: listing.meta.sc_address_country ?? "",
           phone: listing.meta.sc_phone ?? "",
           website: listing.meta.sc_website ?? "",
+          facebook: listing.meta.sc_facebook ?? "",
+          instagram: listing.meta.sc_instagram ?? "",
+          twitter: listing.meta.sc_twitter ?? "",
         }}
       />
     </main>

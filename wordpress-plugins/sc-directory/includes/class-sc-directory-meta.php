@@ -25,6 +25,9 @@ class SC_Directory_Meta {
 		'sc_address_country'  => 'string',
 		'sc_website'          => 'string',
 		'sc_phone'            => 'string',
+		'sc_facebook'         => 'string',
+		'sc_instagram'        => 'string',
+		'sc_twitter'          => 'string',
 		'sc_featured'         => 'boolean',
 		'sc_verified'         => 'boolean',
 		'sc_claimed'          => 'boolean',
@@ -44,7 +47,8 @@ class SC_Directory_Meta {
 			);
 
 			if ( 'string' === $type ) {
-				$args['sanitize_callback'] = 'sc_website' === $key ? 'esc_url_raw' : 'sanitize_text_field';
+				$url_fields                = array( 'sc_website', 'sc_facebook', 'sc_instagram', 'sc_twitter' );
+				$args['sanitize_callback'] = in_array( $key, $url_fields, true ) ? 'esc_url_raw' : 'sanitize_text_field';
 			}
 
 			register_post_meta( SC_Directory_CPT::POST_TYPE, $key, $args );
