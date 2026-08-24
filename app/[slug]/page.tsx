@@ -259,13 +259,6 @@ export default async function ContentPage({
             ))}
           </div>
 
-          {relatedPosts.length > 0 && (
-            <section className="related-stories">
-              <h2>Related stories</h2>
-              <ContentList items={relatedPosts} />
-            </section>
-          )}
-
           <CommentSection
             postId={post.id}
             comments={fullThread}
@@ -273,6 +266,13 @@ export default async function ContentPage({
             commenterProfiles={commenterProfileMap}
             currentUserId={profile?.id}
           />
+
+          {relatedPosts.length > 0 && (
+            <section className="related-stories">
+              <h2>Related stories</h2>
+              <ContentList items={relatedPosts} />
+            </section>
+          )}
         </div>
 
         <aside className="post-sidebar">
