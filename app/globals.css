@@ -58,7 +58,8 @@ img {
 .utility-bar-inner {
   display: flex;
   justify-content: flex-end;
-  gap: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0;
   padding: 0.5rem 1.5rem;
 }
 
@@ -68,6 +69,13 @@ img {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+  padding: 0 0.55rem;
+  border-right: 1px solid #ccc;
+}
+
+.utility-bar a:last-child {
+  border-right: none;
+  padding-right: 0;
 }
 
 .utility-bar a:hover {
@@ -81,6 +89,7 @@ img {
 
 .utility-bar-loggedin a {
   color: #fff;
+  border-right-color: rgba(255, 255, 255, 0.45);
 }
 
 .utility-bar-loggedin a:hover {
@@ -181,6 +190,17 @@ img {
 }
 
 @media (max-width: 720px) {
+  /* Tighter than the desktop spacing so "Support | Subscribe |
+     Advertise | Join | Login" fits on one line instead of wrapping. */
+  .utility-bar-inner {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .utility-bar a {
+    padding: 0 0.35rem;
+    font-size: 0.68rem;
+  }
+
   .site-header-inner {
     justify-content: center;
     text-align: center;

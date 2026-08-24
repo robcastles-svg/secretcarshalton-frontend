@@ -48,7 +48,7 @@ const PRIMARY_NAV = [
 ];
 
 const UTILITY_NAV = [
-  { label: "Support us", href: "/donate" },
+  { label: "Support", href: "/donate" },
   { label: "Subscribe", href: "/newsletter" },
   { label: "Advertise", href: "/advertising-contact" },
 ];
@@ -60,9 +60,9 @@ const UTILITY_NAV = [
  * guess). Was a placeholder pointing at /walks, /directory, /people.
  */
 const QUICK_LINKS_NAV = [
-  { label: "Places to go", href: "/directory?category=places-to-go" },
-  { label: "Places to stay", href: "/directory?category=places-to-stay" },
-  { label: "Groups to join", href: "/directory?category=groups-to-join" },
+  { label: "Visit", href: "/directory?category=places-to-go" },
+  { label: "Stay", href: "/directory?category=places-to-stay" },
+  { label: "Community", href: "/directory?category=groups-to-join" },
 ];
 
 export default async function RootLayout({
