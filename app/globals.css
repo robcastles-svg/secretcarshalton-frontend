@@ -1072,10 +1072,53 @@ a.card-category:hover {
   margin-bottom: 0.4rem;
 }
 
+.event-countdown-heading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+/* A dark tile (not pure black, so it reads as its own element against
+   the card's black background) rather than the light card version used
+   elsewhere — matches this hero's dark treatment. */
+.event-countdown-date-badge {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 56px;
+  padding: 0.4rem 0.3rem;
+  border-radius: 8px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+}
+
+.event-countdown-date-badge-weekday {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #c2607a;
+  letter-spacing: 0.03em;
+}
+
+.event-countdown-date-badge-day {
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.event-countdown-date-badge-month {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #ccc;
+  letter-spacing: 0.03em;
+}
+
 .event-countdown-body {
   display: flex;
   flex-direction: column;
-  flex: 1;
   min-width: 0;
 }
 

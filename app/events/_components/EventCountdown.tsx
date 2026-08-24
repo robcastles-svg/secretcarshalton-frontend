@@ -45,7 +45,8 @@ export function EventCountdown({
   imageAlt: string;
   featured?: boolean;
 }) {
-  const target = new Date(startIso).getTime();
+  const startDate = new Date(startIso);
+  const target = startDate.getTime();
   const [remaining, setRemaining] = useState<Remaining | null>(null);
 
   useEffect(() => {
@@ -59,13 +60,24 @@ export function EventCountdown({
       <div className="event-countdown-media">
         <EventImage image={image} alt={imageAlt} />
       </div>
-      <div className="event-countdown-body">
-        {featured && <span className="event-countdown-featured-badge">Featured</span>}
-        <span className="event-countdown-title" dangerouslySetInnerHTML={{ __html: title }} />
-        {venueName && <span className="event-countdown-venue">{venueName}</span>}
+      <div className="event-countdown-heading">
+        <div className="event-countdown-date-badge">
+          <span className="event-countdown-date-badge-weekday">
+            {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
+          </span>
+          <span className="event-countdown-date-badge-day">{startDate.getDate()}</span>
+          <span className="event-countdown-date-badge-month">
+            {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
+          </span>
+        </div>
+        <div className="event-countdown-body">
+          {featured && <span className="event-countdown-featured-badge">Featured</span>}
+          <span className="event-countdown-title" dangerouslySetInnerHTML={{ __html: title }} />
+          {venueName && <span className="event-countdown-venue">{venueName}</span>}
+        </div>
       </div>
       <div className="event-countdown-timer-wrap">
-        <span className="event-countdown-label">Coming up next</span>
+        <span className="event-countdown-label">Countdown to event</span>
         {remaining && (
           <span className="event-countdown-timer">
             <span>
