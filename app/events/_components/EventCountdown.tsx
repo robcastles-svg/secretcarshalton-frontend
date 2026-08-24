@@ -58,9 +58,13 @@ export function EventCountdown({
     <Link href={`/events/${slug}`} className="event-countdown">
       <div className="event-countdown-media">
         <EventImage image={image} alt={imageAlt} />
-        {featured && <span className="event-countdown-featured-badge">Featured</span>}
       </div>
       <div className="event-countdown-body">
+        {featured && <span className="event-countdown-featured-badge">Featured</span>}
+        <span className="event-countdown-title" dangerouslySetInnerHTML={{ __html: title }} />
+        {venueName && <span className="event-countdown-venue">{venueName}</span>}
+      </div>
+      <div className="event-countdown-timer-wrap">
         <span className="event-countdown-label">Coming up next</span>
         {remaining && (
           <span className="event-countdown-timer">
@@ -78,8 +82,6 @@ export function EventCountdown({
             </span>
           </span>
         )}
-        <span className="event-countdown-title" dangerouslySetInnerHTML={{ __html: title }} />
-        {venueName && <span className="event-countdown-venue">{venueName}</span>}
       </div>
     </Link>
   );
