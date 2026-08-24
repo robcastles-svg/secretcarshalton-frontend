@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ContentList } from "@/app/_components/ContentList";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { EventImage } from "@/app/_components/EventImage";
-import { eventTopicsFor, EventTopics } from "@/app/_components/EventTopics";
 import {
   getCategoryBySlug,
   getDirectoryListings,
@@ -11,7 +10,6 @@ import {
   getLatestPostInCategories,
   getPosts,
   getCategories,
-  getScEventTags,
   getTopPostsThisWeek,
   getUpcomingScEvents,
   parseEventDate,
@@ -35,12 +33,11 @@ export default async function HomePage() {
   // Every branch below already renders fine with an empty/null result
   // (the "no posts" state, conditionally-rendered sections), so catching
   // here just lets that existing degrade-gracefully behavior actually work.
-  const [recentPosts, walksCategory, allCategories, events, eventTags, directoryListings] = await Promise.all([
+  const [recentPosts, walksCategory, allCategories, events, directoryListings] = await Promise.all([
     getPosts(20).catch(() => []),
     getCategoryBySlug("walks").catch(() => null),
     getCategories().catch(() => []),
     getUpcomingScEvents(4).catch(() => []),
-    getScEventTags().catch(() => []),
     getDirectoryListings(10).catch(() => []),
   ]);
 
@@ -113,7 +110,6 @@ export default async function HomePage() {
               {events.map((event) => {
                 const image = getFeaturedImage(event);
                 const startDate = parseEventDate(event.meta.sc_start);
-                const topics = eventTopicsFor(eventTags, event.sc_event_tag);
                 return (
                   <li key={event.id}>
                     <Link href={`/events/${event.slug}`}>
@@ -133,7 +129,6 @@ export default async function HomePage() {
                         <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
                       </div>
                     </Link>
-                    <EventTopics topics={topics} className="event-row-topics" />
                   </li>
                 );
               })}

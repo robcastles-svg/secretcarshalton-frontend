@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { EventImage } from "@/app/_components/EventImage";
-import { eventTopicsFor, EventTopics } from "@/app/_components/EventTopics";
 import {
   getFeaturedImage,
   getLatestAddedScEvents,
@@ -113,7 +112,7 @@ export default async function EventsPage({
       {isCalendar ? (
         <EventCalendarMonth year={calendarYear} month={calendarMonth} events={calendarEvents} />
       ) : (
-        <EventsGrid events={listEvents} tags={tags} />
+        <EventsGrid events={listEvents} />
       )}
 
       {latestAdded.length > 0 && (
@@ -123,7 +122,6 @@ export default async function EventsPage({
             {latestAdded.map((event) => {
               const image = getFeaturedImage(event);
               const startDate = parseEventDate(event.meta.sc_start);
-              const topics = eventTopicsFor(tags, event.sc_event_tag);
               return (
                 <li key={event.id}>
                   <Link href={`/events/${event.slug}`}>
@@ -143,7 +141,6 @@ export default async function EventsPage({
                       <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
                     </div>
                   </Link>
-                  <EventTopics topics={topics} className="event-row-topics" />
                 </li>
               );
             })}

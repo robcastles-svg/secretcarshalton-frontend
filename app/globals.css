@@ -477,6 +477,7 @@ img {
 }
 
 .post-list .event-image-frame {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   margin-bottom: 0.75rem;
@@ -488,6 +489,23 @@ img {
 .post-list .event-image-frame img {
   aspect-ratio: auto;
   margin-bottom: 0;
+}
+
+/* A light dark tint on every card image on the /events category list,
+   clearing to the plain photo on hover — a subtle "come look" affordance
+   to go with the zoom, scoped to this list only per Rob. */
+.post-list .event-image-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0.15;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.post-list li:hover .event-image-frame::after {
+  opacity: 0;
 }
 
 /* Date tile sits beside the headline (see .event-card-heading) rather than
