@@ -3261,10 +3261,36 @@ a.card-category:hover {
 .job-card-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem 0.9rem;
-  color: #666;
-  font-size: 0.9rem;
+  align-items: center;
+  gap: 0.4rem 0.7rem;
+  margin-top: 0.4rem;
+}
+
+.job-card-company {
+  color: #333;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.job-card-salary {
+  display: inline-block;
+  background: #eaf4ee;
+  color: #1a6b3f;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.job-card-date {
+  display: block;
+  color: #888;
+  font-size: 0.8rem;
   margin-top: 0.35rem;
+}
+
+.job-detail-date {
+  margin-top: 0.3rem;
 }
 
 .job-card-apply {

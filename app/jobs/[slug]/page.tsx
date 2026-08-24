@@ -9,6 +9,13 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 }
 
+function daysAgoLabel(iso: string) {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / (24 * 60 * 60 * 1000));
+  if (days <= 0) return "Today";
+  if (days === 1) return "Yesterday";
+  return `${days} days ago`;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -42,10 +49,12 @@ export default async function JobDetailPage({
       <h1 dangerouslySetInnerHTML={{ __html: job.title.rendered }} />
 
       <div className="job-card-meta job-detail-meta">
-        {job.meta.job_company && <span>{job.meta.job_company}</span>}
-        {job.meta.job_salary_text && <span>{job.meta.job_salary_text}</span>}
-        <time dateTime={job.date}>Posted {formatDate(job.date)}</time>
+        {job.meta.job_company && <span className="job-card-company">{job.meta.job_company}</span>}
+        {job.meta.job_salary_text && <span className="job-card-salary">{job.meta.job_salary_text}</span>}
       </div>
+      <time dateTime={job.date} className="job-card-date job-detail-date">
+        Posted {daysAgoLabel(job.date)} &middot; {formatDate(job.date)}
+      </time>
 
       <p className="job-external-disclaimer">
         This listing was pulled in automatically from an external job site (via the Reed API) — Secret

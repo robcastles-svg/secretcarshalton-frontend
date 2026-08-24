@@ -139,6 +139,21 @@ class SC_Jobs_Sync {
 		return $existing ? $existing[0] : 0;
 	}
 
+	/**
+	 * Reed's date/expirationDate fields come back as "dd/mm/yyyy" (UK
+	 * format) — PHP's strtotime() guesses at ambiguous strings like
+	 * "03/04/2026" as US-format (month first), silently swapping day and
+	 * month for anything in the first 12 days of a month. Parsing against
+	 * the known format explicitly avoids that instead of guessing.
+	 */
+	private static function parse_reed_date( $value ) {
+		if ( empty( $value ) ) {
+			return null;
+		}
+		$dt = DateTime::createFromFormat( 'd/m/Y', trim( $value ) );
+		return $dt ?: null;
+	}
+
 	private static function format_salary( $job ) {
 		$min      = isset( $job['minimumSalary'] ) ? $job['minimumSalary'] : null;
 		$max      = isset( $job['maximumSalary'] ) ? $job['maximumSalary'] : null;
@@ -170,6 +185,21 @@ class SC_Jobs_Sync {
 			'post_status'  => 'publish',
 		);
 
+		/**
+		 * Reed's own "date" field is when the job was actually posted, not
+		 * when we happened to sync it — without this, post_date defaults to
+		 * "now" on every insert, so a job Reed posted two weeks ago would
+		 * misleadingly show as "Posted today" here, and a "last 7 days"
+		 * filter on the frontend would be filtering by sync time rather
+		 * than real recency. Set on every upsert (not just create) so a
+		 * listing that already exists gets corrected too.
+		 */
+		$posted = self::parse_reed_date( $job['date'] ?? '' );
+		if ( $posted ) {
+			$postarr['post_date']     = $posted->format( 'Y-m-d H:i:s' );
+			$postarr['post_date_gmt'] = $posted->format( 'Y-m-d H:i:s' );
+		}
+
 		if ( $post_id ) {
 			$postarr['ID'] = $post_id;
 			wp_update_post( $postarr );
@@ -187,9 +217,9 @@ class SC_Jobs_Sync {
 		update_post_meta( $post_id, 'job_company', isset( $job['employerName'] ) ? sanitize_text_field( $job['employerName'] ) : '' );
 		update_post_meta( $post_id, 'job_salary_text', self::format_salary( $job ) );
 
-		if ( ! empty( $job['expirationDate'] ) ) {
-			$expiry = date( 'Y-m-d', strtotime( $job['expirationDate'] ) );
-			update_post_meta( $post_id, 'expiry_date', $expiry );
+		$expiry = self::parse_reed_date( $job['expirationDate'] ?? '' );
+		if ( $expiry ) {
+			update_post_meta( $post_id, 'expiry_date', $expiry->format( 'Y-m-d' ) );
 		}
 
 		if ( ! empty( $job['locationName'] ) ) {
