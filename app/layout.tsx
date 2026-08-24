@@ -3,6 +3,7 @@ import { Roboto } from "next/font/google";
 import Link from "next/link";
 import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
+import { ActiveNavSectionProvider } from "./_components/ActiveNavSection";
 import { AdSlot } from "./_components/AdSlot";
 import { BackToTop } from "./_components/BackToTop";
 import { PrimaryNav } from "./_components/PrimaryNav";
@@ -123,6 +124,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={roboto.variable}>
+        <ActiveNavSectionProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
@@ -327,6 +329,7 @@ export default async function RootLayout({
           </div>
         </footer>
         <BackToTop />
+        </ActiveNavSectionProvider>
       </body>
     </html>
   );

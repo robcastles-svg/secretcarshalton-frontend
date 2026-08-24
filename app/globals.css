@@ -178,7 +178,8 @@ button.button-pill {
 .primary-nav a {
   color: #222;
   text-decoration: none;
-  font-weight: 500;
+  font-size: 1.05rem;
+  font-weight: 400;
 }
 
 .primary-nav a:hover {
@@ -187,6 +188,7 @@ button.button-pill {
 
 .primary-nav a.active {
   color: #0a5c36;
+  font-weight: 700;
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 6px;
@@ -205,23 +207,37 @@ button.button-pill {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 1.5rem;
+  gap: 1.1rem;
   padding: 0.6rem 1.5rem;
 }
 
 .quick-links-bar a {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   color: #fff;
   text-decoration: none;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.03em;
+  position: relative;
 }
 
 .quick-links-bar a:hover {
   text-decoration: underline;
+}
+
+/* Little vertical divider between items — skipped before the first,
+   since flex order matches source order here (no reordering). */
+.quick-links-bar a:not(:first-child)::before {
+  content: "";
+  position: absolute;
+  left: -0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 0.7rem;
+  background: rgba(255, 255, 255, 0.5);
 }
 
 @media (max-width: 720px) {

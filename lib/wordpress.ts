@@ -343,6 +343,40 @@ export function getCategories() {
   return wpFetch<WPCategory[]>(`/categories?per_page=100&hide_empty=false`);
 }
 
+const NAV_SECTION_BY_TOP_CATEGORY_SLUG: Record<string, string> = {
+  news: "News",
+  stories: "Stories",
+  walks: "Walks",
+  people: "Spotlight",
+};
+
+/**
+ * A post's category doesn't appear in its flat /{slug} URL, so the main
+ * nav (which highlights by pathname) can't tell which section a given
+ * article belongs to on its own — this maps the post's own category ids
+ * to the top-level nav section, checking both a direct match (news,
+ * people — flat, no children) and one level up (a story's own category is
+ * an area like "Beddington", a child of the "stories" parent category).
+ * Used by SetActiveNavSection on the post page.
+ */
+export function navSectionForCategories(
+  postCategoryIds: number[] | undefined,
+  allCategories: WPCategory[]
+): string | null {
+  if (!postCategoryIds?.length) return null;
+  const byId = new Map(allCategories.map((c) => [c.id, c] as const));
+  for (const catId of postCategoryIds) {
+    const cat = byId.get(catId);
+    if (!cat) continue;
+    if (NAV_SECTION_BY_TOP_CATEGORY_SLUG[cat.slug]) return NAV_SECTION_BY_TOP_CATEGORY_SLUG[cat.slug];
+    const parent = byId.get(cat.parent);
+    if (parent && NAV_SECTION_BY_TOP_CATEGORY_SLUG[parent.slug]) {
+      return NAV_SECTION_BY_TOP_CATEGORY_SLUG[parent.slug];
+    }
+  }
+  return null;
+}
+
 export interface WPTag {
   id: number;
   slug: string;

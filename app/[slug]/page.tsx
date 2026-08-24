@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fragment } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
 import { AdSlot } from "@/app/_components/AdSlot";
 import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
@@ -20,6 +21,7 @@ import {
   getRecentPostSlugs,
   getTags,
   getTopPostsToday,
+  navSectionForCategories,
   splitContentIntoParagraphChunks,
   stripHtml,
 } from "@/lib/wordpress";
@@ -176,6 +178,7 @@ export default async function ContentPage({
 
   const category = allCategories.find((c) => post.categories?.includes(c.id));
   const tag = allTags.find((t) => post.tags?.includes(t.id));
+  const navSection = navSectionForCategories(post.categories, allCategories);
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -193,6 +196,7 @@ export default async function ContentPage({
 
   return (
     <article>
+      <SetActiveNavSection section={navSection} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
