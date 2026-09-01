@@ -71,6 +71,15 @@ export default async function EventsPage({
     // the ambient page chrome — headings, tiles, the list/calendar switch —
     // needed dark-mode colour overrides, not a full component rebuild.
     <div className="events-dark">
+      <nav className="container secondary-nav">
+        <EventCategoryTiles
+          categories={categories}
+          activeSlug={activeCategory?.slug}
+          activeTagSlug={activeTag?.slug}
+        />
+        <EventTagTiles tags={tags} activeSlug={activeTag?.slug} activeCategorySlug={activeCategory?.slug} />
+      </nav>
+
       <main className="container">
         <div className="page-header-row">
           <h1>
@@ -81,13 +90,6 @@ export default async function EventsPage({
             Submit an event
           </Link>
         </div>
-
-        <EventCategoryTiles
-          categories={categories}
-          activeSlug={activeCategory?.slug}
-          activeTagSlug={activeTag?.slug}
-        />
-        <EventTagTiles tags={tags} activeSlug={activeTag?.slug} activeCategorySlug={activeCategory?.slug} />
 
         <div className="event-view-switch">
           <Link

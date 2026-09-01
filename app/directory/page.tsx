@@ -76,7 +76,25 @@ export default async function DirectoryPage({
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
 
   return (
-    <main className="container">
+    <>
+      <div className="secondary-nav-bar">
+        <nav className="container secondary-nav">
+          <Link href="/directory" className={!activeCategory ? "active" : undefined}>
+            All
+          </Link>
+          {categories.map((c) => (
+            <Link
+              key={c.id}
+              href={`/directory?category=${c.slug}`}
+              className={activeCategory?.id === c.id ? "active" : undefined}
+            >
+              {c.name}
+            </Link>
+          ))}
+        </nav>
+      </div>
+
+      <main className="container">
       <div className="page-header-row">
         <div>
           <h1>
@@ -91,20 +109,6 @@ export default async function DirectoryPage({
       </div>
 
       <div className="directory-toolbar">
-        <nav className="directory-category-nav">
-          <Link href="/directory" className={!activeCategory ? "active" : undefined}>
-            All
-          </Link>
-          {categories.map((c) => (
-            <Link
-              key={c.id}
-              href={`/directory?category=${c.slug}`}
-              className={activeCategory?.id === c.id ? "active" : undefined}
-            >
-              {c.name}
-            </Link>
-          ))}
-        </nav>
         <DirectoryControls category={category ?? ""} q={q} sort={sort} />
       </div>
 
@@ -149,6 +153,7 @@ export default async function DirectoryPage({
           )}
         </>
       )}
-    </main>
+      </main>
+    </>
   );
 }

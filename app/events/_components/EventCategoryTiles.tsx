@@ -1,6 +1,8 @@
+import { Fragment } from "react";
 import Link from "next/link";
 import type { WPScEventCategory } from "@/lib/wordpress";
 
+/** Renders as plain links directly into the parent .secondary-nav row — no wrapper of its own, so the pipe-divider styling there applies uninterrupted. */
 export function EventCategoryTiles({
   categories,
   activeSlug,
@@ -15,7 +17,7 @@ export function EventCategoryTiles({
   const tagQuery = activeTagSlug ? `&tag=${activeTagSlug}` : "";
 
   return (
-    <div className="event-category-tiles">
+    <Fragment>
       <Link
         href={activeTagSlug ? `/events?tag=${activeTagSlug}` : "/events"}
         className={!activeSlug ? "active" : undefined}
@@ -31,6 +33,6 @@ export function EventCategoryTiles({
           {c.name}
         </Link>
       ))}
-    </div>
+    </Fragment>
   );
 }
