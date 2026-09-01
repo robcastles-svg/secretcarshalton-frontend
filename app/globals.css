@@ -175,11 +175,6 @@ button.button-pill {
   vertical-align: middle;
 }
 
-.primary-nav-row {
-  padding-top: 0;
-  padding-bottom: 0.75rem;
-}
-
 .primary-nav {
   display: flex;
   flex-wrap: wrap;

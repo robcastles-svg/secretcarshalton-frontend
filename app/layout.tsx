@@ -149,8 +149,6 @@ export default async function RootLayout({
             <Link href="/" className="site-logo">
               <img src="/logo.png" alt="Secret Carshalton" className="site-logo-img" />
             </Link>
-          </div>
-          <div className="container primary-nav-row">
             <nav className="primary-nav">
               <PrimaryNav items={PRIMARY_NAV} />
               <Link href="/search" className="nav-search" aria-label="Search">
