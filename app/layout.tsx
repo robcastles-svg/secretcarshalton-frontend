@@ -39,15 +39,23 @@ const ORGANIZATION_SCHEMA = {
   ],
 };
 
+/**
+ * Spotlight and About have come off the main nav — Spotlight's posts now
+ * surface on the new Discover hub instead of their own top-level section
+ * (see app/discover/page.tsx), and About's content already has its own
+ * full footer column, so it didn't need a nav slot too. Discover replaces
+ * Stories' nav slot — the individual /stories/[area] and /themes/[slug]
+ * pages it links out to are untouched (kept as separate single pages,
+ * good for SEO, per Rob), Discover is just a richer hub in front of them.
+ */
 const PRIMARY_NAV = [
   { label: "News", href: "/news" },
   { label: "Events", href: "/events" },
-  { label: "Stories", href: "/stories" },
+  { label: "Discover", href: "/discover" },
   { label: "Walks", href: "/walks" },
+  { label: "Community", href: "/community" },
   { label: "Directory", href: "/directory" },
   { label: "Jobs", href: "/jobs" },
-  { label: "Spotlight", href: "/people" },
-  { label: "About", href: "/about-secret-carshalton" },
 ];
 
 const UTILITY_NAV = [
@@ -119,7 +127,13 @@ export default async function RootLayout({
           </div>
         </div>
 
-        {/* Billboard ad slot — admin-managed via sc-ads, see wordpress-plugins/sc-ads. */}
+        {/*
+         * Just the one top-of-page ad slot now — billboard, admin-managed
+         * via sc-ads. Used to be paired with a second "leaderboard" slot
+         * inside the header right below it, which was redundant stacking
+         * two banner ads back-to-back now that sidebar and in-post slots
+         * exist on content pages too.
+         */}
         <AdSlot
           placement="billboard"
           className="ad-slot ad-billboard"
@@ -132,8 +146,6 @@ export default async function RootLayout({
             <Link href="/" className="site-logo">
               <img src="/logo.png" alt="Secret Carshalton" className="site-logo-img" />
             </Link>
-            {/* Leaderboard ad slot — admin-managed via sc-ads, weighted-random rotation, re-rolls on every navigation. */}
-            <AdSlot placement="leaderboard" className="ad-slot ad-leaderboard" refreshOnNavigate />
           </div>
           <div className="container primary-nav-row">
             <nav className="primary-nav">

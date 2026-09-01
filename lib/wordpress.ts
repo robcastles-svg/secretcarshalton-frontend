@@ -353,9 +353,9 @@ export function getCategories() {
 
 const NAV_SECTION_BY_TOP_CATEGORY_SLUG: Record<string, string> = {
   news: "News",
-  stories: "Stories",
+  stories: "Discover",
   walks: "Walks",
-  people: "Spotlight",
+  people: "Discover",
 };
 
 /**

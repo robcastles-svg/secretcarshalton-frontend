@@ -69,8 +69,8 @@ button.button-pill {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem 0.9rem;
-  background: #1a1a1a;
-  color: #ddd;
+  background: #f5f5f5;
+  color: #666;
   font-size: 0.75rem;
   letter-spacing: 0.02em;
   padding: 0.4rem 1.5rem;
@@ -78,7 +78,7 @@ button.button-pill {
 
 .site-date-weather-bar span:first-child {
   font-weight: 600;
-  color: #fff;
+  color: #333;
 }
 
 .site-date-weather-forecast {
@@ -960,6 +960,34 @@ a.card-category:hover {
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 1rem;
+}
+
+/* Discover */
+.discover-section {
+  margin-top: 2.5rem;
+}
+
+.discover-browse-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.discover-browse-toggle button {
+  padding: 0.45rem 1.1rem;
+  border-radius: 999px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #333;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.discover-browse-toggle button.active {
+  background: #0a5c36;
+  border-color: #0a5c36;
+  color: #fff;
 }
 
 .home-section-header a {
