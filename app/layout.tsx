@@ -60,8 +60,6 @@ const PRIMARY_NAV = [
 
 const UTILITY_NAV = [
   { label: "About", href: "/about-secret-carshalton" },
-  { label: "Support", href: "/donate" },
-  { label: "Subscribe", href: "/newsletter" },
   { label: "Advertise", href: "/advertising-contact" },
 ];
 
@@ -245,6 +243,9 @@ export default async function RootLayout({
                 </li>
                 <li>
                   <Link href="/newsletter">Newsletter</Link>
+                </li>
+                <li>
+                  <Link href="/donate">Support us</Link>
                 </li>
                 <li>
                   <Link href="/about-secret-carshalton">About us</Link>

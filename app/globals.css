@@ -235,8 +235,8 @@ button.button-pill {
 }
 
 @media (max-width: 720px) {
-  /* Tighter than the desktop spacing so "About | Support | Subscribe |
-     Advertise | Join | Login" fits on one line instead of wrapping. */
+  /* Tighter than the desktop spacing so "About | Advertise | Join |
+     Login" fits on one line instead of wrapping. */
   .utility-bar-inner {
     justify-content: center;
     padding: 0.5rem 0.75rem;
