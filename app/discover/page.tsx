@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
-import { AdCard } from "@/app/_components/AdCard";
-import { AdSlot } from "@/app/_components/AdSlot";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { Pagination } from "@/app/_components/Pagination";
 import { PostListCard } from "@/app/_components/PostListCard";
+import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
 import {
   getAd,
@@ -210,18 +209,7 @@ export default async function DiscoverPage({
               </div>
             )}
 
-            {ad && (
-              <ul className="post-list">
-                <AdCard ad={ad} />
-              </ul>
-            )}
-
-            <AdSlot
-              placement="sidebar"
-              className="sidebar-block-ad"
-              placeholderClassName="sidebar-ad-placeholder"
-              placeholderText="Advertise here"
-            />
+            <SidebarAds ads={[ad]} />
           </aside>
         </div>
       </main>

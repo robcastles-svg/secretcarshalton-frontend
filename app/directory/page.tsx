@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
-import { AdCard } from "@/app/_components/AdCard";
-import { AdSlot } from "@/app/_components/AdSlot";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { Pagination } from "@/app/_components/Pagination";
+import { SidebarAds } from "@/app/_components/SidebarAds";
 import { DirectoryControls } from "./_components/DirectoryControls";
 import { paginate, parsePageParam } from "@/lib/pagination";
 import { getAd, getDirectoryCategories, getDirectoryListings, getDirectoryListingsByCategory, stripHtml, type WPListing } from "@/lib/wordpress";
@@ -57,7 +56,11 @@ export default async function DirectoryPage({
   // note) has proven unreliable to reach from Vercel's runtime; never let
   // that hang or crash this page — an empty directory is recoverable, a
   // dead page isn't.
-  const [categories, ad] = await Promise.all([getDirectoryCategories().catch(() => []), getAd("in_feed")]);
+  const [categories, inFeedAd, sidebarAd] = await Promise.all([
+    getDirectoryCategories().catch(() => []),
+    getAd("in_feed"),
+    getAd("sidebar"),
+  ]);
   const activeCategory = category ? categories.find((c) => c.slug === category) : null;
 
   const rawListings = await (activeCategory
@@ -186,17 +189,7 @@ export default async function DirectoryPage({
         </div>
 
         <aside className="post-sidebar">
-          {ad && (
-            <ul className="post-list">
-              <AdCard ad={ad} />
-            </ul>
-          )}
-          <AdSlot
-            placement="sidebar"
-            className="sidebar-block-ad"
-            placeholderClassName="sidebar-ad-placeholder"
-            placeholderText="Advertise here"
-          />
+          <SidebarAds ads={[inFeedAd, sidebarAd]} />
         </aside>
       </div>
       </main>

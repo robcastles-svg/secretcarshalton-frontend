@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { AdSlot } from "@/app/_components/AdSlot";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { EventImage } from "@/app/_components/EventImage";
+import { SidebarAds } from "@/app/_components/SidebarAds";
 import {
+  getAd,
   getFeaturedImage,
   getLatestAddedScEvents,
   getScEventCategories,
@@ -40,12 +41,14 @@ export default async function EventsPage({
   const calendarYear = Number(year) || now.getFullYear();
   const calendarMonth = Number(month) || now.getMonth() + 1;
 
-  const [categories, tags, upcoming, allEvents, latestAdded] = await Promise.all([
+  const [categories, tags, upcoming, allEvents, latestAdded, inFeedAd, sidebarAd] = await Promise.all([
     getScEventCategories().catch(() => []),
     getScEventTags().catch(() => []),
     getUpcomingScEvents(100).catch(() => []),
     getScEvents(300).catch(() => []),
     getLatestAddedScEvents(5).catch(() => []),
+    getAd("in_feed"),
+    getAd("sidebar"),
   ]);
 
   const activeCategory = category ? categories.find((c) => c.slug === category) : null;
@@ -170,12 +173,7 @@ export default async function EventsPage({
             )}
           </div>
           <aside className="post-sidebar">
-            <AdSlot
-              placement="sidebar"
-              className="sidebar-block-ad"
-              placeholderClassName="sidebar-ad-placeholder"
-              placeholderText="Advertise here"
-            />
+            <SidebarAds ads={[inFeedAd, sidebarAd]} />
           </aside>
         </div>
 
