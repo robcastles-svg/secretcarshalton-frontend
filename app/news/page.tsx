@@ -2,7 +2,7 @@ import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { Pagination } from "@/app/_components/Pagination";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
+import { getAd, getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -12,10 +12,11 @@ export default async function NewsPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page: rawPage } = await searchParams;
-  const [category, allCategories, allTags] = await Promise.all([
+  const [category, allCategories, allTags, ad] = await Promise.all([
     getCategoryBySlug("news").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
+    getAd("in_feed"),
   ]);
   const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
@@ -28,7 +29,7 @@ export default async function NewsPage({
         News
         <CategoryKeyIcon />
       </h1>
-      <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
+      <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} ad={ad} />
       <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/news?page=${p}`} />
     </main>
   );

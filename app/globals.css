@@ -3651,6 +3651,26 @@ a.card-category:hover {
   background: #c2607a;
 }
 
+/* Blue outline marks a paid "in-feed" ad card, mixed into a story/listing
+   grid — the external/paid counterpart to .directory-card-featured's pink
+   (an internal featured listing), matching the PDF's colour-coding. */
+.ad-card-external {
+  border: 2px solid #2f6fb3;
+}
+
+.ad-card-badge {
+  display: inline-block;
+  background: #2f6fb3;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  margin: 0.4rem 0;
+}
+
 .directory-verified-check {
   flex-shrink: 0;
   margin-right: 0.5rem;

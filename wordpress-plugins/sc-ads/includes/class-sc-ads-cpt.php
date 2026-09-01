@@ -26,6 +26,7 @@ class SC_Ads_CPT {
 		'sidebar'     => 'Sidebar (article pages) — 300×250 MPU',
 		'in_post_1'   => 'In-article — first slot',
 		'in_post_2'   => 'In-article — second slot',
+		'in_feed'     => 'In-feed card (mixed into the story/listing grid on News, Directory, Discover etc.)',
 	);
 
 	public static function register() {

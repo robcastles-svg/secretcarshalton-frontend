@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { AdSlot } from "@/app/_components/AdSlot";
+import { withInterleavedAd } from "@/app/_components/AdCard";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { Pagination } from "@/app/_components/Pagination";
 import { PostListCard } from "@/app/_components/PostListCard";
 import { paginate, parsePageParam } from "@/lib/pagination";
 import {
+  getAd,
   getCategories,
   getCategoryBySlug,
   getDirectoryCategories,
@@ -16,6 +18,9 @@ import {
   type WPContentItem,
   type WPListing,
 } from "@/lib/wordpress";
+
+/** One in-feed ad card mixed in per roughly-a-page-worth of cards — matches ContentList's own AD_EVERY. */
+const AD_EVERY = 6;
 
 export const revalidate = 3600;
 
@@ -78,13 +83,14 @@ export default async function DiscoverPage({
 }) {
   const { filter, page: rawPage } = await searchParams;
 
-  const [storiesParent, peopleCategory, allCategories, allTags, directoryCategories, allListings] = await Promise.all([
+  const [storiesParent, peopleCategory, allCategories, allTags, directoryCategories, allListings, ad] = await Promise.all([
     getCategoryBySlug("stories").catch(() => null),
     getCategoryBySlug("people").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
     getDirectoryCategories().catch(() => []),
     getDirectoryListings().catch(() => []),
+    getAd("in_feed"),
   ]);
 
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
@@ -174,18 +180,22 @@ export default async function DiscoverPage({
               <p className="directory-empty">Nothing here yet — check back soon.</p>
             ) : (
               <ul className="post-list">
-                {pageItems.map((item) =>
-                  item.kind === "post" ? (
-                    <PostListCard
-                      key={`post-${item.post.id}`}
-                      item={item.post}
-                      categoriesById={categoriesById}
-                      tagsById={tagsById}
-                      showDate={false}
-                    />
-                  ) : (
-                    <DirectoryListingCard key={`listing-${item.listing.id}`} listing={item.listing} />
-                  )
+                {withInterleavedAd(
+                  pageItems.map((item) =>
+                    item.kind === "post" ? (
+                      <PostListCard
+                        key={`post-${item.post.id}`}
+                        item={item.post}
+                        categoriesById={categoriesById}
+                        tagsById={tagsById}
+                        showDate={false}
+                      />
+                    ) : (
+                      <DirectoryListingCard key={`listing-${item.listing.id}`} listing={item.listing} />
+                    )
+                  ),
+                  ad,
+                  AD_EVERY
                 )}
               </ul>
             )}

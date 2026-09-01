@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { AdSlot } from "@/app/_components/AdSlot";
+import { withInterleavedAd } from "@/app/_components/AdCard";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { Pagination } from "@/app/_components/Pagination";
 import { DirectoryControls } from "./_components/DirectoryControls";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getDirectoryCategories, getDirectoryListings, getDirectoryListingsByCategory, stripHtml, type WPListing } from "@/lib/wordpress";
+import { getAd, getDirectoryCategories, getDirectoryListings, getDirectoryListingsByCategory, stripHtml, type WPListing } from "@/lib/wordpress";
+
+/** One in-feed ad card mixed in per roughly-a-page-worth of cards — matches ContentList's own AD_EVERY. */
+const AD_EVERY = 6;
 
 export const revalidate = 3600;
 
@@ -56,7 +60,7 @@ export default async function DirectoryPage({
   // note) has proven unreliable to reach from Vercel's runtime; never let
   // that hang or crash this page — an empty directory is recoverable, a
   // dead page isn't.
-  const categories = await getDirectoryCategories().catch(() => []);
+  const [categories, ad] = await Promise.all([getDirectoryCategories().catch(() => []), getAd("in_feed")]);
   const activeCategory = category ? categories.find((c) => c.slug === category) : null;
 
   const rawListings = await (activeCategory
@@ -165,17 +169,21 @@ export default async function DirectoryPage({
 
               {pageListings.length > 0 && (
                 <ul className="post-list directory-list">
-                  {pageListings.map((listing) => (
-                    <DirectoryListingCard
-                      key={listing.id}
-                      listing={listing}
-                      categoriesList={
-                        listing.sc_listing_category
-                          ?.map((id) => categoriesById.get(id))
-                          .filter((c): c is (typeof categories)[number] => Boolean(c))
-                      }
-                    />
-                  ))}
+                  {withInterleavedAd(
+                    pageListings.map((listing) => (
+                      <DirectoryListingCard
+                        key={listing.id}
+                        listing={listing}
+                        categoriesList={
+                          listing.sc_listing_category
+                            ?.map((id) => categoriesById.get(id))
+                            .filter((c): c is (typeof categories)[number] => Boolean(c))
+                        }
+                      />
+                    )),
+                    ad,
+                    AD_EVERY
+                  )}
                 </ul>
               )}
 

@@ -633,6 +633,8 @@ export interface WPAd {
   image: string;
   link: string;
   alt: string;
+  headline?: string;
+  body?: string;
 }
 
 /**
