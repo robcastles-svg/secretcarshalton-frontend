@@ -744,8 +744,9 @@ button.button-pill {
 
 /* The excerpt (an unclassed <div> straight under <li>) isn't part of the
    reference screenshots' card treatment — image, headline, category/date
-   only. Scoped to a direct child so it doesn't touch .card-text, which
-   lives inside the <a>. */
+   only. Scoped to a direct child so it doesn't touch .card-meta-row (also
+   a direct child, but overridden back to flex by its own higher-specificity
+   class rule below) or the tag/title/category links, which aren't divs. */
 .post-list li > div {
   display: none;
 }

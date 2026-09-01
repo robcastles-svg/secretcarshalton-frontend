@@ -385,6 +385,26 @@ export function navSectionForCategories(
   return null;
 }
 
+/**
+ * Where a "place" (category) badge on a card should click through to —
+ * mirrors navSectionForCategories' own top-level/one-level-up logic, but
+ * returns an actual URL instead of a nav-section label. An area category
+ * (a child of "stories" or "walks") goes to its own real page; "news" and
+ * "people" are flat categories with their own listing pages; anything
+ * else falls back to Discover, which is the closest thing to a general
+ * "everything" category browse this site has.
+ */
+export function categoryHref(category: WPCategory, categoriesById: Map<number, WPCategory>): string {
+  if (category.slug === "news") return "/news";
+  if (category.slug === "people") return "/people";
+  if (category.slug === "stories") return "/discover";
+  if (category.slug === "walks") return "/walks";
+  const parent = categoriesById.get(category.parent);
+  if (parent?.slug === "stories") return `/stories/${category.slug}`;
+  if (parent?.slug === "walks") return `/walks/${category.slug}`;
+  return "/discover";
+}
+
 export interface WPTag {
   id: number;
   slug: string;

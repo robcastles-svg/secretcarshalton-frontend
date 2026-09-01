@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BookmarkButton } from "@/app/_components/BookmarkButton";
-import { getFeaturedImage, type WPCategory, type WPContentItem, type WPTag } from "@/lib/wordpress";
+import { categoryHref, getFeaturedImage, type WPCategory, type WPContentItem, type WPTag } from "@/lib/wordpress";
 
 /** The single card <li> — split out of ContentList so pages that need to interleave post cards with other card types (e.g. Discover's featured-listing cards) in one <ul> can render it directly. */
 export function PostListCard({
@@ -21,14 +21,24 @@ export function PostListCard({
   const commentCount = item.comment_count ?? 0;
   return (
     <li>
+      {/* Theme and place are their own separately-clickable links, siblings
+          of the card's own link rather than nested inside it — anchors
+          can't nest (same reason event-card-topics' pills sit outside
+          their card's Link). */}
+      {tag && (
+        <Link href={`/themes/${tag.slug}`} className="card-tag">
+          {tag.name}
+        </Link>
+      )}
       <Link href={`/${item.slug}`}>
         {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
-        <div className="card-text">
-          {tag && <span className="card-tag">{tag.name}</span>}
-          <span className="card-title" dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
-          {category && <span className="card-category">{category.name}</span>}
-        </div>
+        <span className="card-title" dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
       </Link>
+      {category && categoriesById && (
+        <Link href={categoryHref(category, categoriesById)} className="card-category">
+          {category.name}
+        </Link>
+      )}
       <div className="card-meta-row">
         {showDate && (
           <time dateTime={item.date}>
