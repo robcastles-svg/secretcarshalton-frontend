@@ -2,7 +2,7 @@ import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { Pagination } from "@/app/_components/Pagination";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getAd, getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
+import { getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -12,11 +12,10 @@ export default async function PeoplePage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page: rawPage } = await searchParams;
-  const [category, allCategories, allTags, ad] = await Promise.all([
+  const [category, allCategories, allTags] = await Promise.all([
     getCategoryBySlug("people").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
-    getAd("in_feed"),
   ]);
   const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
@@ -29,7 +28,7 @@ export default async function PeoplePage({
         Business Spotlight
         <CategoryKeyIcon />
       </h1>
-      <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} ad={ad} />
+      <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
       <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/people?page=${p}`} />
     </main>
   );

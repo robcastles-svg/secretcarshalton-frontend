@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { AdCard } from "@/app/_components/AdCard";
 import { AdSlot } from "@/app/_components/AdSlot";
-import { withInterleavedAd } from "@/app/_components/AdCard";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { Pagination } from "@/app/_components/Pagination";
 import { PostListCard } from "@/app/_components/PostListCard";
@@ -18,9 +18,6 @@ import {
   type WPContentItem,
   type WPListing,
 } from "@/lib/wordpress";
-
-/** One in-feed ad card mixed in per roughly-a-page-worth of cards — matches ContentList's own AD_EVERY. */
-const AD_EVERY = 6;
 
 export const revalidate = 3600;
 
@@ -180,22 +177,18 @@ export default async function DiscoverPage({
               <p className="directory-empty">Nothing here yet — check back soon.</p>
             ) : (
               <ul className="post-list">
-                {withInterleavedAd(
-                  pageItems.map((item) =>
-                    item.kind === "post" ? (
-                      <PostListCard
-                        key={`post-${item.post.id}`}
-                        item={item.post}
-                        categoriesById={categoriesById}
-                        tagsById={tagsById}
-                        showDate={false}
-                      />
-                    ) : (
-                      <DirectoryListingCard key={`listing-${item.listing.id}`} listing={item.listing} />
-                    )
-                  ),
-                  ad,
-                  AD_EVERY
+                {pageItems.map((item) =>
+                  item.kind === "post" ? (
+                    <PostListCard
+                      key={`post-${item.post.id}`}
+                      item={item.post}
+                      categoriesById={categoriesById}
+                      tagsById={tagsById}
+                      showDate={false}
+                    />
+                  ) : (
+                    <DirectoryListingCard key={`listing-${item.listing.id}`} listing={item.listing} />
+                  )
                 )}
               </ul>
             )}
@@ -215,6 +208,12 @@ export default async function DiscoverPage({
                   ))}
                 </ul>
               </div>
+            )}
+
+            {ad && (
+              <ul className="post-list">
+                <AdCard ad={ad} />
+              </ul>
             )}
 
             <AdSlot

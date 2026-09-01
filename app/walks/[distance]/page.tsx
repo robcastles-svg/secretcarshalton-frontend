@@ -5,7 +5,7 @@ import { CategoryMiniNav } from "@/app/_components/CategoryMiniNav";
 import { ContentList } from "@/app/_components/ContentList";
 import { Pagination } from "@/app/_components/Pagination";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getAd, getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
+import { getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -40,11 +40,10 @@ export default async function WalksDistancePage({
 
   if (!category) notFound();
 
-  const [posts, allCategories, allTags, ad] = await Promise.all([
+  const [posts, allCategories, allTags] = await Promise.all([
     getPostsByCategory(category.id).catch(() => []),
     getCategories().catch(() => []),
     getTags().catch(() => []),
-    getAd("in_feed"),
   ]);
 
   const parent = allCategories.find((c) => c.slug === "walks");
@@ -61,7 +60,7 @@ export default async function WalksDistancePage({
           {category.name}
           <CategoryKeyIcon />
         </h1>
-        <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} ad={ad} />
+        <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
         <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/walks/${distance}?page=${p}`} />
       </main>
     </>
