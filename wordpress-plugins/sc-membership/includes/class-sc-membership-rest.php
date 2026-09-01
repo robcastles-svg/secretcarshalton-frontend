@@ -139,6 +139,28 @@ class SC_Membership_REST {
 
 		register_rest_route(
 			'sc-membership/v1',
+			'/bookmarks/state',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_bookmark_state' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/bookmarks/toggle',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'toggle_bookmark' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
 			'/members',
 			array(
 				'methods'             => 'GET',
@@ -711,6 +733,51 @@ class SC_Membership_REST {
 			'date'    => $comment->comment_date,
 			'content' => array( 'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ) ),
 			'rating'  => $rating,
+		);
+	}
+
+	/** post/listing only — the two content types cards render bookmark buttons on. */
+	const BOOKMARKABLE_TYPES = array( 'post', 'listing' );
+
+	private static function sanitize_bookmark_params( WP_REST_Request $request ) {
+		$content_type = sanitize_key( (string) $request->get_param( 'content_type' ) );
+		$content_id   = (int) $request->get_param( 'content_id' );
+
+		if ( ! in_array( $content_type, self::BOOKMARKABLE_TYPES, true ) || $content_id <= 0 ) {
+			return null;
+		}
+
+		return array( $content_type, $content_id );
+	}
+
+	public static function get_bookmark_state( WP_REST_Request $request ) {
+		$params = self::sanitize_bookmark_params( $request );
+		if ( ! $params ) {
+			return new WP_Error( 'invalid_bookmark_target', 'A valid content_type and content_id are required.', array( 'status' => 400 ) );
+		}
+		list( $content_type, $content_id ) = $params;
+
+		$user_id = get_current_user_id();
+
+		return array(
+			'count'      => SC_Membership_DB::bookmark_count( $content_type, $content_id ),
+			'bookmarked' => $user_id ? SC_Membership_DB::is_bookmarked( $user_id, $content_type, $content_id ) : false,
+			'logged_in'  => (bool) $user_id,
+		);
+	}
+
+	public static function toggle_bookmark( WP_REST_Request $request ) {
+		$params = self::sanitize_bookmark_params( $request );
+		if ( ! $params ) {
+			return new WP_Error( 'invalid_bookmark_target', 'A valid content_type and content_id are required.', array( 'status' => 400 ) );
+		}
+		list( $content_type, $content_id ) = $params;
+
+		$bookmarked = SC_Membership_DB::toggle_bookmark( get_current_user_id(), $content_type, $content_id );
+
+		return array(
+			'bookmarked' => $bookmarked,
+			'count'      => SC_Membership_DB::bookmark_count( $content_type, $content_id ),
 		);
 	}
 

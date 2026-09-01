@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BookmarkButton } from "@/app/_components/BookmarkButton";
 import { listingSocials } from "@/app/_components/SocialIcons";
 import { getFeaturedImage, stripHtml, type WPDirectoryCategory, type WPListing } from "@/lib/wordpress";
 
@@ -15,6 +16,7 @@ export function DirectoryListingCard({
   const verified = listing.meta.sc_claimed || listing.meta.sc_verified;
   const socials = listingSocials(listing.meta);
   const excerpt = listing.meta.sc_tagline || stripHtml(listing.content.rendered).slice(0, 120);
+  const reviewCount = listing.sc_review_stats?.count ?? 0;
 
   return (
     <li className={listing.meta.sc_featured ? "directory-card-featured" : undefined}>
@@ -37,6 +39,23 @@ export function DirectoryListingCard({
           <span dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
         </span>
       </Link>
+      <div className="card-meta-row">
+        <div className="card-actions">
+          {reviewCount > 0 && (
+            <Link
+              href={`/directory/${listing.slug}#comments`}
+              className="card-comment-count"
+              aria-label={`${reviewCount} review${reviewCount === 1 ? "" : "s"} — jump to reviews`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M21 12a8 8 0 0 1-8 8H7l-4 3 1-5.2A8 8 0 1 1 21 12Z" strokeLinejoin="round" />
+              </svg>
+              {reviewCount}
+            </Link>
+          )}
+          <BookmarkButton contentType="listing" contentId={listing.id} />
+        </div>
+      </div>
       {listing.meta.sc_featured && <span className="directory-badge">Featured</span>}
       {categoriesList?.map((category) => (
         <span key={category.id} className="card-category">

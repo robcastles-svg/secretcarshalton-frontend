@@ -1734,6 +1734,56 @@ export async function editComment(
   }
 }
 
+export interface BookmarkState {
+  count: number;
+  bookmarked: boolean;
+  logged_in: boolean;
+}
+
+/** Public — no token needed. Used to render the count/state on first paint for any viewer, logged in or not. */
+export async function getBookmarkState(
+  contentType: "post" | "listing",
+  contentId: number,
+  token?: string
+): Promise<BookmarkState | MemberAuthError> {
+  try {
+    const res = await fetch(
+      `${WP_STAGING_ROOT}/sc-membership/v1/bookmarks/state?content_type=${contentType}&content_id=${contentId}`,
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        cache: "no-store",
+        signal: AbortSignal.timeout(15_000),
+      }
+    );
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+export async function toggleBookmark(
+  token: string,
+  contentType: "post" | "listing",
+  contentId: number
+): Promise<{ bookmarked: boolean; count: number } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/bookmarks/toggle`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ content_type: contentType, content_id: contentId }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "bookmark_failed", message: body.message ?? "Could not update bookmark." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Site search — mirrors the live site's /search-page/ filter form exactly
 // (category tabs, title/content search mode, theme tag, sort), extended to

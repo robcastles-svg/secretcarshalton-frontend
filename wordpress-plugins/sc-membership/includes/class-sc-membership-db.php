@@ -15,8 +15,13 @@ class SC_Membership_DB {
 		return $wpdb->prefix . 'sc_member_points_log';
 	}
 
+	public static function bookmarks_table() {
+		global $wpdb;
+		return $wpdb->prefix . 'sc_bookmarks';
+	}
+
 	/**
-	 * Creates the two tables this plugin owns. Uses dbDelta so it's safe
+	 * Creates the tables this plugin owns. Uses dbDelta so it's safe
 	 * to call again on every plugin update (activation hook re-runs it).
 	 */
 	public static function install() {
@@ -26,6 +31,7 @@ class SC_Membership_DB {
 		$charset_collate = $wpdb->get_charset_collate();
 		$members_table   = self::members_table();
 		$log_table       = self::points_log_table();
+		$bookmarks_table = self::bookmarks_table();
 
 		$sql_members = "CREATE TABLE {$members_table} (
 			user_id BIGINT UNSIGNED NOT NULL,
@@ -54,8 +60,73 @@ class SC_Membership_DB {
 			KEY source (source)
 		) {$charset_collate};";
 
+		$sql_bookmarks = "CREATE TABLE {$bookmarks_table} (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			user_id BIGINT UNSIGNED NOT NULL,
+			content_type VARCHAR(20) NOT NULL,
+			content_id BIGINT UNSIGNED NOT NULL,
+			created_at DATETIME NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY user_content (user_id, content_type, content_id),
+			KEY content (content_type, content_id)
+		) {$charset_collate};";
+
 		dbDelta( $sql_members );
 		dbDelta( $sql_log );
+		dbDelta( $sql_bookmarks );
+	}
+
+	/** Total bookmark count for one piece of content — a public aggregate, same "no privacy concern" bar as this site's post view counts. */
+	public static function bookmark_count( $content_type, $content_id ) {
+		global $wpdb;
+		$table = self::bookmarks_table();
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$table} WHERE content_type = %s AND content_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$content_type,
+				$content_id
+			)
+		);
+	}
+
+	public static function is_bookmarked( $user_id, $content_type, $content_id ) {
+		global $wpdb;
+		$table = self::bookmarks_table();
+		return (bool) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT 1 FROM {$table} WHERE user_id = %d AND content_type = %s AND content_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$user_id,
+				$content_type,
+				$content_id
+			)
+		);
+	}
+
+	/** Adds or removes the bookmark and returns the new state (true = now bookmarked). */
+	public static function toggle_bookmark( $user_id, $content_type, $content_id ) {
+		global $wpdb;
+		$table = self::bookmarks_table();
+
+		if ( self::is_bookmarked( $user_id, $content_type, $content_id ) ) {
+			$wpdb->delete(
+				$table,
+				array( 'user_id' => $user_id, 'content_type' => $content_type, 'content_id' => $content_id ),
+				array( '%d', '%s', '%d' )
+			);
+			return false;
+		}
+
+		$wpdb->insert(
+			$table,
+			array(
+				'user_id'      => $user_id,
+				'content_type' => $content_type,
+				'content_id'   => $content_id,
+				'created_at'   => current_time( 'mysql' ),
+			),
+			array( '%d', '%s', '%d', '%s' )
+		);
+		return true;
 	}
 
 	/**

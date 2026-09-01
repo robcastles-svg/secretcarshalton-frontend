@@ -564,6 +564,39 @@ button.button-pill {
   color: var(--color-active-dark);
 }
 
+/* Groups the comment bubble and bookmark icon together on the right of
+   the meta row — margin-left: auto pushes the whole group there even
+   when there's no time/date sibling to its left (e.g. directory cards). */
+.card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+/* Always visible, unlike the comment count — clicking while logged out
+   opens the login popup rather than hiding the button. */
+.card-bookmark-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: none;
+  background: none;
+  padding: 0;
+  color: #777;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.card-bookmark-button:hover {
+  color: var(--color-active-dark);
+}
+
+.card-bookmark-button-active {
+  color: #c2607a;
+}
+
 /* The clipping frame every event card image (or CloudsPlaceholder
    fallback, when there's no featured image) sits in — owns sizing per
    context below, and clips the hover-zoom transform so it never spills
