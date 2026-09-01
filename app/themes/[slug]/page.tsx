@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
+import { Pagination } from "@/app/_components/Pagination";
+import { paginate, parsePageParam } from "@/lib/pagination";
 import { getCategories, getPostsByTag, getTagBySlug, getTags } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -24,10 +26,13 @@ export async function generateMetadata({
 
 export default async function ThemePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { slug } = await params;
+  const { page: rawPage } = await searchParams;
   const tag = await getTagBySlug(slug).catch(() => null);
 
   if (!tag) notFound();
@@ -40,6 +45,7 @@ export default async function ThemePage({
 
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
   const tagsById = new Map(allTags.map((t) => [t.id, t]));
+  const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage));
 
   return (
     <main className="container">
@@ -49,7 +55,8 @@ export default async function ThemePage({
         <CategoryKeyIcon />
       </h1>
       {posts.length === 0 && <p>No stories tagged &quot;{tag.name}&quot; yet.</p>}
-      <ContentList items={posts} categoriesById={categoriesById} tagsById={tagsById} />
+      <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
+      <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/themes/${slug}?page=${p}`} />
     </main>
   );
 }

@@ -7,10 +7,13 @@ export function PostListCard({
   item,
   categoriesById,
   tagsById,
+  showDate = true,
 }: {
   item: WPContentItem;
   categoriesById?: Map<number, WPCategory>;
   tagsById?: Map<number, WPTag>;
+  /** Discover's content is evergreen (mixed areas/eras, not a news timeline) — its cards skip the publish date. */
+  showDate?: boolean;
 }) {
   const image = getFeaturedImage(item);
   const tag = tagsById && item.tags?.map((id) => tagsById.get(id)).find(Boolean);
@@ -27,13 +30,15 @@ export function PostListCard({
         </div>
       </Link>
       <div className="card-meta-row">
-        <time dateTime={item.date}>
-          {new Date(item.date).toLocaleDateString("en-GB", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
-        </time>
+        {showDate && (
+          <time dateTime={item.date}>
+            {new Date(item.date).toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </time>
+        )}
         <div className="card-actions">
           {commentCount > 0 && (
             <Link

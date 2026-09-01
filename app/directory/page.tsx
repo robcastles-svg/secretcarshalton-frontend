@@ -2,7 +2,9 @@ import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { AdSlot } from "@/app/_components/AdSlot";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
+import { Pagination } from "@/app/_components/Pagination";
 import { DirectoryControls } from "./_components/DirectoryControls";
+import { paginate, parsePageParam } from "@/lib/pagination";
 import { getDirectoryCategories, getDirectoryListings, getDirectoryListingsByCategory, stripHtml, type WPListing } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -44,9 +46,9 @@ function sortListings(listings: WPListing[], sort: string) {
 export default async function DirectoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; q?: string; sort?: string }>;
+  searchParams: Promise<{ category?: string; q?: string; sort?: string; page?: string }>;
 }) {
-  const { category, q: rawQ, sort: rawSort } = await searchParams;
+  const { category, q: rawQ, sort: rawSort, page: rawPage } = await searchParams;
   const q = (rawQ ?? "").trim();
   const sort = rawSort ?? "newest";
 
@@ -75,6 +77,16 @@ export default async function DirectoryPage({
   const regularListings = sortListings(filteredListings.filter((l) => !l.meta.sc_featured), sort);
 
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
+  const { items: pageListings, page, totalPages } = paginate(regularListings, parsePageParam(rawPage));
+
+  const buildPageHref = (p: number) => {
+    const params = new URLSearchParams();
+    if (category) params.set("category", category);
+    if (q) params.set("q", q);
+    if (sort !== "newest") params.set("sort", sort);
+    params.set("page", String(p));
+    return `/directory?${params.toString()}`;
+  };
 
   return (
     <>
@@ -151,9 +163,9 @@ export default async function DirectoryPage({
                 </ul>
               )}
 
-              {regularListings.length > 0 && (
+              {pageListings.length > 0 && (
                 <ul className="post-list directory-list">
-                  {regularListings.map((listing) => (
+                  {pageListings.map((listing) => (
                     <DirectoryListingCard
                       key={listing.id}
                       listing={listing}
@@ -166,6 +178,8 @@ export default async function DirectoryPage({
                   ))}
                 </ul>
               )}
+
+              <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />
             </>
           )}
         </div>

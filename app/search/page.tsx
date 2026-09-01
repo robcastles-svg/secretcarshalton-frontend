@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Pagination } from "@/app/_components/Pagination";
+import { paginate, parsePageParam } from "@/lib/pagination";
 import { getTags, searchSite } from "@/lib/wordpress";
 
 export const metadata = { title: "Search" };
@@ -40,7 +42,7 @@ function formatDate(iso: string) {
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ s?: string; cat?: string; search_mode?: string; tag?: string; sort?: string }>;
+  searchParams: Promise<{ s?: string; cat?: string; search_mode?: string; tag?: string; sort?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const q = params.s?.trim() || "";
@@ -55,6 +57,17 @@ export default async function SearchPage({
   ]);
 
   const tabQuery = { s: q, search_mode: searchMode, tag, sort };
+  const { items: pageResults, page, totalPages } = paginate(results, parsePageParam(params.page));
+  const buildPageHref = (p: number) => {
+    const usp = new URLSearchParams();
+    if (q) usp.set("s", q);
+    if (category) usp.set("cat", category);
+    if (searchMode) usp.set("search_mode", searchMode);
+    if (tag) usp.set("tag", tag);
+    if (sort) usp.set("sort", sort);
+    usp.set("page", String(p));
+    return `/search?${usp.toString()}`;
+  };
 
   return (
     <main className="container search-page">
@@ -108,8 +121,9 @@ export default async function SearchPage({
       ) : results.length === 0 ? (
         <p className="search-nothing-found">It seems we can&rsquo;t find what you&rsquo;re looking for.</p>
       ) : (
+        <>
         <ul className="post-list search-results-list">
-          {results.map((item) => {
+          {pageResults.map((item) => {
             const date = formatDate(item.date);
             return (
               <li key={`${item.type}-${item.id}`}>
@@ -127,6 +141,8 @@ export default async function SearchPage({
             );
           })}
         </ul>
+        <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />
+        </>
       )}
     </main>
   );

@@ -2,7 +2,9 @@ import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { AdSlot } from "@/app/_components/AdSlot";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
+import { Pagination } from "@/app/_components/Pagination";
 import { PostListCard } from "@/app/_components/PostListCard";
+import { paginate, parsePageParam } from "@/lib/pagination";
 import {
   getCategories,
   getCategoryBySlug,
@@ -41,6 +43,24 @@ function buildFeed(posts: WPContentItem[], featuredListings: WPListing[]): FeedI
 }
 
 /**
+ * Pagination cuts the feed into fixed 9-card pages, which can land a
+ * featured listing right at the top of a page depending on where the
+ * FEATURE_EVERY interleave falls relative to the page boundary — swap it
+ * with the first post later in the same page so a featured card is never
+ * the first thing you see. A no-op on the "Business feature" filter view
+ * (every card there is a featured listing by definition) since there's no
+ * post on the page to swap with.
+ */
+function avoidFeaturedFirst(pageItems: FeedItem[]): FeedItem[] {
+  if (pageItems.length < 2 || pageItems[0].kind !== "listing") return pageItems;
+  const swapIndex = pageItems.findIndex((item) => item.kind === "post");
+  if (swapIndex <= 0) return pageItems;
+  const next = [...pageItems];
+  [next[0], next[swapIndex]] = [next[swapIndex], next[0]];
+  return next;
+}
+
+/**
  * The main nav's browsing hub, replacing the old plain /stories link-list.
  * Per Rob (after seeing his own PDF wireframe again): the main feed is all
  * story posts from every area merged together — not links out to the
@@ -54,9 +74,9 @@ function buildFeed(posts: WPContentItem[], featuredListings: WPListing[]): FeedI
 export default async function DiscoverPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>;
+  searchParams: Promise<{ filter?: string; page?: string }>;
 }) {
-  const { filter } = await searchParams;
+  const { filter, page: rawPage } = await searchParams;
 
   const [storiesParent, peopleCategory, allCategories, allTags, directoryCategories, allListings] = await Promise.all([
     getCategoryBySlug("stories").catch(() => null),
@@ -99,6 +119,16 @@ export default async function DiscoverPage({
       ? featuredListings.map((listing) => ({ kind: "listing", listing }))
       : posts.map((post) => ({ kind: "post", post }));
 
+  const { items: pageFeed, page, totalPages } = paginate(feed, parsePageParam(rawPage));
+  const pageItems = avoidFeaturedFirst(pageFeed);
+
+  const buildPageHref = (p: number) => {
+    const params = new URLSearchParams();
+    if (filter) params.set("filter", filter);
+    params.set("page", String(p));
+    return `/discover?${params.toString()}`;
+  };
+
   return (
     <>
       <div className="secondary-nav-bar">
@@ -125,25 +155,33 @@ export default async function DiscoverPage({
       </div>
 
       <main className="container">
-        <h1>
-          Discover
-          <CategoryKeyIcon />
-        </h1>
+        {activeArea ? (
+          <h1>
+            {activeArea.name}
+            <CategoryKeyIcon />
+          </h1>
+        ) : (
+          <h1>
+            Discover
+            <CategoryKeyIcon />
+          </h1>
+        )}
         <p>Stories, walks and local businesses from around Carshalton, all in one feed.</p>
 
         <div className="post-layout discover-layout">
           <div className="post-body">
-            {feed.length === 0 ? (
+            {pageItems.length === 0 ? (
               <p className="directory-empty">Nothing here yet — check back soon.</p>
             ) : (
               <ul className="post-list">
-                {feed.map((item) =>
+                {pageItems.map((item) =>
                   item.kind === "post" ? (
                     <PostListCard
                       key={`post-${item.post.id}`}
                       item={item.post}
                       categoriesById={categoriesById}
                       tagsById={tagsById}
+                      showDate={false}
                     />
                   ) : (
                     <DirectoryListingCard key={`listing-${item.listing.id}`} listing={item.listing} />
@@ -151,6 +189,8 @@ export default async function DiscoverPage({
                 )}
               </ul>
             )}
+
+            <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />
           </div>
 
           <aside className="post-sidebar">

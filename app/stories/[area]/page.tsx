@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { CategoryMiniNav } from "@/app/_components/CategoryMiniNav";
 import { ContentList } from "@/app/_components/ContentList";
+import { Pagination } from "@/app/_components/Pagination";
+import { paginate, parsePageParam } from "@/lib/pagination";
 import { getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -27,10 +29,13 @@ export async function generateMetadata({
 
 export default async function StoriesAreaPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ area: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { area } = await params;
+  const { page: rawPage } = await searchParams;
   const category = await getCategoryBySlug(area).catch(() => null);
 
   if (!category) notFound();
@@ -45,6 +50,7 @@ export default async function StoriesAreaPage({
   const siblings = parent ? allCategories.filter((c) => c.parent === parent.id && c.count > 0) : [];
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
   const tagsById = new Map(allTags.map((t) => [t.id, t]));
+  const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage));
 
   return (
     <>
@@ -54,7 +60,8 @@ export default async function StoriesAreaPage({
           {category.name}
           <CategoryKeyIcon />
         </h1>
-        <ContentList items={posts} categoriesById={categoriesById} tagsById={tagsById} />
+        <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
+        <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/stories/${area}?page=${p}`} />
       </main>
     </>
   );

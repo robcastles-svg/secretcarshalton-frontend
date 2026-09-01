@@ -1639,6 +1639,10 @@ a.card-category:hover {
   color: #fff;
 }
 
+.events-dark .directory-empty {
+  color: #999;
+}
+
 .events-dark .event-calendar-weekdays {
   color: #999;
 }
@@ -3974,4 +3978,64 @@ a.card-category:hover {
     right: 1rem;
     bottom: 1rem;
   }
+}
+
+/* Shared page-number + Previous/Next pagination for every card grid
+   (News, Directory, Discover, People, Walks, Themes, Stories) — caps a
+   page at 9 cards instead of one long scroll. */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 2.5rem 0 1rem;
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pagination-numbers a,
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.3rem;
+  border-radius: 6px;
+  color: #666;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.pagination-numbers a:hover {
+  background: #f5f5f5;
+}
+
+.pagination-numbers a.active {
+  background: #c2607a;
+  color: #fff;
+  font-weight: 700;
+}
+
+.pagination-prev,
+.pagination-next {
+  color: #c2607a;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.pagination-prev:hover,
+.pagination-next:hover {
+  text-decoration: underline;
+}
+
+.pagination-disabled {
+  color: #ccc;
+  pointer-events: none;
 }

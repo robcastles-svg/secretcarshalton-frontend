@@ -44,7 +44,7 @@ export default async function EventsPage({
     getScEventCategories().catch(() => []),
     getScEventTags().catch(() => []),
     getUpcomingScEvents(100).catch(() => []),
-    isCalendar ? getScEvents(300).catch(() => []) : Promise.resolve([]),
+    getScEvents(300).catch(() => []),
     getLatestAddedScEvents(5).catch(() => []),
   ]);
 
@@ -53,8 +53,27 @@ export default async function EventsPage({
   const matchesFilters = (e: { sc_event_category?: number[]; sc_event_tag?: number[] }) =>
     (!activeCategory || e.sc_event_category?.includes(activeCategory.id)) &&
     (!activeTag || e.sc_event_tag?.includes(activeTag.id));
-  const listEvents = upcoming.filter(matchesFilters);
   const calendarEvents = allEvents.filter(matchesFilters);
+  // The list view is month-browsed rather than paginated by count (Events
+  // is the one card grid that isn't) — same year/month params the calendar
+  // already uses, just applied to a flat sorted list instead of a grid.
+  const listEvents = calendarEvents
+    .filter((e) => {
+      const start = parseEventDate(e.meta.sc_start);
+      return start && start.getFullYear() === calendarYear && start.getMonth() + 1 === calendarMonth;
+    })
+    .sort((a, b) => {
+      const aStart = parseEventDate(a.meta.sc_start);
+      const bStart = parseEventDate(b.meta.sc_start);
+      return (aStart?.getTime() ?? 0) - (bStart?.getTime() ?? 0);
+    });
+
+  const MONTH_NAMES = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+  const prevMonth = calendarMonth === 1 ? { year: calendarYear - 1, month: 12 } : { year: calendarYear, month: calendarMonth - 1 };
+  const nextMonth = calendarMonth === 12 ? { year: calendarYear + 1, month: 1 } : { year: calendarYear, month: calendarMonth + 1 };
 
   // A paid-upgrade "featured" event (see SC_Events_Meta::sc_event_featured)
   // takes the "Coming up next" hero slot over whatever's chronologically
@@ -124,7 +143,30 @@ export default async function EventsPage({
             {isCalendar ? (
               <EventCalendarMonth year={calendarYear} month={calendarMonth} events={calendarEvents} />
             ) : (
-              <EventsGrid events={listEvents} />
+              <>
+                <div className="event-calendar-header event-list-month-header">
+                  <Link
+                    href={`/events?year=${prevMonth.year}&month=${prevMonth.month}${filterQuery(activeCategory?.slug, activeTag?.slug, true)}`}
+                    aria-label="Previous month"
+                  >
+                    ←
+                  </Link>
+                  <h2>
+                    {MONTH_NAMES[calendarMonth - 1]} {calendarYear}
+                  </h2>
+                  <Link
+                    href={`/events?year=${nextMonth.year}&month=${nextMonth.month}${filterQuery(activeCategory?.slug, activeTag?.slug, true)}`}
+                    aria-label="Next month"
+                  >
+                    →
+                  </Link>
+                </div>
+                {listEvents.length === 0 ? (
+                  <p className="directory-empty">No events in {MONTH_NAMES[calendarMonth - 1]} {calendarYear} — try another month.</p>
+                ) : (
+                  <EventsGrid events={listEvents} />
+                )}
+              </>
             )}
           </div>
           <aside className="post-sidebar">
