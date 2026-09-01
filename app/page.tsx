@@ -10,6 +10,7 @@ import {
   getLatestPostInCategories,
   getPosts,
   getCategories,
+  getTags,
   getTopPostsThisWeek,
   getUpcomingScEvents,
   parseEventDate,
@@ -33,13 +34,17 @@ export default async function HomePage() {
   // Every branch below already renders fine with an empty/null result
   // (the "no posts" state, conditionally-rendered sections), so catching
   // here just lets that existing degrade-gracefully behavior actually work.
-  const [recentPosts, walksCategory, allCategories, events, directoryListings] = await Promise.all([
+  const [recentPosts, walksCategory, allCategories, allTags, events, directoryListings] = await Promise.all([
     getPosts(20).catch(() => []),
     getCategoryBySlug("walks").catch(() => null),
     getCategories().catch(() => []),
+    getTags().catch(() => []),
     getUpcomingScEvents(4).catch(() => []),
     getDirectoryListings(10).catch(() => []),
   ]);
+
+  const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
+  const tagsById = new Map(allTags.map((t) => [t.id, t]));
 
   // One spotlight (the most recent featured/paid listing, if any) shown on
   // its own above the grid, then the 3 latest listings otherwise — not
@@ -87,7 +92,7 @@ export default async function HomePage() {
           )}
         </section>
 
-        <ContentList items={cardPosts} />
+        <ContentList items={cardPosts} categoriesById={categoriesById} tagsById={tagsById} />
       </div>
 
       <div className="newsletter-cta">

@@ -98,10 +98,20 @@ export default async function DirectoryPage({
       <div className="section-hero">
         <div className="container page-header-row">
           <div>
-            <h1>
-              The Sutton Business Directory
-              <CategoryKeyIcon />
-            </h1>
+            {activeCategory ? (
+              <>
+                <span className="section-hero-eyebrow">The Sutton Business Directory</span>
+                <h1>
+                  {activeCategory.name}
+                  <CategoryKeyIcon />
+                </h1>
+              </>
+            ) : (
+              <h1>
+                The Sutton Business Directory
+                <CategoryKeyIcon />
+              </h1>
+            )}
             <p>Local businesses and organisations in and around Carshalton.</p>
           </div>
           <Link href="/directory/submit" className="button-pill">

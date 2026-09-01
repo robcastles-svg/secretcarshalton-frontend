@@ -181,6 +181,8 @@ export default async function ContentPage({
   const category = allCategories.find((c) => post.categories?.includes(c.id));
   const tag = allTags.find((t) => post.tags?.includes(t.id));
   const navSection = navSectionForCategories(post.categories, allCategories);
+  const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
+  const tagsById = new Map(allTags.map((t) => [t.id, t]));
 
   // Same category as this post, itself excluded — reuses getPostsByCategory
   // (already the shared fetch for news/walks/stories/people listings) so
@@ -270,7 +272,7 @@ export default async function ContentPage({
           {relatedPosts.length > 0 && (
             <section className="related-stories">
               <h2>Related stories</h2>
-              <ContentList items={relatedPosts} />
+              <ContentList items={relatedPosts} categoriesById={categoriesById} tagsById={tagsById} />
             </section>
           )}
         </div>

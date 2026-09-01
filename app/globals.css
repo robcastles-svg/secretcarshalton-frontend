@@ -1040,8 +1040,10 @@ a.card-category:hover {
  * pattern as .member-benefits-bar) so it always reads as a continuation
  * of the header, not part of the page content below it.
  */
+/* Always a plain white strip — even on Events' dark-themed page — with a
+   lighter, un-emphasised colour for whichever links aren't the active one. */
 .secondary-nav-bar {
-  background: #fafafa;
+  background: #fff;
   border-bottom: 1px solid #eee;
 }
 
@@ -1058,9 +1060,9 @@ a.card-category:hover {
 .secondary-nav button {
   position: relative;
   padding: 0 0.6rem;
-  color: #444;
+  color: #999;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 400;
   background: none;
   border: none;
   font-size: inherit;
@@ -1101,6 +1103,20 @@ a.card-category:hover {
 
 .section-hero .page-header-row {
   padding: 2.5rem 1.5rem;
+}
+
+/* Shown above the h1 only when a category page swaps the headline for the
+   category's own name (see /directory's activeCategory branch) — keeps
+   "The Sutton Business Directory" visible as context, just demoted to a
+   small label instead of competing with the category name for size. */
+.section-hero-eyebrow {
+  display: block;
+  color: #ddd;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.4rem;
 }
 
 .section-hero h1 {
@@ -1630,22 +1646,6 @@ a.card-category:hover {
 .events-dark .button-pill-secondary {
   color: #fff;
   border-color: rgba(255, 255, 255, 0.35);
-}
-
-.events-dark .secondary-nav {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.events-dark .secondary-nav a {
-  color: #ccc;
-}
-
-.events-dark .secondary-nav a:not(:first-child)::before {
-  color: #555;
-}
-
-.events-dark .secondary-nav a.active {
-  color: #fff;
 }
 
 .events-dark .event-tag-dropdown select {

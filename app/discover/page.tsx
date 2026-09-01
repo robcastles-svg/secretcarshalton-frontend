@@ -10,6 +10,7 @@ import {
   getDirectoryListings,
   getPostsByCategories,
   getPostsByCategory,
+  getTags,
   type WPContentItem,
   type WPListing,
 } from "@/lib/wordpress";
@@ -57,13 +58,17 @@ export default async function DiscoverPage({
 }) {
   const { filter } = await searchParams;
 
-  const [storiesParent, peopleCategory, allCategories, directoryCategories, allListings] = await Promise.all([
+  const [storiesParent, peopleCategory, allCategories, allTags, directoryCategories, allListings] = await Promise.all([
     getCategoryBySlug("stories").catch(() => null),
     getCategoryBySlug("people").catch(() => null),
     getCategories().catch(() => []),
+    getTags().catch(() => []),
     getDirectoryCategories().catch(() => []),
     getDirectoryListings().catch(() => []),
   ]);
+
+  const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
+  const tagsById = new Map(allTags.map((t) => [t.id, t]));
 
   const areas = storiesParent
     ? allCategories.filter((c) => c.parent === storiesParent.id && c.count > 0)
@@ -134,7 +139,12 @@ export default async function DiscoverPage({
               <ul className="post-list">
                 {feed.map((item) =>
                   item.kind === "post" ? (
-                    <PostListCard key={`post-${item.post.id}`} item={item.post} />
+                    <PostListCard
+                      key={`post-${item.post.id}`}
+                      item={item.post}
+                      categoriesById={categoriesById}
+                      tagsById={tagsById}
+                    />
                   ) : (
                     <DirectoryListingCard key={`listing-${item.listing.id}`} listing={item.listing} />
                   )
