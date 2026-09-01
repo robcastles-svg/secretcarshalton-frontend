@@ -102,28 +102,31 @@ export default async function RootLayout({
             {sessionToken ? "Member dashboard" : "Member benefits"}
           </Link>
         </div>
-        <SiteDateWeather />
+        {/* One merged bar — date/weather on the left, utility links on the right — matching the PDF wireframe rather than two stacked bars. */}
         <div className={`utility-bar${sessionToken ? " utility-bar-loggedin" : ""}`}>
           <div className="container utility-bar-inner">
-            {UTILITY_NAV.map((item) =>
-              item.href.startsWith("http") ? (
-                <a key={item.label} href={item.href}>
-                  {item.label}
-                </a>
+            <SiteDateWeather />
+            <div className="utility-bar-links">
+              {UTILITY_NAV.map((item) =>
+                item.href.startsWith("http") ? (
+                  <a key={item.label} href={item.href}>
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link key={item.label} href={item.href}>
+                    {item.label}
+                  </Link>
+                )
+              )}
+              {sessionToken ? (
+                <Link href="/dashboard">Member dashboard</Link>
               ) : (
-                <Link key={item.label} href={item.href}>
-                  {item.label}
-                </Link>
-              )
-            )}
-            {sessionToken ? (
-              <Link href="/dashboard">Member dashboard</Link>
-            ) : (
-              <>
-                <Link href="/register">Join</Link>
-                <Link href="/login">Login</Link>
-              </>
-            )}
+                <>
+                  <Link href="/register">Join</Link>
+                  <Link href="/login">Login</Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
 

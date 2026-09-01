@@ -63,17 +63,17 @@ button.button-pill {
 }
 
 /* Date/weather strip — the very first thing on every page. */
+/* Sits inline inside .utility-bar-inner now (left side, utility links on
+   the right) — matches the PDF wireframe's single merged bar rather than
+   two stacked ones. */
 .site-date-weather-bar {
   display: flex;
-  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem 0.9rem;
-  background: #f5f5f5;
   color: #666;
   font-size: 0.75rem;
   letter-spacing: 0.02em;
-  padding: 0.4rem 1.5rem;
 }
 
 .site-date-weather-bar span:first-child {
@@ -95,10 +95,16 @@ button.button-pill {
 
 .utility-bar-inner {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 0;
+  gap: 0.5rem 1rem;
   padding: 0.5rem 1.5rem;
+}
+
+.utility-bar-links {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .utility-bar a {
@@ -218,13 +224,13 @@ button.button-pill {
 
 .member-benefits-inner {
   display: block;
-  padding: 0.55rem 1.5rem;
+  padding: 0.9rem 1.5rem;
   text-align: center;
   color: #fff;
   text-decoration: none;
-  font-size: 0.75rem;
+  font-size: 1.4rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
