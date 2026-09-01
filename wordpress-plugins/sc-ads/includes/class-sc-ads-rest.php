@@ -110,10 +110,12 @@ class SC_Ads_REST {
 		$post = self::weighted_pick( $eligible );
 
 		return array(
-			'id'    => $post->ID,
-			'image' => get_post_meta( $post->ID, 'sc_ad_image_url', true ),
-			'link'  => get_post_meta( $post->ID, 'sc_ad_link_url', true ),
-			'alt'   => get_post_meta( $post->ID, 'sc_ad_alt_text', true ),
+			'id'       => $post->ID,
+			'headline' => get_post_meta( $post->ID, 'sc_ad_headline', true ),
+			'body'     => get_post_meta( $post->ID, 'sc_ad_body', true ),
+			'image'    => get_post_meta( $post->ID, 'sc_ad_image_url', true ),
+			'link'     => get_post_meta( $post->ID, 'sc_ad_link_url', true ),
+			'alt'      => get_post_meta( $post->ID, 'sc_ad_alt_text', true ),
 		);
 	}
 

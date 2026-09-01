@@ -24,6 +24,8 @@ class SC_Ads_Metabox {
 	public static function render( $post ) {
 		wp_nonce_field( 'sc_ad_save_' . $post->ID, 'sc_ad_nonce' );
 
+		$headline  = get_post_meta( $post->ID, 'sc_ad_headline', true );
+		$body      = get_post_meta( $post->ID, 'sc_ad_body', true );
 		$image     = get_post_meta( $post->ID, 'sc_ad_image_url', true );
 		$link      = get_post_meta( $post->ID, 'sc_ad_link_url', true );
 		$alt       = get_post_meta( $post->ID, 'sc_ad_alt_text', true );
@@ -36,7 +38,20 @@ class SC_Ads_Metabox {
 		?>
 		<table class="form-table">
 			<tr>
-				<th><label for="sc_ad_image_url">Image URL</label></th>
+				<th><label for="sc_ad_headline">Headline</label></th>
+				<td>
+					<input type="text" id="sc_ad_headline" name="sc_ad_headline" class="large-text"
+						value="<?php echo esc_attr( $headline ); ?>" placeholder="e.g. 20% off this month at..." />
+					<p class="description">Shown for every placement except Billboard — a plain text/image ad rather than a designed banner, so it's easy for an advertiser to put together themselves.</p>
+				</td>
+			</tr>
+			<tr>
+				<th><label for="sc_ad_body">Body text (optional)</label></th>
+				<td><input type="text" id="sc_ad_body" name="sc_ad_body" class="large-text"
+					value="<?php echo esc_attr( $body ); ?>" placeholder="A short line under the headline" /></td>
+			</tr>
+			<tr>
+				<th><label for="sc_ad_image_url">Image URL <span class="description">(optional except for Billboard)</span></label></th>
 				<td>
 					<input type="url" id="sc_ad_image_url" name="sc_ad_image_url" class="large-text"
 						value="<?php echo esc_attr( $image ); ?>" placeholder="https://…" />
@@ -107,6 +122,8 @@ class SC_Ads_Metabox {
 			return;
 		}
 
+		update_post_meta( $post_id, 'sc_ad_headline', sanitize_text_field( wp_unslash( $_POST['sc_ad_headline'] ?? '' ) ) );
+		update_post_meta( $post_id, 'sc_ad_body', sanitize_text_field( wp_unslash( $_POST['sc_ad_body'] ?? '' ) ) );
 		update_post_meta( $post_id, 'sc_ad_image_url', esc_url_raw( wp_unslash( $_POST['sc_ad_image_url'] ?? '' ) ) );
 		update_post_meta( $post_id, 'sc_ad_link_url', esc_url_raw( wp_unslash( $_POST['sc_ad_link_url'] ?? '' ) ) );
 		update_post_meta( $post_id, 'sc_ad_alt_text', sanitize_text_field( wp_unslash( $_POST['sc_ad_alt_text'] ?? '' ) ) );

@@ -119,19 +119,13 @@ export default async function DiscoverPage({
         </nav>
       </div>
 
-      <div className="section-hero">
-        <div className="container page-header-row">
-          <div>
-            <h1>
-              Discover
-              <CategoryKeyIcon />
-            </h1>
-            <p>Stories, walks and local businesses from around Carshalton, all in one feed.</p>
-          </div>
-        </div>
-      </div>
-
       <main className="container">
+        <h1>
+          Discover
+          <CategoryKeyIcon />
+        </h1>
+        <p>Stories, walks and local businesses from around Carshalton, all in one feed.</p>
+
         <div className="post-layout discover-layout">
           <div className="post-body">
             {feed.length === 0 ? (

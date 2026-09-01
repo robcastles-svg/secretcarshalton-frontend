@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 
 interface Ad {
   id: number;
+  headline: string;
+  body: string;
   image: string;
   link: string;
   alt: string;
@@ -67,9 +69,25 @@ export function AdSlot({
     );
   }
 
+  // Billboard stays a plain image banner (the one placement that's still
+  // a designed creative) — every other placement dropped the MPU format
+  // in favour of a simple text+image ad an advertiser can put together
+  // themselves, no banner design needed.
+  if (placement === "billboard") {
+    return (
+      <a className={className} href={`/api/ads/click/${ad.id}`} target="_blank" rel="noopener sponsored">
+        <img src={ad.image} alt={ad.alt} loading="lazy" />
+      </a>
+    );
+  }
+
   return (
-    <a className={className} href={`/api/ads/click/${ad.id}`} target="_blank" rel="noopener sponsored">
-      <img src={ad.image} alt={ad.alt} loading="lazy" />
+    <a className={`${className} ad-slot-text-image`} href={`/api/ads/click/${ad.id}`} target="_blank" rel="noopener sponsored">
+      {ad.image && <img src={ad.image} alt={ad.alt} loading="lazy" />}
+      <span className="ad-slot-text">
+        {ad.headline && <span className="ad-slot-headline">{ad.headline}</span>}
+        {ad.body && <span className="ad-slot-body">{ad.body}</span>}
+      </span>
     </a>
   );
 }

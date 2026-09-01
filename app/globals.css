@@ -24,7 +24,7 @@ h3 {
 }
 
 a {
-  color: #0a5c36;
+  color: #c2607a;
 }
 
 img {
@@ -40,7 +40,7 @@ img {
 
 .button-pill {
   display: inline-block;
-  background: #c2607a;
+  background: #d6293e;
   color: #fff;
   padding: 0.6rem 1.4rem;
   border-radius: 999px;
@@ -123,7 +123,7 @@ button.button-pill {
 }
 
 .utility-bar a:hover {
-  color: #0a5c36;
+  color: #c2607a;
 }
 
 .utility-bar-loggedin {
@@ -190,11 +190,11 @@ button.button-pill {
 }
 
 .primary-nav a:hover {
-  color: #0a5c36;
+  color: #c2607a;
 }
 
 .primary-nav a.active {
-  color: #0a5c36;
+  color: #c2607a;
   font-weight: 700;
   text-decoration: underline;
   text-decoration-thickness: 2px;
@@ -316,13 +316,49 @@ button.button-pill {
 
 .ad-in-post {
   margin: 2rem auto;
-  text-align: center;
 }
 
-.ad-in-post img {
-  max-width: 100%;
-  height: auto;
-  margin: 0 auto;
+/*
+ * Every placement except Billboard — a small optional image (a logo,
+ * not a designed banner) plus a headline/body an advertiser writes
+ * themselves. Replaces the old fixed 300x250 MPU box.
+ */
+.ad-slot-text-image {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background: #fff;
+  text-decoration: none;
+}
+
+.ad-slot-text-image img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.ad-slot-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.ad-slot-headline {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+}
+
+.ad-slot-body {
+  font-size: 0.8rem;
+  color: #666;
 }
 
 /* Search — mirrors the live site's /search-page/ filter bar + form layout. */
@@ -902,7 +938,7 @@ a.card-category:hover {
 }
 
 .link-list a:hover {
-  color: #0a5c36;
+  color: #c2607a;
 }
 
 /* Mini category nav (Stories/Walks sub-areas quick jump) — desktop only */
@@ -925,7 +961,7 @@ a.card-category:hover {
 }
 
 .mini-category-nav a:hover {
-  color: #0a5c36;
+  color: #c2607a;
 }
 
 @media (max-width: 720px) {
@@ -1009,12 +1045,12 @@ a.card-category:hover {
 
 .secondary-nav a:hover,
 .secondary-nav button:hover {
-  color: #0a5c36;
+  color: #c2607a;
 }
 
 .secondary-nav a.active,
 .secondary-nav button.active {
-  color: #0a5c36;
+  color: #c2607a;
   font-weight: 700;
 }
 
@@ -1481,7 +1517,7 @@ a.card-category:hover {
   display: block;
   font-size: 0.7rem;
   line-height: 1.2;
-  color: #0a5c36;
+  color: #c2607a;
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1611,7 +1647,7 @@ a.card-category:hover {
 }
 
 .rsvp-button-going {
-  background: #0a5c36;
+  background: #d6293e;
 }
 
 .rsvp-count {
@@ -1786,7 +1822,7 @@ a.card-category:hover {
 
 .member-tier-badge {
   display: inline-block;
-  background: #0a5c36;
+  background: #c2607a;
   color: #fff;
   padding: 0.25rem 0.7rem;
   border-radius: 999px;
@@ -2154,7 +2190,7 @@ a.card-category:hover {
 }
 
 .most-read-list a:hover {
-  color: #0a5c36;
+  color: #c2607a;
 }
 
 /* Article page */
@@ -2498,26 +2534,13 @@ a.card-category:hover {
   color: #555;
 }
 
-/* MPU (Medium Rectangle) — the standard IAB sidebar ad unit, 300x250.
-   Fixed dimensions rather than "however wide the column is, whatever
-   height the uploaded image happens to be": a real ad slot needs a
-   predictable size so it can be sold/booked as one, and object-fit
-   keeps a creative that isn't exactly 300x250 from distorting. */
+/* No more MPU (300x250) box — sidebar ads are now the same text+image
+   card as every other non-Billboard placement (.ad-slot-text-image),
+   sized to the column instead of a fixed IAB unit. */
 .sidebar-block-ad,
 .sidebar-ad-placeholder {
-  display: block;
-  width: 300px;
-  max-width: 100%;
-  height: 250px;
-  margin: 0 auto;
-}
-
-.sidebar-block-ad img {
-  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 4px;
+  margin: 0;
 }
 
 .sidebar-ad-placeholder {
@@ -2625,7 +2648,7 @@ a.card-category:hover {
 }
 
 .comment-pending-notice {
-  color: #0a5c36;
+  color: #c2607a;
   font-weight: 600;
   margin: 0;
 }
@@ -3125,7 +3148,7 @@ a.card-category:hover {
 
 .dashboard-tier-badge {
   display: inline-block;
-  background: #0a5c36;
+  background: #c2607a;
   color: #fff;
   padding: 0.3rem 0.8rem;
   border-radius: 999px;
@@ -3165,7 +3188,7 @@ a.card-category:hover {
 }
 
 .dashboard-activity-points {
-  color: #0a5c36;
+  color: #c2607a;
   font-weight: 700;
 }
 
@@ -3307,7 +3330,7 @@ a.card-category:hover {
 
 .dashboard-status-publish {
   background: #e3f2e9;
-  color: #0a5c36;
+  color: #c2607a;
 }
 
 .dashboard-status-pending {
@@ -3365,7 +3388,7 @@ a.card-category:hover {
 }
 
 .dashboard-tier-ladder li.current span {
-  color: #0a5c36;
+  color: #c2607a;
 }
 
 /* Directory */
@@ -3420,8 +3443,8 @@ a.card-category:hover {
 }
 
 .directory-search-icon:hover {
-  color: #0a5c36;
-  border-color: #0a5c36;
+  color: #c2607a;
+  border-color: #c2607a;
 }
 
 .directory-search-popup {
@@ -3588,7 +3611,7 @@ a.card-category:hover {
 }
 
 .directory-badge-verified {
-  background: #0a5c36;
+  background: #c2607a;
 }
 
 .directory-verified-check {
