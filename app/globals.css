@@ -212,45 +212,24 @@ button.button-pill {
   display: none;
 }
 
-.quick-links-bar {
+.member-benefits-bar {
   background: #c58a9a;
 }
 
-.quick-links-inner {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 1.1rem;
-  padding: 0.6rem 1.5rem;
-}
-
-.quick-links-bar a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
+.member-benefits-inner {
+  display: block;
+  padding: 0.55rem 1.5rem;
+  text-align: center;
   color: #fff;
   text-decoration: none;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
-  position: relative;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.quick-links-bar a:hover {
+.member-benefits-inner:hover {
   text-decoration: underline;
-}
-
-/* Little vertical divider between items — skipped before the first,
-   since flex order matches source order here (no reordering). */
-.quick-links-bar a:not(:first-child)::before {
-  content: "";
-  position: absolute;
-  left: -0.55rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1px;
-  height: 0.7rem;
-  background: rgba(255, 255, 255, 0.5);
 }
 
 @media (max-width: 720px) {
@@ -281,10 +260,6 @@ button.button-pill {
     display: block;
     flex-basis: 100%;
     height: 0;
-  }
-
-  .quick-links-inner {
-    justify-content: center;
   }
 }
 

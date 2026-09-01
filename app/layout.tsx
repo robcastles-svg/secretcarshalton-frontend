@@ -45,6 +45,7 @@ const PRIMARY_NAV = [
   { label: "Stories", href: "/stories" },
   { label: "Walks", href: "/walks" },
   { label: "Directory", href: "/directory" },
+  { label: "Jobs", href: "/jobs" },
   { label: "Spotlight", href: "/people" },
   { label: "About", href: "/about-secret-carshalton" },
 ];
@@ -55,57 +56,16 @@ const UTILITY_NAV = [
   { label: "Advertise", href: "/advertising-contact" },
 ];
 
-function VisitIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M12 21s7-6.7 7-12a7 7 0 1 0-14 0c0 5.3 7 12 7 12Z" strokeLinejoin="round" />
-      <circle cx="12" cy="9" r="2.4" />
-    </svg>
-  );
-}
-
-function StayIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M3 11.5 12 4l9 7.5" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M5 10v9a1 1 0 0 0 1 1h4v-5h4v5h4a1 1 0 0 0 1-1v-9" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function CommunityIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <circle cx="9" cy="8" r="3" />
-      <circle cx="17" cy="9" r="2.3" />
-      <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M15 14.5c2.6.6 4.5 2.9 4.5 5.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function JobsIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <rect x="3" y="7" width="18" height="13" rx="2" />
-      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M3 13h18" />
-    </svg>
-  );
-}
-
 /**
- * These now point at the real directory categories (confirmed by
- * inspecting the live Sabai Directory admin — "Places to go", "Places to
- * stay", and "Groups to join" are genuine listing categories, not a
- * guess). Was a placeholder pointing at /walks, /directory, /people.
+ * Visit/Stay/Community used to live here as icon quick-links (pointing at
+ * Directory category filters — "places-to-go"/"places-to-stay"/
+ * "groups-to-join", genuine sc_listing_category terms, not standalone
+ * pages) alongside Jobs. Jobs has since moved into PRIMARY_NAV proper;
+ * Visit/Stay are still reachable via Directory's own category nav; Community
+ * is getting a dedicated section (with "groups to join" migrating out of
+ * Directory into it) rather than staying a quick-link. This bar is now a
+ * single membership CTA instead — see MemberBenefitsBar below.
  */
-const QUICK_LINKS_NAV = [
-  { label: "Visit", href: "/directory?category=places-to-go", Icon: VisitIcon },
-  { label: "Stay", href: "/directory?category=places-to-stay", Icon: StayIcon },
-  { label: "Community", href: "/directory?category=groups-to-join", Icon: CommunityIcon },
-  { label: "Jobs", href: "/jobs", Icon: JobsIcon },
-];
 
 export default async function RootLayout({
   children,
@@ -129,6 +89,11 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
         />
+        <div className="member-benefits-bar">
+          <Link href={sessionToken ? "/dashboard" : "/register"} className="container member-benefits-inner">
+            {sessionToken ? "Member dashboard" : "Member benefits"}
+          </Link>
+        </div>
         <SiteDateWeather />
         <div className={`utility-bar${sessionToken ? " utility-bar-loggedin" : ""}`}>
           <div className="container utility-bar-inner">
@@ -161,17 +126,6 @@ export default async function RootLayout({
           placeholderClassName="ad-slot-placeholder ad-billboard-placeholder"
           placeholderText="Claim this banner space for your local business"
         />
-
-        <div className="quick-links-bar">
-          <div className="container quick-links-inner">
-            {QUICK_LINKS_NAV.map((item) => (
-              <Link key={item.label} href={item.href}>
-                <item.Icon />
-                {item.label.toUpperCase()}
-              </Link>
-            ))}
-          </div>
-        </div>
 
         <header className="site-header">
           <div className="container site-header-inner">
