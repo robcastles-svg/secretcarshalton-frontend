@@ -2409,8 +2409,6 @@ a.card-category:hover {
 .post-sidebar {
   display: grid;
   gap: 2rem;
-  position: sticky;
-  top: 1.5rem;
 }
 
 /* Directory listing detail page: white card, soft shadow, image
