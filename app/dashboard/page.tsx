@@ -1,0 +1,270 @@
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { getMemberMe, getMyComments, getMyEvents, getMyListings, linkForPostType } from "@/lib/wordpress";
+import { getSessionToken } from "@/lib/auth";
+import { ExpandableList } from "@/app/_components/ExpandableList";
+import { LogoutButton } from "./_components/LogoutButton";
+import { RequestUpgradeButton } from "./_components/RequestUpgradeButton";
+import { VerifyEmailBanner } from "./_components/VerifyEmailBanner";
+
+export const metadata = { title: "Your dashboard — Secret Carshalton" };
+
+const UPGRADE_STATUS_LABEL: Record<string, string> = {
+  pending: "Pending review",
+  approved: "Approved",
+  rejected: "Not approved",
+};
+
+const POST_STATUS_LABEL: Record<string, string> = {
+  publish: "Live",
+  pending: "Awaiting review",
+  draft: "Draft",
+};
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+}
+
+// Matches SC_Membership_Tiers::all() in wordpress-plugins/sc-membership —
+// keep these two in sync if the tier ladder changes.
+const TIERS = [
+  { slug: "newcomer", label: "Newcomer", threshold: 0 },
+  { slug: "regular", label: "Regular", threshold: 50 },
+  { slug: "local_legend", label: "Local Legend", threshold: 200 },
+  { slug: "carshalton_champion", label: "Carshalton Champion", threshold: 500 },
+];
+
+export default async function DashboardPage() {
+  const token = await getSessionToken();
+  if (!token) redirect("/login");
+
+  const profile = await getMemberMe(token);
+  if (!profile) redirect("/login");
+
+  const [myListings, myEvents, myComments] = await Promise.all([
+    getMyListings(token),
+    getMyEvents(token),
+    getMyComments(token),
+  ]);
+
+  return (
+    <main className="container dashboard">
+      <div className="dashboard-header">
+        <h1>Your dashboard</h1>
+        <LogoutButton />
+      </div>
+
+      <p className="dashboard-members-link">
+        <Link href="/members">Browse all members →</Link>
+      </p>
+
+      {!profile.email_verified && <VerifyEmailBanner />}
+
+      {profile.is_editor && (
+        <section className="dashboard-section dashboard-editor-cta">
+          <h2>Editorial</h2>
+          <p className="dashboard-hint">Draft a new story from notes or photos, with Claude&apos;s help.</p>
+          <Link href="/admin/draft" className="button-pill">
+            Draft a story
+          </Link>
+        </section>
+      )}
+
+      <section className="dashboard-section dashboard-account">
+        <h2>Account</h2>
+        <div className="dashboard-account-row">
+          {/* Every member shows the same badge — no profile photo uploads, by design (see SC_Membership_REST::filter_default_avatar). The directory is where we want people putting in effort, not a personal profile. */}
+          <img src="/default-avatar.png" alt="" className="dashboard-avatar" />
+          <span className="dashboard-greeting">
+            {profile.is_returning ? "Welcome back" : "Hello"} {profile.display_name}
+          </span>
+        </div>
+        <p className="dashboard-hint">
+          Username and email aren&apos;t shown here yet — coming soon, once account details are wired up.
+        </p>
+        <a
+          className="button-pill button-pill-secondary"
+          href="https://www.staging19.secretcarshalton.com/wp-login.php?action=lostpassword"
+        >
+          Change password
+        </a>
+      </section>
+
+      <div className="dashboard-tier-card">
+        <div className="dashboard-tier-badge">{profile.tier.label}</div>
+        <p className="dashboard-points">{profile.points} points</p>
+        {profile.next_tier && profile.points_to_next_tier !== null && (
+          <p className="dashboard-progress">
+            {profile.points_to_next_tier} points to <strong>{profile.next_tier.label}</strong>
+          </p>
+        )}
+        <p className="dashboard-joined">Member since {new Date(profile.joined_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</p>
+
+        <details className="dashboard-tier-explainer">
+          <summary>How tiers &amp; points work</summary>
+          <p>Points build up as you take part around the site:</p>
+          <ul>
+            <li>+2 for a comment that gets approved</li>
+            <li>+5 for marking yourself interested in an event</li>
+            <li>+10 for claiming an event listing</li>
+            <li>+15 for claiming a directory listing</li>
+          </ul>
+          <ul className="dashboard-tier-ladder">
+            {TIERS.map((tier) => (
+              <li key={tier.slug} className={profile.tier.slug === tier.slug ? "current" : undefined}>
+                {tier.label}
+                <span>{tier.threshold}+ points</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      </div>
+
+      <section className="dashboard-section">
+        <h2>Your directory listing{myListings.length === 1 ? "" : "s"}</h2>
+        {myListings.length === 0 ? (
+          <p className="dashboard-hint">Nothing yet — claim an existing listing or add a new one.</p>
+        ) : (
+          <ExpandableList
+            items={myListings}
+            listClassName="dashboard-my-list"
+            itemKey={(listing) => listing.id}
+            noun="listing"
+            renderItem={(listing) => (
+              <>
+                <span className={`dashboard-status-badge dashboard-status-${listing.status}`}>
+                  {POST_STATUS_LABEL[listing.status] ?? listing.status}
+                </span>
+                {listing.status === "publish" ? (
+                  <Link href={`/directory/${listing.slug}`}>{listing.title}</Link>
+                ) : (
+                  <span>{listing.title}</span>
+                )}
+                <Link href={`/directory/${listing.slug}/edit`} className="dashboard-my-list-edit">
+                  Edit
+                </Link>
+              </>
+            )}
+          />
+        )}
+        <div className="dashboard-section-actions">
+          <Link href="/directory" className="button-pill button-pill-secondary">
+            Browse the directory
+          </Link>
+          <Link href="/directory/submit" className="button-pill">
+            Add a listing
+          </Link>
+        </div>
+      </section>
+
+      <section className="dashboard-section">
+        <h2>Your event{myEvents.length === 1 ? "" : "s"}</h2>
+        {myEvents.length === 0 ? (
+          <p className="dashboard-hint">Nothing submitted yet.</p>
+        ) : (
+          <ExpandableList
+            items={myEvents}
+            listClassName="dashboard-my-list"
+            itemKey={(event) => event.id}
+            noun="event"
+            renderItem={(event) => (
+              <>
+                <span className={`dashboard-status-badge dashboard-status-${event.status}`}>
+                  {POST_STATUS_LABEL[event.status] ?? event.status}
+                </span>
+                {event.status === "publish" ? (
+                  <Link href={`/events/${event.slug}`}>{event.title}</Link>
+                ) : (
+                  <span>{event.title}</span>
+                )}
+                <span className="dashboard-my-list-views">
+                  {event.views} view{event.views === 1 ? "" : "s"}
+                </span>
+                <Link href={`/events/${event.slug}/edit`} className="dashboard-my-list-edit">
+                  Edit
+                </Link>
+              </>
+            )}
+          />
+        )}
+        <div className="dashboard-section-actions">
+          <Link href="/events" className="button-pill button-pill-secondary">
+            Browse events
+          </Link>
+          <Link href="/events/submit" className="button-pill">
+            Submit an event
+          </Link>
+        </div>
+      </section>
+
+      <section className="dashboard-section">
+        <h2>Your comments</h2>
+        {myComments.length === 0 ? (
+          <p className="dashboard-hint">
+            Nothing yet — comment on a story to join the conversation.
+          </p>
+        ) : (
+          <ExpandableList
+            items={myComments}
+            listClassName="dashboard-my-list dashboard-my-comments"
+            itemKey={(comment) => comment.id}
+            noun="comment"
+            renderItem={(comment) => (
+              <>
+                <div>
+                  {comment.status !== "approved" && (
+                    <span className="dashboard-status-badge dashboard-status-pending">Awaiting moderation</span>
+                  )}
+                  {(() => {
+                    const link = linkForPostType(comment.post_type, comment.post_slug);
+                    return link ? (
+                      <Link href={link}>{comment.post_title}</Link>
+                    ) : (
+                      <span>{comment.post_title ?? "A post"}</span>
+                    );
+                  })()}
+                  <time>{formatDate(comment.date)}</time>
+                </div>
+                <p dangerouslySetInnerHTML={{ __html: comment.content.rendered }} />
+              </>
+            )}
+          />
+        )}
+      </section>
+
+      <section className="dashboard-section">
+        <h2>Directory upgrade</h2>
+        {profile.directory_upgrade_status ? (
+          <p>
+            Status:{" "}
+            <strong>
+              {UPGRADE_STATUS_LABEL[profile.directory_upgrade_status] ?? profile.directory_upgrade_status}
+            </strong>
+          </p>
+        ) : (
+          <>
+            <p>Own a local business? Request a featured directory listing.</p>
+            <RequestUpgradeButton />
+          </>
+        )}
+      </section>
+
+      <section className="dashboard-section">
+        <h2>Recent activity</h2>
+        {profile.recent_activity.length === 0 ? (
+          <p>Nothing yet — comment on a story, RSVP to an event, or claim your directory listing to start earning points.</p>
+        ) : (
+          <ul className="dashboard-activity-list">
+            {profile.recent_activity.map((entry, i) => (
+              <li key={i}>
+                <span className="dashboard-activity-points">+{entry.points}</span>
+                <span>{entry.reason}</span>
+                <time>{new Date(entry.date).toLocaleDateString("en-GB")}</time>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </main>
+  );
+}

@@ -1,12 +1,30 @@
+:root {
+  /* The colour a button/bar turns once something only available while
+     logged in becomes available — claim/RSVP/comment/edit actions, and
+     the utility bar itself. Kept as one variable so the "logged in" look
+     stays consistent everywhere it's used. */
+  --color-active: #e2761f;
+  --color-active-dark: #c2630f;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  color: #1a1a1a;
+  font-family: var(--font-body), system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #333;
+  background: #fff;
   line-height: 1.6;
 }
 
+h1,
+h2,
+h3 {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
 a {
-  color: #0a5c36;
+  color: #c2607a;
 }
 
 img {
@@ -14,37 +32,4034 @@ img {
   height: auto;
 }
 
-.site-header {
-  display: flex;
-  gap: 1.5rem;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.site-header a {
-  text-decoration: none;
-  font-weight: 600;
-}
-
 .container {
-  max-width: 760px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 2rem 1.5rem;
 }
 
+.button-pill {
+  display: inline-block;
+  background: #d6293e;
+  color: #fff;
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.button-pill-disabled {
+  background: #ccc;
+  color: #666;
+  cursor: default;
+}
+
+button.button-pill {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+/* Date/weather strip — the very first thing on every page. */
+/* Sits inline inside .utility-bar-inner now (left side, utility links on
+   the right) — matches the PDF wireframe's single merged bar rather than
+   two stacked ones. */
+.site-date-weather-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+  color: #666;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+.site-date-weather-bar span:first-child {
+  font-weight: 600;
+  color: #333;
+}
+
+.site-date-weather-forecast {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Utility bar */
+.utility-bar {
+  background: #f5f5f5;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.utility-bar-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 1.5rem;
+}
+
+.utility-bar-links {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.utility-bar a {
+  color: #555;
+  text-decoration: none;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0 0.55rem;
+  border-right: 1px solid #ccc;
+}
+
+.utility-bar a:last-child {
+  border-right: none;
+  padding-right: 0;
+}
+
+.utility-bar a:hover {
+  color: #c2607a;
+}
+
+.utility-bar-loggedin {
+  background: var(--color-active);
+  border-bottom-color: var(--color-active-dark);
+}
+
+.utility-bar-loggedin a {
+  color: #fff;
+  border-right-color: rgba(255, 255, 255, 0.45);
+}
+
+.utility-bar-loggedin a:hover {
+  color: #1a1a1a;
+}
+
+/* Header */
+.site-header {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.site-header-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 1rem;
+}
+
+.site-logo {
+  font-weight: 900;
+  font-size: 1.4rem;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+.site-logo-img {
+  display: block;
+  height: 42px;
+  width: auto;
+}
+
+.category-key-icon {
+  display: inline-block;
+  height: 0.7em;
+  width: auto;
+  margin-left: 0.4em;
+  vertical-align: middle;
+}
+
+.primary-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.primary-nav a {
+  color: #222;
+  text-decoration: none;
+  font-size: 1.05rem;
+  font-weight: 400;
+}
+
+.primary-nav a:hover {
+  color: #c2607a;
+}
+
+.primary-nav a.active {
+  color: #222;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: #c2607a;
+  text-decoration-thickness: 4px;
+  text-underline-offset: 6px;
+}
+
+.nav-search {
+  display: flex;
+  color: #555;
+}
+
+/* Off by default (desktop nav fits on one line) — only becomes a real
+   flex item, forcing a break, inside the 720px nav-wrap media query
+   below. */
+.nav-line-break {
+  display: none;
+}
+
+.member-benefits-bar {
+  background: #c58a9a;
+}
+
+.member-benefits-inner {
+  display: block;
+  padding: 0.9rem 1.5rem;
+  text-align: center;
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.member-benefits-inner:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  /* Tighter than the desktop spacing so "About | Advertise | Join |
+     Login" fits on one line instead of wrapping. */
+  .utility-bar-inner {
+    justify-content: center;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .utility-bar a {
+    padding: 0 0.35rem;
+    font-size: 0.68rem;
+  }
+
+  .site-header-inner {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .primary-nav {
+    justify-content: center;
+    gap: 1rem 1.25rem;
+    width: 100%;
+  }
+
+  .primary-nav a {
+    font-size: 1.2rem;
+  }
+
+  .nav-line-break {
+    display: block;
+    flex-basis: 100%;
+    height: 0;
+  }
+}
+
+/* Ad slots (billboard/leaderboard) */
+.ad-slot {
+  display: block;
+}
+
+.ad-slot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ad-billboard {
+  background: #e5e5e5;
+}
+
+.ad-billboard img {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.ad-leaderboard {
+  max-width: 340px;
+  flex-shrink: 0;
+}
+
+.ad-slot-placeholder {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  color: #888;
+  font-size: 0.8rem;
+  padding: 0.75rem;
+  border: 1px dashed #ccc;
+}
+
+.ad-slot-placeholder:hover {
+  color: #c2607a;
+  border-color: #c2607a;
+}
+
+.ad-billboard-placeholder {
+  background: #f0f0f0;
+}
+
+@media (max-width: 720px) {
+  .ad-leaderboard {
+    max-width: 100%;
+  }
+}
+
+.ad-in-post {
+  margin: 2rem auto;
+}
+
+/*
+ * Every placement except Billboard — a small optional image (a logo,
+ * not a designed banner) plus a headline/body an advertiser writes
+ * themselves. Replaces the old fixed 300x250 MPU box.
+ */
+.ad-slot-text-image {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  background: #fff;
+  text-decoration: none;
+}
+
+.ad-slot-text-image img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.ad-slot-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.ad-slot-headline {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #1a1a1a;
+}
+
+.ad-slot-body {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* Search — mirrors the live site's /search-page/ filter bar + form layout. */
+.search-subtitle {
+  color: #666;
+  margin-top: -0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.category-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.category-filter-bar a {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid #ddd;
+  color: #444;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.category-filter-bar a.active {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: #fff;
+}
+
+.search-filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 2rem;
+}
+
+.search-filter-form input[type="search"] {
+  flex: 1 1 200px;
+}
+
+.search-filter-form input,
+.search-filter-form select {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.search-prompt,
+.search-nothing-found {
+  color: #666;
+}
+
+.search-results-list .card-tag {
+  color: #888;
+}
+
+.search-results-list p {
+  margin: 0.5rem 1rem 0;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+/* Hero — side-by-side on desktop (text left, image right); mobile
+   switches to a full-width stacked image (see the max-width: 720px
+   override below) rather than squeezing a half-width photo. */
+.hero {
+  display: grid;
+  /* minmax(0, 1fr), not a bare 1fr — a bare 1fr track's floor is its
+     content's min-content width, and an oversized child (e.g. a wide
+     inline-width image) would blow the track out past the container
+     (same failure mode already hit and fixed on .post-layout and the
+     member directory grid). */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 2rem;
+  align-items: center;
+  padding: 1.5rem 0 2.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.hero-text {
+  text-decoration: none;
+  color: inherit;
+  order: 1;
+}
+
+.hero-image {
+  order: 2;
+}
+
+.hero-image img {
+  width: 100%;
+  height: 340px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  color: #c2607a;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.5rem;
+}
+
+.hero-text h1,
+.hero-text h3 {
+  font-size: 2.2rem;
+  line-height: 1.15;
+  margin: 0 0 0.75rem;
+}
+
+.hero-text p {
+  color: #444;
+  margin: 0 0 0.75rem;
+}
+
+.hero-text time {
+  color: #777;
+  font-size: 0.85rem;
+}
+
+/* Walks' single-feature story reuses the exact hero treatment above
+   (side-by-side on desktop, stacked full-width on mobile) — just
+   without the top padding and rule that only make sense as the very
+   first thing on the page. */
+.hero-secondary {
+  padding: 0;
+  border-bottom: none;
+}
+
+/* Content lists (posts/events/archives) — vertical cards, full-width
+   image on top, matching the reference screenshots' card orientation
+   (image → headline → category/date), not a horizontal thumbnail list. */
 .post-list {
   list-style: none;
   padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
 }
 
 .post-list li {
-  padding: 1rem 0;
-  border-bottom: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  padding-bottom: 1rem;
+}
+
+.post-list li a {
+  display: block;
+  text-decoration: none;
+}
+
+.post-list li img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+}
+
+/* Sits alongside the date, bottom-right of the card — same plain
+   icon+count treatment as .comment-count-link on the post itself,
+   just right-aligned via the shared row instead of inline with a link.
+   margin-top: auto pins it to the actual bottom of the card (.post-list
+   li is a column flexbox) so it lines up across a row of cards
+   regardless of how many lines the title/tag/category above take up. */
+.post-list .card-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: auto;
+  padding-top: 0.4rem;
+}
+
+.post-list .card-meta-row time {
+  margin: 0;
+}
+
+.card-comment-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #777;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.card-comment-count:hover {
+  color: var(--color-active-dark);
+}
+
+/* Groups the comment bubble and bookmark icon together on the right of
+   the meta row — margin-left: auto pushes the whole group there even
+   when there's no time/date sibling to its left (e.g. directory cards). */
+.card-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: auto;
+}
+
+/* Always visible, unlike the comment count — clicking while logged out
+   opens the login popup rather than hiding the button. */
+.card-bookmark-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: none;
+  background: none;
+  padding: 0;
+  color: #777;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.card-bookmark-button:hover {
+  color: var(--color-active-dark);
+}
+
+.card-bookmark-button-active {
+  color: #c2607a;
+}
+
+/* The clipping frame every event card image (or CloudsPlaceholder
+   fallback, when there's no featured image) sits in — owns sizing per
+   context below, and clips the hover-zoom transform so it never spills
+   past the card's rounded corners. */
+.event-image-frame {
+  overflow: hidden;
+  background: #dce9f3;
+}
+
+.event-image-frame img,
+.event-image-frame svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+.post-list li:hover .event-image-frame img,
+.post-list li:hover .event-image-frame svg,
+.event-row-list li:hover .event-image-frame img,
+.event-row-list li:hover .event-image-frame svg {
+  transform: scale(1.08);
+}
+
+.post-list .event-image-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  margin-bottom: 0.75rem;
+}
+
+/* Beats .post-list li img's (0,1,2) specificity, which would otherwise
+   also apply its own aspect-ratio/margin-bottom directly to the <img>
+   inside the frame. */
+.post-list .event-image-frame img {
+  aspect-ratio: auto;
+  margin-bottom: 0;
+}
+
+/* A light dark tint on every card image on the /events category list,
+   clearing to the plain photo on hover — a subtle "come look" affordance
+   to go with the zoom, scoped to this list only per Rob. */
+.post-list .event-image-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0.15;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.post-list li:hover .event-image-frame::after {
+  opacity: 0;
+}
+
+/* Date tile sits beside the headline (see .event-card-heading) rather than
+   overlaid on the image — no longer absolutely positioned. Used both on
+   the /events list (inside .post-list) and the row-list cards (homepage,
+   "Latest events added"). */
+.event-card-date-badge {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 44px;
+  padding: 0.25rem 0.2rem;
+  border-radius: 8px;
+  background: #f6f6f6;
+}
+
+.event-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.post-list .event-card-heading {
+  margin: 0 1rem;
+}
+
+/* .post-list .card-title already gets a 1rem left/right margin (see the
+   shared rule below) — inside .event-card-heading that margin is now
+   redundant with the heading's own inset and the flex gap, so it's
+   stripped back to 0 here. */
+.post-list .event-card-heading .card-title {
+  margin: 0;
+}
+
+/* Topic pills sit on their own line directly under the headline, offset
+   to line up with the title text rather than the date tile to its left
+   (badge width + the heading's flex gap) — a plain sibling of the
+   card's own <Link> rather than nested inside it, since the pills are
+   separately-clickable <a> tags and anchors can't nest. nowrap +
+   overflow-x:auto keeps a busy event's topics on one line instead of
+   wrapping and making the card taller. */
+.post-list .event-card-topics {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0.4rem;
+  margin: 0.4rem 1rem 0 calc(1rem + 44px + 0.6rem);
+  padding-bottom: 0.15rem;
+}
+
+/* Beats .post-list li a's (0,1,2) specificity, which would otherwise
+   force these pills to display:block (breaking the one-line layout
+   above) and strip their underline — that rule targets the card's own
+   link, not these separately-clickable topic pills. */
+.post-list .event-card-topics .card-category {
+  display: inline-block;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.event-card-date-badge-weekday {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #c2607a;
+  letter-spacing: 0.03em;
+}
+
+.event-card-date-badge-day {
+  font-size: 1.3rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #1a1a1a;
+}
+
+.event-card-date-badge-month {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: 0.03em;
+}
+
+.post-list .card-title,
+.post-list .card-tag,
+.post-list .card-category,
+.post-list time {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+/* The excerpt (an unclassed <div> straight under <li>) isn't part of the
+   reference screenshots' card treatment — image, headline, category/date
+   only. Scoped to a direct child so it doesn't touch .card-meta-row (also
+   a direct child, but overridden back to flex by its own higher-specificity
+   class rule below) or the tag/title/category links, which aren't divs. */
+.post-list li > div {
+  display: none;
+}
+
+.post-list .card-title {
+  display: block;
+  font-weight: 700;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  color: #1a1a1a;
+}
+
+.post-list .card-tag {
+  display: block;
+  color: #c2607a;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.25rem;
+}
+
+/* Base pill look, usable outside .post-list too (event-row-list's topic
+   tags on the homepage / "Latest events added" aren't inside .post-list).
+   Doubles as a link style now that events' topic pills are clickable
+   (directory's category pills are plain <span>s, so :hover is a no-op
+   there — harmless). */
+.card-category {
+  display: inline-block;
+  color: #777;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+a.card-category:hover {
+  color: #c2607a;
+}
+
+.post-list .card-category {
+  margin-top: 0.35rem;
 }
 
 .post-list time {
   display: block;
   color: #777;
   font-size: 0.85rem;
+  margin-top: 0.4rem;
+}
+
+.hero-readmore {
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 720px) {
+  /* Desktop keeps the side-by-side layout (see .hero above); mobile
+     stacks with a full-width image on top instead, bled past
+     .container's side padding the same way post photos already are. */
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .hero-image {
+    order: 0;
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+  }
+
+  .hero-image img {
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-radius: 0;
+  }
+
+  /* <time> is inline by default, so the Read more button (inline-block)
+     was sitting right next to the date on the same line instead of
+     below it. */
+  .hero-readmore {
+    display: block;
+    width: fit-content;
+    margin-top: 0.75rem;
+  }
+
+  /* The raw excerpt can run to several sentences — clip the homepage's
+     lead-story preview to 3 lines on mobile instead of pushing the
+     Read more button and everything after it far down the page. */
+  .hero-text p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+}
+
+.event-hero {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.event-date-tile {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 84px;
+  padding: 0.6rem 0.5rem;
+  border-radius: 12px;
+  background: #fdf1f4;
+  border: 1px solid #f0d6dd;
+}
+
+.event-date-year {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #999;
+}
+
+.event-date-weekday {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #c2607a;
+  letter-spacing: 0.04em;
+}
+
+.event-date-day {
+  font-size: 2.4rem;
+  font-weight: 900;
+  line-height: 1.05;
+  color: #1a1a1a;
+}
+
+.event-date-month {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  letter-spacing: 0.04em;
+}
+
+.event-hero-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.event-hero-body .page-header-row {
+  margin-bottom: 0.5rem;
+}
+
+.event-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35rem 0;
+  color: #444;
+}
+
+.event-meta-row svg {
+  flex-shrink: 0;
+  color: #c2607a;
+}
+
+.event-meta-label {
+  font-style: italic;
+  color: #999;
+  margin-right: 0.15rem;
+}
+
+@media (max-width: 560px) {
+  .event-hero {
+    gap: 0.85rem;
+  }
+
+  .event-date-tile {
+    width: 66px;
+    padding: 0.5rem 0.35rem;
+  }
+
+  .event-date-day {
+    font-size: 1.9rem;
+  }
+}
+
+.post-list li > div {
+  grid-column: 2;
+}
+
+.post-list li div p {
+  margin: 0.35rem 0 0;
+  color: #555;
+}
+
+/*
+ * No mobile override here on purpose: the card above is already the
+ * full-width vertical layout (image on top, full width) at every screen
+ * size — there used to be a rule here shrinking the image down to a
+ * 100x80 thumbnail on mobile, which fought the desktop card treatment
+ * instead of just scaling it down.
+ */
+
+/* Simple link lists (Stories/Walks hub pages) */
+.link-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.link-list li {
+  border-bottom: 1px solid #eee;
+}
+
+.link-list a {
+  display: block;
+  padding: 0.75rem 0;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-decoration: none;
+}
+
+.link-list a:hover {
+  color: #c2607a;
+}
+
+/* Mini category nav (Stories/Walks sub-areas quick jump) — desktop only */
+.mini-category-nav {
+  border-bottom: 1px solid #eee;
+}
+
+.mini-category-nav-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  padding: 0.75rem 1.5rem;
+}
+
+.mini-category-nav a {
+  color: #555;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mini-category-nav a:hover {
+  color: #c2607a;
+}
+
+@media (max-width: 720px) {
+  .mini-category-nav {
+    display: none;
+  }
+}
+
+/* Homepage sections (events / latest walk / comments) */
+.newsletter-cta {
+  background: #fdf1f4;
+  margin: 1rem 0;
+}
+
+.newsletter-cta-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 1.25rem 1.5rem;
+  font-weight: 600;
+}
+
+.home-section {
+  padding: 2rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.home-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+/*
+ * Plain-link secondary nav — sits directly under the main nav wherever a
+ * page needs one (Directory categories, Discover areas, Events
+ * categories), per Rob's PDF wireframe: a flat pipe-separated row of
+ * plain text links, not pill/lozenge chips. Full-bleed background (same
+ * pattern as .member-benefits-bar) so it always reads as a continuation
+ * of the header, not part of the page content below it.
+ */
+/* Always a plain white strip — even on Events' dark-themed page — with a
+   lighter, un-emphasised colour for whichever links aren't the active one. */
+.secondary-nav-bar {
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.secondary-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.6rem;
+  padding: 0.7rem 1.5rem;
+  font-size: 0.85rem;
+}
+
+.secondary-nav a,
+.secondary-nav button {
+  position: relative;
+  padding: 0 0.6rem;
+  color: #999;
+  text-decoration: none;
+  font-weight: 400;
+  background: none;
+  border: none;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.secondary-nav a:not(:first-child)::before,
+.secondary-nav button:not(:first-child)::before {
+  content: "|";
+  position: absolute;
+  left: -0.15rem;
+  color: #ccc;
+}
+
+.secondary-nav a:hover,
+.secondary-nav button:hover {
+  color: #c2607a;
+}
+
+.secondary-nav a.active,
+.secondary-nav button.active {
+  color: #c2607a;
+  font-weight: 700;
+}
+
+/*
+ * Grey "section hero" banner behind a category page's title — matches
+ * the PDF wireframe (solid grey band, big bold white heading, action
+ * button alongside it). Per Rob: this grey is a placeholder — it'll
+ * become a background image per section eventually, kept as a flat
+ * background-color on its own class now so swapping in background-image
+ * later is a one-line change, not a page restructure.
+ */
+.section-hero {
+  background-color: #4a4a4a;
+}
+
+.section-hero .page-header-row {
+  padding: 2.5rem 1.5rem;
+}
+
+/* Shown above the h1 only when a category page swaps the headline for the
+   category's own name (see /directory's activeCategory branch) — keeps
+   "The Sutton Business Directory" visible as context, just demoted to a
+   small label instead of competing with the category name for size. */
+.section-hero-eyebrow {
+  display: block;
+  color: #ddd;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.4rem;
+}
+
+.section-hero h1 {
+  color: #fff;
+  font-size: 2.5rem;
+  margin: 0 0 0.5rem;
+}
+
+.section-hero p {
+  color: #ddd;
+  margin: 0;
+}
+
+/* Discover */
+.discover-section {
+  margin-top: 2.5rem;
+}
+
+.home-section-header a {
+  font-size: 0.9rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.event-row-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 1.25rem;
+}
+
+/* The card "box" (background/shadow/radius/padding) lives on the <li>,
+   not the link — the topic pills below sit as a sibling of the <a> (they
+   need their own href, and anchors can't nest), so both need to render
+   inside the same visual card. */
+.event-row-list li {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 0.75rem;
+  overflow: hidden;
+}
+
+.event-row-list li a {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 1rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.event-row-list .event-image-frame {
+  width: 120px;
+  height: 90px;
+  border-radius: 4px;
+}
+
+.event-row-list .card-title {
+  display: block;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.event-row-list .event-card-heading {
+  gap: 0.5rem;
+}
+
+.event-row-topics {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0.4rem;
+  margin: 0.4rem 0 0 calc(120px + 1rem);
+  padding-bottom: 0.1rem;
+}
+
+/* Beats .event-row-list li a's (0,1,2) specificity — that rule targets
+   the card's own link (the grid/image/title layout), not these
+   separately-clickable topic pills, which just need to be plain inline
+   pills, not another 120px-column grid. */
+.event-row-list .event-row-topics .card-category {
+  display: inline-block;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.feature-row {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  align-items: center;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+}
+
+.feature-row img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.feature-row span {
+  display: block;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #1a1a1a;
+  margin-bottom: 0.4rem;
+}
+
+.directory-spotlight {
+  margin-bottom: 1.5rem;
+}
+
+/* Two classes beats .feature-row span's class+tag specificity — without
+   this, the pill-shaped .directory-badge would inherit .feature-row
+   span's display:block/font-size:1.2rem and render as a full-width
+   oversized line instead of a small badge. */
+.directory-spotlight .directory-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  margin: 0 0 0.5rem;
+}
+
+.feature-row p {
+  color: #555;
+  margin: 0;
+}
+
+@media (max-width: 560px) {
+  .event-row-list li a,
+  .feature-row {
+    grid-template-columns: 1fr;
+  }
+
+  .event-row-list .event-image-frame,
+  .feature-row img {
+    width: 100%;
+  }
+
+  /* Image stacks above the text column at this width, so the topics'
+     desktop offset (aligning them under the title next to a 120px
+     image) no longer applies — back to flush with the card's own
+     padding. */
+  .event-row-topics {
+    margin-left: 0;
+  }
+}
+
+.events-load-more {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+/* Events page: countdown, category tiles, view switch, month calendar */
+.event-countdown {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: #000;
+  color: #fff;
+  border-radius: 8px;
+  padding: 1.25rem 1.75rem;
+  text-decoration: none;
+  margin: 1.5rem 0;
+}
+
+.event-countdown-media {
+  flex-shrink: 0;
+  width: 240px;
+  height: 160px;
+}
+
+.event-countdown-media .event-image-frame {
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+}
+
+.event-countdown:hover .event-countdown-media .event-image-frame img,
+.event-countdown:hover .event-countdown-media .event-image-frame svg {
+  transform: scale(1.08);
+}
+
+/* No longer overlaid on the image — sits above the headline instead, see .event-countdown-body's order below. */
+.event-countdown-featured-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: #c2607a;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  margin-bottom: 0.4rem;
+}
+
+.event-countdown-heading {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+/* A dark tile (not pure black, so it reads as its own element against
+   the card's black background) rather than the light card version used
+   elsewhere — matches this hero's dark treatment. */
+.event-countdown-date-badge {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 56px;
+  padding: 0.4rem 0.3rem;
+  border-radius: 8px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+}
+
+.event-countdown-date-badge-weekday {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #c2607a;
+  letter-spacing: 0.03em;
+}
+
+.event-countdown-date-badge-day {
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.event-countdown-date-badge-month {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #ccc;
+  letter-spacing: 0.03em;
+}
+
+.event-countdown-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Pushed to the far right on desktop — a distinct block from the
+   headline/venue, not just a smaller line under the "Coming up next"
+   label like before. */
+.event-countdown-timer-wrap {
+  flex-shrink: 0;
+  margin-left: auto;
+  text-align: right;
+}
+
+@media (max-width: 560px) {
+  .event-countdown {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .event-countdown-media {
+    width: 100%;
+    height: 200px;
+  }
+
+  .event-countdown-timer-wrap {
+    margin-left: 0;
+    text-align: left;
+  }
+}
+
+.event-countdown-label {
+  display: block;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+  margin-bottom: 0.3rem;
+}
+
+.event-countdown-timer {
+  display: flex;
+  gap: 0.85rem;
+  justify-content: flex-end;
+}
+
+@media (max-width: 560px) {
+  .event-countdown-timer {
+    justify-content: flex-start;
+  }
+}
+
+.event-countdown-timer span {
+  font-size: 0.65rem;
+  opacity: 0.9;
+}
+
+.event-countdown-timer strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.event-countdown-title {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.event-countdown-venue {
+  display: block;
+  font-size: 0.9rem;
+  opacity: 0.85;
+  margin-top: 0.3rem;
+}
+
+
+.event-tag-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-left: 0.6rem;
+}
+
+.event-tag-dropdown label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.event-tag-dropdown select {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #1a1a1a;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.event-view-switch {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.event-view-switch a {
+  padding: 0.5rem 0.25rem;
+  margin-right: 1rem;
+  text-decoration: none;
+  color: #777;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+}
+
+.event-view-switch a.active {
+  color: #1a1a1a;
+  border-bottom-color: #c2607a;
+}
+
+.event-calendar {
+  margin-bottom: 2rem;
+}
+
+.event-calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.event-calendar-header h2 {
+  margin: 0;
+  min-width: 220px;
+  text-align: center;
+}
+
+.event-calendar-header a {
+  color: #1a1a1a;
+  text-decoration: none;
+  font-size: 1.3rem;
+  padding: 0.25rem 0.6rem;
+}
+
+.event-calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #777;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.event-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: #eee;
+  border: 1px solid #eee;
+}
+
+.event-calendar-cell {
+  background: #fff;
+  min-height: 90px;
+  padding: 0.4rem;
+}
+
+.event-calendar-cell.empty {
+  background: #fafafa;
+}
+
+.event-calendar-cell.today {
+  background: #fdf1f4;
+}
+
+.event-calendar-daynum {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #555;
+  margin-bottom: 0.3rem;
+}
+
+.event-calendar-cell ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.event-calendar-cell li a {
+  display: block;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  color: #c2607a;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-calendar-more {
+  font-size: 0.65rem;
+  color: #999;
+}
+
+@media (max-width: 720px) {
+  .event-calendar-cell {
+    min-height: 60px;
+  }
+
+  .event-calendar-cell li a {
+    white-space: normal;
+  }
+}
+
+.event-latest-added {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+/*
+ * Events section dark theme — a deliberate "night out" break from the
+ * rest of the (light) site, scoped to the /events list/calendar page
+ * only (app/events/page.tsx). Full-bleed black background outside
+ * .container, same pattern as .member-benefits-bar/.quick-links-bar
+ * used to be. Card components (.post-list, .event-row-list,
+ * .event-calendar-cell) already have their own white/light backgrounds
+ * and dark text, so they read fine unchanged — only the ambient page
+ * chrome (headings, tiles, the list/calendar switch, the calendar's own
+ * header/weekday row) needed colour overrides here.
+ */
+.events-dark {
+  background: #14141a;
+  padding-bottom: 0.5rem;
+}
+
+.events-dark h1,
+.events-dark h2 {
+  color: #fff;
+}
+
+.events-dark .event-tag-dropdown label {
+  color: #bbb;
+}
+
+.events-dark .event-view-switch {
+  border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+.events-dark .event-view-switch a {
+  color: #999;
+}
+
+.events-dark .event-view-switch a.active {
+  color: #fff;
+}
+
+.events-dark .event-latest-added {
+  border-top-color: rgba(255, 255, 255, 0.15);
+}
+
+.events-dark .event-calendar-header a {
+  color: #fff;
+}
+
+.events-dark .directory-empty {
+  color: #999;
+}
+
+.events-dark .event-calendar-weekdays {
+  color: #999;
+}
+
+.events-dark .button-pill-secondary {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.events-dark .event-tag-dropdown select {
+  background: #1a1a1a;
+  color: #fff;
+  border-color: #444;
+}
+
+.events-dark .sidebar-ad-placeholder {
+  color: #999;
+  border-color: #444;
+}
+
+.event-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.event-correction-link {
+  color: #777;
+  font-size: 0.85rem;
+  margin: 1.25rem 0;
+}
+
+.rsvp-button-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.rsvp-button-going {
+  background: #d6293e;
+}
+
+.rsvp-count {
+  color: #777;
+  font-size: 0.85rem;
+}
+
+.rsvp-points-hint {
+  color: #c2607a;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.event-map iframe {
+  display: block;
+  border-radius: 8px;
+}
+
+.member-promoted-event {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 0.75rem;
+}
+
+.member-promoted-event .event-image-frame {
+  flex-shrink: 0;
+  width: 140px;
+  height: 100px;
+  border-radius: 6px;
+}
+
+.member-promoted-event-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.member-promoted-event-body .directory-badge {
+  margin: 0;
+  align-self: flex-start;
+}
+
+.member-promoted-event-body .card-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #1a1a1a;
+}
+
+.member-promoted-event-body time {
+  color: #777;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 560px) {
+  .member-promoted-event {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .member-promoted-event .event-image-frame {
+    width: 100%;
+    height: 160px;
+  }
+}
+
+.member-profile-link-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.member-profile-link-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.member-profile-link-list li:last-child {
+  border-bottom: none;
+}
+
+.member-profile-link-list time {
+  display: block;
+  color: #777;
+  font-size: 0.8rem;
+  margin-top: 0.15rem;
+}
+
+.member-profile-more {
+  margin-top: 1rem;
+}
+
+.member-profile-more summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--color-active-dark);
+}
+
+.member-profile-more[open] summary {
+  margin-bottom: 1rem;
+}
+
+.member-profile-comment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.member-profile-comment-list li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.member-profile-comment-list li:last-child {
+  border-bottom: none;
+}
+
+.member-profile-comment-list time {
+  display: block;
+  color: #777;
+  font-size: 0.8rem;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.member-profile-comment-list p {
+  margin: 0;
+  color: #555;
+}
+
+.member-profile-breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.member-profile-breadcrumb a {
+  color: #555;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.member-profile-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.member-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.member-profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.member-profile-header h1 {
+  margin: 0 0 0.25rem;
+}
+
+.member-tier-badge {
+  display: inline-block;
+  background: #c2607a;
+  color: #fff;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.member-moderation {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: -1rem 0 2rem;
+}
+
+.member-banned-badge {
+  background: #c0392b;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+}
+
+.member-ban-button {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.member-ban-button:hover {
+  background: #c0392b;
+  color: #fff;
+}
+
+.member-count {
+  color: #777;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.member-alpha-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 1.5rem 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 5;
+}
+
+.member-alpha-nav a,
+.member-alpha-nav span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.member-alpha-nav a {
+  color: #1a1a1a;
+}
+
+.member-alpha-nav a:hover {
+  background: var(--color-active);
+  color: #fff;
+}
+
+.member-alpha-nav span {
+  color: #ccc;
+}
+
+.member-directory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1.5rem;
+  margin: 0;
+}
+
+.member-directory-letter {
+  grid-column: 1 / -1;
+  margin: 1.5rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid #eee;
+  scroll-margin-top: 4rem;
+}
+
+.member-directory-letter:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.member-directory-item {
+  position: relative;
+  /* Grid items default to min-width: auto, so a single long name (no
+     spaces to wrap on — "businessplanwriters" etc, common among these
+     accounts) sets the column's min-content floor wider than the
+     column itself, forcing 2-3 columns to collapse to 1 or overflow
+     the page on mobile. Explicit 0 lets the column actually shrink. */
+  min-width: 0;
+}
+
+.member-directory-item a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: #1a1a1a;
+  text-align: center;
+  min-width: 0;
+}
+
+.member-directory-item img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.member-directory-item span {
+  font-weight: 600;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.member-points-badge {
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--color-active-dark);
+}
+
+.member-directory-edit {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #777;
+  text-decoration: none;
+}
+
+.member-directory-edit:hover {
+  border-color: var(--color-active);
+  color: var(--color-active-dark);
+}
+
+@media (max-width: 720px) {
+  .member-alpha-nav {
+    gap: 0.2rem;
+  }
+
+  .member-alpha-nav a,
+  .member-alpha-nav span {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.75rem;
+  }
+
+  .member-directory-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+
+  .member-directory-item img {
+    width: 56px;
+    height: 56px;
+  }
+
+  .member-directory-item span {
+    font-size: 0.78rem;
+  }
+
+  .member-directory-edit {
+    top: -0.35rem;
+    right: -0.35rem;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.4rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .member-directory-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.dashboard-members-link {
+  margin-top: -0.5rem;
+}
+
+.member-profile-header p {
+  margin: 0;
+  color: #555;
+}
+
+.comment-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.comment-list li {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.comment-list a {
+  text-decoration: none;
+  color: #1a1a1a;
+}
+
+.comment-list p {
+  color: #555;
+  margin: 0.3rem 0 0;
+}
+
+/* Global newsletter signup band (above footer) */
+.newsletter-band {
+  background: #d9f0f7;
+}
+
+.newsletter-band-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 2rem 1.5rem;
+}
+
+.newsletter-band-title {
+  color: #c2607a;
+  font-weight: 900;
+  font-size: 1.6rem;
+}
+
+.newsletter-band p {
+  margin: 0.25rem 0 0;
+}
+
+/* Footer */
+.site-footer {
+  background: #23282f;
+  color: #cfd2d6;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 2rem;
+}
+
+.footer-grid h2 {
+  color: #fff;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.75rem;
+}
+
+.footer-grid ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-grid li {
+  margin-bottom: 0.5rem;
+}
+
+.footer-grid a {
+  color: #cfd2d6;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.footer-grid a:hover {
+  color: #fff;
+}
+
+.footer-logo {
+  color: #fff;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
+.footer-social {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.footer-social a {
+  color: #fff;
+  display: flex;
+}
+
+.footer-copyright {
+  font-size: 0.8rem;
+  color: #9aa0a6;
+  line-height: 1.5;
+}
+
+.google-reviews-badge {
+  display: inline-block;
+  margin: 0.75rem 0;
+  color: #fff;
+  font-size: 0.85rem;
+  text-decoration: underline;
+}
+
+.footer-search {
+  display: flex;
+  margin-top: 0.75rem;
+}
+
+.footer-search input {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 4px 0 0 4px;
+  min-width: 0;
+}
+
+.footer-search button {
+  border: none;
+  background: #444;
+  color: #fff;
+  padding: 0 0.9rem;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+}
+
+/* "Most read" widget (homepage + post sidebar) */
+.most-read-list {
+  list-style: decimal;
+  padding-left: 1.25rem;
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.most-read-list a {
+  color: #1a1a1a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.most-read-list a:hover {
+  color: #c2607a;
+}
+
+/* Article page */
+.post-hero {
+  position: relative;
+  height: 60vh;
+  min-height: 320px;
+  max-height: 520px;
+  overflow: hidden;
+}
+
+.post-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.post-hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0) 60%);
+}
+
+.post-hero-overlay .container {
+  padding-bottom: 2rem;
+}
+
+.post-hero-overlay h1 {
+  color: #fff;
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+.post-hero-meta {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.post-category {
+  color: #fff;
+  background: #c2607a;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.post-tag {
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  align-self: center;
+  opacity: 0.85;
+}
+
+/* Meta above headline when there's no featured image */
+.post-hero-meta + h1 {
+  margin-top: 0;
+}
+
+/* minmax(0, 1fr), not a bare 1fr: 1fr alone is really minmax(auto, 1fr),
+   whose floor is its content's min-content width — a classic-editor
+   image with an inline style="width:1080px" (years of old posts have
+   these) can force that column wider than its fair share, shoving the
+   300px sidebar out of position or off the right edge. Same failure
+   mode already hit and fixed on the member directory grid earlier. The
+   figure/wp-caption max-width guard below is the belt to this grid
+   fix's suspenders — either alone would stop this, both together is
+   the more robust fix. */
+.post-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 3rem;
+  align-items: start;
+}
+
+.post-body time {
+  display: block;
+  color: #777;
+  font-size: 0.85rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.post-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.9rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.post-meta-row time {
+  margin: 0;
+}
+
+.post-view-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #777;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.comment-count-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #777;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.comment-count-link:hover {
+  color: var(--color-active-dark);
+}
+
+.post-content img {
+  width: 100%;
+  border-radius: 4px;
+}
+
+/* WP's oEmbed iframes (YouTube etc.) carry their own fixed pixel
+   width/height attributes — a portrait video embed (e.g. a YouTube
+   Short at 563x1000) was rendering at that raw size regardless of the
+   article column's width, overflowing on mobile and leaving an
+   oddly tall block on desktop. height: auto lets the browser scale it
+   from the embed's own width/height attributes (its intrinsic aspect
+   ratio, same mechanism as an <img>) down to the column width instead. */
+.post-content iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+.related-stories {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid #eee;
+}
+
+.related-stories h2 {
+  margin: 0 0 1rem;
+}
+
+.post-content figure,
+.post-content .wp-caption {
+  margin: 1.5rem 0;
+  /* max-width, not width — this needs to win over the inline
+     style="width:1080px" classic-editor posts carry (confirmed on a
+     real post), and max-width always wins that fight regardless of
+     specificity/!important since it's a different property than the
+     inline width, not competing for the same one. Without this, an
+     oversized figure forces .post-layout's content column wider than
+     intended at every screen size, not just mobile — see .post-layout's
+     own comment for the knock-on effect that has on the sidebar. */
+  max-width: 100%;
+}
+
+/* Matches the live site's caption treatment: bold caption text directly
+   under the image, then a keyline rule underneath it separating the
+   caption from the body copy that follows — not a line between the image
+   and caption. */
+.post-content figcaption,
+.post-content .wp-caption-text {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-top: 0.35rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #ccc;
+}
+
+.post-sidebar {
+  display: grid;
+  gap: 2rem;
+}
+
+/* Directory listing detail page: white card, soft shadow, image
+   full-bleed at the top of the card (rest of the site stays flat/hairline
+   by design — this card treatment is scoped to directory listings only). */
+.directory-listing-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.directory-listing-card > .directory-image-slider {
+  width: 100%;
+  height: 320px;
+}
+
+/* Featured image + gallery photos as one slider — see DirectoryImageSlider. */
+.directory-image-slider {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #dce9f3;
+  overflow: hidden;
+}
+
+.directory-image-slider-single img,
+.directory-image-slider-viewport {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.directory-image-slider img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.directory-image-slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.directory-image-slider-arrow:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.directory-image-slider-prev {
+  left: 0.75rem;
+}
+
+.directory-image-slider-next {
+  right: 0.75rem;
+}
+
+.directory-image-slider-dots {
+  position: absolute;
+  bottom: 0.85rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.4rem;
+}
+
+.directory-image-slider-dots button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.directory-image-slider-dots button.active {
+  background: #fff;
+}
+
+.directory-image-slider-count {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.85rem;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.directory-listing-card-body {
+  padding: 1.5rem 1.75rem 1.75rem;
+}
+
+.sidebar-block h3 {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid #1a1a1a;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.directory-listing-stats {
+  font-size: 0.85rem;
+  color: #888;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eee;
+}
+
+.sidebar-comment-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sidebar-comment-list p {
+  margin: 0.2rem 0 0;
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.sidebar-ad {
+  display: block;
+  background: #fdf1f4;
+  border: 1px solid #f0d6dd;
+  border-radius: 4px;
+  padding: 1.25rem;
+  text-decoration: none;
+  color: #1a1a1a;
+}
+
+.sidebar-ad strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #c2607a;
+}
+
+.sidebar-ad span {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* No more MPU (300x250) box — sidebar ads are now the same text+image
+   card as every other non-Billboard placement (.ad-slot-text-image),
+   sized to the column instead of a fixed IAB unit. */
+.sidebar-block-ad,
+.sidebar-ad-placeholder {
+  width: 100%;
+  margin: 0;
+}
+
+.sidebar-ad-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  color: #888;
+  font-size: 0.8rem;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+}
+
+.sidebar-ad-placeholder:hover {
+  color: #c2607a;
+  border-color: #c2607a;
+}
+
+.sidebar-theme-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1rem;
+}
+
+.sidebar-theme-list a {
+  color: #c2607a;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.sidebar-theme-list a:hover {
+  text-decoration: underline;
+}
+
+/* Comment thread + posting form */
+.comment-section {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e5e5;
+}
+
+.comment-section-header {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.25rem;
+}
+
+.comment-login-hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.comment-login-hint a,
+.comment-login-hint-link {
+  color: #c2607a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.comment-login-hint-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.comment-section-header h2 {
+  margin: 0 0 0.5rem;
+}
+
+.comment-form {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 640px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.comment-form .button-pill {
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  justify-self: start;
+}
+
+.comment-form .button-pill:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.comment-pending-notice {
+  color: #c2607a;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Same real textarea a logged-in visitor gets (.comment-form is shared),
+   just with no submit button under it — guest-box-teaser used to be a
+   smaller single-line stand-in, but Rob wants it reading as the genuine
+   box. Typing/focusing it can't post anything (no session), so it nudges
+   toward logging in instead via .comment-guest-prompt below. */
+.comment-form-guest {
+  margin-bottom: 1rem;
+}
+
+.comment-form-guest textarea {
+  color: #444;
+}
+
+.comment-guest-prompt {
+  margin: 0;
+  font-weight: 600;
+}
+
+.comment-guest-prompt a,
+.comment-guest-prompt-link {
+  color: #c2607a;
+}
+
+.comment-guest-prompt-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.comment-login-promo {
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 640px;
+}
+
+.comment-login-badge {
+  display: inline-block;
+  background: #ddd;
+  color: #1a1a1a;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  margin-bottom: 0.75rem;
+}
+
+.comment-login-promo ul {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.4rem;
+  color: #444;
+}
+
+.comment-login-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.comment-login-actions a:not(.button-pill) {
+  color: #c2607a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.comment-count {
+  margin-top: 2rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.03em;
+  border-bottom: 2px solid #c2607a;
+  padding-bottom: 0.5rem;
+  display: inline-block;
+}
+
+.comment-thread {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.comment-thread li {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1.5rem;
+}
+
+.comment-thread strong {
+  display: block;
+}
+
+.comment-author-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.comment-author-link:hover strong {
+  text-decoration: underline;
+}
+
+.comment-author-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.comment-thread time {
+  display: block;
+  color: #999;
+  font-size: 0.8rem;
+  margin: 0.15rem 0 0.5rem;
+}
+
+.comment-thread p {
+  margin: 0;
+  color: #333;
+}
+
+.star-rating-input {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.star-rating-input button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.star-rating-display {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.star-filled {
+  color: #f0a500;
+}
+
+.star-empty {
+  color: #ddd;
+}
+
+.comment-edit-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #c2607a;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.comment-editing {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1.5rem;
+}
+
+.comment-edit-form {
+  max-width: 100%;
+}
+
+.comment-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.comment-edit-cancel {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #888;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Stories-by-theme index */
+.theme-index-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem 1.5rem;
+}
+
+.theme-index-list a {
+  color: #c2607a;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.theme-eyebrow {
+  display: block;
+  color: #c2607a;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 860px) {
+  .post-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .post-sidebar {
+    position: static;
+  }
+
+  .post-hero {
+    height: 40vh;
+    min-height: 220px;
+  }
+
+  .post-hero-overlay h1 {
+    font-size: 1.5rem;
+  }
+
+  /* Brief requirement: article photos extend edge-to-edge on mobile, no
+     side margins. Scoped to standalone editorial images/captions (a bare
+     <img>, a Gutenberg figure/wp-caption block, or the classic-editor
+     pattern of an image alone in its own <p>) rather than every
+     descendant <img> — a gallery block's multi-column thumbnails would
+     each break to 100vw individually otherwise. !important is needed
+     because years of classic-editor posts carry an inline
+     style="width:NNNpx" on the wp-caption <figure> itself, which
+     otherwise wins over a plain stylesheet rule regardless of
+     specificity — confirmed against real post HTML, not a guess. The
+     keyline caption border stays full-bleed for free (its own box
+     inherits the bled parent's width); inner padding keeps the caption
+     *text* off the screen edge.
+
+     Both a bare ".post-content > X" and a ".post-content > div > X" form
+     are listed for every selector below: splitContentIntoParagraphChunks
+     (app/[slug]/page.tsx) wraps every paragraph/heading/etc. of a real
+     blog post in its own <div> so ads can be interleaved between them,
+     which puts a post's actual figures/images one level deeper than
+     .post-content's direct children — confirmed on a real post where
+     this exact rule, direct-child-only, silently matched nothing.
+     Directory listing descriptions reuse .post-content too but render
+     straight from WordPress with no such wrapping, hence keeping the
+     bare form as well rather than replacing it. */
+  .post-content > img,
+  .post-content > figure,
+  .post-content > .wp-caption,
+  .post-content > p:has(> img:only-child),
+  .post-content > div > img,
+  .post-content > div > figure,
+  .post-content > div > .wp-caption,
+  .post-content > div > p:has(> img:only-child) {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    margin-left: calc(50% - 50vw) !important;
+    margin-right: calc(50% - 50vw) !important;
+    border-radius: 0 !important;
+  }
+
+  .post-content > figure img,
+  .post-content > .wp-caption img,
+  .post-content > p:has(> img:only-child) > img,
+  .post-content > div > figure img,
+  .post-content > div > .wp-caption img,
+  .post-content > div > p:has(> img:only-child) > img {
+    width: 100% !important;
+    border-radius: 0 !important;
+  }
+
+  /* The image above stays full-bleed (100vw), but the caption's keyline
+     border sits on the caption's own box edge — padding alone insets the
+     text, not the border, so the line was drawing edge-to-edge same as
+     the image. margin (which narrows the box itself) brings the line in
+     from each side while the photo above it stays full width. */
+  .post-content > figure figcaption,
+  .post-content > .wp-caption .wp-caption-text,
+  .post-content > div > figure figcaption,
+  .post-content > div > .wp-caption .wp-caption-text {
+    margin-left: 1.5rem !important;
+    margin-right: 1.5rem !important;
+    padding: 0 0 0.5rem;
+  }
+}
+
+/* Auth pages (login/register) */
+.auth-page {
+  max-width: 420px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.event-form-hint {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: #777;
+}
+
+.auth-form input,
+.auth-form select,
+.auth-form textarea {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.auth-form button {
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 0.25rem;
+}
+
+.auth-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.event-form-tags {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.75rem 1rem 1rem;
+}
+
+.event-form-tags legend {
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0 0.35rem;
+}
+
+.event-form-tag-checkbox {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 400 !important;
+  font-size: 0.9rem;
+  margin: 0.3rem 1rem 0.3rem 0;
+}
+
+.password-input {
+  position: relative;
+  display: flex;
+}
+
+.password-input input {
+  flex: 1;
+  padding-right: 3.5rem;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #555;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.25rem 0.35rem;
+}
+
+.password-toggle:hover {
+  color: #1a1a1a;
+}
+
+.auth-error {
+  color: #b3261e;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.auth-switch {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.login-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 1000;
+}
+
+.login-modal {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.login-modal h2 {
+  margin: 0 0 0.5rem;
+}
+
+.login-modal .auth-form {
+  margin-top: 1rem;
+}
+
+.login-modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #777;
+  padding: 0.25rem;
+}
+
+/* Member dashboard */
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dashboard-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  background: #fff6e5;
+  border: 1px solid #f0d99a;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.dashboard-banner p {
+  margin: 0;
+}
+
+.dashboard-header button {
+  border: none;
+  cursor: pointer;
+}
+
+.dashboard-tier-card {
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.dashboard-tier-badge {
+  display: inline-block;
+  background: #c2607a;
+  color: #fff;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+}
+
+.dashboard-points {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.dashboard-progress,
+.dashboard-joined {
+  color: #555;
+  margin: 0.25rem 0;
+}
+
+.dashboard-section {
+  margin: 2rem 0;
+}
+
+.dashboard-activity-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dashboard-activity-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.dashboard-activity-points {
+  color: #c2607a;
+  font-weight: 700;
+}
+
+.dashboard-activity-list time {
+  margin-left: auto;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.button-pill-secondary {
+  background: transparent;
+  color: #1a1a1a;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.button-pill-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* The colour a claim/RSVP/comment/edit button turns once it's actually
+   available to you — i.e. once you're logged in (and, for edit buttons,
+   an admin) — replacing the "log in to do this" prompt it stands in for. */
+.button-pill-active {
+  background: var(--color-active);
+  color: #fff;
+  border: none;
+}
+
+.button-pill-active:hover {
+  background: var(--color-active-dark);
+}
+
+.button-pill-active:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dashboard-hint {
+  color: #777;
+  font-size: 0.85rem;
+  margin: 0.35rem 0 0;
+}
+
+.dashboard-account-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.dashboard-greeting {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #555;
+}
+
+.dashboard-avatar {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.dashboard-section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.dashboard-my-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.dashboard-my-list > li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.dashboard-my-list-edit {
+  margin-left: auto;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.dashboard-my-list-views {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.dashboard-my-comments > li {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.dashboard-my-comments > li > div {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dashboard-my-comments time {
+  margin-left: auto;
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.dashboard-my-comments p {
+  margin: 0;
+  color: #444;
+}
+
+.dashboard-status-badge {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: #eee;
+  color: #666;
+}
+
+.dashboard-status-publish {
+  background: #e3f2e9;
+  color: #c2607a;
+}
+
+.dashboard-status-pending {
+  background: #fdf1f4;
+  color: #c2607a;
+}
+
+.dashboard-tier-explainer {
+  margin-top: 1.25rem;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 1rem;
+}
+
+.dashboard-tier-explainer summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.dashboard-tier-explainer p {
+  margin: 0.75rem 0 0.35rem;
+  color: #555;
+}
+
+.dashboard-tier-explainer ul {
+  margin: 0.35rem 0;
+  padding-left: 1.25rem;
+  color: #555;
+}
+
+.dashboard-tier-ladder {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.dashboard-tier-ladder li {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  color: #555;
+}
+
+.dashboard-tier-ladder li span {
+  color: #999;
+  font-size: 0.85rem;
+}
+
+.dashboard-tier-ladder li.current {
+  background: #fff;
+  color: #1a1a1a;
+  font-weight: 700;
+}
+
+.dashboard-tier-ladder li.current span {
+  color: #c2607a;
+}
+
+/* Directory */
+.page-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.directory-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin: 1rem 0 2rem;
+}
+
+.directory-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.directory-controls select {
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.directory-search-popup-wrap {
+  position: relative;
+}
+
+.directory-search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+}
+
+.directory-search-icon:hover {
+  color: #c2607a;
+  border-color: #c2607a;
+}
+
+.directory-search-popup {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  display: flex;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 0.75rem;
+  padding: 0.6rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 5;
+}
+
+.directory-search-popup input[type="search"] {
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  font-size: 0.85rem;
+  min-width: 180px;
+}
+
+.directory-search-popup .button-pill {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+}
+
+.directory-empty {
+  color: #666;
+  padding: 2rem 0;
+}
+
+.job-list {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.job-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 1.25rem 1.5rem;
+  flex-wrap: wrap;
+}
+
+.job-card-main {
+  text-decoration: none;
+  flex: 1;
+  min-width: 200px;
+}
+
+.job-card-main .card-title {
+  display: block;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1a1a1a;
+}
+
+.job-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.7rem;
+  margin-top: 0.4rem;
+}
+
+.job-card-company {
+  color: #333;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.job-card-salary {
+  display: inline-block;
+  background: #eaf4ee;
+  color: #1a6b3f;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+
+.job-card-date {
+  display: block;
+  color: #888;
+  font-size: 0.8rem;
+  margin-top: 0.35rem;
+}
+
+.job-detail-date {
+  margin-top: 0.3rem;
+}
+
+.job-card-apply {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.job-external-disclaimer {
+  background: #f5f5f5;
+  border-left: 3px solid #c2607a;
+  color: #555;
+  font-size: 0.85rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0 8px 8px 0;
+  margin: 1rem 0;
+}
+
+.job-detail {
+  max-width: 760px;
+}
+
+.job-detail-back {
+  margin-bottom: 1rem;
+}
+
+.job-detail-back a {
+  color: #c2607a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.job-detail-meta {
+  margin-top: 0.5rem;
+}
+
+.job-detail-content {
+  margin-top: 1.5rem;
+}
+
+.job-detail-apply {
+  display: inline-block;
+  margin-top: 2rem;
+}
+
+.directory-badge {
+  display: inline-block;
+  background: #c2607a;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  margin: 0.4rem 0;
+}
+
+/* Pink outline on featured-listing cards — matches the PDF wireframe's
+   treatment (a pink border box, distinct from the plain white cards
+   around it), most visible where a featured listing sits interleaved
+   into a mixed feed of ordinary post cards, e.g. Discover. */
+.directory-card-featured {
+  border: 2px solid #c2607a;
+}
+
+.directory-badge-verified {
+  background: #c2607a;
+}
+
+/* Blue outline marks a paid "in-feed" ad card, mixed into a story/listing
+   grid — the external/paid counterpart to .directory-card-featured's pink
+   (an internal featured listing), matching the PDF's colour-coding. */
+.ad-card-external {
+  border: 2px solid #2f6fb3;
+}
+
+.ad-card-badge {
+  display: inline-block;
+  background: #2f6fb3;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  margin: 0.4rem 0;
+}
+
+.directory-verified-check {
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+  vertical-align: -2px;
+}
+
+.directory-verified-check-sm {
+  margin-right: 0.3rem;
+  vertical-align: -3px;
+}
+
+.directory-category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #c2607a;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.directory-category-pill:hover {
+  text-decoration: underline;
+}
+
+.directory-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.directory-claim-row {
+  margin: 0.25rem 0 1.25rem;
+}
+
+.directory-card-socials {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0.6rem 1rem 0;
+}
+
+/* Two classes beats .post-list li > div's (0,1,2) specificity (line ~510),
+   which otherwise blanket-hides every direct-child <div> of a card <li> —
+   this was silently swallowing the socials row on every directory card
+   until this override. Only needed for the card-list context; the listing
+   detail page's socials row isn't inside .post-list and just uses the
+   base rule above. */
+.post-list .directory-card-socials {
+  display: flex;
+}
+
+.directory-card-socials a {
+  color: #777;
+}
+
+.directory-card-socials a:hover {
+  color: #c2607a;
+}
+
+/* Masonry layout for the directory's category grids on desktop — cards of
+   very different heights (a long description vs. none, social icons vs.
+   not) left tall gaps under short cards in the plain grid. CSS columns
+   isn't true masonry (items flow down each column before wrapping to the
+   next, not strictly by shortest-column), but it's the simplest approach
+   that needs no JS and packs the same way visually. Desktop only — a
+   single mobile column has nothing to pack. */
+@media (min-width: 861px) {
+  .directory-list {
+    display: block;
+    column-count: 3;
+    column-gap: 2rem;
+  }
+
+  .directory-list li {
+    display: inline-block;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 2rem;
+  }
+}
+
+/* Featured listings' own row, kept off the masonry grid above deliberately —
+   .directory-list's column-count layout fills one column top-to-bottom
+   before starting the next, so featured-first sorting into that same list
+   only ever put them at the top of column 1, not across the top of the
+   page. This stays on .post-list's plain row-based grid at every width, so
+   "along the top on desktop" is just what the grid does by default. No
+   extra margin below it — the regular grid picks up directly after, same
+   gap as between any other pair of cards. */
+
+@media (max-width: 720px) {
+  /* The image is the first thing in the card with nothing above it, so
+     making the card the positioning context puts the badge right over
+     the photo's top-right corner without touching the desktop layout
+     (which keeps the badge in normal flow, under the title). */
+  .post-list li {
+    position: relative;
+  }
+
+  .post-list .directory-badge {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    margin: 0;
+    z-index: 1;
+  }
+}
+
+.claim-pending-notice {
+  color: var(--color-active-dark);
+  font-weight: 600;
+  margin: 0.25rem 0 1.25rem;
+}
+
+.directory-tagline {
+  color: #555;
+  font-size: 1.05rem;
+  font-style: italic;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.directory-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+}
+
+.directory-gallery-grid li {
+  position: relative;
+}
+
+.directory-gallery-grid img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+.directory-gallery-view img {
+  height: 160px;
+}
+
+.directory-gallery-remove {
+  position: absolute;
+  bottom: 0.4rem;
+  right: 0.4rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+}
+
+.directory-gallery-manager {
+  margin: 1.5rem 0;
+}
+
+.directory-gallery-add {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.directory-category-fieldset {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+}
+
+.directory-category-fieldset legend {
+  font-size: 0.85rem;
+  color: #666;
+  padding: 0 0.4rem;
+}
+
+.directory-category-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.25rem 1rem 0.25rem 0;
+  font-weight: 400;
+}
+
+.directory-category-checkbox input {
+  width: auto;
+}
+
+.directory-claim-expiry {
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+  background: #f6f6f6;
+  border-radius: 4px;
+}
+
+.directory-claim-expiry p {
+  margin: 0 0 0.5rem;
+}
+
+.auth-hint {
+  color: #777;
+  font-size: 0.85rem;
+  margin: -0.5rem 0 0.75rem;
+}
+
+/* AI editorial draft workflow */
+.admin-draft-page {
+  max-width: 720px;
+}
+
+.draft-input,
+.draft-review {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.draft-input label,
+.draft-review label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.draft-input input,
+.draft-input textarea,
+.draft-review input,
+.draft-review textarea {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.draft-review textarea[rows="16"] {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+}
+
+.draft-image-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.draft-image-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.draft-image-list button {
+  border: none;
+  background: none;
+  color: #c2607a;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0;
+}
+
+.draft-preview {
+  background: #fafafa;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+}
+
+.draft-preview img {
+  width: 100%;
+  border-radius: 4px;
+}
+
+.draft-published {
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.dashboard-editor-cta {
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.back-to-top {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #1a1a1a;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  z-index: 40;
+}
+
+.back-to-top:hover {
+  background: #c2607a;
+}
+
+@media (max-width: 560px) {
+  .back-to-top {
+    right: 1rem;
+    bottom: 1rem;
+  }
+}
+
+/* Shared page-number + Previous/Next pagination for every card grid
+   (News, Directory, Discover, People, Walks, Themes, Stories) — caps a
+   page at 9 cards instead of one long scroll. */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 2.5rem 0 1rem;
+}
+
+.pagination-numbers {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pagination-numbers a,
+.pagination-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.3rem;
+  border-radius: 6px;
+  color: #666;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.pagination-numbers a:hover {
+  background: #f5f5f5;
+}
+
+.pagination-numbers a.active {
+  background: #c2607a;
+  color: #fff;
+  font-weight: 700;
+}
+
+.pagination-prev,
+.pagination-next {
+  color: #c2607a;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.pagination-prev:hover,
+.pagination-next:hover {
+  text-decoration: underline;
+}
+
+.pagination-disabled {
+  color: #ccc;
+  pointer-events: none;
 }
