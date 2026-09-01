@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { getFeaturedImage, type WPCategory, type WPContentItem, type WPTag } from "@/lib/wordpress";
+import type { WPCategory, WPContentItem, WPTag } from "@/lib/wordpress";
+import { PostListCard } from "./PostListCard";
 
 export function ContentList({
   items,
@@ -13,47 +13,9 @@ export function ContentList({
 }) {
   return (
     <ul className="post-list">
-      {items.map((item) => {
-        const image = getFeaturedImage(item);
-        const tag = tagsById && item.tags?.map((id) => tagsById.get(id)).find(Boolean);
-        const category =
-          categoriesById && item.categories?.map((id) => categoriesById.get(id)).find(Boolean);
-        const commentCount = item.comment_count ?? 0;
-        return (
-          <li key={item.id}>
-            <Link href={`/${item.slug}`}>
-              {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
-              <div className="card-text">
-                {tag && <span className="card-tag">{tag.name}</span>}
-                <span className="card-title" dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
-                {category && <span className="card-category">{category.name}</span>}
-              </div>
-            </Link>
-            <div className="card-meta-row">
-              <time dateTime={item.date}>
-                {new Date(item.date).toLocaleDateString("en-GB", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </time>
-              {commentCount > 0 && (
-                <Link
-                  href={`/${item.slug}#comments`}
-                  className="card-comment-count"
-                  aria-label={`${commentCount} comment${commentCount === 1 ? "" : "s"} — jump to comments`}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                    <path d="M21 12a8 8 0 0 1-8 8H7l-4 3 1-5.2A8 8 0 1 1 21 12Z" strokeLinejoin="round" />
-                  </svg>
-                  {commentCount}
-                </Link>
-              )}
-            </div>
-            <div dangerouslySetInnerHTML={{ __html: item.excerpt.rendered }} />
-          </li>
-        );
-      })}
+      {items.map((item) => (
+        <PostListCard key={item.id} item={item} categoriesById={categoriesById} tagsById={tagsById} />
+      ))}
     </ul>
   );
 }

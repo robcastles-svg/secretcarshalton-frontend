@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdSlot } from "@/app/_components/AdSlot";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { EventImage } from "@/app/_components/EventImage";
 import {
@@ -118,11 +119,23 @@ export default async function EventsPage({
           />
         )}
 
-        {isCalendar ? (
-          <EventCalendarMonth year={calendarYear} month={calendarMonth} events={calendarEvents} />
-        ) : (
-          <EventsGrid events={listEvents} />
-        )}
+        <div className="post-layout">
+          <div className="post-body">
+            {isCalendar ? (
+              <EventCalendarMonth year={calendarYear} month={calendarMonth} events={calendarEvents} />
+            ) : (
+              <EventsGrid events={listEvents} />
+            )}
+          </div>
+          <aside className="post-sidebar">
+            <AdSlot
+              placement="sidebar"
+              className="sidebar-block-ad"
+              placeholderClassName="sidebar-ad-placeholder"
+              placeholderText="Advertise here"
+            />
+          </aside>
+        </div>
 
         {latestAdded.length > 0 && (
           <section className="home-section event-latest-added">

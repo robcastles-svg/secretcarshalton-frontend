@@ -1017,6 +1017,33 @@ a.card-category:hover {
   font-weight: 700;
 }
 
+/*
+ * Grey "section hero" banner behind a category page's title — matches
+ * the PDF wireframe (solid grey band, big bold white heading, action
+ * button alongside it). Per Rob: this grey is a placeholder — it'll
+ * become a background image per section eventually, kept as a flat
+ * background-color on its own class now so swapping in background-image
+ * later is a one-line change, not a page restructure.
+ */
+.section-hero {
+  background-color: #4a4a4a;
+}
+
+.section-hero .page-header-row {
+  padding: 2.5rem 1.5rem;
+}
+
+.section-hero h1 {
+  color: #fff;
+  font-size: 2.5rem;
+  margin: 0 0 0.5rem;
+}
+
+.section-hero p {
+  color: #ddd;
+  margin: 0;
+}
+
 /* Discover */
 .discover-section {
   margin-top: 2.5rem;
@@ -1554,6 +1581,11 @@ a.card-category:hover {
 .events-dark .event-tag-dropdown select {
   background: #1a1a1a;
   color: #fff;
+  border-color: #444;
+}
+
+.events-dark .sidebar-ad-placeholder {
+  color: #999;
   border-color: #444;
 }
 
@@ -3544,6 +3576,14 @@ a.card-category:hover {
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
   margin: 0.4rem 0;
+}
+
+/* Pink outline on featured-listing cards — matches the PDF wireframe's
+   treatment (a pink border box, distinct from the plain white cards
+   around it), most visible where a featured listing sits interleaved
+   into a mixed feed of ordinary post cards, e.g. Discover. */
+.directory-card-featured {
+  border: 2px solid #c2607a;
 }
 
 .directory-badge-verified {

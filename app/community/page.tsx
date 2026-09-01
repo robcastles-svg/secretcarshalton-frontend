@@ -34,20 +34,23 @@ const MOCK_HIGHLIGHTS = [
 
 export default function CommunityPage() {
   return (
-    <main className="container">
-      <div className="page-header-row">
-        <div>
-          <h1>
-            Community
-            <CategoryKeyIcon />
-          </h1>
-          <p>Local groups, causes and community-led news from around Carshalton.</p>
+    <>
+      <div className="section-hero">
+        <div className="container page-header-row">
+          <div>
+            <h1>
+              Community
+              <CategoryKeyIcon />
+            </h1>
+            <p>Local groups, causes and community-led news from around Carshalton.</p>
+          </div>
+          <span className="button-pill button-pill-disabled" aria-disabled="true">
+            Share community news — coming soon
+          </span>
         </div>
-        <span className="button-pill button-pill-disabled" aria-disabled="true">
-          Share community news — coming soon
-        </span>
       </div>
 
+      <main className="container">
       <div className="post-layout">
         <div className="post-body">
           <section>
@@ -81,6 +84,7 @@ export default function CommunityPage() {
           />
         </aside>
       </div>
-    </main>
+      </main>
+    </>
   );
 }

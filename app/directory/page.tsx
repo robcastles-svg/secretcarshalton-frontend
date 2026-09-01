@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { AdSlot } from "@/app/_components/AdSlot";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { DirectoryControls } from "./_components/DirectoryControls";
 import { getDirectoryCategories, getDirectoryListings, getDirectoryListingsByCategory, stripHtml, type WPListing } from "@/lib/wordpress";
@@ -94,65 +95,80 @@ export default async function DirectoryPage({
         </nav>
       </div>
 
-      <main className="container">
-      <div className="page-header-row">
-        <div>
-          <h1>
-            The Sutton Business Directory
-            <CategoryKeyIcon />
-          </h1>
-          <p>Local businesses and organisations in and around Carshalton.</p>
+      <div className="section-hero">
+        <div className="container page-header-row">
+          <div>
+            <h1>
+              The Sutton Business Directory
+              <CategoryKeyIcon />
+            </h1>
+            <p>Local businesses and organisations in and around Carshalton.</p>
+          </div>
+          <Link href="/directory/submit" className="button-pill">
+            Add a listing
+          </Link>
         </div>
-        <Link href="/directory/submit" className="button-pill">
-          Add a listing
-        </Link>
       </div>
 
+      <main className="container">
       <div className="directory-toolbar">
         <DirectoryControls category={category ?? ""} q={q} sort={sort} />
       </div>
 
-      {featuredListings.length === 0 && regularListings.length === 0 ? (
-        <p className="directory-empty">
-          {q
-            ? `No listings match "${q}" — try a different search or clear it to see everything.`
-            : "No listings here yet — the directory is being rebuilt; real listings are on the way."}
-        </p>
-      ) : (
-        <>
-          {featuredListings.length > 0 && (
-            <ul className="post-list directory-featured-list">
-              {featuredListings.map((listing) => (
-                <DirectoryListingCard
-                  key={listing.id}
-                  listing={listing}
-                  categoriesList={
-                    listing.sc_listing_category
-                      ?.map((id) => categoriesById.get(id))
-                      .filter((c): c is (typeof categories)[number] => Boolean(c))
-                  }
-                />
-              ))}
-            </ul>
-          )}
+      <div className="post-layout">
+        <div className="post-body">
+          {featuredListings.length === 0 && regularListings.length === 0 ? (
+            <p className="directory-empty">
+              {q
+                ? `No listings match "${q}" — try a different search or clear it to see everything.`
+                : "No listings here yet — the directory is being rebuilt; real listings are on the way."}
+            </p>
+          ) : (
+            <>
+              {featuredListings.length > 0 && (
+                <ul className="post-list directory-featured-list">
+                  {featuredListings.map((listing) => (
+                    <DirectoryListingCard
+                      key={listing.id}
+                      listing={listing}
+                      categoriesList={
+                        listing.sc_listing_category
+                          ?.map((id) => categoriesById.get(id))
+                          .filter((c): c is (typeof categories)[number] => Boolean(c))
+                      }
+                    />
+                  ))}
+                </ul>
+              )}
 
-          {regularListings.length > 0 && (
-            <ul className="post-list directory-list">
-              {regularListings.map((listing) => (
-                <DirectoryListingCard
-                  key={listing.id}
-                  listing={listing}
-                  categoriesList={
-                    listing.sc_listing_category
-                      ?.map((id) => categoriesById.get(id))
-                      .filter((c): c is (typeof categories)[number] => Boolean(c))
-                  }
-                />
-              ))}
-            </ul>
+              {regularListings.length > 0 && (
+                <ul className="post-list directory-list">
+                  {regularListings.map((listing) => (
+                    <DirectoryListingCard
+                      key={listing.id}
+                      listing={listing}
+                      categoriesList={
+                        listing.sc_listing_category
+                          ?.map((id) => categoriesById.get(id))
+                          .filter((c): c is (typeof categories)[number] => Boolean(c))
+                      }
+                    />
+                  ))}
+                </ul>
+              )}
+            </>
           )}
-        </>
-      )}
+        </div>
+
+        <aside className="post-sidebar">
+          <AdSlot
+            placement="sidebar"
+            className="sidebar-block-ad"
+            placeholderClassName="sidebar-ad-placeholder"
+            placeholderText="Advertise here"
+          />
+        </aside>
+      </div>
       </main>
     </>
   );

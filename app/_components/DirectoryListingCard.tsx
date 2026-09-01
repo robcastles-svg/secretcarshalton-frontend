@@ -17,7 +17,7 @@ export function DirectoryListingCard({
   const excerpt = listing.meta.sc_tagline || stripHtml(listing.content.rendered).slice(0, 120);
 
   return (
-    <li>
+    <li className={listing.meta.sc_featured ? "directory-card-featured" : undefined}>
       <Link href={`/directory/${listing.slug}`}>
         {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
         <span className="card-title">
