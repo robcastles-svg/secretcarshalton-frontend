@@ -64,89 +64,97 @@ export default async function EventsPage({
   const nextImage = next ? getFeaturedImage(next) : null;
 
   return (
-    <main className="container">
-      <div className="page-header-row">
-        <h1>
-          What&apos;s On
-          <CategoryKeyIcon />
-        </h1>
-        <Link href="/events/submit" className="button-pill">
-          Submit an event
-        </Link>
-      </div>
+    // A deliberate visual break from the rest of the (light) site — Events
+    // gets a dark "night out" feel of its own. Scoped to this page only
+    // (the shared header/nav above it stays light); individual cards keep
+    // their own white backgrounds (.post-list, .event-row-list) so only
+    // the ambient page chrome — headings, tiles, the list/calendar switch —
+    // needed dark-mode colour overrides, not a full component rebuild.
+    <div className="events-dark">
+      <main className="container">
+        <div className="page-header-row">
+          <h1>
+            What&apos;s On
+            <CategoryKeyIcon />
+          </h1>
+          <Link href="/events/submit" className="button-pill">
+            Submit an event
+          </Link>
+        </div>
 
-      <EventCategoryTiles
-        categories={categories}
-        activeSlug={activeCategory?.slug}
-        activeTagSlug={activeTag?.slug}
-      />
-      <EventTagTiles tags={tags} activeSlug={activeTag?.slug} activeCategorySlug={activeCategory?.slug} />
-
-      <div className="event-view-switch">
-        <Link
-          href={`/events${filterQuery(activeCategory?.slug, activeTag?.slug)}`}
-          className={!isCalendar ? "active" : undefined}
-        >
-          List
-        </Link>
-        <Link
-          href={`/events?view=calendar${filterQuery(activeCategory?.slug, activeTag?.slug, true)}`}
-          className={isCalendar ? "active" : undefined}
-        >
-          Calendar
-        </Link>
-      </div>
-
-      {next && nextStart && (
-        <EventCountdown
-          title={next.title.rendered}
-          slug={next.slug}
-          startIso={nextStart.toISOString()}
-          venueName={next.meta.sc_venue_name}
-          image={nextImage}
-          imageAlt={stripHtml(next.title.rendered)}
-          featured={Boolean(next.meta.sc_event_featured)}
+        <EventCategoryTiles
+          categories={categories}
+          activeSlug={activeCategory?.slug}
+          activeTagSlug={activeTag?.slug}
         />
-      )}
+        <EventTagTiles tags={tags} activeSlug={activeTag?.slug} activeCategorySlug={activeCategory?.slug} />
 
-      {isCalendar ? (
-        <EventCalendarMonth year={calendarYear} month={calendarMonth} events={calendarEvents} />
-      ) : (
-        <EventsGrid events={listEvents} />
-      )}
+        <div className="event-view-switch">
+          <Link
+            href={`/events${filterQuery(activeCategory?.slug, activeTag?.slug)}`}
+            className={!isCalendar ? "active" : undefined}
+          >
+            List
+          </Link>
+          <Link
+            href={`/events?view=calendar${filterQuery(activeCategory?.slug, activeTag?.slug, true)}`}
+            className={isCalendar ? "active" : undefined}
+          >
+            Calendar
+          </Link>
+        </div>
 
-      {latestAdded.length > 0 && (
-        <section className="home-section event-latest-added">
-          <h2>Latest events added</h2>
-          <ul className="event-row-list">
-            {latestAdded.map((event) => {
-              const image = getFeaturedImage(event);
-              const startDate = parseEventDate(event.meta.sc_start);
-              return (
-                <li key={event.id}>
-                  <Link href={`/events/${event.slug}`}>
-                    <EventImage image={image} alt={stripHtml(event.title.rendered)} />
-                    <div className="event-card-heading">
-                      {startDate && (
-                        <div className="event-card-date-badge">
-                          <span className="event-card-date-badge-weekday">
-                            {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
-                          </span>
-                          <span className="event-card-date-badge-day">{startDate.getDate()}</span>
-                          <span className="event-card-date-badge-month">
-                            {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                      <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )}
-    </main>
+        {next && nextStart && (
+          <EventCountdown
+            title={next.title.rendered}
+            slug={next.slug}
+            startIso={nextStart.toISOString()}
+            venueName={next.meta.sc_venue_name}
+            image={nextImage}
+            imageAlt={stripHtml(next.title.rendered)}
+            featured={Boolean(next.meta.sc_event_featured)}
+          />
+        )}
+
+        {isCalendar ? (
+          <EventCalendarMonth year={calendarYear} month={calendarMonth} events={calendarEvents} />
+        ) : (
+          <EventsGrid events={listEvents} />
+        )}
+
+        {latestAdded.length > 0 && (
+          <section className="home-section event-latest-added">
+            <h2>Latest events added</h2>
+            <ul className="event-row-list">
+              {latestAdded.map((event) => {
+                const image = getFeaturedImage(event);
+                const startDate = parseEventDate(event.meta.sc_start);
+                return (
+                  <li key={event.id}>
+                    <Link href={`/events/${event.slug}`}>
+                      <EventImage image={image} alt={stripHtml(event.title.rendered)} />
+                      <div className="event-card-heading">
+                        {startDate && (
+                          <div className="event-card-date-badge">
+                            <span className="event-card-date-badge-weekday">
+                              {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
+                            </span>
+                            <span className="event-card-date-badge-day">{startDate.getDate()}</span>
+                            <span className="event-card-date-badge-month">
+                              {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                        <span className="card-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+      </main>
+    </div>
   );
 }

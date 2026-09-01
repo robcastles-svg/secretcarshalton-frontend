@@ -1443,6 +1443,60 @@ a.card-category:hover {
   border-top: 1px solid #eee;
 }
 
+/*
+ * Events section dark theme — a deliberate "night out" break from the
+ * rest of the (light) site, scoped to the /events list/calendar page
+ * only (app/events/page.tsx). Full-bleed black background outside
+ * .container, same pattern as .member-benefits-bar/.quick-links-bar
+ * used to be. Card components (.post-list, .event-row-list,
+ * .event-calendar-cell) already have their own white/light backgrounds
+ * and dark text, so they read fine unchanged — only the ambient page
+ * chrome (headings, tiles, the list/calendar switch, the calendar's own
+ * header/weekday row) needed colour overrides here.
+ */
+.events-dark {
+  background: #14141a;
+  padding-bottom: 0.5rem;
+}
+
+.events-dark h1,
+.events-dark h2 {
+  color: #fff;
+}
+
+.events-dark .event-tag-dropdown label {
+  color: #bbb;
+}
+
+.events-dark .event-view-switch {
+  border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+.events-dark .event-view-switch a {
+  color: #999;
+}
+
+.events-dark .event-view-switch a.active {
+  color: #fff;
+}
+
+.events-dark .event-latest-added {
+  border-top-color: rgba(255, 255, 255, 0.15);
+}
+
+.events-dark .event-calendar-header a {
+  color: #fff;
+}
+
+.events-dark .event-calendar-weekdays {
+  color: #999;
+}
+
+.events-dark .button-pill-secondary {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
 .event-detail-actions {
   display: flex;
   flex-wrap: wrap;
