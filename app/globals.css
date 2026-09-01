@@ -49,6 +49,12 @@ img {
   white-space: nowrap;
 }
 
+.button-pill-disabled {
+  background: #ccc;
+  color: #666;
+  cursor: default;
+}
+
 button.button-pill {
   border: none;
   cursor: pointer;
@@ -3249,11 +3255,19 @@ a.card-category:hover {
   flex-wrap: wrap;
 }
 
+.directory-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0 2rem;
+}
+
 .directory-category-nav {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin: 1rem 0 2rem;
 }
 
 .directory-category-nav a {
@@ -3262,6 +3276,71 @@ a.card-category:hover {
   background: #f0f0f0;
   color: #333;
   text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.directory-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.directory-controls select {
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 0.85rem;
+  color: #333;
+}
+
+.directory-search-popup-wrap {
+  position: relative;
+}
+
+.directory-search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+}
+
+.directory-search-icon:hover {
+  color: #0a5c36;
+  border-color: #0a5c36;
+}
+
+.directory-search-popup {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  display: flex;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 0.75rem;
+  padding: 0.6rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 5;
+}
+
+.directory-search-popup input[type="search"] {
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  font-size: 0.85rem;
+  min-width: 180px;
+}
+
+.directory-search-popup .button-pill {
+  padding: 0.4rem 1rem;
   font-size: 0.85rem;
 }
 

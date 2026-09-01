@@ -726,10 +726,15 @@ export interface WPListing {
   sc_claim_pending?: boolean;
   /** Resolved from the sc_gallery attachment-ID meta server-side — see SC_Directory_REST's sc_gallery_images REST field. */
   sc_gallery_images?: WPListingGalleryImage[];
+  /** Rolled up from approved review comments (sc_rating meta) server-side — see SC_Directory_REST's sc_review_stats REST field. Powers the Most Reviews / Highest Rated directory sort. */
+  sc_review_stats?: { count: number; average: number | null };
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
   };
 }
+
+const DIRECTORY_LISTING_FIELDS =
+  "id,slug,link,date,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,sc_review_stats,_links";
 
 /**
  * Staging (see WP_STAGING_ROOT) turned out to be far less reliably
@@ -753,7 +758,7 @@ async function scDirectoryFetch<T>(path: string): Promise<T> {
 
 export function getDirectoryListings(perPage = 100) {
   return scDirectoryFetch<WPListing[]>(
-    `/sc-listings?per_page=${perPage}&_fields=id,slug,link,date,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,_links&_embed=wp:featuredmedia`
+    `/sc-listings?per_page=${perPage}&_fields=${DIRECTORY_LISTING_FIELDS}&_embed=wp:featuredmedia`
   );
 }
 
@@ -766,7 +771,7 @@ export async function getDirectoryListingBySlug(slug: string): Promise<WPListing
 
 export function getDirectoryListingsByCategory(categoryId: number, perPage = 100) {
   return scDirectoryFetch<WPListing[]>(
-    `/sc-listings?sc_listing_category=${categoryId}&per_page=${perPage}&_fields=id,slug,link,date,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,_links&_embed=wp:featuredmedia`
+    `/sc-listings?sc_listing_category=${categoryId}&per_page=${perPage}&_fields=${DIRECTORY_LISTING_FIELDS}&_embed=wp:featuredmedia`
   );
 }
 

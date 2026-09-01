@@ -43,6 +43,12 @@ export default async function JobsPage() {
           </h1>
           <p>Local vacancies from around Carshalton, Sutton and the surrounding area, posted in the last 7 days.</p>
         </div>
+        {/* Placeholder until member job submissions (Phase 2 of the original
+            brief) are built — not a real link yet, just holding the spot
+            in the header row. */}
+        <span className="button-pill button-pill-disabled" aria-disabled="true">
+          Add a job — coming soon
+        </span>
       </div>
 
       <p className="job-external-disclaimer">

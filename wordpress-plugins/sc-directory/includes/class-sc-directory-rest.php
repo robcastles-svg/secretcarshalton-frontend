@@ -133,6 +133,47 @@ class SC_Directory_REST {
 			)
 		);
 
+		/**
+		 * Star ratings are stored as comment meta (sc_rating) by
+		 * sc-membership's review-submission handler — see
+		 * SC_Membership_REST's 'rating' comment field. Rolling that up
+		 * per-listing here (rather than the frontend fetching every
+		 * listing's comments separately) is what lets the directory sort
+		 * by "Most Reviews" / "Highest Rated" without an extra request
+		 * per card.
+		 */
+		register_rest_field(
+			SC_Directory_CPT::POST_TYPE,
+			'sc_review_stats',
+			array(
+				'get_callback' => function ( $post ) {
+					$comments = get_comments(
+						array(
+							'post_id'  => $post['id'],
+							'status'   => 'approve',
+							'meta_key' => 'sc_rating',
+						)
+					);
+					$count = count( $comments );
+					if ( ! $count ) {
+						return array( 'count' => 0, 'average' => null );
+					}
+					$sum = 0;
+					foreach ( $comments as $comment ) {
+						$sum += (int) get_comment_meta( $comment->comment_ID, 'sc_rating', true );
+					}
+					return array( 'count' => $count, 'average' => round( $sum / $count, 1 ) );
+				},
+				'schema'       => array(
+					'type'       => 'object',
+					'properties' => array(
+						'count'   => array( 'type' => 'integer' ),
+						'average' => array( 'type' => array( 'number', 'null' ) ),
+					),
+				),
+			)
+		);
+
 		register_rest_route(
 			'sc-directory/v1',
 			'/(?P<id>\d+)',
