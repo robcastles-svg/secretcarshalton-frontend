@@ -163,7 +163,7 @@ button.button-pill {
 
 .site-logo-img {
   display: block;
-  height: 34px;
+  height: 42px;
   width: auto;
 }
 
@@ -194,10 +194,11 @@ button.button-pill {
 }
 
 .primary-nav a.active {
-  color: #c2607a;
+  color: #222;
   font-weight: 700;
   text-decoration: underline;
-  text-decoration-thickness: 2px;
+  text-decoration-color: #c2607a;
+  text-decoration-thickness: 4px;
   text-underline-offset: 6px;
 }
 
@@ -234,7 +235,7 @@ button.button-pill {
 }
 
 @media (max-width: 720px) {
-  /* Tighter than the desktop spacing so "Support | Subscribe |
+  /* Tighter than the desktop spacing so "About | Support | Subscribe |
      Advertise | Join | Login" fits on one line instead of wrapping. */
   .utility-bar-inner {
     justify-content: center;
@@ -255,6 +256,10 @@ button.button-pill {
     justify-content: center;
     gap: 1rem 1.25rem;
     width: 100%;
+  }
+
+  .primary-nav a {
+    font-size: 1.2rem;
   }
 
   .nav-line-break {

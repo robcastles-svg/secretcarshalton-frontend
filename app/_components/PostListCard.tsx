@@ -22,18 +22,23 @@ export function PostListCard({
   return (
     <li>
       {/* Theme and place are their own separately-clickable links, siblings
-          of the card's own link rather than nested inside it — anchors
+          of the card's own links rather than nested inside them — anchors
           can't nest (same reason event-card-topics' pills sit outside
-          their card's Link). */}
+          their card's Link). Image and title are two separate Links (both
+          to the post) rather than one wrapping both, so theme can still
+          sit between them — above the headline, below the image — same
+          position it always had. */}
+      {image && (
+        <Link href={`/${item.slug}`}>
+          <img src={image.source_url} alt={image.alt_text} loading="lazy" />
+        </Link>
+      )}
       {tag && (
         <Link href={`/themes/${tag.slug}`} className="card-tag">
           {tag.name}
         </Link>
       )}
-      <Link href={`/${item.slug}`}>
-        {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
-        <span className="card-title" dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
-      </Link>
+      <Link href={`/${item.slug}`} className="card-title" dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
       {category && categoriesById && (
         <Link href={categoryHref(category, categoriesById)} className="card-category">
           {category.name}

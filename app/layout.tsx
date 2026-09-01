@@ -59,6 +59,7 @@ const PRIMARY_NAV = [
 ];
 
 const UTILITY_NAV = [
+  { label: "About", href: "/about-secret-carshalton" },
   { label: "Support", href: "/donate" },
   { label: "Subscribe", href: "/newsletter" },
   { label: "Advertise", href: "/advertising-contact" },
@@ -102,7 +103,21 @@ export default async function RootLayout({
             {sessionToken ? "Member dashboard" : "Member benefits"}
           </Link>
         </div>
-        {/* One merged bar — date/weather on the left, utility links on the right — matching the PDF wireframe rather than two stacked bars. */}
+        {/*
+         * Just the one top-of-page ad slot now — billboard, admin-managed
+         * via sc-ads. Used to be paired with a second "leaderboard" slot
+         * inside the header right below it, which was redundant stacking
+         * two banner ads back-to-back now that sidebar and in-post slots
+         * exist on content pages too.
+         */}
+        <AdSlot
+          placement="billboard"
+          className="ad-slot ad-billboard"
+          placeholderClassName="ad-slot-placeholder ad-billboard-placeholder"
+          placeholderText="Claim this banner space for your local business"
+        />
+
+        {/* One merged bar — date/weather on the left, utility links on the right — sits below the billboard and above the logo/nav row, matching the PDF wireframe. */}
         <div className={`utility-bar${sessionToken ? " utility-bar-loggedin" : ""}`}>
           <div className="container utility-bar-inner">
             <SiteDateWeather />
@@ -129,20 +144,6 @@ export default async function RootLayout({
             </div>
           </div>
         </div>
-
-        {/*
-         * Just the one top-of-page ad slot now — billboard, admin-managed
-         * via sc-ads. Used to be paired with a second "leaderboard" slot
-         * inside the header right below it, which was redundant stacking
-         * two banner ads back-to-back now that sidebar and in-post slots
-         * exist on content pages too.
-         */}
-        <AdSlot
-          placement="billboard"
-          className="ad-slot ad-billboard"
-          placeholderClassName="ad-slot-placeholder ad-billboard-placeholder"
-          placeholderText="Claim this banner space for your local business"
-        />
 
         <header className="site-header">
           <div className="container site-header-inner">
