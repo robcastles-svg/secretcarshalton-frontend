@@ -8,6 +8,7 @@ import {
   getMyListings,
   getMyRsvpdEvents,
   linkForPostType,
+  parseEventDate,
 } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
@@ -31,6 +32,21 @@ const POST_STATUS_LABEL: Record<string, string> = {
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+}
+
+/**
+ * sc_start isn't always valid ISO — older, migrated events carry a
+ * malformed format like "2026-5-24T14:30+0:00" (unpadded month/day, a
+ * broken timezone offset) that new Date() can't parse. parseEventDate
+ * already handles this everywhere else on the site; formatDate's plain
+ * new Date() doesn't, so a raw formatDate(rsvp.start) rendered "Invalid
+ * Date" for exactly those older events.
+ */
+function formatEventStart(raw: string) {
+  const date = parseEventDate(raw);
+  return date
+    ? date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
+    : null;
 }
 
 // Matches SC_Membership_Tiers::all() in wordpress-plugins/sc-membership —
@@ -183,7 +199,9 @@ export default async function DashboardPage() {
               renderItem={(rsvp) => (
                 <>
                   <Link href={`/events/${rsvp.slug}`}>{rsvp.title}</Link>
-                  {rsvp.start && <time className="dashboard-my-list-date">{formatDate(rsvp.start)}</time>}
+                  {rsvp.start && formatEventStart(rsvp.start) && (
+                    <time className="dashboard-my-list-date">{formatEventStart(rsvp.start)}</time>
+                  )}
                 </>
               )}
             />
