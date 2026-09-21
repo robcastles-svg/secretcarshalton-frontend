@@ -85,6 +85,18 @@ class SC_Events_REST {
 
 		register_rest_route(
 			'sc-events/v1',
+			'/mine/rsvps',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_my_rsvps' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-events/v1',
 			'/(?P<id>\d+)/claim',
 			array(
 				'methods'             => 'POST',
@@ -241,6 +253,56 @@ class SC_Events_REST {
 					'status' => $post->post_status,
 					'slug'   => $post->post_name,
 					'start'  => get_post_meta( $post->ID, 'sc_start', true ),
+				);
+			},
+			$posts
+		);
+	}
+
+	/**
+	 * Events this member has RSVP'd "going" to, soonest first — distinct
+	 * from get_my_events (which is authorship, not attendance). RSVPs are
+	 * stored as a serialized array of user ids in each event's own
+	 * sc_event_rsvp_going meta (see get_going_ids), not indexed by user,
+	 * so finding "my" RSVPs means searching the other direction: a direct
+	 * LIKE against the serialized fragment PHP produces for that id
+	 * (`i:{$user_id};`) — the leading `i:` and trailing `;` make it exact,
+	 * so id 5 can't false-match inside id 15 or 25.
+	 */
+	public static function get_my_rsvps( WP_REST_Request $request ) {
+		global $wpdb;
+		$user_id = get_current_user_id();
+
+		$event_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = 'sc_event_rsvp_going' AND meta_value LIKE %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'%' . $wpdb->esc_like( 'i:' . $user_id . ';' ) . '%'
+			)
+		);
+
+		if ( empty( $event_ids ) ) {
+			return array();
+		}
+
+		$posts = get_posts(
+			array(
+				'post_type'      => SC_Events_CPT::POST_TYPE,
+				'post__in'       => array_map( 'intval', $event_ids ),
+				'post_status'    => 'publish',
+				'posts_per_page' => 50,
+				'orderby'        => 'meta_value',
+				'meta_key'       => 'sc_start',
+				'order'          => 'ASC',
+			)
+		);
+
+		return array_map(
+			function ( $post ) {
+				return array(
+					'id'    => $post->ID,
+					'title' => get_the_title( $post ),
+					'slug'  => $post->post_name,
+					'start' => get_post_meta( $post->ID, 'sc_start', true ),
 				);
 			},
 			$posts

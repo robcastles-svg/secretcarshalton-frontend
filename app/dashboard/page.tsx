@@ -1,6 +1,14 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getMemberMe, getMyBookmarks, getMyComments, getMyEvents, getMyListings, linkForPostType } from "@/lib/wordpress";
+import {
+  getMemberMe,
+  getMyBookmarks,
+  getMyComments,
+  getMyEvents,
+  getMyListings,
+  getMyRsvpdEvents,
+  linkForPostType,
+} from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { LogoutButton } from "./_components/LogoutButton";
@@ -41,11 +49,12 @@ export default async function DashboardPage() {
   const profile = await getMemberMe(token);
   if (!profile) redirect("/login");
 
-  const [myListings, myEvents, myComments, myBookmarks] = await Promise.all([
+  const [myListings, myEvents, myComments, myBookmarks, myRsvps] = await Promise.all([
     getMyListings(token),
     getMyEvents(token),
     getMyComments(token),
     getMyBookmarks(token),
+    getMyRsvpdEvents(token),
   ]);
 
   return (
@@ -160,6 +169,28 @@ export default async function DashboardPage() {
         </section>
 
         <section className="dashboard-section">
+          <h3>Events you&apos;re going to</h3>
+          {myRsvps.length === 0 ? (
+            <p className="dashboard-hint">
+              Nothing yet — RSVP to an event to keep track of it here.
+            </p>
+          ) : (
+            <ExpandableList
+              items={myRsvps}
+              listClassName="dashboard-my-list"
+              itemKey={(rsvp) => rsvp.id}
+              noun="event"
+              renderItem={(rsvp) => (
+                <>
+                  <Link href={`/events/${rsvp.slug}`}>{rsvp.title}</Link>
+                  {rsvp.start && <time className="dashboard-my-list-date">{formatDate(rsvp.start)}</time>}
+                </>
+              )}
+            />
+          )}
+        </section>
+
+        <section className="dashboard-section">
           <h3>Bookmarks</h3>
           {myBookmarks.length === 0 ? (
             <p className="dashboard-hint">
@@ -207,6 +238,9 @@ export default async function DashboardPage() {
                   ) : (
                     <span>{listing.title}</span>
                   )}
+                  <span className="dashboard-my-list-views">
+                    {listing.views} view{listing.views === 1 ? "" : "s"}
+                  </span>
                   <Link href={`/directory/${listing.slug}/edit`} className="dashboard-my-list-edit">
                     Edit
                   </Link>

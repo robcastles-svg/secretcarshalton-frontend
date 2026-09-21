@@ -3373,6 +3373,13 @@ a.card-category:hover {
   color: #888;
 }
 
+.dashboard-my-list-date {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: #888;
+}
+
 .dashboard-my-comments > li {
   flex-direction: column;
   align-items: stretch;

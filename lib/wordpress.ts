@@ -1604,8 +1604,10 @@ export interface MyListing {
   status: string;
   slug: string;
   date: string;
+  views: number;
 }
 
+/** Same reasoning as getMyEvents: views live in sc-post-views, not sc-directory's own /mine response. */
 export async function getMyListings(token: string): Promise<MyListing[]> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/mine`, {
@@ -1614,7 +1616,10 @@ export async function getMyListings(token: string): Promise<MyListing[]> {
       signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) return [];
-    return res.json();
+    const listings: Array<Omit<MyListing, "views">> = await res.json();
+    return Promise.all(
+      listings.map(async (listing) => ({ ...listing, views: await getPostViewCount(listing.id) }))
+    );
   } catch {
     return [];
   }
@@ -1649,6 +1654,28 @@ export async function getMyEvents(token: string): Promise<MyEvent[]> {
     return Promise.all(
       events.map(async (event) => ({ ...event, views: await getPostViewCount(event.id) }))
     );
+  } catch {
+    return [];
+  }
+}
+
+export interface MyRsvp {
+  id: number;
+  title: string;
+  slug: string;
+  start: string;
+}
+
+/** Events attended (RSVP'd "going" to) — separate from getMyEvents, which is authorship, not attendance. */
+export async function getMyRsvpdEvents(token: string): Promise<MyRsvp[]> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/mine/rsvps`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return [];
+    return res.json();
   } catch {
     return [];
   }
