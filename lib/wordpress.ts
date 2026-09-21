@@ -1666,7 +1666,16 @@ export interface MyRsvp {
   start: string;
 }
 
-/** Events attended (RSVP'd "going" to) — separate from getMyEvents, which is authorship, not attendance. */
+/**
+ * Upcoming events this member has RSVP'd "going" to — separate from
+ * getMyEvents, which is authorship, not attendance. The dashboard section
+ * this feeds is titled "Events you're going to", so a past one (the
+ * server-side query has no date filter — it can't sort reliably across
+ * the mix of well-formed and legacy-malformed sc_start values, see
+ * parseEventDate) would read as wrong even once its date renders
+ * correctly; filtered here, where the same robust parser used everywhere
+ * else on the site for sc_start is already at hand.
+ */
 export async function getMyRsvpdEvents(token: string): Promise<MyRsvp[]> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/mine/rsvps`, {
@@ -1675,7 +1684,12 @@ export async function getMyRsvpdEvents(token: string): Promise<MyRsvp[]> {
       signal: AbortSignal.timeout(15_000),
     });
     if (!res.ok) return [];
-    return res.json();
+    const events: MyRsvp[] = await res.json();
+    const now = Date.now();
+    return events.filter((event) => {
+      const start = parseEventDate(event.start);
+      return start !== null && start.getTime() >= now;
+    });
   } catch {
     return [];
   }
