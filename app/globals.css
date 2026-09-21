@@ -3214,6 +3214,46 @@ a.card-category:hover {
   margin: 2rem 0;
 }
 
+.dashboard-section h3 {
+  margin: 0 0 0.75rem;
+}
+
+.dashboard-group {
+  margin: 2.5rem 0;
+  padding-top: 1.5rem;
+  border-top: 2px solid #eee;
+}
+
+.dashboard-group-title {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #999;
+}
+
+.dashboard-coming-soon h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.dashboard-status-soon {
+  background: #eef2f7;
+  color: #4a6485;
+}
+
+.dashboard-status-post {
+  background: #eef2f7;
+  color: #4a6485;
+}
+
+.dashboard-status-listing {
+  background: #fdf1f4;
+  color: #c2607a;
+}
+
 .dashboard-activity-list {
   list-style: none;
   padding: 0;

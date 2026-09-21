@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { getMemberMe, getMyComments, getMyEvents, getMyListings, linkForPostType } from "@/lib/wordpress";
+import { getMemberMe, getMyBookmarks, getMyComments, getMyEvents, getMyListings, linkForPostType } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { LogoutButton } from "./_components/LogoutButton";
@@ -41,10 +41,11 @@ export default async function DashboardPage() {
   const profile = await getMemberMe(token);
   if (!profile) redirect("/login");
 
-  const [myListings, myEvents, myComments] = await Promise.all([
+  const [myListings, myEvents, myComments, myBookmarks] = await Promise.all([
     getMyListings(token),
     getMyEvents(token),
     getMyComments(token),
+    getMyBookmarks(token),
   ]);
 
   return (
@@ -120,134 +121,199 @@ export default async function DashboardPage() {
         </details>
       </div>
 
-      <section className="dashboard-section">
-        <h2>Your directory listing{myListings.length === 1 ? "" : "s"}</h2>
-        {myListings.length === 0 ? (
-          <p className="dashboard-hint">Nothing yet — claim an existing listing or add a new one.</p>
-        ) : (
-          <ExpandableList
-            items={myListings}
-            listClassName="dashboard-my-list"
-            itemKey={(listing) => listing.id}
-            noun="listing"
-            renderItem={(listing) => (
-              <>
-                <span className={`dashboard-status-badge dashboard-status-${listing.status}`}>
-                  {POST_STATUS_LABEL[listing.status] ?? listing.status}
-                </span>
-                {listing.status === "publish" ? (
-                  <Link href={`/directory/${listing.slug}`}>{listing.title}</Link>
-                ) : (
-                  <span>{listing.title}</span>
-                )}
-                <Link href={`/directory/${listing.slug}/edit`} className="dashboard-my-list-edit">
-                  Edit
-                </Link>
-              </>
-            )}
-          />
-        )}
-        <div className="dashboard-section-actions">
-          <Link href="/directory" className="button-pill button-pill-secondary">
-            Browse the directory
-          </Link>
-          <Link href="/directory/submit" className="button-pill">
-            Add a listing
-          </Link>
-        </div>
-      </section>
+      <div className="dashboard-group">
+        <h2 className="dashboard-group-title">Free for every member</h2>
 
-      <section className="dashboard-section">
-        <h2>Your event{myEvents.length === 1 ? "" : "s"}</h2>
-        {myEvents.length === 0 ? (
-          <p className="dashboard-hint">Nothing submitted yet.</p>
-        ) : (
-          <ExpandableList
-            items={myEvents}
-            listClassName="dashboard-my-list"
-            itemKey={(event) => event.id}
-            noun="event"
-            renderItem={(event) => (
-              <>
-                <span className={`dashboard-status-badge dashboard-status-${event.status}`}>
-                  {POST_STATUS_LABEL[event.status] ?? event.status}
-                </span>
-                {event.status === "publish" ? (
-                  <Link href={`/events/${event.slug}`}>{event.title}</Link>
-                ) : (
-                  <span>{event.title}</span>
-                )}
-                <span className="dashboard-my-list-views">
-                  {event.views} view{event.views === 1 ? "" : "s"}
-                </span>
-                <Link href={`/events/${event.slug}/edit`} className="dashboard-my-list-edit">
-                  Edit
-                </Link>
-              </>
-            )}
-          />
-        )}
-        <div className="dashboard-section-actions">
-          <Link href="/events" className="button-pill button-pill-secondary">
-            Browse events
-          </Link>
-          <Link href="/events/submit" className="button-pill">
-            Submit an event
-          </Link>
-        </div>
-      </section>
+        <section className="dashboard-section">
+          <h3>Your comments</h3>
+          {myComments.length === 0 ? (
+            <p className="dashboard-hint">
+              Nothing yet — comment on a story to join the conversation.
+            </p>
+          ) : (
+            <ExpandableList
+              items={myComments}
+              listClassName="dashboard-my-list dashboard-my-comments"
+              itemKey={(comment) => comment.id}
+              noun="comment"
+              renderItem={(comment) => (
+                <>
+                  <div>
+                    {comment.status !== "approved" && (
+                      <span className="dashboard-status-badge dashboard-status-pending">Awaiting moderation</span>
+                    )}
+                    {(() => {
+                      const link = linkForPostType(comment.post_type, comment.post_slug);
+                      return link ? (
+                        <Link href={link}>{comment.post_title}</Link>
+                      ) : (
+                        <span>{comment.post_title ?? "A post"}</span>
+                      );
+                    })()}
+                    <time>{formatDate(comment.date)}</time>
+                  </div>
+                  <p dangerouslySetInnerHTML={{ __html: comment.content.rendered }} />
+                </>
+              )}
+            />
+          )}
+        </section>
 
-      <section className="dashboard-section">
-        <h2>Your comments</h2>
-        {myComments.length === 0 ? (
-          <p className="dashboard-hint">
-            Nothing yet — comment on a story to join the conversation.
-          </p>
-        ) : (
-          <ExpandableList
-            items={myComments}
-            listClassName="dashboard-my-list dashboard-my-comments"
-            itemKey={(comment) => comment.id}
-            noun="comment"
-            renderItem={(comment) => (
-              <>
-                <div>
-                  {comment.status !== "approved" && (
-                    <span className="dashboard-status-badge dashboard-status-pending">Awaiting moderation</span>
+        <section className="dashboard-section">
+          <h3>Bookmarks</h3>
+          {myBookmarks.length === 0 ? (
+            <p className="dashboard-hint">
+              Nothing saved yet — bookmark a story or directory listing to find it again here.
+            </p>
+          ) : (
+            <ExpandableList
+              items={myBookmarks}
+              listClassName="dashboard-my-list"
+              itemKey={(bookmark) => `${bookmark.content_type}-${bookmark.content_id}`}
+              noun="bookmark"
+              renderItem={(bookmark) => (
+                <>
+                  <span className={`dashboard-status-badge dashboard-status-${bookmark.content_type}`}>
+                    {bookmark.content_type === "listing" ? "Directory" : "Story"}
+                  </span>
+                  <Link href={bookmark.link}>{bookmark.title}</Link>
+                </>
+              )}
+            />
+          )}
+        </section>
+      </div>
+
+      <div className="dashboard-group">
+        <h2 className="dashboard-group-title">Free listings</h2>
+
+        <section className="dashboard-section">
+          <h3>Your directory listing{myListings.length === 1 ? "" : "s"}</h3>
+          {myListings.length === 0 ? (
+            <p className="dashboard-hint">Nothing yet — claim an existing listing or add a new one.</p>
+          ) : (
+            <ExpandableList
+              items={myListings}
+              listClassName="dashboard-my-list"
+              itemKey={(listing) => listing.id}
+              noun="listing"
+              renderItem={(listing) => (
+                <>
+                  <span className={`dashboard-status-badge dashboard-status-${listing.status}`}>
+                    {POST_STATUS_LABEL[listing.status] ?? listing.status}
+                  </span>
+                  {listing.status === "publish" ? (
+                    <Link href={`/directory/${listing.slug}`}>{listing.title}</Link>
+                  ) : (
+                    <span>{listing.title}</span>
                   )}
-                  {(() => {
-                    const link = linkForPostType(comment.post_type, comment.post_slug);
-                    return link ? (
-                      <Link href={link}>{comment.post_title}</Link>
-                    ) : (
-                      <span>{comment.post_title ?? "A post"}</span>
-                    );
-                  })()}
-                  <time>{formatDate(comment.date)}</time>
-                </div>
-                <p dangerouslySetInnerHTML={{ __html: comment.content.rendered }} />
-              </>
-            )}
-          />
-        )}
-      </section>
+                  <Link href={`/directory/${listing.slug}/edit`} className="dashboard-my-list-edit">
+                    Edit
+                  </Link>
+                </>
+              )}
+            />
+          )}
+          <div className="dashboard-section-actions">
+            <Link href="/directory" className="button-pill button-pill-secondary">
+              Browse the directory
+            </Link>
+            <Link href="/directory/submit" className="button-pill">
+              Add a listing
+            </Link>
+          </div>
+        </section>
 
-      <section className="dashboard-section">
-        <h2>Directory upgrade</h2>
-        {profile.directory_upgrade_status ? (
-          <p>
-            Status:{" "}
-            <strong>
-              {UPGRADE_STATUS_LABEL[profile.directory_upgrade_status] ?? profile.directory_upgrade_status}
-            </strong>
+        <section className="dashboard-section">
+          <h3>Your event{myEvents.length === 1 ? "" : "s"}</h3>
+          {myEvents.length === 0 ? (
+            <p className="dashboard-hint">Nothing submitted yet.</p>
+          ) : (
+            <ExpandableList
+              items={myEvents}
+              listClassName="dashboard-my-list"
+              itemKey={(event) => event.id}
+              noun="event"
+              renderItem={(event) => (
+                <>
+                  <span className={`dashboard-status-badge dashboard-status-${event.status}`}>
+                    {POST_STATUS_LABEL[event.status] ?? event.status}
+                  </span>
+                  {event.status === "publish" ? (
+                    <Link href={`/events/${event.slug}`}>{event.title}</Link>
+                  ) : (
+                    <span>{event.title}</span>
+                  )}
+                  <span className="dashboard-my-list-views">
+                    {event.views} view{event.views === 1 ? "" : "s"}
+                  </span>
+                  <Link href={`/events/${event.slug}/edit`} className="dashboard-my-list-edit">
+                    Edit
+                  </Link>
+                </>
+              )}
+            />
+          )}
+          <div className="dashboard-section-actions">
+            <Link href="/events" className="button-pill button-pill-secondary">
+              Browse events
+            </Link>
+            <Link href="/events/submit" className="button-pill">
+              Submit an event
+            </Link>
+          </div>
+        </section>
+      </div>
+
+      <div className="dashboard-group">
+        <h2 className="dashboard-group-title">Paid features</h2>
+
+        <section className="dashboard-section">
+          <h3>Directory upgrade</h3>
+          {profile.directory_upgrade_status ? (
+            <p>
+              Status:{" "}
+              <strong>
+                {UPGRADE_STATUS_LABEL[profile.directory_upgrade_status] ?? profile.directory_upgrade_status}
+              </strong>
+            </p>
+          ) : (
+            <>
+              <p>Own a local business? Request a featured directory listing.</p>
+              <RequestUpgradeButton />
+            </>
+          )}
+        </section>
+
+        <section className="dashboard-section dashboard-coming-soon">
+          <h3>
+            Featured event <span className="dashboard-status-badge dashboard-status-soon">Coming soon</span>
+          </h3>
+          <p className="dashboard-hint">
+            Pay to feature one of your events at the top of Events and in search — the same way a directory
+            upgrade works today.
           </p>
-        ) : (
-          <>
-            <p>Own a local business? Request a featured directory listing.</p>
-            <RequestUpgradeButton />
-          </>
-        )}
-      </section>
+        </section>
+
+        <section className="dashboard-section dashboard-coming-soon">
+          <h3>
+            Text adverts <span className="dashboard-status-badge dashboard-status-soon">Coming soon</span>
+          </h3>
+          <p className="dashboard-hint">
+            Buy a text ad slot, see how many views and clicks it&apos;s getting, and edit the copy yourself —
+            right here.
+          </p>
+        </section>
+
+        <section className="dashboard-section dashboard-coming-soon">
+          <h3>
+            Jobs <span className="dashboard-status-badge dashboard-status-soon">Coming soon</span>
+          </h3>
+          <p className="dashboard-hint">
+            Submit your own job listing and manage the ones you&apos;ve posted from here.
+          </p>
+        </section>
+      </div>
 
       <section className="dashboard-section">
         <h2>Recent activity</h2>

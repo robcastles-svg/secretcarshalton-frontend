@@ -161,6 +161,18 @@ class SC_Membership_REST {
 
 		register_rest_route(
 			'sc-membership/v1',
+			'/bookmarks/mine',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_my_bookmarks' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
 			'/members',
 			array(
 				'methods'             => 'GET',
@@ -779,6 +791,37 @@ class SC_Membership_REST {
 			'bookmarked' => $bookmarked,
 			'count'      => SC_Membership_DB::bookmark_count( $content_type, $content_id ),
 		);
+	}
+
+	/**
+	 * The dashboard's "Bookmarks" section. 'post' bookmarks point at
+	 * regular WP posts (staging carries its own full copy — see
+	 * CLAUDE.md's notes on staging being a full DB clone, not just the
+	 * custom CPTs), 'listing' bookmarks at sc-directory's own sc_listing
+	 * CPT — both resolve with a plain get_post() on this install either
+	 * way. A bookmark whose target has since been unpublished/deleted is
+	 * silently dropped rather than shown broken.
+	 */
+	public static function get_my_bookmarks( WP_REST_Request $request ) {
+		$rows  = SC_Membership_DB::bookmarks_for_user( get_current_user_id() );
+		$items = array();
+
+		foreach ( $rows as $row ) {
+			$post = get_post( (int) $row->content_id );
+			if ( ! $post || 'publish' !== $post->post_status ) {
+				continue;
+			}
+			$items[] = array(
+				'content_type'  => $row->content_type,
+				'content_id'    => (int) $row->content_id,
+				'title'         => get_the_title( $post ),
+				'slug'          => $post->post_name,
+				'link'          => 'listing' === $row->content_type ? '/directory/' . $post->post_name : '/' . $post->post_name,
+				'bookmarked_at' => $row->created_at,
+			);
+		}
+
+		return $items;
 	}
 
 	public static function get_leaderboard( WP_REST_Request $request ) {

@@ -1806,6 +1806,30 @@ export async function toggleBookmark(
   }
 }
 
+export interface MyBookmark {
+  content_type: "post" | "listing";
+  content_id: number;
+  title: string;
+  slug: string;
+  link: string;
+  bookmarked_at: string;
+}
+
+/** The dashboard's "Bookmarks" section — everything this member has saved, newest first. */
+export async function getMyBookmarks(token: string): Promise<MyBookmark[]> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/bookmarks/mine`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Site search — mirrors the live site's /search-page/ filter form exactly
 // (category tabs, title/content search mode, theme tag, sort), extended to

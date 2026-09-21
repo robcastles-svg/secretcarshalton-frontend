@@ -102,6 +102,18 @@ class SC_Membership_DB {
 		);
 	}
 
+	/** All of one member's bookmarks, newest first — powers the dashboard's "Bookmarks" list. */
+	public static function bookmarks_for_user( $user_id ) {
+		global $wpdb;
+		$table = self::bookmarks_table();
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT content_type, content_id, created_at FROM {$table} WHERE user_id = %d ORDER BY created_at DESC", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$user_id
+			)
+		);
+	}
+
 	/** Adds or removes the bookmark and returns the new state (true = now bookmarked). */
 	public static function toggle_bookmark( $user_id, $content_type, $content_id ) {
 		global $wpdb;
