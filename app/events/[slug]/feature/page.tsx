@@ -31,8 +31,10 @@ export default async function FeatureEventPage({
     <main className="container auth-page">
       <h1>Feature your event</h1>
       <p>
-        Pay to feature <strong>{event.title}</strong> at the top of Events and in search — the same way a
-        directory upgrade works today.
+        Pay to feature <strong>{event.title}</strong> — it takes over the &quot;Coming up next&quot; countdown
+        spot at the top of the Events page (ahead of whatever&apos;s chronologically soonest) until a more
+        recent featured event replaces it. This is an upgrade of your event listing, not a text ad — it
+        doesn&apos;t appear as one of the sidebar adverts elsewhere on the site.
       </p>
 
       {event.featured ? (

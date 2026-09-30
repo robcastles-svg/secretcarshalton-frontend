@@ -377,16 +377,6 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <section className="dashboard-section dashboard-coming-soon">
-          <h3>
-            Featured event <span className="dashboard-status-badge dashboard-status-soon">Coming soon</span>
-          </h3>
-          <p className="dashboard-hint">
-            Pay to feature one of your events at the top of Events and in search — the same way a directory
-            upgrade works today.
-          </p>
-        </section>
-
         <section className="dashboard-section">
           <h3>Text adverts</h3>
           {myAds.length === 0 ? (
