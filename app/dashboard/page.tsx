@@ -347,7 +347,11 @@ export default async function DashboardPage() {
               renderItem={(job) => (
                 <>
                   <span className={`dashboard-status-badge dashboard-status-${job.status}`}>
-                    {POST_STATUS_LABEL[job.status] ?? job.status}
+                    {job.status === "publish"
+                      ? "Live"
+                      : job.paymentStatus === "paid"
+                        ? "Paid — awaiting review"
+                        : "Awaiting payment"}
                   </span>
                   {job.status === "publish" ? (
                     <Link href={`/jobs/${job.slug}`}>{job.title}</Link>

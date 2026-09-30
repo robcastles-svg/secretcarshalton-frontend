@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
-import { getMemberMe, getMyListings } from "@/lib/wordpress";
+import { getDirectoryCategories, getMemberMe, getMyListings } from "@/lib/wordpress";
 import { SubmitUpgradeRequest } from "./_components/SubmitUpgradeRequest";
 
 export const metadata = { title: "Directory upgrade — Secret Carshalton" };
@@ -10,7 +10,11 @@ export default async function DirectoryUpgradePage() {
   const token = await getSessionToken();
   if (!token) redirect("/login?next=/dashboard/upgrade");
 
-  const [profile, listings] = await Promise.all([getMemberMe(token), getMyListings(token)]);
+  const [profile, listings, categories] = await Promise.all([
+    getMemberMe(token),
+    getMyListings(token),
+    getDirectoryCategories().catch(() => []),
+  ]);
   if (!profile) redirect("/login?next=/dashboard/upgrade");
 
   return (
@@ -18,7 +22,9 @@ export default async function DirectoryUpgradePage() {
       <h1>Feature your directory listing</h1>
       <p>
         A featured listing gets a highlighted pink border and shows in the featured row above the regular list,
-        on both Directory and Discover — more visibility for your business.
+        on both Directory and Discover — more visibility for your business. It&apos;s also where the rest of
+        your profile goes: address, contact details, socials, extra categories and photos, on top of the
+        title/website/category your free listing already has.
       </p>
 
       {profile.directory_upgrade_status === "pending" ? (
@@ -43,7 +49,7 @@ export default async function DirectoryUpgradePage() {
           </Link>
         </>
       ) : (
-        <SubmitUpgradeRequest listings={listings} />
+        <SubmitUpgradeRequest listings={listings} categories={categories} />
       )}
     </main>
   );

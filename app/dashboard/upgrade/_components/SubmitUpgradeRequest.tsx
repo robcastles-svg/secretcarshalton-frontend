@@ -2,13 +2,34 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { MyListing } from "@/lib/wordpress";
+import type { MyListing, WPDirectoryCategory } from "@/lib/wordpress";
 
-export function SubmitUpgradeRequest({ listings }: { listings: MyListing[] }) {
+/** Mirrors SC_Directory_REST's PAID_CATEGORY_LIMIT/PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap. */
+const CATEGORY_LIMIT = 3;
+const PHOTO_LIMIT = 10;
+
+export function SubmitUpgradeRequest({
+  listings,
+  categories,
+}: {
+  listings: MyListing[];
+  categories: WPDirectoryCategory[];
+}) {
   const router = useRouter();
   const [listingId, setListingId] = useState(listings[0]?.id ?? null);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+
+  function toggleCategory(slug: string) {
+    setSelectedCategories((prev) => {
+      if (prev.includes(slug)) return prev.filter((s) => s !== slug);
+      if (prev.length >= CATEGORY_LIMIT) return prev;
+      return [...prev, slug];
+    });
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -16,10 +37,13 @@ export function SubmitUpgradeRequest({ listings }: { listings: MyListing[] }) {
     setSubmitting(true);
     setError(null);
 
-    const res = await fetch("/api/membership/request-upgrade", {
+    const formData = new FormData(e.currentTarget);
+    selectedCategories.forEach((slug) => formData.append("categories", slug));
+    photos.slice(0, PHOTO_LIMIT).forEach((file) => formData.append("photos[]", file));
+
+    const res = await fetch(`/api/directory/${listingId}/request-upgrade`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ listingId }),
+      body: formData,
     });
 
     if (!res.ok) {
@@ -29,8 +53,18 @@ export function SubmitUpgradeRequest({ listings }: { listings: MyListing[] }) {
       return;
     }
 
-    router.push("/dashboard");
+    setDone(true);
     router.refresh();
+  }
+
+  if (done) {
+    return (
+      <p>
+        Thanks — your upgrade request and the extra details are in. There&apos;s no automated payment yet, so
+        we&apos;ll be in touch to arrange it (PayPal) — your listing goes featured once that&apos;s sorted and
+        we&apos;ve approved it. You can track the status from your dashboard.
+      </p>
+    );
   }
 
   return (
@@ -57,9 +91,93 @@ export function SubmitUpgradeRequest({ listings }: { listings: MyListing[] }) {
         </p>
       )}
 
+      <fieldset className="directory-category-fieldset">
+        <legend>
+          Categories ({selectedCategories.length}/{CATEGORY_LIMIT})
+        </legend>
+        {categories.map((c) => (
+          <label key={c.id} className="directory-category-checkbox">
+            <input
+              type="checkbox"
+              checked={selectedCategories.includes(c.slug)}
+              onChange={() => toggleCategory(c.slug)}
+              disabled={!selectedCategories.includes(c.slug) && selectedCategories.length >= CATEGORY_LIMIT}
+            />
+            {c.name}
+          </label>
+        ))}
+      </fieldset>
+
+      <label>
+        Short tagline
+        <input type="text" name="tagline" maxLength={140} placeholder="A one-line summary shown on listing cards" />
+      </label>
+      <label>
+        Description
+        <textarea name="description" rows={4} />
+      </label>
+      <label>
+        Street address
+        <input type="text" name="address_street" />
+      </label>
+      <label>
+        Town
+        <input type="text" name="address_town" defaultValue="Carshalton" />
+      </label>
+      <label>
+        Region
+        <input type="text" name="address_region" defaultValue="Surrey" />
+      </label>
+      <label>
+        Postcode
+        <input type="text" name="address_postcode" />
+      </label>
+      <label>
+        Country
+        <input type="text" name="address_country" defaultValue="United Kingdom" />
+      </label>
+      <label>
+        Phone
+        <input type="tel" name="phone" />
+      </label>
+      <label>
+        Email
+        <input type="email" name="email" />
+      </label>
+      <label>
+        Facebook
+        <input type="url" name="facebook" placeholder="https://facebook.com/…" />
+      </label>
+      <label>
+        Instagram
+        <input type="url" name="instagram" placeholder="https://instagram.com/…" />
+      </label>
+      <label>
+        Twitter / X
+        <input type="url" name="twitter" placeholder="https://x.com/…" />
+      </label>
+      <label>
+        LinkedIn
+        <input type="url" name="linkedin" placeholder="https://linkedin.com/company/…" />
+      </label>
+      <label>
+        YouTube
+        <input type="url" name="youtube" placeholder="https://youtube.com/@…" />
+      </label>
+      <label>
+        Photos (up to {PHOTO_LIMIT})
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(e) => setPhotos(Array.from(e.target.files ?? []).slice(0, PHOTO_LIMIT))}
+        />
+      </label>
+      {photos.length > 0 && <p className="auth-hint">{photos.length} photo(s) selected.</p>}
+
       <p className="dashboard-hint">
-        There&apos;s no automatic payment yet — once you submit this, we&apos;ll review it and get in touch to
-        arrange payment. Nothing is charged now.
+        There&apos;s no automated payment yet — once you submit this, we&apos;ll review it and get in touch to
+        arrange payment (PayPal). Nothing is charged now.
       </p>
 
       {error && <p className="auth-error">{error}</p>}

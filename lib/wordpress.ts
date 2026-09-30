@@ -1517,6 +1517,7 @@ export interface MyJob {
   slug: string;
   date: string;
   company: string;
+  paymentStatus: string;
 }
 
 export async function submitJob(
@@ -1651,19 +1652,31 @@ export async function getMemberMe(token: string): Promise<MemberProfile | null> 
   }
 }
 
-export async function requestDirectoryUpgrade(
+/**
+ * The upgrade request carries the rest of the listing's profile with it
+ * (address, contact details, socials, extra categories, photos) — a free
+ * listing is just title/website/category, so upgrading is also when the
+ * full profile first gets filled in. Multipart (not JSON) because of the
+ * photo files, same shape as submitAd/submitJob/uploadListingPhotos.
+ */
+export async function requestListingUpgrade(
   token: string,
-  listingId?: number
+  listingId: number,
+  formData: FormData
 ): Promise<{ status: string } | MemberAuthError> {
   try {
-    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/directory-upgrade-request`, {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/${listingId}/request-upgrade`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify(listingId ? { listing_id: listingId } : {}),
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
       cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
+      signal: AbortSignal.timeout(30_000),
     });
-    return res.json();
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "request_failed", message: body.message ?? "Could not submit your upgrade request." };
+    }
+    return body;
   } catch {
     return NETWORK_ERROR;
   }

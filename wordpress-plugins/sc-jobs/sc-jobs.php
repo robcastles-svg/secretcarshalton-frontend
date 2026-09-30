@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Jobs
  * Description: Jobs Board. Local job listings synced daily from the Reed API, plus member-submitted local jobs (pending → approved, same as directory listings/events), both browsable on the frontend.
- * Version: 0.3.0
+ * Version: 0.4.0
  * Author: Secret Carshalton
  * Text Domain: sc-jobs
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_JOBS_VERSION', '0.3.0' );
+define( 'SC_JOBS_VERSION', '0.4.0' );
 define( 'SC_JOBS_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_JOBS_DIR . 'includes/class-sc-jobs-cpt.php';

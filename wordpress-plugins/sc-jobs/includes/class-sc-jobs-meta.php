@@ -22,6 +22,16 @@ class SC_Jobs_Meta {
 		'external_url'    => 'string',
 		'job_company'     => 'string',
 		'job_salary_text' => 'string',
+		/**
+		 * A member's own job posting is a paid listing (Reed-synced ones
+		 * are free to us, so this never applies to 'api' source jobs) —
+		 * no payment automation yet, same holding-field pattern as
+		 * sc-ads' sc_ad_payment_status: submit_job sets this to 'pending',
+		 * an admin fills in amount_paid and flips this to 'paid' by hand
+		 * once payment's arranged, same moment they approve the post.
+		 */
+		'amount_paid'     => 'string',
+		'payment_status'  => 'string', // '' | 'pending' | 'paid'
 	);
 
 	public static function register() {

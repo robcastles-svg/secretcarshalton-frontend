@@ -32,8 +32,9 @@ export function SubmitJobForm() {
   if (done) {
     return (
       <p>
-        Thanks — your job posting&apos;s been submitted for review. You&apos;ll be able to see its status from
-        your dashboard, and it&apos;ll go live once it&apos;s approved.
+        Thanks — your job posting&apos;s been submitted. There&apos;s no automated payment yet, so we&apos;ll be
+        in touch to arrange it (PayPal) — it goes live once that&apos;s sorted and we&apos;ve approved it. You
+        can track the status from your dashboard.
       </p>
     );
   }
@@ -60,6 +61,11 @@ export function SubmitJobForm() {
         Description
         <textarea name="description" rows={6} required placeholder="Role, hours, what you're looking for…" />
       </label>
+
+      <p className="dashboard-hint">
+        This is a paid listing — there&apos;s no automated payment yet, so once you submit this, we&apos;ll
+        review it and get in touch to arrange payment (PayPal). Nothing is charged now.
+      </p>
 
       {error && <p className="auth-error">{error}</p>}
       <button type="submit" className="button-pill" disabled={submitting}>

@@ -12,8 +12,7 @@ export default async function SubmitJobPage() {
     <main className="container auth-page">
       <h1>Post a job</h1>
       <p>
-        Free to post — hiring locally? List your vacancy here. It goes live once we&apos;ve had a quick look
-        over it.
+        Hiring locally? List your vacancy here — a paid listing, reviewed before it goes live.
       </p>
       <SubmitJobForm />
     </main>

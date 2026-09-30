@@ -63,6 +63,10 @@ class SC_Jobs_REST {
 		update_post_meta( $post_id, 'source', 'member' );
 		update_post_meta( $post_id, 'job_company', sanitize_text_field( (string) $request->get_param( 'company' ) ) );
 		update_post_meta( $post_id, 'job_salary_text', sanitize_text_field( (string) $request->get_param( 'salary' ) ) );
+		// A member job posting is paid — no automated payment yet, so this
+		// just flags it for Rob to arrange payment before approving (same
+		// holding pattern as sc-ads' payment_status).
+		update_post_meta( $post_id, 'payment_status', 'pending' );
 
 		// The form accepts either a link or a plain email address ("how to
 		// apply") — is_email() catches the latter and gets a mailto: prefix
@@ -94,12 +98,13 @@ class SC_Jobs_REST {
 		return array_map(
 			function ( $post ) {
 				return array(
-					'id'      => $post->ID,
-					'title'   => get_the_title( $post ),
-					'status'  => $post->post_status,
-					'slug'    => $post->post_name,
-					'date'    => $post->post_date,
-					'company' => get_post_meta( $post->ID, 'job_company', true ),
+					'id'            => $post->ID,
+					'title'         => get_the_title( $post ),
+					'status'        => $post->post_status,
+					'slug'          => $post->post_name,
+					'date'          => $post->post_date,
+					'company'       => get_post_meta( $post->ID, 'job_company', true ),
+					'paymentStatus' => get_post_meta( $post->ID, 'payment_status', true ),
 				);
 			},
 			$posts

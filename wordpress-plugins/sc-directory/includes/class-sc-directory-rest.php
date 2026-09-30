@@ -682,6 +682,17 @@ class SC_Directory_REST {
 		return array( 'status' => 'renewed', 'expires_at' => get_post_meta( $listing_id, 'sc_claim_expires_at', true ) );
 	}
 
+	/**
+	 * A free listing is just title/website/category — the upgrade form is
+	 * where the rest of a full profile (address, contact details, socials,
+	 * extra categories, photos) gets filled in, at the same time as
+	 * requesting the paid upgrade. Same field-saving logic as
+	 * update_listing above, just reachable pre-approval: these details are
+	 * saved straight away so Rob can see the whole profile when reviewing
+	 * the request, not just a bare listing_id. Nothing here flips sc_plan
+	 * or sc_featured on — that only happens once SC_Membership_Admin's
+	 * review screen approves the request (see handle_review_upgrade).
+	 */
 	public static function request_upgrade( WP_REST_Request $request ) {
 		$listing_id = (int) $request->get_param( 'id' );
 		$listing    = get_post( $listing_id );
@@ -694,6 +705,65 @@ class SC_Directory_REST {
 		if ( (int) $listing->post_author !== $user_id && ! current_user_can( 'manage_options' ) ) {
 			return new WP_Error( 'not_owner', 'You can only request an upgrade for a listing you own.', array( 'status' => 403 ) );
 		}
+
+		if ( null !== $request->get_param( 'description' ) ) {
+			wp_update_post(
+				array(
+					'ID'           => $listing_id,
+					'post_content' => wp_kses_post( (string) $request->get_param( 'description' ) ),
+				)
+			);
+		}
+
+		$categories = self::resolve_categories( $request, 'paid' );
+		if ( ! empty( $categories ) ) {
+			wp_set_object_terms( $listing_id, $categories, SC_Directory_CPT::TAXONOMY );
+		}
+
+		$text_fields = array(
+			'address_street'   => 'sc_address_street',
+			'address_town'     => 'sc_address_town',
+			'address_region'   => 'sc_address_region',
+			'address_postcode' => 'sc_address_postcode',
+			'address_country'  => 'sc_address_country',
+			'phone'            => 'sc_phone',
+			'tagline'          => 'sc_tagline',
+		);
+		foreach ( $text_fields as $param => $meta_key ) {
+			if ( null === $request->get_param( $param ) ) {
+				continue;
+			}
+			update_post_meta( $listing_id, $meta_key, sanitize_text_field( (string) $request->get_param( $param ) ) );
+		}
+
+		if ( null !== $request->get_param( 'email' ) ) {
+			update_post_meta( $listing_id, 'sc_email', sanitize_email( (string) $request->get_param( 'email' ) ) );
+		}
+
+		$url_fields = array(
+			'website'   => 'sc_website',
+			'facebook'  => 'sc_facebook',
+			'instagram' => 'sc_instagram',
+			'twitter'   => 'sc_twitter',
+			'linkedin'  => 'sc_linkedin',
+			'youtube'   => 'sc_youtube',
+		);
+		foreach ( $url_fields as $param => $meta_key ) {
+			if ( null === $request->get_param( $param ) ) {
+				continue;
+			}
+			update_post_meta( $listing_id, $meta_key, esc_url_raw( (string) $request->get_param( $param ) ) );
+		}
+
+		$address_params = array( 'address_street', 'address_town', 'address_region', 'address_postcode', 'address_country' );
+		foreach ( $address_params as $param ) {
+			if ( null !== $request->get_param( $param ) ) {
+				self::geocode_address( $listing_id );
+				break;
+			}
+		}
+
+		self::save_uploaded_photos( $request, $listing_id, self::PAID_PHOTO_LIMIT );
 
 		/**
 		 * Lands in the same approval queue sc-membership already exposes
