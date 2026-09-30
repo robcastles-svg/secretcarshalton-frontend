@@ -3776,9 +3776,36 @@ a.card-category:hover {
   color: #555;
 }
 
+/* Fixed, not max-width — the real ad card lives in a 300px desktop
+   sidebar column (.post-layout's grid-template-columns), so the preview
+   is locked to that same width rather than stretching to fill whatever
+   (often much wider, on mobile) container the form itself sits in. The
+   max-width: 100% floor only kicks in below ~300px viewports, where it'd
+   otherwise overflow the page. */
 .ad-preview-list {
-  max-width: 340px;
+  width: 300px;
+  max-width: 100%;
   margin: 1rem 0;
+}
+
+.ad-preview-placeholder {
+  color: #96a3ae;
+  font-style: italic;
+}
+
+.ad-preview-placeholder-image {
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+/* On mobile, jump the preview (and its "this is what it'll look like"
+   hint) above the form fields instead of leaving it buried near the
+   bottom, since the holding image/text is meant to orient someone before
+   they start filling the form in, not just confirm it afterwards. */
+@media (max-width: 720px) {
+  .ad-form-preview {
+    order: -1;
+  }
 }
 
 /* Mobile-only: one compact ad at the very top of a category page, above
@@ -3990,6 +4017,21 @@ a.card-category:hover {
 }
 
 .directory-category-checkbox input {
+  width: auto;
+}
+
+/* Same shape as .directory-category-checkbox, but stacked one per line —
+   listing titles (business names) run longer than category names, so
+   wrapping them inline like categories do reads badly. */
+.auth-form-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.4rem 0;
+  font-weight: 400;
+}
+
+.auth-form-radio input {
   width: auto;
 }
 

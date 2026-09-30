@@ -129,8 +129,10 @@ export function SubmitAdForm() {
         <input type="file" name="image" accept="image/*" onChange={handleImageChange} />
       </label>
 
-      <p className="dashboard-hint">Preview — this is what it&apos;ll actually look like:</p>
-      <AdPreview headline={headline} body={body} imageUrl={imageUrl} />
+      <div className="ad-form-preview">
+        <p className="dashboard-hint">Preview — this is what it&apos;ll actually look like:</p>
+        <AdPreview headline={headline} body={body} imageUrl={imageUrl} />
+      </div>
 
       {error && <p className="auth-error">{error}</p>}
       <button type="submit" className="button-pill" disabled={submitting}>

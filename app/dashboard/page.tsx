@@ -16,8 +16,6 @@ import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { ExtendAdButton } from "./_components/ExtendAdButton";
 import { LogoutButton } from "./_components/LogoutButton";
-import { RequestFeaturedEventButton } from "./_components/RequestFeaturedEventButton";
-import { RequestUpgradeButton } from "./_components/RequestUpgradeButton";
 import { VerifyEmailBanner } from "./_components/VerifyEmailBanner";
 
 export const metadata = { title: "Your dashboard — Secret Carshalton" };
@@ -309,7 +307,11 @@ export default async function DashboardPage() {
                   ) : event.featuredStatus === "pending" ? (
                     <span className="dashboard-status-badge dashboard-status-pending">Featured requested</span>
                   ) : (
-                    event.status === "publish" && <RequestFeaturedEventButton eventId={event.id} />
+                    event.status === "publish" && (
+                      <Link href={`/events/${event.slug}/feature`} className="dashboard-my-list-edit">
+                        Request featured
+                      </Link>
+                    )
                   )}
                   <Link href={`/events/${event.slug}/edit`} className="dashboard-my-list-edit">
                     Edit
@@ -334,13 +336,25 @@ export default async function DashboardPage() {
 
         <section className="dashboard-section">
           <h3>Directory upgrade</h3>
-          {profile.directory_upgrade_status ? (
+          {profile.directory_upgrade_status && profile.directory_upgrade_status !== "rejected" ? (
             <>
               <p>
                 Status:{" "}
                 <strong>
                   {UPGRADE_STATUS_LABEL[profile.directory_upgrade_status] ?? profile.directory_upgrade_status}
                 </strong>
+                {(() => {
+                  const upgradeListing = myListings.find((l) => l.id === profile.directory_upgrade_listing_id);
+                  if (!upgradeListing) return null;
+                  return upgradeListing.status === "publish" ? (
+                    <>
+                      {" "}
+                      for <Link href={`/directory/${upgradeListing.slug}`}>{upgradeListing.title}</Link>
+                    </>
+                  ) : (
+                    <> for {upgradeListing.title}</>
+                  );
+                })()}
               </p>
               {profile.directory_upgrade_amount_paid && (
                 <p className="dashboard-hint">
@@ -352,8 +366,13 @@ export default async function DashboardPage() {
             </>
           ) : (
             <>
+              {profile.directory_upgrade_status === "rejected" && (
+                <p className="dashboard-hint">Your last request wasn&apos;t approved — you can try again.</p>
+              )}
               <p>Own a local business? Request a featured directory listing.</p>
-              <RequestUpgradeButton />
+              <Link href="/dashboard/upgrade" className="button-pill">
+                Request directory upgrade
+              </Link>
             </>
           )}
         </section>
