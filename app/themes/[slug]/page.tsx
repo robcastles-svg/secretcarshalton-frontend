@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
+import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getCategories, getPostsByTag, getTagBySlug, getTags } from "@/lib/wordpress";
+import { getAd, getCategories, getPostsByTag, getTagBySlug, getTags } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -37,10 +38,11 @@ export default async function ThemePage({
 
   if (!tag) notFound();
 
-  const [posts, allCategories, allTags] = await Promise.all([
+  const [posts, allCategories, allTags, inFeedAd] = await Promise.all([
     getPostsByTag(tag.id).catch(() => []),
     getCategories().catch(() => []),
     getTags().catch(() => []),
+    getAd("in_feed"),
   ]);
 
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
@@ -54,6 +56,7 @@ export default async function ThemePage({
         {tag.name}
         <CategoryKeyIcon />
       </h1>
+      <MobileTopAd ad={inFeedAd} />
       {posts.length === 0 && <p>No stories tagged &quot;{tag.name}&quot; yet.</p>}
       <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
       <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/themes/${slug}?page=${p}`} />

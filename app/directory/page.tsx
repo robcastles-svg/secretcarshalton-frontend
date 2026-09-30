@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
-import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { DirectoryControls } from "./_components/DirectoryControls";
@@ -141,8 +140,6 @@ export default async function DirectoryPage({
       <div className="directory-toolbar">
         <DirectoryControls category={category ?? ""} q={q} sort={sort} />
       </div>
-
-      <MobileTopAd ad={inFeedAd} />
 
       <div className="post-layout">
         <div className="post-body">
