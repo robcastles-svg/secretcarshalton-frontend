@@ -721,6 +721,62 @@ export async function recordAdClick(adId: number): Promise<string | null> {
   }
 }
 
+/** Placements a member can self-serve into — matches SC_Ads_REST::MEMBER_SUBMITTABLE_PLACEMENTS. Billboard/Leaderboard stay admin-set. */
+export const AD_SELF_SERVE_PLACEMENTS: Array<{ slug: string; label: string }> = [
+  { slug: "sidebar", label: "Sidebar" },
+  { slug: "in_article", label: "In-article" },
+  { slug: "in_feed", label: "In-feed (mixed into story/listing grids)" },
+];
+
+export interface MyAd {
+  id: number;
+  headline: string;
+  body: string;
+  image: string;
+  link: string;
+  placement: string;
+  active: boolean;
+  clicks: number;
+}
+
+/** The dashboard's "Text adverts" section. */
+export async function getMyAds(token: string): Promise<MyAd[]> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/mine`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+/** Member writes and submits their own ad (headline, body, link, placement, optional image) — lands inactive pending payment/review. */
+export async function submitAd(
+  token: string,
+  formData: FormData
+): Promise<{ id: number; status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/submit`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "submit_failed", message: body.message ?? "Could not submit ad." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // sc-directory — business directory (staging only, see WP_STAGING_ROOT note)
 // ---------------------------------------------------------------------------

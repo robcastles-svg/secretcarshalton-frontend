@@ -37,7 +37,34 @@ class SC_Ads_REST {
 				'permission_callback' => '__return_true',
 			)
 		);
+
+		register_rest_route(
+			'sc-ads/v1',
+			'/submit',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'submit_ad' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-ads/v1',
+			'/mine',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_my_ads' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
 	}
+
+	/** Billboard/Leaderboard stay admin-set premium banner slots — sold and placed directly, not self-serve. */
+	const MEMBER_SUBMITTABLE_PLACEMENTS = array( 'sidebar', 'in_article', 'in_feed' );
 
 	private static function eligible_ads( $placement ) {
 		$today = current_time( 'Y-m-d' );
@@ -132,6 +159,96 @@ class SC_Ads_REST {
 
 		return array(
 			'link' => get_post_meta( $id, 'sc_ad_link_url', true ),
+		);
+	}
+
+	/**
+	 * A member writing and submitting their own text ad. Created with
+	 * sc_ad_active = false — nothing shows publicly until payment is
+	 * confirmed (outside this flow for now, see the plugin's docblock)
+	 * and an admin flips Active in wp-admin, the same metabox every other
+	 * ad already goes through. No separate "pending" post_status: Active
+	 * is already this plugin's one gate, so reusing it keeps review in
+	 * the one place it already lives rather than adding a second state.
+	 */
+	public static function submit_ad( WP_REST_Request $request ) {
+		$headline  = sanitize_text_field( (string) $request->get_param( 'headline' ) );
+		$body      = sanitize_text_field( (string) $request->get_param( 'body' ) );
+		$link      = esc_url_raw( (string) $request->get_param( 'link' ) );
+		$placement = sanitize_key( (string) $request->get_param( 'placement' ) );
+
+		if ( ! $headline || ! $link ) {
+			return new WP_Error( 'missing_fields', 'A headline and link are required.', array( 'status' => 400 ) );
+		}
+		if ( ! in_array( $placement, self::MEMBER_SUBMITTABLE_PLACEMENTS, true ) ) {
+			return new WP_Error( 'invalid_placement', 'Choose a valid ad placement.', array( 'status' => 400 ) );
+		}
+
+		$post_id = wp_insert_post(
+			array(
+				'post_type'   => SC_Ads_CPT::POST_TYPE,
+				'post_status' => 'publish',
+				'post_title'  => $headline,
+				'post_author' => get_current_user_id(),
+			),
+			true
+		);
+		if ( is_wp_error( $post_id ) ) {
+			return $post_id;
+		}
+
+		update_post_meta( $post_id, 'sc_ad_headline', $headline );
+		update_post_meta( $post_id, 'sc_ad_body', $body );
+		update_post_meta( $post_id, 'sc_ad_link_url', $link );
+		update_post_meta( $post_id, 'sc_ad_alt_text', $headline );
+		update_post_meta( $post_id, 'sc_ad_placement', $placement );
+		update_post_meta( $post_id, 'sc_ad_active', false );
+		update_post_meta( $post_id, 'sc_ad_weight', 1 );
+
+		if ( ! empty( $_FILES['image']['tmp_name'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+
+			$attachment_id = media_handle_upload( 'image', $post_id );
+			if ( ! is_wp_error( $attachment_id ) ) {
+				update_post_meta( $post_id, 'sc_ad_image_url', wp_get_attachment_url( $attachment_id ) );
+			}
+		}
+
+		return array(
+			'id'     => $post_id,
+			'status' => 'pending_payment',
+		);
+	}
+
+	/** The dashboard's "Text adverts" section — a member's own ads, with the stats that justify what they paid for. */
+	public static function get_my_ads( WP_REST_Request $request ) {
+		$posts = get_posts(
+			array(
+				'post_type'      => SC_Ads_CPT::POST_TYPE,
+				'author'         => get_current_user_id(),
+				'post_status'    => 'publish',
+				'posts_per_page' => 50,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+			)
+		);
+
+		return array_map(
+			function ( $post ) {
+				return array(
+					'id'        => $post->ID,
+					'headline'  => get_post_meta( $post->ID, 'sc_ad_headline', true ),
+					'body'      => get_post_meta( $post->ID, 'sc_ad_body', true ),
+					'image'     => get_post_meta( $post->ID, 'sc_ad_image_url', true ),
+					'link'      => get_post_meta( $post->ID, 'sc_ad_link_url', true ),
+					'placement' => get_post_meta( $post->ID, 'sc_ad_placement', true ),
+					'active'    => (bool) get_post_meta( $post->ID, 'sc_ad_active', true ),
+					'clicks'    => (int) get_post_meta( $post->ID, 'sc_ad_clicks', true ),
+				);
+			},
+			$posts
 		);
 	}
 }

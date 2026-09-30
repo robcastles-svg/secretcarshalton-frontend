@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
+  AD_SELF_SERVE_PLACEMENTS,
   getMemberMe,
+  getMyAds,
   getMyBookmarks,
   getMyComments,
   getMyEvents,
@@ -65,12 +67,13 @@ export default async function DashboardPage() {
   const profile = await getMemberMe(token);
   if (!profile) redirect("/login");
 
-  const [myListings, myEvents, myComments, myBookmarks, myRsvps] = await Promise.all([
+  const [myListings, myEvents, myComments, myBookmarks, myRsvps, myAds] = await Promise.all([
     getMyListings(token),
     getMyEvents(token),
     getMyComments(token),
     getMyBookmarks(token),
     getMyRsvpdEvents(token),
+    getMyAds(token),
   ]);
 
   return (
@@ -347,14 +350,39 @@ export default async function DashboardPage() {
           </p>
         </section>
 
-        <section className="dashboard-section dashboard-coming-soon">
-          <h3>
-            Text adverts <span className="dashboard-status-badge dashboard-status-soon">Coming soon</span>
-          </h3>
-          <p className="dashboard-hint">
-            Buy a text ad slot, see how many views and clicks it&apos;s getting, and edit the copy yourself —
-            right here.
-          </p>
+        <section className="dashboard-section">
+          <h3>Text adverts</h3>
+          {myAds.length === 0 ? (
+            <p className="dashboard-hint">
+              Nothing yet — write your own text ad and choose where it appears.
+            </p>
+          ) : (
+            <ExpandableList
+              items={myAds}
+              listClassName="dashboard-my-list"
+              itemKey={(ad) => ad.id}
+              noun="ad"
+              renderItem={(ad) => (
+                <>
+                  <span className={`dashboard-status-badge ${ad.active ? "dashboard-status-publish" : "dashboard-status-pending"}`}>
+                    {ad.active ? "Live" : "Awaiting payment"}
+                  </span>
+                  <span>{ad.headline}</span>
+                  <span className="dashboard-my-list-views">
+                    {AD_SELF_SERVE_PLACEMENTS.find((p) => p.slug === ad.placement)?.label ?? ad.placement}
+                  </span>
+                  <span className="dashboard-my-list-views">
+                    {ad.clicks} click{ad.clicks === 1 ? "" : "s"}
+                  </span>
+                </>
+              )}
+            />
+          )}
+          <div className="dashboard-section-actions">
+            <Link href="/advertise" className="button-pill">
+              Write an ad
+            </Link>
+          </div>
         </section>
 
         <section className="dashboard-section dashboard-coming-soon">
