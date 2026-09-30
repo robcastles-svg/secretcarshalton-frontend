@@ -747,6 +747,16 @@ button.button-pill {
   margin-right: 1rem;
 }
 
+/* A bare <p> excerpt as a direct child of the <li> (e.g. DirectoryListingCard's
+   tagline/description) has no margin of its own by default, so it sat
+   flush against the card's edge while the title/category/date above it
+   were all inset by 1rem — reads as the copy being indented less than
+   everything else above it. Matches that same inset. */
+.post-list li > p {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
 /* The excerpt (an unclassed <div> straight under <li>) isn't part of the
    reference screenshots' card treatment — image, headline, category/date
    only. Scoped to a direct child so it doesn't touch .card-meta-row (also
@@ -3533,6 +3543,14 @@ a.card-category:hover {
 .directory-search-icon:hover {
   color: #c2607a;
   border-color: #c2607a;
+}
+
+/* [hidden] must win over the display: flex below, or the popup never
+   actually closes — an author rule with equal specificity to the UA's
+   own [hidden] { display: none } otherwise beats it in the cascade,
+   leaving the popup stuck open regardless of the toggle button/state. */
+.directory-search-popup[hidden] {
+  display: none;
 }
 
 .directory-search-popup {
