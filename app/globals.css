@@ -3784,17 +3784,24 @@ a.card-category:hover {
     padding-bottom: 0;
   }
 
+  /* align-items: stretch (not flex-start) so the image takes the row's
+     full height — driven by however tall the badge/title/body column
+     ends up being — rather than a fixed small square. */
   .post-list li.ad-card-external .ad-card-row {
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 0.65rem;
     padding: 0.65rem;
   }
 
+  /* Width stays constrained (a full-bleed-height image with no width cap
+     would grow as wide as the text made the row tall); height comes from
+     align-items: stretch above, not a fixed value, so it's never the
+     small, slightly-cramped square it was. */
   .post-list li.ad-card-external img {
-    width: 52px;
-    height: 52px;
-    aspect-ratio: 1 / 1;
+    width: 72px;
+    height: auto;
+    align-self: stretch;
     object-fit: cover;
     border-radius: 6px;
     flex-shrink: 0;
@@ -3802,11 +3809,16 @@ a.card-category:hover {
   }
 
   /* The row's own 0.65rem padding already gives the whole right column
-     its inset, so the badge/body's desktop-only left/right margins above
-     would double it up here — reset to 0. (.card-title's margin comes
-     from the shared global rule, not from here, so it's untouched and
-     already correct at any width.) */
+     its inset, so the badge/title/body's desktop-only left/right margins
+     above would double it up here — reset to 0. .card-title's margin
+     normally comes from the shared global .post-list .card-title rule,
+     which still applied here too (it's not width-scoped), so without
+     this reset the headline alone sat indented past the badge/body. */
   .ad-card-badge {
+    margin: 0;
+  }
+
+  .ad-card-external .card-title {
     margin: 0;
   }
 
