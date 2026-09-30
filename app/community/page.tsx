@@ -5,7 +5,14 @@ import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getAd, getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
+import {
+  getAd,
+  getCategories,
+  getCategoryBySlug,
+  getFeaturedListingForGrid,
+  getPostsByCategory,
+  getTags,
+} from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -26,12 +33,13 @@ export default async function CommunityPage({
 }) {
   const { page: rawPage } = await searchParams;
 
-  const [category, allCategories, allTags, inFeedAd, sidebarAd] = await Promise.all([
+  const [category, allCategories, allTags, inFeedAd, sidebarAd, featuredListing] = await Promise.all([
     getCategoryBySlug("community").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
     getAd("in_feed"),
     getAd("sidebar"),
+    getFeaturedListingForGrid(),
   ]);
 
   const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
@@ -61,7 +69,12 @@ export default async function CommunityPage({
           {pagePosts.length === 0 ? (
             <p className="directory-empty">Nothing shared yet — be the first to post some community news.</p>
           ) : (
-            <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
+            <ContentList
+              items={pagePosts}
+              categoriesById={categoriesById}
+              tagsById={tagsById}
+              featuredListing={featuredListing}
+            />
           )}
           <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/community?page=${p}`} />
         </div>

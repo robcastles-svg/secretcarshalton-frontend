@@ -5,7 +5,13 @@ import { CategoryMiniNav } from "@/app/_components/CategoryMiniNav";
 import { ContentList } from "@/app/_components/ContentList";
 import { Pagination } from "@/app/_components/Pagination";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
+import {
+  getCategories,
+  getCategoryBySlug,
+  getFeaturedListingForGrid,
+  getPostsByCategory,
+  getTags,
+} from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -40,10 +46,11 @@ export default async function StoriesAreaPage({
 
   if (!category) notFound();
 
-  const [posts, allCategories, allTags] = await Promise.all([
+  const [posts, allCategories, allTags, featuredListing] = await Promise.all([
     getPostsByCategory(category.id).catch(() => []),
     getCategories().catch(() => []),
     getTags().catch(() => []),
+    getFeaturedListingForGrid(),
   ]);
 
   const parent = allCategories.find((c) => c.slug === "stories");
@@ -60,7 +67,12 @@ export default async function StoriesAreaPage({
           {category.name}
           <CategoryKeyIcon />
         </h1>
-        <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
+        <ContentList
+          items={pagePosts}
+          categoriesById={categoriesById}
+          tagsById={tagsById}
+          featuredListing={featuredListing}
+        />
         <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/stories/${area}?page=${p}`} />
       </main>
     </>

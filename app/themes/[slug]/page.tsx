@@ -5,7 +5,14 @@ import { ContentList } from "@/app/_components/ContentList";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getAd, getCategories, getPostsByTag, getTagBySlug, getTags } from "@/lib/wordpress";
+import {
+  getAd,
+  getCategories,
+  getFeaturedListingForGrid,
+  getPostsByTag,
+  getTagBySlug,
+  getTags,
+} from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -38,11 +45,12 @@ export default async function ThemePage({
 
   if (!tag) notFound();
 
-  const [posts, allCategories, allTags, inFeedAd] = await Promise.all([
+  const [posts, allCategories, allTags, inFeedAd, featuredListing] = await Promise.all([
     getPostsByTag(tag.id).catch(() => []),
     getCategories().catch(() => []),
     getTags().catch(() => []),
     getAd("in_feed"),
+    getFeaturedListingForGrid(),
   ]);
 
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
@@ -58,7 +66,12 @@ export default async function ThemePage({
       </h1>
       <MobileTopAd ad={inFeedAd} />
       {posts.length === 0 && <p>No stories tagged &quot;{tag.name}&quot; yet.</p>}
-      <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
+      <ContentList
+        items={pagePosts}
+        categoriesById={categoriesById}
+        tagsById={tagsById}
+        featuredListing={featuredListing}
+      />
       <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/themes/${slug}?page=${p}`} />
     </main>
   );

@@ -47,7 +47,7 @@ export default async function NewsPage({
             items={pagePosts}
             categoriesById={categoriesById}
             tagsById={tagsById}
-            featuredListing={page === 1 ? featuredListing : null}
+            featuredListing={featuredListing}
           />
           <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/news?page=${p}`} />
         </div>
