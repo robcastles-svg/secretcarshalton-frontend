@@ -96,7 +96,7 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
         />
-        <div className="member-benefits-bar">
+        <div className={`member-benefits-bar${sessionToken ? " member-benefits-bar-loggedin" : ""}`}>
           <Link href={sessionToken ? "/dashboard" : "/register"} className="container member-benefits-inner">
             {sessionToken ? "Member dashboard" : "Member benefits"}
           </Link>

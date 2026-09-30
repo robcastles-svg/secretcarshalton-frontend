@@ -69,6 +69,7 @@ button.button-pill {
 .site-date-weather-bar {
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
   gap: 0.5rem 0.9rem;
   color: #666;
@@ -216,6 +217,15 @@ button.button-pill {
 
 .member-benefits-bar {
   background: #c58a9a;
+}
+
+/* Same orange as .utility-bar-loggedin — once you're signed in this bar
+   is just a dashboard shortcut, not a pitch to join, so it switches out
+   of the pink "come join" colour to match the rest of the site's
+   logged-in treatment. Nav/utility bar underneath stays exactly as it
+   already was either way — only this top bar's colour changes. */
+.member-benefits-bar-loggedin {
+  background: var(--color-active);
 }
 
 .member-benefits-inner {
