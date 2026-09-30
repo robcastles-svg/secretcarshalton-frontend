@@ -1509,6 +1509,52 @@ export async function getJobListingBySlug(slug: string): Promise<WPJobListing | 
   return jobs[0] ?? null;
 }
 
+/** A member's own job posting — same headline/status/edit-link shape as MyListing/MyEvent, plus company since the dashboard row has no image to hang a label off. */
+export interface MyJob {
+  id: number;
+  title: string;
+  status: string;
+  slug: string;
+  date: string;
+  company: string;
+}
+
+export async function submitJob(
+  token: string,
+  formData: FormData
+): Promise<{ id: number; status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-jobs/v1/submit`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "submit_failed", message: body.message ?? "Could not submit job." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+export async function getMyJobs(token: string): Promise<MyJob[]> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-jobs/v1/mine`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 // ---------------------------------------------------------------------------
 // sc-membership — auth bridge + member dashboard data (staging only)
 // ---------------------------------------------------------------------------
@@ -1620,6 +1666,51 @@ export async function requestDirectoryUpgrade(
     return res.json();
   } catch {
     return NETWORK_ERROR;
+  }
+}
+
+/** A member's own community-news submission — same shape as MyListing/MyEvent/MyJob. */
+export interface MyCommunityPost {
+  id: number;
+  title: string;
+  status: string;
+  slug: string;
+  date: string;
+}
+
+export async function submitCommunityPost(
+  token: string,
+  formData: FormData
+): Promise<{ id: number; status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/community-submit`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "submit_failed", message: body.message ?? "Could not submit your story." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+export async function getMyCommunityPosts(token: string): Promise<MyCommunityPost[]> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/mine/community-posts`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
   }
 }
 

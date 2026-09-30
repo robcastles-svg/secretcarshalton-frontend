@@ -76,6 +76,30 @@ class SC_Membership_REST {
 
 		register_rest_route(
 			'sc-membership/v1',
+			'/community-submit',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'submit_community_post' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/mine/community-posts',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_my_community_posts' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
 			'/leaderboard',
 			array(
 				'methods'             => 'GET',
@@ -572,6 +596,84 @@ class SC_Membership_REST {
 		do_action( 'sc_directory_upgrade_requested', $user_id, $listing_id );
 
 		return array( 'status' => 'pending' );
+	}
+
+	/**
+	 * A member-written community story — same draft → human approval →
+	 * publish model as every other submission path in this codebase
+	 * (directory listings, events, ads). Lands as a plain 'post' in the
+	 * "Community" category rather than a new custom post type — the
+	 * Community page's own docblock already frames this as ordinary
+	 * editorial content "pulled out of the old Stories section," just
+	 * member-authored instead of Claude-drafted.
+	 */
+	public static function submit_community_post( WP_REST_Request $request ) {
+		$title = sanitize_text_field( (string) $request->get_param( 'title' ) );
+		$body  = (string) $request->get_param( 'body' );
+
+		if ( ! $title || ! trim( wp_strip_all_tags( $body ) ) ) {
+			return new WP_Error( 'missing_fields', 'A headline and story text are required.', array( 'status' => 400 ) );
+		}
+
+		$post_id = wp_insert_post(
+			array(
+				'post_type'    => 'post',
+				'post_status'  => 'pending',
+				'post_title'   => $title,
+				'post_content' => wpautop( wp_kses_post( $body ) ),
+				'post_author'  => get_current_user_id(),
+			),
+			true
+		);
+
+		if ( is_wp_error( $post_id ) ) {
+			return new WP_Error( 'submit_failed', $post_id->get_error_message(), array( 'status' => 400 ) );
+		}
+
+		$community = get_category_by_slug( 'community' );
+		if ( $community ) {
+			wp_set_post_categories( $post_id, array( $community->term_id ) );
+		}
+
+		if ( ! empty( $_FILES['image']['tmp_name'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+			$attachment_id = media_handle_upload( 'image', $post_id );
+			if ( ! is_wp_error( $attachment_id ) ) {
+				set_post_thumbnail( $post_id, $attachment_id );
+			}
+		}
+
+		return array( 'id' => $post_id, 'status' => 'pending' );
+	}
+
+	/** The dashboard's "Your community posts" section. */
+	public static function get_my_community_posts( WP_REST_Request $request ) {
+		$posts = get_posts(
+			array(
+				'post_type'      => 'post',
+				'author'         => get_current_user_id(),
+				'post_status'    => array( 'publish', 'pending', 'draft' ),
+				'posts_per_page' => 50,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+				'category_name'  => 'community',
+			)
+		);
+
+		return array_map(
+			function ( $post ) {
+				return array(
+					'id'     => $post->ID,
+					'title'  => get_the_title( $post ),
+					'status' => $post->post_status,
+					'slug'   => $post->post_name,
+					'date'   => $post->post_date,
+				);
+			},
+			$posts
+		);
 	}
 
 	/** A week to edit your own comment/review after posting — see update_comment(). */

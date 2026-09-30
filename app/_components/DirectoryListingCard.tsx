@@ -39,6 +39,22 @@ export function DirectoryListingCard({
           <span dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
         </span>
       </Link>
+      {listing.meta.sc_featured && <span className="directory-badge">Featured</span>}
+      {categoriesList?.map((category) => (
+        <span key={category.id} className="card-category">
+          {category.name}
+        </span>
+      ))}
+      <p>{excerpt}</p>
+      {socials.length > 0 && (
+        <div className="directory-card-socials">
+          {socials.map(({ key, url, Icon }) => (
+            <a key={key} href={url} target="_blank" rel="noopener noreferrer" aria-label={key}>
+              <Icon />
+            </a>
+          ))}
+        </div>
+      )}
       <div className="card-meta-row">
         <div className="card-actions">
           {reviewCount > 0 && (
@@ -56,22 +72,6 @@ export function DirectoryListingCard({
           <BookmarkButton contentType="listing" contentId={listing.id} />
         </div>
       </div>
-      {listing.meta.sc_featured && <span className="directory-badge">Featured</span>}
-      {categoriesList?.map((category) => (
-        <span key={category.id} className="card-category">
-          {category.name}
-        </span>
-      ))}
-      <p>{excerpt}</p>
-      {socials.length > 0 && (
-        <div className="directory-card-socials">
-          {socials.map(({ key, url, Icon }) => (
-            <a key={key} href={url} target="_blank" rel="noopener noreferrer" aria-label={key}>
-              <Icon />
-            </a>
-          ))}
-        </div>
-      )}
     </li>
   );
 }

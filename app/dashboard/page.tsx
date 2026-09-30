@@ -6,7 +6,9 @@ import {
   getMyAds,
   getMyBookmarks,
   getMyComments,
+  getMyCommunityPosts,
   getMyEvents,
+  getMyJobs,
   getMyListings,
   getMyRsvpdEvents,
   linkForPostType,
@@ -67,13 +69,15 @@ export default async function DashboardPage() {
   const profile = await getMemberMe(token);
   if (!profile) redirect("/login");
 
-  const [myListings, myEvents, myComments, myBookmarks, myRsvps, myAds] = await Promise.all([
+  const [myListings, myEvents, myComments, myBookmarks, myRsvps, myAds, myJobs, myCommunityPosts] = await Promise.all([
     getMyListings(token),
     getMyEvents(token),
     getMyComments(token),
     getMyBookmarks(token),
     getMyRsvpdEvents(token),
     getMyAds(token),
+    getMyJobs(token),
+    getMyCommunityPosts(token),
   ]);
 
   return (
@@ -329,6 +333,75 @@ export default async function DashboardPage() {
             </Link>
           </div>
         </section>
+
+        <section className="dashboard-section">
+          <h3>Your job{myJobs.length === 1 ? "" : "s"}</h3>
+          {myJobs.length === 0 ? (
+            <p className="dashboard-hint">Nothing posted yet — hiring locally? List a vacancy.</p>
+          ) : (
+            <ExpandableList
+              items={myJobs}
+              listClassName="dashboard-my-list"
+              itemKey={(job) => job.id}
+              noun="job"
+              renderItem={(job) => (
+                <>
+                  <span className={`dashboard-status-badge dashboard-status-${job.status}`}>
+                    {POST_STATUS_LABEL[job.status] ?? job.status}
+                  </span>
+                  {job.status === "publish" ? (
+                    <Link href={`/jobs/${job.slug}`}>{job.title}</Link>
+                  ) : (
+                    <span>{job.title}</span>
+                  )}
+                  {job.company && <span className="dashboard-my-list-views">{job.company}</span>}
+                </>
+              )}
+            />
+          )}
+          <div className="dashboard-section-actions">
+            <Link href="/jobs" className="button-pill button-pill-secondary">
+              Browse jobs
+            </Link>
+            <Link href="/jobs/submit" className="button-pill">
+              Add a job
+            </Link>
+          </div>
+        </section>
+
+        <section className="dashboard-section">
+          <h3>Your community post{myCommunityPosts.length === 1 ? "" : "s"}</h3>
+          {myCommunityPosts.length === 0 ? (
+            <p className="dashboard-hint">Nothing shared yet — got some local news worth spreading?</p>
+          ) : (
+            <ExpandableList
+              items={myCommunityPosts}
+              listClassName="dashboard-my-list"
+              itemKey={(post) => post.id}
+              noun="post"
+              renderItem={(post) => (
+                <>
+                  <span className={`dashboard-status-badge dashboard-status-${post.status}`}>
+                    {POST_STATUS_LABEL[post.status] ?? post.status}
+                  </span>
+                  {post.status === "publish" ? (
+                    <Link href={`/${post.slug}`}>{post.title}</Link>
+                  ) : (
+                    <span>{post.title}</span>
+                  )}
+                </>
+              )}
+            />
+          )}
+          <div className="dashboard-section-actions">
+            <Link href="/community" className="button-pill button-pill-secondary">
+              Browse community news
+            </Link>
+            <Link href="/community/submit" className="button-pill">
+              Share community news
+            </Link>
+          </div>
+        </section>
       </div>
 
       <div className="dashboard-group">
@@ -414,15 +487,6 @@ export default async function DashboardPage() {
               Write an ad
             </Link>
           </div>
-        </section>
-
-        <section className="dashboard-section dashboard-coming-soon">
-          <h3>
-            Jobs <span className="dashboard-status-badge dashboard-status-soon">Coming soon</span>
-          </h3>
-          <p className="dashboard-hint">
-            Submit your own job listing and manage the ones you&apos;ve posted from here.
-          </p>
         </section>
       </div>
 

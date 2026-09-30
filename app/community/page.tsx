@@ -1,38 +1,44 @@
+import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
-import { AdSlot } from "@/app/_components/AdSlot";
+import { ContentList } from "@/app/_components/ContentList";
+import { MobileTopAd } from "@/app/_components/MobileTopAd";
+import { Pagination } from "@/app/_components/Pagination";
+import { SidebarAds } from "@/app/_components/SidebarAds";
+import { paginate, parsePageParam } from "@/lib/pagination";
+import { getAd, getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
 export const metadata = { title: "Community — Secret Carshalton" };
 
 /**
- * Shell for now — the real feed (community-led stories, pulled out of
- * the old Stories section) and the Groups directory both need a data
- * model that doesn't exist yet, and Rob's asked to see a specific page
- * design for Groups before that part gets built. This is the page
- * structure + a "Share community news" placeholder (same non-functional
- * pattern as Jobs' "Add a job" pill) with mock highlight cards standing
- * in for real content, so the shape of the page exists to react to.
+ * The real feed, now that member-submitted community news has somewhere
+ * to land: a plain "Community" category, same shape as every other
+ * category page (News, Walks, Themes) — no bespoke mock-card treatment
+ * needed any more. The Groups directory is still a separate, unbuilt
+ * piece (Rob wants to see a page design for it first) — the note below
+ * stays as the placeholder for that specifically.
  */
-const MOCK_HIGHLIGHTS = [
-  {
-    title: "Beddington litter-pick this Saturday",
-    blurb: "Example highlight — real community posts will replace this once the feed is wired up.",
-    label: "Community",
-  },
-  {
-    title: "New parent-and-toddler group at the library",
-    blurb: "Example highlight — real community posts will replace this once the feed is wired up.",
-    label: "Groups",
-  },
-  {
-    title: "Carshalton allotments open day",
-    blurb: "Example highlight — real community posts will replace this once the feed is wired up.",
-    label: "Community",
-  },
-];
+export default async function CommunityPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: rawPage } = await searchParams;
 
-export default function CommunityPage() {
+  const [category, allCategories, allTags, inFeedAd, sidebarAd] = await Promise.all([
+    getCategoryBySlug("community").catch(() => null),
+    getCategories().catch(() => []),
+    getTags().catch(() => []),
+    getAd("in_feed"),
+    getAd("sidebar"),
+  ]);
+
+  const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
+  const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
+  const tagsById = new Map(allTags.map((t) => [t.id, t]));
+  const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage));
+
   return (
     <main className="container">
       <div className="page-header-row">
@@ -43,44 +49,31 @@ export default function CommunityPage() {
           </h1>
           <p>Local groups, causes and community-led news from around Carshalton.</p>
         </div>
-        <span className="button-pill button-pill-disabled" aria-disabled="true">
-          Share community news — coming soon
-        </span>
+        <Link href="/community/submit" className="button-pill">
+          Share community news
+        </Link>
       </div>
+
+      <MobileTopAd ad={inFeedAd} />
 
       <div className="post-layout">
         <div className="post-body">
-          <section>
-            <div className="home-section-header">
-              <h2>Highlights</h2>
-            </div>
-            <ul className="post-list community-highlights-list">
-              {MOCK_HIGHLIGHTS.map((item) => (
-                <li key={item.title}>
-                  <div className="card-text">
-                    <span className="card-tag">{item.label}</span>
-                    <span className="card-title">{item.title}</span>
-                  </div>
-                  <p>{item.blurb}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <p className="community-groups-note">
-            A directory of local groups to join is on the way — we&apos;ll link it from here once it&apos;s ready.
-          </p>
+          {pagePosts.length === 0 ? (
+            <p className="directory-empty">Nothing shared yet — be the first to post some community news.</p>
+          ) : (
+            <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
+          )}
+          <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/community?page=${p}`} />
         </div>
 
         <aside className="post-sidebar">
-          <AdSlot
-            placement="sidebar"
-            className="sidebar-block-ad"
-            placeholderClassName="sidebar-ad-placeholder"
-            placeholderText="Advertise here"
-          />
+          <SidebarAds ads={[inFeedAd, sidebarAd]} />
         </aside>
       </div>
+
+      <p className="community-groups-note">
+        A directory of local groups to join is on the way — we&apos;ll link it from here once it&apos;s ready.
+      </p>
     </main>
   );
 }
