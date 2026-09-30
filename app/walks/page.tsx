@@ -9,6 +9,7 @@ import {
   getAd,
   getCategories,
   getCategoryBySlug,
+  getFeaturedListingForGrid,
   getPostsByCategories,
   getPostsByCategory,
   getTags,
@@ -30,12 +31,13 @@ export default async function WalksPage({
 }) {
   const { filter, page: rawPage } = await searchParams;
 
-  const [parent, allCategories, allTags, inFeedAd, sidebarAd] = await Promise.all([
+  const [parent, allCategories, allTags, inFeedAd, sidebarAd, featuredListing] = await Promise.all([
     getCategoryBySlug("walks").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
     getAd("in_feed"),
     getAd("sidebar"),
+    getFeaturedListingForGrid(),
   ]);
 
   const distances = parent ? allCategories.filter((c) => c.parent === parent.id && c.count > 0) : [];
@@ -88,7 +90,12 @@ export default async function WalksPage({
             {pagePosts.length === 0 ? (
               <p className="directory-empty">Nothing here yet — check back soon.</p>
             ) : (
-              <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
+              <ContentList
+                items={pagePosts}
+                categoriesById={categoriesById}
+                tagsById={tagsById}
+                featuredListing={!filter && page === 1 ? featuredListing : null}
+              />
             )}
             <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />
           </div>
