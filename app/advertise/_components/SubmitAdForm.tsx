@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AD_SELF_SERVE_PLACEMENTS } from "@/lib/wordpress";
+import { AdPreview } from "./AdPreview";
 
 /**
  * Holding figures, not final pricing (Rob confirmed using these while the
@@ -21,6 +22,22 @@ export function SubmitAdForm() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [days, setDays] = useState(1);
+  const [headline, setHeadline] = useState("");
+  const [body, setBody] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  // Object URLs must be revoked or they leak — only ever hold the latest one.
+  useEffect(() => {
+    return () => {
+      if (imageUrl) URL.revokeObjectURL(imageUrl);
+    };
+  }, [imageUrl]);
+
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (imageUrl) URL.revokeObjectURL(imageUrl);
+    const file = e.target.files?.[0];
+    setImageUrl(file ? URL.createObjectURL(file) : null);
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -55,11 +72,24 @@ export function SubmitAdForm() {
     <form className="auth-form" onSubmit={handleSubmit}>
       <label>
         Headline
-        <input type="text" name="headline" required placeholder="e.g. 20% off this month at…" />
+        <input
+          type="text"
+          name="headline"
+          required
+          placeholder="e.g. 20% off this month at…"
+          value={headline}
+          onChange={(e) => setHeadline(e.target.value)}
+        />
       </label>
       <label>
         Body text (optional)
-        <input type="text" name="body" placeholder="A short line under the headline" />
+        <input
+          type="text"
+          name="body"
+          placeholder="A short line under the headline"
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+        />
       </label>
       <label>
         Link
@@ -96,8 +126,12 @@ export function SubmitAdForm() {
       </label>
       <label>
         Image (optional)
-        <input type="file" name="image" accept="image/*" />
+        <input type="file" name="image" accept="image/*" onChange={handleImageChange} />
       </label>
+
+      <p className="dashboard-hint">Preview — this is what it&apos;ll actually look like:</p>
+      <AdPreview headline={headline} body={body} imageUrl={imageUrl} />
+
       {error && <p className="auth-error">{error}</p>}
       <button type="submit" className="button-pill" disabled={submitting}>
         {submitting ? "Submitting…" : "Submit ad"}

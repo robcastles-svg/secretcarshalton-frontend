@@ -721,6 +721,19 @@ export async function recordAdClick(adId: number): Promise<string | null> {
   }
 }
 
+/** Fire-and-forget — tells sc-ads a real browser just rendered this ad card. See AdImpressionTracker for why this is only ever called client-side. */
+export async function recordAdImpression(adId: number): Promise<void> {
+  try {
+    await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/impression/${adId}`, {
+      method: "POST",
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    // Best-effort — a missed impression count is not worth failing anything over.
+  }
+}
+
 /** Placements a member can self-serve into — matches SC_Ads_REST::MEMBER_SUBMITTABLE_PLACEMENTS. Billboard/Leaderboard stay admin-set. */
 export const AD_SELF_SERVE_PLACEMENTS: Array<{ slug: string; label: string }> = [
   { slug: "sidebar", label: "Sidebar" },
@@ -737,6 +750,7 @@ export interface MyAd {
   placement: string;
   active: boolean;
   clicks: number;
+  views: number;
   daysRequested: number;
   paymentStatus: string;
 }
@@ -772,6 +786,30 @@ export async function submitAd(
     const body = await res.json();
     if (!res.ok) {
       return { code: body.code ?? "submit_failed", message: body.message ?? "Could not submit ad." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Buy more days on an already-approved ad, without a fresh content review — see SC_Ads_REST::extend_ad's docblock. */
+export async function extendAd(
+  token: string,
+  adId: number,
+  days: number
+): Promise<{ daysRequested: number; paymentStatus: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/${adId}/extend`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ days }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "extend_failed", message: body.message ?? "Could not extend the ad." };
     }
     return body;
   } catch {

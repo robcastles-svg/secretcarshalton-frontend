@@ -3735,6 +3735,11 @@ a.card-category:hover {
   color: #555;
 }
 
+.ad-preview-list {
+  max-width: 340px;
+  margin: 1rem 0;
+}
+
 .directory-verified-check {
   flex-shrink: 0;
   margin-right: 0.5rem;

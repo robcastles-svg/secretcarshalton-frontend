@@ -35,6 +35,7 @@ class SC_Ads_Metabox {
 		$end       = get_post_meta( $post->ID, 'sc_ad_end', true );
 		$weight    = get_post_meta( $post->ID, 'sc_ad_weight', true );
 		$clicks    = (int) get_post_meta( $post->ID, 'sc_ad_clicks', true );
+		$views     = (int) get_post_meta( $post->ID, 'sc_ad_views', true );
 		$days      = get_post_meta( $post->ID, 'sc_ad_days_requested', true );
 		$amount    = get_post_meta( $post->ID, 'sc_ad_amount_paid', true );
 		$payment   = get_post_meta( $post->ID, 'sc_ad_payment_status', true );
@@ -105,6 +106,10 @@ class SC_Ads_Metabox {
 						value="<?php echo esc_attr( $weight ?: 1 ); ?>" />
 					<p class="description">Relative odds within this placement's rotation, e.g. a weight of 2 shows twice as often as a weight of 1.</p>
 				</td>
+			</tr>
+			<tr>
+				<th>Views</th>
+				<td><?php echo esc_html( number_format_i18n( $views ) ); ?> <span class="description">(tracked automatically, not editable here)</span></td>
 			</tr>
 			<tr>
 				<th>Clicks</th>

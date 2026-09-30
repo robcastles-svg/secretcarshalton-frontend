@@ -17,6 +17,7 @@ class SC_Ads_Meta {
 		'sc_ad_end'       => 'string',  // ISO date, empty = no restriction
 		'sc_ad_weight'    => 'integer', // relative odds within its placement's rotation pool, default 1
 		'sc_ad_clicks'    => 'integer', // incremented by the click-tracking endpoint, not admin-editable
+		'sc_ad_views'     => 'integer', // incremented by the impression-tracking endpoint, fired client-side from AdCard so an ISR background regen never counts as a view — not admin-editable
 		// Payment holding fields — pricing isn't finalised and there's no
 		// payment automation yet, so these are filled in by hand (submit_ad
 		// sets days_requested from what the advertiser asked for and

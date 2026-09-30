@@ -14,6 +14,7 @@ import {
 } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
+import { ExtendAdButton } from "./_components/ExtendAdButton";
 import { LogoutButton } from "./_components/LogoutButton";
 import { RequestFeaturedEventButton } from "./_components/RequestFeaturedEventButton";
 import { RequestUpgradeButton } from "./_components/RequestUpgradeButton";
@@ -392,8 +393,9 @@ export default async function DashboardPage() {
                     {ad.daysRequested} day{ad.daysRequested === 1 ? "" : "s"}
                   </span>
                   <span className="dashboard-my-list-views">
-                    {ad.clicks} click{ad.clicks === 1 ? "" : "s"}
+                    {ad.views} view{ad.views === 1 ? "" : "s"}, {ad.clicks} click{ad.clicks === 1 ? "" : "s"}
                   </span>
+                  {ad.active && <ExtendAdButton adId={ad.id} />}
                 </>
               )}
             />

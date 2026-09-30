@@ -1,4 +1,5 @@
 import type { WPAd } from "@/lib/wordpress";
+import { AdImpressionTracker } from "./AdImpressionTracker";
 
 /**
  * A blue-outlined ad card in the sidebar — the external/paid counterpart to
@@ -10,6 +11,7 @@ import type { WPAd } from "@/lib/wordpress";
 export function AdCard({ ad }: { ad: WPAd }) {
   return (
     <li className="ad-card-external">
+      <AdImpressionTracker adId={ad.id} />
       <a href={`/api/ads/click/${ad.id}`} target="_blank" rel="noopener sponsored">
         {ad.image && <img src={ad.image} alt={ad.alt} loading="lazy" />}
         <div className="card-text">

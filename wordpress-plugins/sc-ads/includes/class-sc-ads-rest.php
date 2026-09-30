@@ -61,6 +61,42 @@ class SC_Ads_REST {
 				},
 			)
 		);
+
+		register_rest_route(
+			'sc-ads/v1',
+			'/impression/(?P<id>\d+)',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'record_impression' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'sc-ads/v1',
+			'/(?P<id>\d+)/extend',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'extend_ad' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_ad' ),
+			)
+		);
+	}
+
+	/** Owner-or-admin — same shape as sc-events' check_owns_event. */
+	public static function check_owns_ad( WP_REST_Request $request ) {
+		if ( ! is_user_logged_in() ) {
+			return new WP_Error( 'not_logged_in', 'You must be logged in.', array( 'status' => 401 ) );
+		}
+		$ad = get_post( (int) $request->get_param( 'id' ) );
+		if ( ! $ad || SC_Ads_CPT::POST_TYPE !== $ad->post_type ) {
+			return new WP_Error( 'not_found', 'Ad not found.', array( 'status' => 404 ) );
+		}
+		$current_user_id = get_current_user_id();
+		if ( (int) $ad->post_author !== $current_user_id && ! user_can( $current_user_id, 'manage_options' ) ) {
+			return new WP_Error( 'not_owner', 'You can only manage your own ads.', array( 'status' => 403 ) );
+		}
+		return true;
 	}
 
 	/** Billboard/Leaderboard stay admin-set premium banner slots — sold and placed directly, not self-serve. */
@@ -162,6 +198,44 @@ class SC_Ads_REST {
 		);
 	}
 
+	/** Fire-and-forget from AdCard when it actually renders client-side — same reasoning as sc-post-views/the featured-listing tracker: never counted during SSR/ISR regeneration. */
+	public static function record_impression( WP_REST_Request $request ) {
+		$id   = absint( $request->get_param( 'id' ) );
+		$post = get_post( $id );
+
+		if ( ! $post || SC_Ads_CPT::POST_TYPE !== $post->post_type ) {
+			return new WP_Error( 'sc_ad_not_found', 'Ad not found.', array( 'status' => 404 ) );
+		}
+
+		$views = (int) get_post_meta( $id, 'sc_ad_views', true );
+		update_post_meta( $id, 'sc_ad_views', $views + 1 );
+
+		return array( 'views' => $views + 1 );
+	}
+
+	/**
+	 * Buy more days on an already-approved ad without a fresh content
+	 * review — the content isn't changing, only the run length, so this
+	 * deliberately never touches sc_ad_active (an already-live ad stays
+	 * live while the extension payment is pending). Adds to whatever days
+	 * are already on the ad and resets payment_status to 'pending' so it
+	 * shows up for Rob to confirm once paid, same holding pattern as the
+	 * original submission.
+	 */
+	public static function extend_ad( WP_REST_Request $request ) {
+		$id   = absint( $request->get_param( 'id' ) );
+		$days = max( 1, absint( $request->get_param( 'days' ) ) ?: 1 );
+
+		$current_days = (int) get_post_meta( $id, 'sc_ad_days_requested', true );
+		update_post_meta( $id, 'sc_ad_days_requested', $current_days + $days );
+		update_post_meta( $id, 'sc_ad_payment_status', 'pending' );
+
+		return array(
+			'daysRequested' => $current_days + $days,
+			'paymentStatus' => 'pending',
+		);
+	}
+
 	/**
 	 * A member writing and submitting their own text ad. Created with
 	 * sc_ad_active = false — nothing shows publicly until payment is
@@ -249,6 +323,7 @@ class SC_Ads_REST {
 					'placement'     => get_post_meta( $post->ID, 'sc_ad_placement', true ),
 					'active'        => (bool) get_post_meta( $post->ID, 'sc_ad_active', true ),
 					'clicks'        => (int) get_post_meta( $post->ID, 'sc_ad_clicks', true ),
+					'views'         => (int) get_post_meta( $post->ID, 'sc_ad_views', true ),
 					'daysRequested' => (int) get_post_meta( $post->ID, 'sc_ad_days_requested', true ),
 					'paymentStatus' => get_post_meta( $post->ID, 'sc_ad_payment_status', true ),
 				);
