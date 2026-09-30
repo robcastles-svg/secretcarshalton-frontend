@@ -97,6 +97,16 @@ class SC_Events_REST {
 
 		register_rest_route(
 			'sc-events/v1',
+			'/(?P<id>\d+)/request-featured',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'request_featured' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_event' ),
+			)
+		);
+
+		register_rest_route(
+			'sc-events/v1',
 			'/(?P<id>\d+)/claim',
 			array(
 				'methods'             => 'POST',
@@ -248,11 +258,13 @@ class SC_Events_REST {
 		return array_map(
 			function ( $post ) {
 				return array(
-					'id'     => $post->ID,
-					'title'  => get_the_title( $post ),
-					'status' => $post->post_status,
-					'slug'   => $post->post_name,
-					'start'  => get_post_meta( $post->ID, 'sc_start', true ),
+					'id'            => $post->ID,
+					'title'         => get_the_title( $post ),
+					'status'        => $post->post_status,
+					'slug'          => $post->post_name,
+					'start'         => get_post_meta( $post->ID, 'sc_start', true ),
+					'featured'      => (bool) get_post_meta( $post->ID, 'sc_event_featured', true ),
+					'featuredStatus' => get_post_meta( $post->ID, 'sc_event_featured_status', true ),
 				);
 			},
 			$posts
@@ -307,6 +319,31 @@ class SC_Events_REST {
 			},
 			$posts
 		);
+	}
+
+	/**
+	 * Owner requests their own submitted event be featured — sets the
+	 * request status only, never sc_event_featured itself (see that
+	 * field's docblock: it stays a manual wp-admin toggle, same reasoning
+	 * as sc-membership's directory upgrade). No payment automation yet;
+	 * an admin records what was actually paid when approving.
+	 */
+	public static function request_featured( WP_REST_Request $request ) {
+		$event_id = (int) $request->get_param( 'id' );
+		$event    = self::require_event( $event_id );
+		if ( is_wp_error( $event ) ) {
+			return $event;
+		}
+
+		$status = get_post_meta( $event_id, 'sc_event_featured_status', true );
+		if ( 'pending' === $status ) {
+			return new WP_Error( 'already_pending', 'A featured request is already pending review.', array( 'status' => 409 ) );
+		}
+
+		update_post_meta( $event_id, 'sc_event_featured_status', 'pending' );
+		update_post_meta( $event_id, 'sc_event_featured_requested_at', current_time( 'mysql' ) );
+
+		return array( 'status' => 'pending' );
 	}
 
 	/** Same pending-for-review model as sc-directory's submit_listing. */

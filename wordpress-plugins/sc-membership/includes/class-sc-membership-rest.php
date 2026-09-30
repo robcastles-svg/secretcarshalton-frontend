@@ -538,6 +538,13 @@ class SC_Membership_REST {
 			) : null,
 			'directory_upgrade_status' => $member->directory_upgrade_status,
 			'directory_upgrade_listing_id' => $member->directory_upgrade_listing_id ? (int) $member->directory_upgrade_listing_id : null,
+			// Payment holding fields — filled in by hand when an admin approves (see
+			// SC_Membership_Admin::handle_review_upgrade), not yet tied to real payment
+			// automation. expires_at is a placeholder for the monthly-recurring renewal
+			// date once that's built; null means it's never been set.
+			'directory_upgrade_amount_paid'    => $member->directory_upgrade_amount_paid,
+			'directory_upgrade_payment_status' => $member->directory_upgrade_payment_status,
+			'directory_upgrade_expires_at'     => $member->directory_upgrade_expires_at,
 			'joined_at'                => $member->joined_at,
 			'recent_activity'          => array_map(
 				function ( $entry ) {

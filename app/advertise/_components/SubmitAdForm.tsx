@@ -54,6 +54,14 @@ export function SubmitAdForm() {
         <input type="url" name="link" required placeholder="https://…" />
       </label>
       <label>
+        Days
+        <input type="number" name="days" min={1} defaultValue={1} required />
+      </label>
+      <p className="dashboard-hint">
+        Pricing isn&apos;t fixed yet — roughly £2.50/day for a single day, down toward £1/day for 10+ days.
+        We&apos;ll confirm the exact amount when we get in touch about payment.
+      </p>
+      <label>
         Placement
         <select name="placement" defaultValue="" required>
           <option value="" disabled>

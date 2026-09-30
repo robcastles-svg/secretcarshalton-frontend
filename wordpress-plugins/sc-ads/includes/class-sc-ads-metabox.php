@@ -35,6 +35,9 @@ class SC_Ads_Metabox {
 		$end       = get_post_meta( $post->ID, 'sc_ad_end', true );
 		$weight    = get_post_meta( $post->ID, 'sc_ad_weight', true );
 		$clicks    = (int) get_post_meta( $post->ID, 'sc_ad_clicks', true );
+		$days      = get_post_meta( $post->ID, 'sc_ad_days_requested', true );
+		$amount    = get_post_meta( $post->ID, 'sc_ad_amount_paid', true );
+		$payment   = get_post_meta( $post->ID, 'sc_ad_payment_status', true );
 		?>
 		<table class="form-table">
 			<tr>
@@ -108,6 +111,32 @@ class SC_Ads_Metabox {
 				<td><?php echo esc_html( number_format_i18n( $clicks ) ); ?> <span class="description">(tracked automatically, not editable here)</span></td>
 			</tr>
 		</table>
+		<?php if ( $days || $amount || $payment ) : ?>
+			<h4>Payment (self-serve submission)</h4>
+			<table class="form-table">
+				<tr>
+					<th>Days requested</th>
+					<td><?php echo esc_html( $days ? $days : '—' ); ?></td>
+				</tr>
+				<tr>
+					<th><label for="sc_ad_amount_paid">Amount paid</label></th>
+					<td>
+						<input type="text" id="sc_ad_amount_paid" name="sc_ad_amount_paid" style="width:140px"
+							value="<?php echo esc_attr( $amount ); ?>" placeholder="e.g. £10" />
+						<p class="description">Filled in by hand for now — no payment automation yet. Flip Active above once paid.</p>
+					</td>
+				</tr>
+				<tr>
+					<th><label for="sc_ad_payment_status">Payment status</label></th>
+					<td>
+						<select id="sc_ad_payment_status" name="sc_ad_payment_status">
+							<option value="pending" <?php selected( $payment, 'pending' ); ?>>Pending</option>
+							<option value="paid" <?php selected( $payment, 'paid' ); ?>>Paid</option>
+						</select>
+					</td>
+				</tr>
+			</table>
+		<?php endif; ?>
 		<p class="description">
 			Multiple Active ads in the same placement rotate at random, weighted by the Weight field above — matching how the site's ad slots have always worked.
 		</p>
@@ -137,5 +166,18 @@ class SC_Ads_Metabox {
 		update_post_meta( $post_id, 'sc_ad_weight', max( 1, absint( $_POST['sc_ad_weight'] ?? 1 ) ) );
 		update_post_meta( $post_id, 'sc_ad_start', sanitize_text_field( wp_unslash( $_POST['sc_ad_start'] ?? '' ) ) );
 		update_post_meta( $post_id, 'sc_ad_end', sanitize_text_field( wp_unslash( $_POST['sc_ad_end'] ?? '' ) ) );
+
+		// Only present in the form for ads that already carry self-serve
+		// submission data — an admin-created ad never renders this block,
+		// so guard with isset() rather than wiping these to blank.
+		if ( isset( $_POST['sc_ad_amount_paid'] ) ) {
+			update_post_meta( $post_id, 'sc_ad_amount_paid', sanitize_text_field( wp_unslash( $_POST['sc_ad_amount_paid'] ) ) );
+		}
+		if ( isset( $_POST['sc_ad_payment_status'] ) ) {
+			$payment_status = sanitize_key( wp_unslash( $_POST['sc_ad_payment_status'] ) );
+			if ( in_array( $payment_status, array( 'pending', 'paid' ), true ) ) {
+				update_post_meta( $post_id, 'sc_ad_payment_status', $payment_status );
+			}
+		}
 	}
 }

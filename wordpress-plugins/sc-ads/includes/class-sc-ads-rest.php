@@ -176,6 +176,7 @@ class SC_Ads_REST {
 		$body      = sanitize_text_field( (string) $request->get_param( 'body' ) );
 		$link      = esc_url_raw( (string) $request->get_param( 'link' ) );
 		$placement = sanitize_key( (string) $request->get_param( 'placement' ) );
+		$days      = max( 1, absint( $request->get_param( 'days' ) ) ?: 1 );
 
 		if ( ! $headline || ! $link ) {
 			return new WP_Error( 'missing_fields', 'A headline and link are required.', array( 'status' => 400 ) );
@@ -204,6 +205,8 @@ class SC_Ads_REST {
 		update_post_meta( $post_id, 'sc_ad_placement', $placement );
 		update_post_meta( $post_id, 'sc_ad_active', false );
 		update_post_meta( $post_id, 'sc_ad_weight', 1 );
+		update_post_meta( $post_id, 'sc_ad_days_requested', $days );
+		update_post_meta( $post_id, 'sc_ad_payment_status', 'pending' );
 
 		if ( ! empty( $_FILES['image']['tmp_name'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -238,14 +241,16 @@ class SC_Ads_REST {
 		return array_map(
 			function ( $post ) {
 				return array(
-					'id'        => $post->ID,
-					'headline'  => get_post_meta( $post->ID, 'sc_ad_headline', true ),
-					'body'      => get_post_meta( $post->ID, 'sc_ad_body', true ),
-					'image'     => get_post_meta( $post->ID, 'sc_ad_image_url', true ),
-					'link'      => get_post_meta( $post->ID, 'sc_ad_link_url', true ),
-					'placement' => get_post_meta( $post->ID, 'sc_ad_placement', true ),
-					'active'    => (bool) get_post_meta( $post->ID, 'sc_ad_active', true ),
-					'clicks'    => (int) get_post_meta( $post->ID, 'sc_ad_clicks', true ),
+					'id'            => $post->ID,
+					'headline'      => get_post_meta( $post->ID, 'sc_ad_headline', true ),
+					'body'          => get_post_meta( $post->ID, 'sc_ad_body', true ),
+					'image'         => get_post_meta( $post->ID, 'sc_ad_image_url', true ),
+					'link'          => get_post_meta( $post->ID, 'sc_ad_link_url', true ),
+					'placement'     => get_post_meta( $post->ID, 'sc_ad_placement', true ),
+					'active'        => (bool) get_post_meta( $post->ID, 'sc_ad_active', true ),
+					'clicks'        => (int) get_post_meta( $post->ID, 'sc_ad_clicks', true ),
+					'daysRequested' => (int) get_post_meta( $post->ID, 'sc_ad_days_requested', true ),
+					'paymentStatus' => get_post_meta( $post->ID, 'sc_ad_payment_status', true ),
 				);
 			},
 			$posts

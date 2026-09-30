@@ -15,6 +15,7 @@ import {
 import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { LogoutButton } from "./_components/LogoutButton";
+import { RequestFeaturedEventButton } from "./_components/RequestFeaturedEventButton";
 import { RequestUpgradeButton } from "./_components/RequestUpgradeButton";
 import { VerifyEmailBanner } from "./_components/VerifyEmailBanner";
 
@@ -302,6 +303,13 @@ export default async function DashboardPage() {
                   <span className="dashboard-my-list-views">
                     {event.views} view{event.views === 1 ? "" : "s"}
                   </span>
+                  {event.featured ? (
+                    <span className="dashboard-status-badge dashboard-status-publish">Featured</span>
+                  ) : event.featuredStatus === "pending" ? (
+                    <span className="dashboard-status-badge dashboard-status-pending">Featured requested</span>
+                  ) : (
+                    event.status === "publish" && <RequestFeaturedEventButton eventId={event.id} />
+                  )}
                   <Link href={`/events/${event.slug}/edit`} className="dashboard-my-list-edit">
                     Edit
                   </Link>
@@ -326,12 +334,21 @@ export default async function DashboardPage() {
         <section className="dashboard-section">
           <h3>Directory upgrade</h3>
           {profile.directory_upgrade_status ? (
-            <p>
-              Status:{" "}
-              <strong>
-                {UPGRADE_STATUS_LABEL[profile.directory_upgrade_status] ?? profile.directory_upgrade_status}
-              </strong>
-            </p>
+            <>
+              <p>
+                Status:{" "}
+                <strong>
+                  {UPGRADE_STATUS_LABEL[profile.directory_upgrade_status] ?? profile.directory_upgrade_status}
+                </strong>
+              </p>
+              {profile.directory_upgrade_amount_paid && (
+                <p className="dashboard-hint">
+                  Paid: {profile.directory_upgrade_amount_paid}
+                  {profile.directory_upgrade_expires_at &&
+                    ` — renews ${formatDate(profile.directory_upgrade_expires_at)}`}
+                </p>
+              )}
+            </>
           ) : (
             <>
               <p>Own a local business? Request a featured directory listing.</p>
@@ -365,11 +382,14 @@ export default async function DashboardPage() {
               renderItem={(ad) => (
                 <>
                   <span className={`dashboard-status-badge ${ad.active ? "dashboard-status-publish" : "dashboard-status-pending"}`}>
-                    {ad.active ? "Live" : "Awaiting payment"}
+                    {ad.active ? "Live" : ad.paymentStatus === "paid" ? "Paid — going live soon" : "Awaiting payment"}
                   </span>
                   <span>{ad.headline}</span>
                   <span className="dashboard-my-list-views">
                     {AD_SELF_SERVE_PLACEMENTS.find((p) => p.slug === ad.placement)?.label ?? ad.placement}
+                  </span>
+                  <span className="dashboard-my-list-views">
+                    {ad.daysRequested} day{ad.daysRequested === 1 ? "" : "s"}
                   </span>
                   <span className="dashboard-my-list-views">
                     {ad.clicks} click{ad.clicks === 1 ? "" : "s"}

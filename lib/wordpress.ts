@@ -737,6 +737,8 @@ export interface MyAd {
   placement: string;
   active: boolean;
   clicks: number;
+  daysRequested: number;
+  paymentStatus: string;
 }
 
 /** The dashboard's "Text adverts" section. */
@@ -1500,6 +1502,9 @@ export interface MemberProfile {
   next_tier: { slug: string; label: string } | null;
   directory_upgrade_status: string | null;
   directory_upgrade_listing_id: number | null;
+  directory_upgrade_amount_paid: string | null;
+  directory_upgrade_payment_status: string | null;
+  directory_upgrade_expires_at: string | null;
   joined_at: string;
   recent_activity: Array<{ points: number; reason: string; source: string; date: string }>;
 }
@@ -1688,6 +1693,8 @@ export interface MyEvent {
   slug: string;
   start: string;
   views: number;
+  featured: boolean;
+  featuredStatus: string;
 }
 
 /**
@@ -1748,6 +1755,33 @@ export async function getMyRsvpdEvents(token: string): Promise<MyRsvp[]> {
     });
   } catch {
     return [];
+  }
+}
+
+/**
+ * Owner requests their own submitted event be featured — sets a request
+ * status only; sc-events' own admin toggle (sc_event_featured) is what
+ * actually turns it on, same as the directory upgrade flow. No payment
+ * automation yet — see SC_Events_REST::request_featured's docblock.
+ */
+export async function requestEventFeatured(
+  token: string,
+  eventId: number
+): Promise<{ status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}/request-featured`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "request_failed", message: body.message ?? "Could not request featured." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
   }
 }
 

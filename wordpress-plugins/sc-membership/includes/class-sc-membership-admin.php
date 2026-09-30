@@ -204,12 +204,19 @@ class SC_Membership_Admin {
 	}
 
 	private static function upgrade_review_buttons( $user_id ) {
-		$approve = self::upgrade_review_form( $user_id, 'approved', 'Approve' );
-		$reject  = self::upgrade_review_form( $user_id, 'rejected', 'Reject' );
+		$approve = self::upgrade_review_form( $user_id, 'approved', 'Approve', true );
+		$reject  = self::upgrade_review_form( $user_id, 'rejected', 'Reject', false );
 		return $approve . ' ' . $reject;
 	}
 
-	private static function upgrade_review_form( $user_id, $decision, $label ) {
+	/**
+	 * $include_amount adds a plain text "amount paid" field to the Approve
+	 * form only — payment automation doesn't exist yet (pricing isn't
+	 * finalised), so this is the holding record: what you were actually
+	 * paid, typed in by hand at the same moment you approve, rather than a
+	 * second trip to a separate screen.
+	 */
+	private static function upgrade_review_form( $user_id, $decision, $label, $include_amount = false ) {
 		ob_start();
 		?>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline">
@@ -217,6 +224,9 @@ class SC_Membership_Admin {
 			<input type="hidden" name="action" value="sc_membership_review_upgrade" />
 			<input type="hidden" name="user_id" value="<?php echo esc_attr( $user_id ); ?>" />
 			<input type="hidden" name="decision" value="<?php echo esc_attr( $decision ); ?>" />
+			<?php if ( $include_amount ) : ?>
+				<input type="text" name="amount_paid" placeholder="Amount paid, e.g. £15" style="width:140px" />
+			<?php endif; ?>
 			<button type="submit" class="button <?php echo 'approved' === $decision ? 'button-primary' : ''; ?>">
 				<?php echo esc_html( $label ); ?>
 			</button>
@@ -240,15 +250,26 @@ class SC_Membership_Admin {
 			$table   = SC_Membership_DB::members_table();
 			$member  = $wpdb->get_row( $wpdb->prepare( "SELECT directory_upgrade_listing_id FROM {$table} WHERE user_id = %d", $user_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
+			$fields  = array(
+				'directory_upgrade_status'      => $decision,
+				'directory_upgrade_reviewed_by' => get_current_user_id(),
+				'updated_at'                     => current_time( 'mysql' ),
+			);
+			$formats = array( '%s', '%d', '%s' );
+
+			$amount_paid = isset( $_POST['amount_paid'] ) ? sanitize_text_field( wp_unslash( $_POST['amount_paid'] ) ) : '';
+			if ( 'approved' === $decision && $amount_paid ) {
+				$fields['directory_upgrade_amount_paid']    = $amount_paid;
+				$fields['directory_upgrade_payment_status'] = 'paid';
+				$formats[]                                   = '%s';
+				$formats[]                                   = '%s';
+			}
+
 			$wpdb->update(
 				$table,
-				array(
-					'directory_upgrade_status'      => $decision,
-					'directory_upgrade_reviewed_by' => get_current_user_id(),
-					'updated_at'                     => current_time( 'mysql' ),
-				),
+				$fields,
 				array( 'user_id' => $user_id ),
-				array( '%s', '%d', '%s' ),
+				$formats,
 				array( '%d' )
 			);
 

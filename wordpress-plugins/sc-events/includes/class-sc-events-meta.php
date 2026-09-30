@@ -41,6 +41,17 @@ class SC_Events_Meta {
 		 * manual wp-admin toggle, one event at a time.
 		 */
 		'sc_event_featured' => 'boolean',
+		/**
+		 * The member-facing request side of sc_event_featured — set via
+		 * SC_Events_REST::request_featured, never the boolean itself (that
+		 * stays the admin-only toggle, same reasoning as above). Payment
+		 * automation doesn't exist yet, so sc_event_featured_amount_paid is
+		 * a holding field an admin fills in by hand when approving, the
+		 * same pattern as sc-membership's directory_upgrade_amount_paid.
+		 */
+		'sc_event_featured_status'         => 'string', // '' | 'pending' | 'approved' | 'rejected'
+		'sc_event_featured_requested_at'   => 'string',
+		'sc_event_featured_amount_paid'    => 'string',
 	);
 
 	public static function register() {
