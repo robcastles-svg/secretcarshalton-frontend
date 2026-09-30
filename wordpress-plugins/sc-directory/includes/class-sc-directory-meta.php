@@ -39,6 +39,16 @@ class SC_Directory_Meta {
 		'sc_claimed'          => 'boolean',
 		'sc_plan'             => 'string', // 'free' | 'paid'
 		'sc_claim_expires_at' => 'string', // ISO date, empty string when not applicable
+		/**
+		 * The directory-upgrade perk of showing up in News/Discover/etc
+		 * category grids, not just the Directory page's own featured
+		 * section — capped at 150 impressions/month for now (Rob's holding
+		 * figure), no option to buy more yet. Reset monthly by comparing
+		 * sc_featured_views_month against the current Y-m rather than a
+		 * cron job — see SC_Directory_REST::is_grid_eligible.
+		 */
+		'sc_featured_views_used'  => 'integer',
+		'sc_featured_views_month' => 'string', // 'Y-m' of the last reset
 	);
 
 	/** Registered separately from FIELDS — an array of attachment IDs needs an explicit REST schema, unlike the scalar string/boolean fields above. */

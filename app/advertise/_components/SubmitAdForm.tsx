@@ -4,11 +4,23 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AD_SELF_SERVE_PLACEMENTS } from "@/lib/wordpress";
 
+/**
+ * Holding figures, not final pricing (Rob confirmed using these while the
+ * real pricing gets settled): £2.50/day under 10 days, £1/day at 10+.
+ * A plain two-tier rate, not a smooth taper — simplest honest reading of
+ * "£2.50 for one day, down to £1 in blocks of 10 or more".
+ */
+function estimateCost(days: number): number {
+  const rate = days >= 10 ? 1 : 2.5;
+  return days * rate;
+}
+
 export function SubmitAdForm() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [days, setDays] = useState(1);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -55,11 +67,19 @@ export function SubmitAdForm() {
       </label>
       <label>
         Days
-        <input type="number" name="days" min={1} defaultValue={1} required />
+        <input
+          type="number"
+          name="days"
+          min={1}
+          value={days}
+          onChange={(e) => setDays(Math.max(1, Number(e.target.value) || 1))}
+          required
+        />
       </label>
       <p className="dashboard-hint">
-        Pricing isn&apos;t fixed yet — roughly £2.50/day for a single day, down toward £1/day for 10+ days.
-        We&apos;ll confirm the exact amount when we get in touch about payment.
+        Estimated cost: <strong>£{estimateCost(days).toFixed(2)}</strong> ({days >= 10 ? "£1" : "£2.50"}/day —
+        holding figures while pricing gets finalised). We&apos;ll confirm the exact amount when we get in touch
+        about payment.
       </p>
       <label>
         Placement

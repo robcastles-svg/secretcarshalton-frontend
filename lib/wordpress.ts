@@ -830,13 +830,15 @@ export interface WPListing {
   sc_gallery_images?: WPListingGalleryImage[];
   /** Rolled up from approved review comments (sc_rating meta) server-side — see SC_Directory_REST's sc_review_stats REST field. Powers the Most Reviews / Highest Rated directory sort. */
   sc_review_stats?: { count: number; average: number | null };
+  /** True if sc_featured and still under this month's 150-impression grid allowance — see SC_Directory_REST::is_grid_eligible. */
+  sc_featured_grid_eligible?: boolean;
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
   };
 }
 
 const DIRECTORY_LISTING_FIELDS =
-  "id,slug,link,date,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,sc_review_stats,_links";
+  "id,slug,link,date,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,sc_review_stats,sc_featured_grid_eligible,_links";
 
 /**
  * Staging (see WP_STAGING_ROOT) turned out to be far less reliably
@@ -992,6 +994,42 @@ export async function renewListingClaim(
     return body;
   } catch {
     return NETWORK_ERROR;
+  }
+}
+
+/**
+ * One featured listing still under its monthly grid-impression allowance
+ * (150/month — Rob's holding figure), for interleaving into a category
+ * grid — the pink-card counterpart to getAd()'s blue in_feed ads. Same
+ * "never fail the page it's on" contract as getAd(): a network hiccup or
+ * nobody currently eligible both just mean no card shows, not an error.
+ */
+export async function getFeaturedListingForGrid(): Promise<WPListing | null> {
+  try {
+    const res = await fetchWithRetry(
+      `${WP_STAGING_ROOT}/sc-directory/v1/featured/grid?_embed=wp:featuredmedia`,
+      { cache: "no-store", signal: AbortSignal.timeout(15_000) },
+      3
+    );
+    if (!res.ok) return null;
+    const text = await res.text();
+    if (!text) return null;
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+/** Fire-and-forget — tells sc-directory a real browser just rendered this listing's grid card. See PostViewTracker/getAd for why this is only ever called client-side, never during SSR/ISR regeneration. */
+export async function recordFeaturedListingImpression(listingId: number): Promise<void> {
+  try {
+    await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/${listingId}/featured-impression`, {
+      method: "POST",
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch {
+    // Best-effort — a missed impression count is not worth failing anything over.
   }
 }
 

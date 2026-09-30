@@ -81,6 +81,36 @@ class SC_Directory_REST {
 			)
 		);
 
+		register_rest_route(
+			'sc-directory/v1',
+			'/featured/grid',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_featured_for_grid' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_route(
+			'sc-directory/v1',
+			'/(?P<id>\d+)/featured-impression',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'record_featured_impression' ),
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		register_rest_field(
+			SC_Directory_CPT::POST_TYPE,
+			'sc_featured_grid_eligible',
+			array(
+				'get_callback' => function ( $post ) {
+					return self::is_grid_eligible( $post['id'] );
+				},
+			)
+		);
+
 		register_rest_field(
 			SC_Directory_CPT::POST_TYPE,
 			'sc_claim_pending',
@@ -673,5 +703,85 @@ class SC_Directory_REST {
 		do_action( 'sc_directory_upgrade_requested', $user_id, $listing_id );
 
 		return array( 'status' => 'pending' );
+	}
+
+	/** 150/month, Rob's holding figure — see SC_Directory_Meta::FIELDS' docblock. No cron: reset happens lazily, the first time this is checked in a new calendar month. */
+	const FEATURED_GRID_MONTHLY_LIMIT = 150;
+
+	/**
+	 * True if this listing is featured and hasn't used up this month's
+	 * grid-impression allowance. Deliberately read-only — a new month just
+	 * means "not yet used, so eligible"; the actual counter reset only
+	 * happens in record_featured_impression, the one place that's
+	 * supposed to write. (get_featured_for_grid also reads this, so a GET
+	 * request never has the side effect of resetting anyone's count.)
+	 */
+	private static function is_grid_eligible( $listing_id ) {
+		if ( ! get_post_meta( $listing_id, 'sc_featured', true ) ) {
+			return false;
+		}
+
+		$current_month = current_time( 'Y-m' );
+		$stored_month  = get_post_meta( $listing_id, 'sc_featured_views_month', true );
+		if ( $stored_month !== $current_month ) {
+			return true;
+		}
+
+		$used = (int) get_post_meta( $listing_id, 'sc_featured_views_used', true );
+		return $used < self::FEATURED_GRID_MONTHLY_LIMIT;
+	}
+
+	/**
+	 * One featured listing still under its monthly impression allowance,
+	 * for interleaving into a News/Discover/etc grid — the pink-card
+	 * counterpart to sc-ads' blue in_feed rotation, gated by directory
+	 * upgrade + the monthly cap rather than an Active toggle. Picks
+	 * randomly among everything eligible rather than always the same one,
+	 * in the (likely, once this feature actually sells) case of more than
+	 * one featured listing existing at once.
+	 */
+	public static function get_featured_for_grid( WP_REST_Request $request ) {
+		$query = new WP_Query(
+			array(
+				'post_type'      => SC_Directory_CPT::POST_TYPE,
+				'post_status'    => 'publish',
+				'posts_per_page' => 50,
+				'meta_key'       => 'sc_featured', // phpcs:ignore WordPress.DB.SlowDBQuery
+				'meta_value'     => '1', // phpcs:ignore WordPress.DB.SlowDBQuery
+			)
+		);
+
+		$eligible = array_values( array_filter( $query->posts, fn( $post ) => self::is_grid_eligible( $post->ID ) ) );
+		if ( empty( $eligible ) ) {
+			return null;
+		}
+
+		$post            = $eligible[ array_rand( $eligible ) ];
+		$rest_controller = new WP_REST_Posts_Controller( SC_Directory_CPT::POST_TYPE );
+		// Returning the WP_REST_Response directly (rather than ->get_data())
+		// lets the server still resolve _embed=wp:featuredmedia on this
+		// response the same way it would for any other route.
+		return $rest_controller->prepare_item_for_response( $post, $request );
+	}
+
+	/** Fire-and-forget from the frontend when a grid actually renders the card — mirrors sc-post-views' "only count a real render, not SSR" reasoning. */
+	public static function record_featured_impression( WP_REST_Request $request ) {
+		$listing_id = (int) $request->get_param( 'id' );
+		$listing    = get_post( $listing_id );
+
+		if ( ! $listing || SC_Directory_CPT::POST_TYPE !== $listing->post_type ) {
+			return new WP_Error( 'not_found', 'Listing not found.', array( 'status' => 404 ) );
+		}
+
+		$current_month = current_time( 'Y-m' );
+		if ( get_post_meta( $listing_id, 'sc_featured_views_month', true ) !== $current_month ) {
+			update_post_meta( $listing_id, 'sc_featured_views_month', $current_month );
+			update_post_meta( $listing_id, 'sc_featured_views_used', 0 );
+		}
+
+		$used = (int) get_post_meta( $listing_id, 'sc_featured_views_used', true );
+		update_post_meta( $listing_id, 'sc_featured_views_used', $used + 1 );
+
+		return array( 'views_used' => $used + 1, 'limit' => self::FEATURED_GRID_MONTHLY_LIMIT );
 	}
 }

@@ -17,7 +17,7 @@ export function AdCard({ ad }: { ad: WPAd }) {
           {ad.headline && <span className="card-title">{ad.headline}</span>}
         </div>
       </a>
-      {ad.body && <p>{ad.body}</p>}
+      {ad.body && <p className="ad-card-body">{ad.body}</p>}
     </li>
   );
 }

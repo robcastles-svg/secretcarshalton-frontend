@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
+import { FeaturedListingImpressionTracker } from "@/app/_components/FeaturedListingImpressionTracker";
 import { Pagination } from "@/app/_components/Pagination";
 import { PostListCard } from "@/app/_components/PostListCard";
 import { SidebarAds } from "@/app/_components/SidebarAds";
@@ -100,6 +101,12 @@ export default async function DiscoverPage({
   const isFeatured = filter === "featured";
 
   const featuredListings = allListings.filter((l) => l.meta.sc_featured);
+  // The monthly 150-impression cap (Rob's holding figure) only applies to
+  // getting mixed into the main feed below — the dedicated "Business
+  // feature" browse view (isFeatured) is a listing's own page, same as
+  // Directory's own featured display, not subject to it. sc_featured_grid_eligible
+  // — see SC_Directory_REST::is_grid_eligible.
+  const eligibleForFeed = featuredListings.filter((l) => l.sc_featured_grid_eligible);
 
   let posts: WPContentItem[] = [];
   if (!isFeatured) {
@@ -116,7 +123,7 @@ export default async function DiscoverPage({
   // view (one area, Spotlight, or the featured listings themselves) stays
   // as just that one kind of card, not padded out with unrelated ones.
   const feed: FeedItem[] = !filter
-    ? buildFeed(posts, featuredListings)
+    ? buildFeed(posts, eligibleForFeed)
     : isFeatured
       ? featuredListings.map((listing) => ({ kind: "listing", listing }))
       : posts.map((post) => ({ kind: "post", post }));
@@ -191,6 +198,12 @@ export default async function DiscoverPage({
                 )}
               </ul>
             )}
+            {!filter &&
+              pageItems
+                .filter((item) => item.kind === "listing")
+                .map((item) => (
+                  <FeaturedListingImpressionTracker key={item.listing.id} listingId={item.listing.id} />
+                ))}
 
             <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />
           </div>

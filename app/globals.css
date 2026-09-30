@@ -3719,7 +3719,20 @@ a.card-category:hover {
   letter-spacing: 0.03em;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
-  margin: 0.4rem 0;
+  margin: 0.4rem 1rem;
+}
+
+/* Deliberately smaller than editorial's .card-title (1.15rem) — a quick
+   visual cue that this card is an ad, not a story, even before reading
+   the badge. */
+.ad-card-external .card-title {
+  font-size: 1rem;
+}
+
+.ad-card-body {
+  margin: 0 1rem 0.5rem;
+  font-size: 0.85rem;
+  color: #555;
 }
 
 .directory-verified-check {

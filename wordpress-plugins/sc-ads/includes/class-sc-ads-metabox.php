@@ -116,7 +116,19 @@ class SC_Ads_Metabox {
 			<table class="form-table">
 				<tr>
 					<th>Days requested</th>
-					<td><?php echo esc_html( $days ? $days : '—' ); ?></td>
+					<td>
+						<?php echo esc_html( $days ? $days : '—' ); ?>
+						<?php if ( $days ) : ?>
+							<?php
+							// Holding figures Rob confirmed using while real pricing gets
+							// finalised: £2.50/day under 10 days, £1/day at 10+. Keep in
+							// sync with estimateCost() in SubmitAdForm.tsx if this changes.
+							$rate     = $days >= 10 ? 1 : 2.5;
+							$estimate = $days * $rate;
+							?>
+							<span class="description">(estimated £<?php echo esc_html( number_format_i18n( $estimate, 2 ) ); ?> at £<?php echo esc_html( number_format_i18n( $rate, 2 ) ); ?>/day)</span>
+						<?php endif; ?>
+					</td>
 				</tr>
 				<tr>
 					<th><label for="sc_ad_amount_paid">Amount paid</label></th>
