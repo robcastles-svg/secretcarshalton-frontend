@@ -115,8 +115,8 @@ export default async function RootLayout({
           placeholderText="Claim this banner space for your local business"
         />
 
-        {/* One merged bar — date/weather on the left, utility links on the right — sits below the billboard and above the logo/nav row, matching the PDF wireframe. */}
-        <div className={`utility-bar${sessionToken ? " utility-bar-loggedin" : ""}`}>
+        {/* One merged bar — date/weather on the left, utility links on the right — sits below the billboard and above the logo/nav row, matching the PDF wireframe. Stays the same regardless of login state now — only .member-benefits-bar above switches colour when logged in. */}
+        <div className="utility-bar">
           <div className="container utility-bar-inner">
             <SiteDateWeather />
             <div className="utility-bar-links">

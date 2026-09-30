@@ -127,20 +127,6 @@ button.button-pill {
   color: #c2607a;
 }
 
-.utility-bar-loggedin {
-  background: var(--color-active);
-  border-bottom-color: var(--color-active-dark);
-}
-
-.utility-bar-loggedin a {
-  color: #fff;
-  border-right-color: rgba(255, 255, 255, 0.45);
-}
-
-.utility-bar-loggedin a:hover {
-  color: #1a1a1a;
-}
-
 /* Header */
 .site-header {
   border-bottom: 1px solid #e5e5e5;
@@ -219,11 +205,12 @@ button.button-pill {
   background: #c58a9a;
 }
 
-/* Same orange as .utility-bar-loggedin — once you're signed in this bar
-   is just a dashboard shortcut, not a pitch to join, so it switches out
-   of the pink "come join" colour to match the rest of the site's
-   logged-in treatment. Nav/utility bar underneath stays exactly as it
-   already was either way — only this top bar's colour changes. */
+/* --color-active, the same orange used for logged-in state elsewhere
+   (claim/RSVP/comment buttons) — once you're signed in this bar is just
+   a dashboard shortcut, not a pitch to join, so it switches out of the
+   pink "come join" colour. The utility/nav bar underneath stays exactly
+   the same regardless of login state — only this top bar's colour
+   changes, per Rob's call. */
 .member-benefits-bar-loggedin {
   background: var(--color-active);
 }
