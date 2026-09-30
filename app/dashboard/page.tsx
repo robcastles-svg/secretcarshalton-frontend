@@ -335,45 +335,6 @@ export default async function DashboardPage() {
         </section>
 
         <section className="dashboard-section">
-          <h3>Your job{myJobs.length === 1 ? "" : "s"}</h3>
-          {myJobs.length === 0 ? (
-            <p className="dashboard-hint">Nothing posted yet — hiring locally? List a vacancy.</p>
-          ) : (
-            <ExpandableList
-              items={myJobs}
-              listClassName="dashboard-my-list"
-              itemKey={(job) => job.id}
-              noun="job"
-              renderItem={(job) => (
-                <>
-                  <span className={`dashboard-status-badge dashboard-status-${job.status}`}>
-                    {job.status === "publish"
-                      ? "Live"
-                      : job.paymentStatus === "paid"
-                        ? "Paid — awaiting review"
-                        : "Awaiting payment"}
-                  </span>
-                  {job.status === "publish" ? (
-                    <Link href={`/jobs/${job.slug}`}>{job.title}</Link>
-                  ) : (
-                    <span>{job.title}</span>
-                  )}
-                  {job.company && <span className="dashboard-my-list-views">{job.company}</span>}
-                </>
-              )}
-            />
-          )}
-          <div className="dashboard-section-actions">
-            <Link href="/jobs" className="button-pill button-pill-secondary">
-              Browse jobs
-            </Link>
-            <Link href="/jobs/submit" className="button-pill">
-              Add a job
-            </Link>
-          </div>
-        </section>
-
-        <section className="dashboard-section">
           <h3>Your community post{myCommunityPosts.length === 1 ? "" : "s"}</h3>
           {myCommunityPosts.length === 0 ? (
             <p className="dashboard-hint">Nothing shared yet — got some local news worth spreading?</p>
@@ -452,6 +413,99 @@ export default async function DashboardPage() {
               </Link>
             </>
           )}
+        </section>
+
+        <section className="dashboard-section">
+          <h3>Featured event</h3>
+          {(() => {
+            const featuredEvent = myEvents.find((e) => e.featured);
+            const pendingEvent = myEvents.find((e) => e.featuredStatus === "pending");
+            const eligibleEvents = myEvents.filter(
+              (e) => e.status === "publish" && !e.featured && e.featuredStatus !== "pending"
+            );
+
+            if (featuredEvent) {
+              return (
+                <p>
+                  <Link href={`/events/${featuredEvent.slug}`}>{featuredEvent.title}</Link> is currently featured
+                  at the top of Events.
+                </p>
+              );
+            }
+            if (pendingEvent) {
+              return (
+                <p>
+                  Request pending review for{" "}
+                  <Link href={`/events/${pendingEvent.slug}`}>{pendingEvent.title}</Link>.
+                </p>
+              );
+            }
+            if (eligibleEvents.length === 0) {
+              return (
+                <p className="dashboard-hint">
+                  {myEvents.length === 0
+                    ? "Submit an event first, then you can pay to feature it."
+                    : "None of your events are eligible right now — only a live event can be featured."}
+                </p>
+              );
+            }
+            return (
+              <>
+                <p className="dashboard-hint">
+                  Pay to take over the &quot;Coming up next&quot; spot at the top of Events.
+                </p>
+                <ul className="dashboard-my-list">
+                  {eligibleEvents.map((event) => (
+                    <li key={event.id}>
+                      <span>{event.title}</span>
+                      <Link href={`/events/${event.slug}/feature`} className="dashboard-my-list-edit">
+                        Request featured
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            );
+          })()}
+        </section>
+
+        <section className="dashboard-section">
+          <h3>Your job{myJobs.length === 1 ? "" : "s"}</h3>
+          {myJobs.length === 0 ? (
+            <p className="dashboard-hint">Nothing posted yet — hiring locally? List a vacancy.</p>
+          ) : (
+            <ExpandableList
+              items={myJobs}
+              listClassName="dashboard-my-list"
+              itemKey={(job) => job.id}
+              noun="job"
+              renderItem={(job) => (
+                <>
+                  <span className={`dashboard-status-badge dashboard-status-${job.status}`}>
+                    {job.status === "publish"
+                      ? "Live"
+                      : job.paymentStatus === "paid"
+                        ? "Paid — awaiting review"
+                        : "Awaiting payment"}
+                  </span>
+                  {job.status === "publish" ? (
+                    <Link href={`/jobs/${job.slug}`}>{job.title}</Link>
+                  ) : (
+                    <span>{job.title}</span>
+                  )}
+                  {job.company && <span className="dashboard-my-list-views">{job.company}</span>}
+                </>
+              )}
+            />
+          )}
+          <div className="dashboard-section-actions">
+            <Link href="/jobs" className="button-pill button-pill-secondary">
+              Browse jobs
+            </Link>
+            <Link href="/jobs/submit" className="button-pill">
+              Add a job
+            </Link>
+          </div>
         </section>
 
         <section className="dashboard-section">

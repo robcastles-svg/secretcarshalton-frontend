@@ -3733,12 +3733,22 @@ a.card-category:hover {
 
 /* .ad-card-row, not a bare "a" selector — AdPreview.tsx reuses this same
    layout on a plain <div> (no real link to click on a preview), so the
-   selector needs to match both. */
+   selector needs to match both.
+
+   padding (not individual margins on the badge/title/body below) is the
+   single source of the card's left/right inset — every earlier version
+   of this rule gave each child its own margin instead, which needed
+   remembering to keep all three in sync by hand and twice broke that way
+   (a desktop double-margin, then a mobile one). One padding value here,
+   and margin: 0 on all three children (.card-title's override beats the
+   shared global .post-list .card-title rule, which would otherwise still
+   add its own 1rem on top of this padding). */
 .ad-card-external .card-text {
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
   min-width: 0;
+  padding: 0 1.25rem;
 }
 
 .ad-card-badge {
@@ -3752,21 +3762,20 @@ a.card-category:hover {
   letter-spacing: 0.03em;
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
-  margin: 0 0 0 1rem;
+  margin: 0;
 }
 
 /* Deliberately smaller than editorial's .card-title (1.15rem) — a quick
    visual cue that this card is an ad, not a story, even before reading
-   the badge. .card-title's own 1rem left/right margin (see the shared
-   .post-list .card-title rule) already gives it the same inset as every
-   other card's title, so no override needed here beyond the size. */
+   the badge. */
 .ad-card-external .card-title {
   font-size: 0.9rem;
   line-height: 1.25;
+  margin: 0;
 }
 
 .ad-card-body {
-  margin: 0 1rem;
+  margin: 0;
   font-size: 0.78rem;
   line-height: 1.3;
   color: #555;
@@ -3805,22 +3814,12 @@ a.card-category:hover {
     margin-bottom: 0;
   }
 
-  /* The row's own 0.65rem padding already gives the whole right column
-     its inset, so the badge/title/body's desktop-only left/right margins
-     above would double it up here — reset to 0. .card-title's margin
-     normally comes from the shared global .post-list .card-title rule,
-     which still applied here too (it's not width-scoped), so without
-     this reset the headline alone sat indented past the badge/body. */
-  .ad-card-badge {
-    margin: 0;
-  }
-
-  .ad-card-external .card-title {
-    margin: 0;
-  }
-
-  .ad-card-body {
-    margin: 0;
+  /* The row's own 0.65rem padding is already the row's inset on every
+     side (image included), so .card-text's desktop-only left/right
+     padding above would add a second, narrower inset just for the text
+     column here — reset to 0. */
+  .ad-card-external .card-text {
+    padding: 0;
   }
 }
 
