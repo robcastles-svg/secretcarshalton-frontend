@@ -1,5 +1,6 @@
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
+import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
@@ -39,6 +40,7 @@ export default async function NewsPage({
         News
         <CategoryKeyIcon />
       </h1>
+      <MobileTopAd ad={inFeedAd} />
       <div className="post-layout">
         <div className="post-body">
           <ContentList

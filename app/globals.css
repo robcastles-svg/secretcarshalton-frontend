@@ -3702,42 +3702,99 @@ a.card-category:hover {
   background: #c2607a;
 }
 
-/* Blue outline marks a paid "in-feed" ad card, mixed into a story/listing
-   grid — the external/paid counterpart to .directory-card-featured's pink
-   (an internal featured listing), matching the PDF's colour-coding. */
+/* Blue outline marks a paid ad card — the external/paid counterpart to
+   .directory-card-featured's pink (an internal featured listing), matching
+   the PDF's colour-coding. Deliberately compact (square image left, text
+   right) rather than matching a full .post-list card's size — Rob's call,
+   so a blue ad never reads as big/prominent as a paid-featured member's
+   pink card in the same grid/sidebar. The extra .post-list li.ad-card-external
+   specificity on the rules below is needed to beat .post-list li/li img's
+   own base rules (vertical card, full-width top image) — bare
+   .ad-card-external alone isn't specific enough to override those. */
 .ad-card-external {
   border: 2px solid #2f6fb3;
 }
 
+.post-list li.ad-card-external {
+  padding-bottom: 0;
+}
+
+/* .ad-card-row, not a bare "a" selector — AdPreview.tsx reuses this same
+   layout on a plain <div> (no real link to click on a preview), so the
+   selector needs to match both. */
+.post-list li.ad-card-external .ad-card-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.65rem;
+}
+
+.post-list li.ad-card-external img {
+  width: 52px;
+  height: 52px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.ad-card-external .card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
 .ad-card-badge {
   display: inline-block;
+  align-self: flex-start;
   background: #2f6fb3;
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  padding: 0.2rem 0.6rem;
+  padding: 0.15rem 0.5rem;
   border-radius: 999px;
-  margin: 0.4rem 1rem;
+  margin: 0;
 }
 
 /* Deliberately smaller than editorial's .card-title (1.15rem) — a quick
    visual cue that this card is an ad, not a story, even before reading
-   the badge. */
+   the badge. Smaller again than the ad card's own first size (1rem), now
+   that the whole card itself is compact. */
 .ad-card-external .card-title {
-  font-size: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.25;
 }
 
 .ad-card-body {
-  margin: 0 1rem 0.5rem;
-  font-size: 0.85rem;
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.3;
   color: #555;
 }
 
 .ad-preview-list {
   max-width: 340px;
   margin: 1rem 0;
+}
+
+/* Mobile-only: one compact ad at the very top of a category page, above
+   the grid — the sidebar it'd otherwise only live in commonly sits below
+   the main content on narrow screens, so an ad placed only there could go
+   unseen by a mobile visitor who never scrolls that far. Hidden on wider
+   screens, where the sidebar already gives ads real visibility. */
+.mobile-top-ad {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .mobile-top-ad {
+    display: block;
+    margin-bottom: 1.5rem;
+  }
 }
 
 .directory-verified-check {

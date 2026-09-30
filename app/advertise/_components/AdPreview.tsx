@@ -18,12 +18,14 @@ export function AdPreview({
   return (
     <ul className="post-list ad-preview-list">
       <li className="ad-card-external">
-        {imageUrl && <img src={imageUrl} alt="" />}
-        <div className="card-text">
-          <span className="ad-card-badge">Advertisement</span>
-          {headline && <span className="card-title">{headline}</span>}
+        <div className="ad-card-row">
+          {imageUrl && <img src={imageUrl} alt="" />}
+          <div className="card-text">
+            <span className="ad-card-badge">Advertisement</span>
+            {headline && <span className="card-title">{headline}</span>}
+            {body && <p className="ad-card-body">{body}</p>}
+          </div>
         </div>
-        {body && <p className="ad-card-body">{body}</p>}
       </li>
     </ul>
   );

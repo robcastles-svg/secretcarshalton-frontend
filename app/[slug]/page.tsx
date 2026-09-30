@@ -8,8 +8,10 @@ import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
 import { ContentList } from "@/app/_components/ContentList";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
+import { SidebarAds } from "@/app/_components/SidebarAds";
 import { getSessionToken } from "@/lib/auth";
 import {
+  getAd,
   getAllPageSlugs,
   getCategories,
   getCommentsForPost,
@@ -149,17 +151,24 @@ export default async function ContentPage({
     );
   }
 
-  const [allCategories, allTags, comments, fullThread, sessionToken, viewCount, topToday] = await Promise.all([
-    getCategories().catch(() => []),
-    getTags().catch(() => []),
-    getCommentsForPost(post.id, 3).catch(() => []),
-    getCommentsForPost(post.id, 50).catch(() => []),
-    getSessionToken(),
-    getPostViewCount(post.id),
-    // +1: the current post is filtered out below, so ask for one extra
-    // to still land on 5 when it would otherwise have been in the list.
-    getTopPostsToday(6),
-  ]);
+  const [allCategories, allTags, comments, fullThread, sessionToken, viewCount, topToday, sidebarAd, inArticleAd, inFeedAd] =
+    await Promise.all([
+      getCategories().catch(() => []),
+      getTags().catch(() => []),
+      getCommentsForPost(post.id, 3).catch(() => []),
+      getCommentsForPost(post.id, 50).catch(() => []),
+      getSessionToken(),
+      getPostViewCount(post.id),
+      // +1: the current post is filtered out below, so ask for one extra
+      // to still land on 5 when it would otherwise have been in the list.
+      getTopPostsToday(6),
+      // Up to 3 rotating blue ads in the sidebar (Rob's ask) — reusing
+      // the same 3 self-serve placements as everywhere else, not a new
+      // post-page-specific one.
+      getAd("sidebar"),
+      getAd("in_article"),
+      getAd("in_feed"),
+    ]);
 
   const [commenterProfileMap, profile] = await Promise.all([
     getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
@@ -305,12 +314,7 @@ export default async function ContentPage({
             </div>
           )}
 
-          <AdSlot
-            placement="sidebar"
-            className="sidebar-block-ad"
-            placeholderClassName="sidebar-ad-placeholder"
-            placeholderText="Advertise here"
-          />
+          <SidebarAds ads={[sidebarAd, inArticleAd, inFeedAd]} />
 
           {allTags.length > 0 && (
             <div className="sidebar-block">

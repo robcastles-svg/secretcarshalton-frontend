@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { EventImage } from "@/app/_components/EventImage";
+import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import {
   getAd,
@@ -113,6 +114,8 @@ export default async function EventsPage({
             Submit an event
           </Link>
         </div>
+
+        <MobileTopAd ad={inFeedAd} />
 
         <div className="event-view-switch">
           <Link

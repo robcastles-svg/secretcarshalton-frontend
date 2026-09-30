@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { FeaturedListingImpressionTracker } from "@/app/_components/FeaturedListingImpressionTracker";
+import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
 import { PostListCard } from "@/app/_components/PostListCard";
 import { SidebarAds } from "@/app/_components/SidebarAds";
@@ -176,6 +177,8 @@ export default async function DiscoverPage({
           </h1>
         )}
         <p>Stories, walks and local businesses from around Carshalton, all in one feed.</p>
+
+        <MobileTopAd ad={ad} />
 
         <div className="post-layout discover-layout">
           <div className="post-body">
