@@ -73,10 +73,8 @@ export default async function AdvertisePage() {
             details, photos and socials, plus a featured spot at the top of your category.
           </p>
           <p className="advertise-price">
-            <span className="advertise-price-note">
-              Pricing arranged individually for now — get in touch once you&apos;ve got a
-              listing.
-            </span>
+            <strong>£10/month</strong>
+            <span className="advertise-price-note"> — a monthly subscription, cancel any time.</span>
           </p>
           <div className="advertise-cta-row">
             <Link href="/directory/submit" className="button-pill button-pill-secondary">

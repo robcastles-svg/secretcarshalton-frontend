@@ -3802,6 +3802,25 @@ a.card-category:hover {
   border: 2px solid #2f6fb3;
 }
 
+/* A promoted group listing (see PromotedGroupCard.tsx) — same card as a
+   blue self-serve ad, pink instead, matching .directory-card-featured's
+   colour everywhere else a "featured" thing shows. */
+.ad-card-featured-group {
+  border-color: #c2607a;
+}
+
+.ad-card-featured-group .ad-card-badge {
+  background: #c2607a;
+}
+
+.promoted-group-more-link {
+  display: block;
+  margin: 0.5rem 0 1.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #c2607a;
+}
+
 /* .ad-card-row, not a bare "a" selector — AdPreview.tsx reuses this same
    layout on a plain <div> (no real link to click on a preview), so the
    selector needs to match both.

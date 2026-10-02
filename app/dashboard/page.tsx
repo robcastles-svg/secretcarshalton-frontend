@@ -413,7 +413,7 @@ export default async function DashboardPage() {
                 )}
                 <p className="dashboard-hint">
                   Own a local business? Get the long-form listing — full details, photos and a featured spot
-                  at the top of your category.
+                  at the top of your category. £10/month.
                 </p>
                 <Link href="/dashboard/upgrade" className="button-pill">
                   Request directory upgrade

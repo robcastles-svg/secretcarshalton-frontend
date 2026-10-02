@@ -3,6 +3,7 @@ import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
+import { PromotedGroupSlot } from "@/app/_components/PromotedGroupCard";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
 import {
@@ -59,6 +60,13 @@ export default async function CommunityPage({
   const tagsById = new Map(allTags.map((t) => [t.id, t]));
   const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage));
 
+  // The top ad slot (both the mobile banner and the first sidebar card)
+  // promotes a featured group instead of a blue ad on this page specifically
+  // — same card style, pink instead of blue, "Featured" instead of
+  // "Advertisement". Falls back to the normal blue ad in that slot when no
+  // group is currently featured, rather than leaving it empty.
+  const featuredGroup = groups.find((l) => l.meta.sc_featured) ?? null;
+
   return (
     <main className="container">
       <div className="page-header-row">
@@ -74,7 +82,13 @@ export default async function CommunityPage({
         </Link>
       </div>
 
-      <MobileTopAd ad={sidebarAd1} />
+      {featuredGroup ? (
+        <div className="mobile-top-ad">
+          <PromotedGroupSlot listing={featuredGroup} />
+        </div>
+      ) : (
+        <MobileTopAd ad={sidebarAd1} />
+      )}
 
       <div className="post-layout">
         <div className="post-body">
@@ -92,6 +106,8 @@ export default async function CommunityPage({
         </div>
 
         <aside className="post-sidebar">
+          {featuredGroup && <PromotedGroupSlot listing={featuredGroup} />}
+
           {groups.length > 0 && (
             <div className="sidebar-block">
               <h3>Groups to join</h3>
@@ -108,7 +124,7 @@ export default async function CommunityPage({
             </div>
           )}
 
-          <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
+          <SidebarAds ads={featuredGroup ? [sidebarAd2, sidebarAd3] : [sidebarAd1, sidebarAd2, sidebarAd3]} />
         </aside>
       </div>
     </main>
