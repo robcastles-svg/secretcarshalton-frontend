@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
@@ -23,7 +24,41 @@ import {
 
 export const revalidate = 3600;
 
-export const metadata = { title: "Discover — Secret Carshalton" };
+const DEFAULT_METADATA = { title: "Discover — Secret Carshalton" };
+
+/**
+ * An area filter here (?filter=cheam) shows the exact same posts as the
+ * real, dedicated /stories/{area} page — this view is a browsing
+ * convenience, not a second copy of that content. Without a canonical
+ * tag, both URLs could get crawled/indexed for the same content, with
+ * this one carrying weaker, non-area-specific metadata — splitting
+ * signals instead of concentrating them on the page actually built for
+ * that area. Spotlight/Business-feature/no-filter have no equivalent
+ * standalone page, so they just keep the generic title.
+ */
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string }>;
+}): Promise<Metadata> {
+  const { filter } = await searchParams;
+  if (!filter || filter === "spotlight" || filter === "featured") {
+    return DEFAULT_METADATA;
+  }
+
+  const storiesParent = await getCategoryBySlug("stories").catch(() => null);
+  const allCategories = storiesParent ? await getCategories().catch(() => []) : [];
+  const area = storiesParent
+    ? allCategories.find((c) => c.parent === storiesParent.id && c.slug === filter)
+    : null;
+
+  if (!area) return DEFAULT_METADATA;
+
+  return {
+    title: `${area.name} — Discover`,
+    alternates: { canonical: `/stories/${area.slug}` },
+  };
+}
 
 /** Every 5th card in the default/unfiltered feed is swapped for a featured Directory listing (pink outline) instead of a story — matches the PDF's mixed feed. */
 const FEATURE_EVERY = 5;
