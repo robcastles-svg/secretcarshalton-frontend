@@ -7,13 +7,20 @@ import { AdPreview } from "./AdPreview";
 
 /**
  * Holding figures, not final pricing (Rob confirmed using these while the
- * real pricing gets settled): £2.50/day under 10 days, £1/day at 10+.
- * A plain two-tier rate, not a smooth taper — simplest honest reading of
- * "£2.50 for one day, down to £1 in blocks of 10 or more".
+ * real pricing gets settled): £2.50/day under 10 days, £1/day at 10+,
+ * scaled by the placement's rateMultiplier (see AD_SELF_SERVE_PLACEMENTS —
+ * sidebar stays the plain baseline, in-article costs more since it's the
+ * more-likely-to-be-seen spot). A plain two-tier day rate, not a smooth
+ * taper — simplest honest reading of "£2.50 for one day, down to £1 in
+ * blocks of 10 or more".
  */
-function estimateCost(days: number): number {
-  const rate = days >= 10 ? 1 : 2.5;
-  return days * rate;
+function dayRate(days: number, multiplier: number): number {
+  const base = days >= 10 ? 1 : 2.5;
+  return base * multiplier;
+}
+
+function estimateCost(days: number, multiplier: number): number {
+  return days * dayRate(days, multiplier);
 }
 
 export function SubmitAdForm() {
@@ -22,9 +29,13 @@ export function SubmitAdForm() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [days, setDays] = useState(1);
+  const [placement, setPlacement] = useState("");
   const [headline, setHeadline] = useState("");
   const [body, setBody] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  const selectedPlacement = AD_SELF_SERVE_PLACEMENTS.find((p) => p.slug === placement);
+  const multiplier = selectedPlacement?.rateMultiplier ?? 1;
 
   // Object URLs must be revoked or they leak — only ever hold the latest one.
   useEffect(() => {
@@ -106,24 +117,37 @@ export function SubmitAdForm() {
           required
         />
       </label>
-      <p className="dashboard-hint">
-        Estimated cost: <strong>£{estimateCost(days).toFixed(2)}</strong> ({days >= 10 ? "£1" : "£2.50"}/day —
-        holding figures while pricing gets finalised). We&apos;ll confirm the exact amount when we get in touch
-        about payment.
-      </p>
       <label>
         Placement
-        <select name="placement" defaultValue="" required>
+        <select
+          name="placement"
+          value={placement}
+          onChange={(e) => setPlacement(e.target.value)}
+          required
+        >
           <option value="" disabled>
             Choose where it appears…
           </option>
           {AD_SELF_SERVE_PLACEMENTS.map((p) => (
             <option key={p.slug} value={p.slug}>
               {p.label}
+              {p.rateMultiplier !== 1 ? ` — +${Math.round((p.rateMultiplier - 1) * 100)}%, seen more` : " — standard rate"}
             </option>
           ))}
         </select>
       </label>
+      <p className="dashboard-hint">
+        {selectedPlacement ? (
+          <>
+            Estimated cost: <strong>£{estimateCost(days, multiplier).toFixed(2)}</strong> (£
+            {dayRate(days, multiplier).toFixed(2)}/day for {selectedPlacement.label.toLowerCase()} — holding
+            figures while pricing gets finalised).
+          </>
+        ) : (
+          <>Estimated cost: choose a placement above to see the rate (holding figures while pricing gets finalised).</>
+        )}{" "}
+        We&apos;ll confirm the exact amount when we get in touch about payment.
+      </p>
       <label>
         Image (optional)
         <input type="file" name="image" accept="image/*" onChange={handleImageChange} />

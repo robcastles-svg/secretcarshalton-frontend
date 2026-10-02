@@ -735,10 +735,17 @@ export async function recordAdImpression(adId: number): Promise<void> {
 }
 
 /** Placements a member can self-serve into — matches SC_Ads_REST::MEMBER_SUBMITTABLE_PLACEMENTS. Billboard/Leaderboard stay admin-set. */
-export const AD_SELF_SERVE_PLACEMENTS: Array<{ slug: string; label: string }> = [
-  { slug: "sidebar", label: "Sidebar" },
-  { slug: "in_article", label: "In-article" },
-  { slug: "in_feed", label: "In-feed (mixed into story/listing grids)" },
+/**
+ * rateMultiplier scales SubmitAdForm's per-day estimate — sidebar stays
+ * the plain baseline rate (1×) so it's still the obviously-cheap option,
+ * not just a smaller number next to a bigger one; in-article costs more
+ * because it's the more prominent, more-likely-to-be-seen placement
+ * (embedded in the article body, not the sidebar).
+ */
+export const AD_SELF_SERVE_PLACEMENTS: Array<{ slug: string; label: string; rateMultiplier: number }> = [
+  { slug: "sidebar", label: "Sidebar", rateMultiplier: 1 },
+  { slug: "in_article", label: "In-article", rateMultiplier: 1.5 },
+  { slug: "in_feed", label: "In-feed (mixed into story/listing grids)", rateMultiplier: 1 },
 ];
 
 export interface MyAd {

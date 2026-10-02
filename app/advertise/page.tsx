@@ -42,11 +42,12 @@ export default async function AdvertisePage() {
             />
           </div>
           <p className="advertise-price">
-            From <strong>£1–£2.50 a day</strong>
+            From <strong>£1–£2.50 a day</strong> for the sidebar; in-article costs 50% more, since it&apos;s
+            embedded in the article and more likely to be seen.
             <span className="advertise-price-note">
               {" "}
-              — holding figures while pricing&apos;s finalised; we&apos;ll confirm the exact
-              amount when we&apos;re in touch about payment.
+              Holding figures while pricing&apos;s finalised; we&apos;ll confirm the exact amount when
+              we&apos;re in touch about payment.
             </span>
           </p>
           {token ? (

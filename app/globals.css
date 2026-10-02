@@ -342,7 +342,7 @@ button.button-pill {
 }
 
 .ad-slot-text-image img {
-  width: 140px;
+  width: 220px;
   height: auto;
   align-self: stretch;
   object-fit: cover;
@@ -385,7 +385,7 @@ button.button-pill {
 
 @media (max-width: 480px) {
   .ad-slot-text-image img {
-    width: 90px;
+    width: 110px;
   }
 }
 
