@@ -53,7 +53,7 @@ export default async function NewsPage({
           <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/news?page=${p}`} />
         </div>
         <aside className="post-sidebar">
-          <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
+          <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} hideFirstOnMobile />
         </aside>
       </div>
     </main>

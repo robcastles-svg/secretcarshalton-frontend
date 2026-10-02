@@ -227,7 +227,7 @@ export default async function DiscoverPage({
               </div>
             )}
 
-            <SidebarAds ads={[ad1, ad2, ad3]} />
+            <SidebarAds ads={[ad1, ad2, ad3]} hideFirstOnMobile />
           </aside>
         </div>
       </main>

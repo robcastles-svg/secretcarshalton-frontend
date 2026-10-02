@@ -30,16 +30,28 @@ export function PromotedGroupCard({ listing }: { listing: WPListing }) {
   );
 }
 
-/** The card plus its "View more groups" link — used both at the mobile-top position and in the desktop sidebar, see app/community/page.tsx. */
-export function PromotedGroupSlot({ listing }: { listing: WPListing }) {
+/**
+ * The card plus its "View more groups" link — used both at the mobile-top
+ * position and in the desktop sidebar, see app/community/page.tsx. The
+ * sidebar instance passes hideOnMobile: the mobile-top instance already
+ * shows this same card at the top of the page, and the aside reflows
+ * below the main content on mobile, so without this it'd show twice.
+ */
+export function PromotedGroupSlot({
+  listing,
+  hideOnMobile,
+}: {
+  listing: WPListing;
+  hideOnMobile?: boolean;
+}) {
   return (
-    <>
+    <div className={hideOnMobile ? "sidebar-mobile-duplicate" : undefined}>
       <ul className="post-list">
         <PromotedGroupCard listing={listing} />
       </ul>
       <Link href="/community/groups" className="promoted-group-more-link">
         View more groups →
       </Link>
-    </>
+    </div>
   );
 }

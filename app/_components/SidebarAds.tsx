@@ -15,8 +15,15 @@ import { AdCard } from "./AdCard";
  * into more than one slot — shown once, not stacked twice. Falls back to
  * a plain "Advertise here" link when nothing's active, same as AdSlot
  * always did, so the sidebar never just looks broken/empty.
+ *
+ * hideFirstOnMobile: pages that also render MobileTopAd show that same
+ * first ad a second time here once the aside reflows below the main
+ * content on mobile — without this, mobile shows 4 ad blocks (the top
+ * banner plus all 3 sidebar cards) instead of 3. CSS-hides just that one
+ * card under 720px rather than excluding it from the fetch, so desktop
+ * (which has no top banner) still shows all 3.
  */
-export function SidebarAds({ ads }: { ads: (WPAd | null)[] }) {
+export function SidebarAds({ ads, hideFirstOnMobile }: { ads: (WPAd | null)[]; hideFirstOnMobile?: boolean }) {
   const seen = new Set<number>();
   const active = ads.filter((ad): ad is WPAd => {
     if (!ad || seen.has(ad.id)) return false;
@@ -34,8 +41,8 @@ export function SidebarAds({ ads }: { ads: (WPAd | null)[] }) {
 
   return (
     <ul className="post-list">
-      {active.map((ad) => (
-        <AdCard key={ad.id} ad={ad} />
+      {active.map((ad, i) => (
+        <AdCard key={ad.id} ad={ad} className={hideFirstOnMobile && i === 0 ? "sidebar-mobile-duplicate" : undefined} />
       ))}
     </ul>
   );

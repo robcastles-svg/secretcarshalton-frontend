@@ -15,7 +15,7 @@ import type { WPAd } from "@/lib/wordpress";
  * the first time at least half the card is actually on screen — the IAB
  * "viewable impression" bar, not a plain page-load count.
  */
-export function AdCard({ ad }: { ad: WPAd }) {
+export function AdCard({ ad, className }: { ad: WPAd; className?: string }) {
   const ref = useRef<HTMLLIElement>(null);
   const fired = useRef(false);
 
@@ -45,7 +45,7 @@ export function AdCard({ ad }: { ad: WPAd }) {
   const title = ad.headline || ad.alt;
 
   return (
-    <li className="ad-card-external" ref={ref}>
+    <li className={`ad-card-external${className ? ` ${className}` : ""}`} ref={ref}>
       <a href={`/api/ads/click/${ad.id}`} target="_blank" rel="noopener sponsored" className="ad-card-row">
         {ad.image && <img src={ad.image} alt={ad.alt} loading="lazy" />}
         <div className="card-text">

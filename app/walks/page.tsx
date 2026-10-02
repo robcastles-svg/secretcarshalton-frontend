@@ -101,7 +101,7 @@ export default async function WalksPage({
             <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />
           </div>
           <aside className="post-sidebar">
-            <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
+            <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} hideFirstOnMobile />
           </aside>
         </div>
       </main>

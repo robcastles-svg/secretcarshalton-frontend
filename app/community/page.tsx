@@ -106,7 +106,7 @@ export default async function CommunityPage({
         </div>
 
         <aside className="post-sidebar">
-          {featuredGroup && <PromotedGroupSlot listing={featuredGroup} />}
+          {featuredGroup && <PromotedGroupSlot listing={featuredGroup} hideOnMobile />}
 
           {groups.length > 0 && (
             <div className="sidebar-block">
@@ -124,7 +124,10 @@ export default async function CommunityPage({
             </div>
           )}
 
-          <SidebarAds ads={featuredGroup ? [sidebarAd2, sidebarAd3] : [sidebarAd1, sidebarAd2, sidebarAd3]} />
+          <SidebarAds
+            ads={featuredGroup ? [sidebarAd2, sidebarAd3] : [sidebarAd1, sidebarAd2, sidebarAd3]}
+            hideFirstOnMobile={!featuredGroup}
+          />
         </aside>
       </div>
     </main>

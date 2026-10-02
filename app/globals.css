@@ -3821,6 +3821,17 @@ a.card-category:hover {
   color: #c2607a;
 }
 
+/* See SidebarAds' hideFirstOnMobile and PromotedGroupCard's
+   sidebarHideOnMobile — a page that already shows this same card as the
+   mobile-top banner hides its duplicate in the reflowed sidebar below,
+   so mobile shows exactly as many ad/promo blocks as desktop, not one
+   extra from the duplicate. */
+@media (max-width: 720px) {
+  .sidebar-mobile-duplicate {
+    display: none;
+  }
+}
+
 /* .ad-card-row, not a bare "a" selector — AdPreview.tsx reuses this same
    layout on a plain <div> (no real link to click on a preview), so the
    selector needs to match both.
