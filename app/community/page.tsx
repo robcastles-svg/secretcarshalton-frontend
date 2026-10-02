@@ -10,8 +10,10 @@ import {
   getCategories,
   getCategoryBySlug,
   getFeaturedListingForGrid,
+  getGroupListings,
   getPostsByCategory,
   getTags,
+  stripHtml,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -22,9 +24,8 @@ export const metadata = { title: "Community — Secret Carshalton" };
  * The real feed, now that member-submitted community news has somewhere
  * to land: a plain "Community" category, same shape as every other
  * category page (News, Walks, Themes) — no bespoke mock-card treatment
- * needed any more. The Groups directory is still a separate, unbuilt
- * piece (Rob wants to see a page design for it first) — the note below
- * stays as the placeholder for that specifically.
+ * needed any more. Groups to join (see app/community/groups/page.tsx) gets
+ * a teaser in the sidebar here, same as any other sidebar block.
  */
 export default async function CommunityPage({
   searchParams,
@@ -33,13 +34,14 @@ export default async function CommunityPage({
 }) {
   const { page: rawPage } = await searchParams;
 
-  const [category, allCategories, allTags, inFeedAd, sidebarAd, featuredListing] = await Promise.all([
+  const [category, allCategories, allTags, inFeedAd, sidebarAd, featuredListing, groups] = await Promise.all([
     getCategoryBySlug("community").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
     getAd("in_feed"),
     getAd("sidebar"),
     getFeaturedListingForGrid(),
+    getGroupListings().catch(() => []),
   ]);
 
   const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
@@ -80,13 +82,25 @@ export default async function CommunityPage({
         </div>
 
         <aside className="post-sidebar">
+          {groups.length > 0 && (
+            <div className="sidebar-block">
+              <h3>Groups to join</h3>
+              <ul className="sidebar-theme-list">
+                {groups.slice(0, 5).map((listing) => (
+                  <li key={listing.id}>
+                    <Link href={`/directory/${listing.slug}`}>{stripHtml(listing.title.rendered)}</Link>
+                  </li>
+                ))}
+              </ul>
+              <Link href="/community/groups" className="dashboard-my-list-edit">
+                See all groups →
+              </Link>
+            </div>
+          )}
+
           <SidebarAds ads={[inFeedAd, sidebarAd]} />
         </aside>
       </div>
-
-      <p className="community-groups-note">
-        A directory of local groups to join is on the way — we&apos;ll link it from here once it&apos;s ready.
-      </p>
     </main>
   );
 }

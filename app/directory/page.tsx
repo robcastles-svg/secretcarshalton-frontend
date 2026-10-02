@@ -5,7 +5,7 @@ import { Pagination } from "@/app/_components/Pagination";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { DirectoryControls } from "./_components/DirectoryControls";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getAd, getDirectoryCategories, getDirectoryListings, getDirectoryListingsByCategory, stripHtml, type WPListing } from "@/lib/wordpress";
+import { getAd, getDirectoryCategories, getDirectoryListings, getDirectoryListingsByCategory, GROUPS_CATEGORY_SLUG, stripHtml, type WPListing } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -56,11 +56,16 @@ export default async function DirectoryPage({
   // note) has proven unreliable to reach from Vercel's runtime; never let
   // that hang or crash this page — an empty directory is recoverable, a
   // dead page isn't.
-  const [categories, inFeedAd, sidebarAd] = await Promise.all([
+  const [allCategories, inFeedAd, sidebarAd] = await Promise.all([
     getDirectoryCategories().catch(() => []),
     getAd("in_feed"),
     getAd("sidebar"),
   ]);
+  // Groups to join moved to its own Community page (app/community/groups) —
+  // excluded from browsing here entirely, not just the category nav, so
+  // group listings don't still turn up in the unfiltered "All" view.
+  const groupsCategory = allCategories.find((c) => c.slug === GROUPS_CATEGORY_SLUG);
+  const categories = allCategories.filter((c) => c.slug !== GROUPS_CATEGORY_SLUG);
   const activeCategory = category ? categories.find((c) => c.slug === category) : null;
 
   const rawListings = await (activeCategory
@@ -68,7 +73,9 @@ export default async function DirectoryPage({
     : getDirectoryListings()
   ).catch(() => []);
 
-  const filteredListings = rawListings.filter((l) => matchesQuery(l, q));
+  const filteredListings = rawListings
+    .filter((l) => matchesQuery(l, q))
+    .filter((l) => !groupsCategory || !l.sc_listing_category?.includes(groupsCategory.id));
 
   // Featured listings get their own row above the rest — both on the
   // unfiltered "All" view and within whichever category is being browsed.

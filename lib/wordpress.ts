@@ -928,6 +928,24 @@ export function getDirectoryCategories() {
   return scDirectoryFetch<WPDirectoryCategory[]>(`/sc_listing_category?per_page=50`);
 }
 
+/**
+ * "Groups to join" started as a directory category, but conceptually it's
+ * community groups/clubs, not businesses — Rob's moving its browse surface
+ * out of the Directory into Community. It stays the exact same sc-listings
+ * data underneath (no new plugin, no migration, listing URLs unchanged at
+ * /directory/{slug}) — only where it's discoverable changes. Directory-facing
+ * category lists filter this slug out; see app/directory/page.tsx.
+ */
+export const GROUPS_CATEGORY_SLUG = "groups-to-join";
+
+export async function getGroupListings(): Promise<WPListing[]> {
+  const category = await getDirectoryCategories().then((cats) =>
+    cats.find((c) => c.slug === GROUPS_CATEGORY_SLUG)
+  );
+  if (!category) return [];
+  return getDirectoryListingsByCategory(category.id);
+}
+
 /** For a member's public profile page — "listings they've submitted." WP's core REST author param needs no custom route. */
 export function getDirectoryListingsByAuthor(authorId: number) {
   return scDirectoryFetch<WPListing[]>(

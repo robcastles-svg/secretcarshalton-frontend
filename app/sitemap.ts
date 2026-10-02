@@ -15,6 +15,8 @@ const FALLBACK_SITEMAP: MetadataRoute.Sitemap = [
   { url: SITE_URL, changeFrequency: "daily", priority: 1 },
   { url: `${SITE_URL}/directory`, changeFrequency: "daily", priority: 0.8 },
   { url: `${SITE_URL}/events`, changeFrequency: "daily", priority: 0.8 },
+  { url: `${SITE_URL}/community`, changeFrequency: "daily", priority: 0.7 },
+  { url: `${SITE_URL}/community/groups`, changeFrequency: "weekly", priority: 0.6 },
 ];
 
 /**
