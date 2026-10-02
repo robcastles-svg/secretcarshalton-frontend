@@ -21,11 +21,13 @@ export default async function NewsPage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page: rawPage } = await searchParams;
-  const [category, allCategories, allTags, sidebarAd, featuredListing] = await Promise.all([
+  const [category, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3, featuredListing] = await Promise.all([
     getCategoryBySlug("news").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
-    getAd("sidebar"),
+    getAd("sidebar", 1),
+    getAd("sidebar", 2),
+    getAd("sidebar", 3),
     getFeaturedListingForGrid(),
   ]);
   const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
@@ -39,7 +41,7 @@ export default async function NewsPage({
         News
         <CategoryKeyIcon />
       </h1>
-      <MobileTopAd ad={sidebarAd} />
+      <MobileTopAd ad={sidebarAd1} />
       <div className="post-layout">
         <div className="post-body">
           <ContentList
@@ -51,7 +53,7 @@ export default async function NewsPage({
           <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/news?page=${p}`} />
         </div>
         <aside className="post-sidebar">
-          <SidebarAds ads={[sidebarAd]} />
+          <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
         </aside>
       </div>
     </main>

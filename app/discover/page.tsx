@@ -81,14 +81,16 @@ export default async function DiscoverPage({
 }) {
   const { filter, page: rawPage } = await searchParams;
 
-  const [storiesParent, peopleCategory, allCategories, allTags, directoryCategories, allListings, ad] = await Promise.all([
+  const [storiesParent, peopleCategory, allCategories, allTags, directoryCategories, allListings, ad1, ad2, ad3] = await Promise.all([
     getCategoryBySlug("stories").catch(() => null),
     getCategoryBySlug("people").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
     getDirectoryCategories().catch(() => []),
     getDirectoryListings().catch(() => []),
-    getAd("sidebar"),
+    getAd("sidebar", 1),
+    getAd("sidebar", 2),
+    getAd("sidebar", 3),
   ]);
 
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
@@ -178,7 +180,7 @@ export default async function DiscoverPage({
         )}
         <p>Stories, walks and local businesses from around Carshalton, all in one feed.</p>
 
-        <MobileTopAd ad={ad} />
+        <MobileTopAd ad={ad1} />
 
         <div className="post-layout discover-layout">
           <div className="post-body">
@@ -225,7 +227,7 @@ export default async function DiscoverPage({
               </div>
             )}
 
-            <SidebarAds ads={[ad]} />
+            <SidebarAds ads={[ad1, ad2, ad3]} />
           </aside>
         </div>
       </main>

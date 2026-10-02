@@ -17,9 +17,11 @@ export const metadata = {
 };
 
 export default async function CommunityGroupsPage() {
-  const [listings, sidebarAd] = await Promise.all([
+  const [listings, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
     getGroupListings().catch(() => []),
-    getAd("sidebar"),
+    getAd("sidebar", 1),
+    getAd("sidebar", 2),
+    getAd("sidebar", 3),
   ]);
 
   const featured = listings.filter((l) => l.meta.sc_featured);
@@ -63,7 +65,7 @@ export default async function CommunityGroupsPage() {
         </div>
 
         <aside className="post-sidebar">
-          <SidebarAds ads={[sidebarAd]} />
+          <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
         </aside>
       </div>
 

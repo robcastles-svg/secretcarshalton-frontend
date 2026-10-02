@@ -56,9 +56,11 @@ export default async function DirectoryPage({
   // note) has proven unreliable to reach from Vercel's runtime; never let
   // that hang or crash this page — an empty directory is recoverable, a
   // dead page isn't.
-  const [allCategories, sidebarAd] = await Promise.all([
+  const [allCategories, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
     getDirectoryCategories().catch(() => []),
-    getAd("sidebar"),
+    getAd("sidebar", 1),
+    getAd("sidebar", 2),
+    getAd("sidebar", 3),
   ]);
   // Groups to join moved to its own Community page (app/community/groups) —
   // excluded from browsing here entirely, not just the category nav, so
@@ -195,7 +197,7 @@ export default async function DirectoryPage({
         </div>
 
         <aside className="post-sidebar">
-          <SidebarAds ads={[sidebarAd]} />
+          <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
         </aside>
       </div>
       </main>

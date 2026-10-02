@@ -666,14 +666,22 @@ export interface WPAd {
  * route, which the AdSlot client component hits on every pageview, so
  * rotation stays genuinely per-visit rather than per-ISR-window.
  * Never allowed to fail the page it's on — an ad slot is decoration, not content.
+ *
+ * `slot` disambiguates multiple concurrent calls for the same placement
+ * (the sidebar now shows up to 3 simultaneous ads — see SidebarAds —
+ * fetched as getAd("sidebar", 1/2/3)). Without it, Next's request
+ * memoization would treat three identical-URL fetches in the same render
+ * as one request and hand all three the same single weighted-random
+ * pick; the query param just needs to make each call's URL distinct —
+ * the backend ignores it entirely, each request still gets its own
+ * independent pick. Duplicates can still happen when the pool is small
+ * (2 ads can both independently roll the same one); SidebarAds dedupes
+ * by id so a repeat never renders twice.
  */
-export async function getAd(placement: string): Promise<WPAd | null> {
+export async function getAd(placement: string, slot?: number): Promise<WPAd | null> {
   try {
-    const res = await fetchWithRetry(
-      `${WP_STAGING_ROOT}/sc-ads/v1/active/${placement}`,
-      { cache: "no-store", signal: AbortSignal.timeout(15_000) },
-      3
-    );
+    const url = `${WP_STAGING_ROOT}/sc-ads/v1/active/${placement}${slot ? `?slot=${slot}` : ""}`;
+    const res = await fetchWithRetry(url, { cache: "no-store", signal: AbortSignal.timeout(15_000) }, 3);
     if (!res.ok) return null;
     const text = await res.text();
     if (!text) return null;

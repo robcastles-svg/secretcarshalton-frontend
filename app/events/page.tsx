@@ -41,13 +41,15 @@ export default async function EventsPage({
   const calendarYear = Number(year) || now.getFullYear();
   const calendarMonth = Number(month) || now.getMonth() + 1;
 
-  const [categories, tags, upcoming, allEvents, latestAdded, sidebarAd] = await Promise.all([
+  const [categories, tags, upcoming, allEvents, latestAdded, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
     getScEventCategories().catch(() => []),
     getScEventTags().catch(() => []),
     getUpcomingScEvents(100).catch(() => []),
     getScEvents(300).catch(() => []),
     getLatestAddedScEvents(5).catch(() => []),
-    getAd("sidebar"),
+    getAd("sidebar", 1),
+    getAd("sidebar", 2),
+    getAd("sidebar", 3),
   ]);
 
   const activeCategory = category ? categories.find((c) => c.slug === category) : null;
@@ -172,7 +174,7 @@ export default async function EventsPage({
             )}
           </div>
           <aside className="post-sidebar">
-            <SidebarAds ads={[sidebarAd]} />
+            <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
           </aside>
         </div>
 

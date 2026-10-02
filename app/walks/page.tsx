@@ -31,11 +31,13 @@ export default async function WalksPage({
 }) {
   const { filter, page: rawPage } = await searchParams;
 
-  const [parent, allCategories, allTags, sidebarAd, featuredListing] = await Promise.all([
+  const [parent, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3, featuredListing] = await Promise.all([
     getCategoryBySlug("walks").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
-    getAd("sidebar"),
+    getAd("sidebar", 1),
+    getAd("sidebar", 2),
+    getAd("sidebar", 3),
     getFeaturedListingForGrid(),
   ]);
 
@@ -82,7 +84,7 @@ export default async function WalksPage({
           <CategoryKeyIcon />
         </h1>
 
-        <MobileTopAd ad={sidebarAd} />
+        <MobileTopAd ad={sidebarAd1} />
 
         <div className="post-layout">
           <div className="post-body">
@@ -99,7 +101,7 @@ export default async function WalksPage({
             <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />
           </div>
           <aside className="post-sidebar">
-            <SidebarAds ads={[sidebarAd]} />
+            <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
           </aside>
         </div>
       </main>

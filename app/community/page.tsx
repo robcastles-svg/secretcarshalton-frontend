@@ -34,11 +34,13 @@ export default async function CommunityPage({
 }) {
   const { page: rawPage } = await searchParams;
 
-  const [category, allCategories, allTags, sidebarAd, featuredListing, groups] = await Promise.all([
+  const [category, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3, featuredListing, groups] = await Promise.all([
     getCategoryBySlug("community").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
-    getAd("sidebar"),
+    getAd("sidebar", 1),
+    getAd("sidebar", 2),
+    getAd("sidebar", 3),
     getFeaturedListingForGrid(),
     getGroupListings().catch(() => []),
   ]);
@@ -63,7 +65,7 @@ export default async function CommunityPage({
         </Link>
       </div>
 
-      <MobileTopAd ad={sidebarAd} />
+      <MobileTopAd ad={sidebarAd1} />
 
       <div className="post-layout">
         <div className="post-body">
@@ -97,7 +99,7 @@ export default async function CommunityPage({
             </div>
           )}
 
-          <SidebarAds ads={[sidebarAd]} />
+          <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
         </aside>
       </div>
     </main>

@@ -151,7 +151,7 @@ export default async function ContentPage({
     );
   }
 
-  const [allCategories, allTags, comments, fullThread, sessionToken, viewCount, topToday, sidebarAd] =
+  const [allCategories, allTags, comments, fullThread, sessionToken, viewCount, topToday, sidebarAd1, sidebarAd2, sidebarAd3] =
     await Promise.all([
       getCategories().catch(() => []),
       getTags().catch(() => []),
@@ -162,11 +162,13 @@ export default async function ContentPage({
       // +1: the current post is filtered out below, so ask for one extra
       // to still land on 5 when it would otherwise have been in the list.
       getTopPostsToday(6),
-      // One rotating blue ad in the sidebar. in_article ads aren't included
-      // here: they render embedded in the article body instead (see the
-      // two <AdSlot placement="in_article"> below), so a member who paid
-      // for "in-article" isn't also shown in the sidebar for free.
-      getAd("sidebar"),
+      // Up to 3 rotating blue ads in the sidebar. in_article ads aren't
+      // included here: they render embedded in the article body instead
+      // (see the two <AdSlot placement="in_article"> below), so a member
+      // who paid for "in-article" isn't also shown in the sidebar for free.
+      getAd("sidebar", 1),
+      getAd("sidebar", 2),
+      getAd("sidebar", 3),
     ]);
 
   const [commenterProfileMap, profile] = await Promise.all([
@@ -322,7 +324,7 @@ export default async function ContentPage({
             </div>
           )}
 
-          <SidebarAds ads={[sidebarAd]} />
+          <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
 
           {allTags.length > 0 && (
             <div className="sidebar-block">
