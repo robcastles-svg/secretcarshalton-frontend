@@ -21,12 +21,17 @@ export const revalidate = 3600;
 export const metadata = { title: "Community — Secret Carshalton" };
 
 /**
- * The real feed, now that member-submitted community news has somewhere
- * to land: a plain "Community" category, same shape as every other
- * category page (News, Walks, Themes) — no bespoke mock-card treatment
- * needed any more. Groups to join (see app/community/groups/page.tsx) gets
- * a teaser in the sidebar here, same as any other sidebar block.
+ * Interim feed source, per Rob: the real "Community" category doesn't have
+ * editorial content in it yet (member-submitted posts still land there via
+ * /community/submit, untouched by this), so for now this page borrows the
+ * Stories > Carshalton Village sub-category's posts instead — the same
+ * source /discover?filter=carshalton-village uses — rather than show a
+ * near-empty page. Swap STAND_IN_AREA_SLUG back to null (and restore the
+ * getCategoryBySlug("community") lookup below it replaced) once Rob's
+ * created the real Community category and started populating it.
  */
+const STAND_IN_AREA_SLUG = "carshalton-village";
+
 export default async function CommunityPage({
   searchParams,
 }: {
@@ -34,8 +39,8 @@ export default async function CommunityPage({
 }) {
   const { page: rawPage } = await searchParams;
 
-  const [category, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3, featuredListing, groups] = await Promise.all([
-    getCategoryBySlug("community").catch(() => null),
+  const [storiesParent, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3, featuredListing, groups] = await Promise.all([
+    getCategoryBySlug("stories").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
     getAd("sidebar", 1),
@@ -45,7 +50,11 @@ export default async function CommunityPage({
     getGroupListings().catch(() => []),
   ]);
 
-  const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
+  const standInArea = storiesParent
+    ? allCategories.find((c) => c.parent === storiesParent.id && c.slug === STAND_IN_AREA_SLUG)
+    : null;
+
+  const posts = standInArea ? await getPostsByCategory(standInArea.id).catch(() => []) : [];
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
   const tagsById = new Map(allTags.map((t) => [t.id, t]));
   const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage));
