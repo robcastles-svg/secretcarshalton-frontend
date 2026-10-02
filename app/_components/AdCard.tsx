@@ -37,13 +37,20 @@ export function AdCard({ ad }: { ad: WPAd }) {
     return () => observer.disconnect();
   }, [ad.id]);
 
+  // Falls back to the ad's own alt text when there's no headline — real,
+  // already-authored data (set when the ad was created), not invented
+  // copy — so an older image-only ad (set up directly in wp-admin, before
+  // the self-serve form required a headline) still shows something
+  // readable instead of just a badge and a gap.
+  const title = ad.headline || ad.alt;
+
   return (
     <li className="ad-card-external" ref={ref}>
       <a href={`/api/ads/click/${ad.id}`} target="_blank" rel="noopener sponsored" className="ad-card-row">
         {ad.image && <img src={ad.image} alt={ad.alt} loading="lazy" />}
         <div className="card-text">
           <span className="ad-card-badge">Advertisement</span>
-          {ad.headline && <span className="card-title">{ad.headline}</span>}
+          {title && <span className="card-title">{title}</span>}
           {ad.body && <p className="ad-card-body">{ad.body}</p>}
         </div>
       </a>

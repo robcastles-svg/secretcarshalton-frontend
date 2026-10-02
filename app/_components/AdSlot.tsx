@@ -90,12 +90,18 @@ export function AdSlot({
     );
   }
 
+  // Falls back to the ad's own alt text when there's no headline — real,
+  // already-authored data, not invented copy — see AdCard's identical
+  // fallback for why (an older image-only ad set up directly in wp-admin,
+  // before the self-serve form required a headline).
+  const title = ad.headline || ad.alt;
+
   return (
     <a className={`${className} ad-slot-text-image`} href={`/api/ads/click/${ad.id}`} target="_blank" rel="noopener sponsored">
       {ad.image && <img src={ad.image} alt={ad.alt} loading="lazy" />}
       <span className="ad-slot-text">
         <span className="ad-slot-badge">Advertisement</span>
-        {ad.headline && <span className="ad-slot-headline">{ad.headline}</span>}
+        {title && <span className="ad-slot-headline">{title}</span>}
         {ad.body && <span className="ad-slot-body">{ad.body}</span>}
       </span>
     </a>
