@@ -16,6 +16,7 @@ import {
   getPostsByCategories,
   getPostsByCategory,
   getTags,
+  GROUPS_CATEGORY_SLUG,
   type WPContentItem,
   type WPListing,
 } from "@/lib/wordpress";
@@ -103,7 +104,14 @@ export default async function DiscoverPage({
   const isSpotlight = filter === "spotlight";
   const isFeatured = filter === "featured";
 
-  const featuredListings = allListings.filter((l) => l.meta.sc_featured);
+  // Groups get their own separate blue-ad-style promo on /community (see
+  // PromotedGroupCard) — excluded here so a featured group never also
+  // shows up via the directory's in-feed interleave or its "Business
+  // feature" browse tab, the two different things a featured group isn't.
+  const groupsCategory = directoryCategories.find((c) => c.slug === GROUPS_CATEGORY_SLUG);
+  const featuredListings = allListings.filter(
+    (l) => l.meta.sc_featured && (!groupsCategory || !l.sc_listing_category?.includes(groupsCategory.id))
+  );
   // The monthly 150-impression cap (Rob's holding figure) only applies to
   // getting mixed into the main feed below — the dedicated "Business
   // feature" browse view (isFeatured) is a listing's own page, same as

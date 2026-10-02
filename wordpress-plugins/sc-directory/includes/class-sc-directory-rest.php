@@ -818,6 +818,19 @@ class SC_Directory_REST {
 				'posts_per_page' => 50,
 				'meta_key'       => 'sc_featured', // phpcs:ignore WordPress.DB.SlowDBQuery
 				'meta_value'     => '1', // phpcs:ignore WordPress.DB.SlowDBQuery
+				// A featured group listing has its own separate promo —
+				// a blue-ad-style, top-of-slot placement on /community (see
+				// the Next.js frontend's PromotedGroupCard), not this
+				// in-feed grid interleave. Without this exclusion, marking a
+				// group featured made it eligible for both at once.
+				'tax_query'      => array(
+					array(
+						'taxonomy' => SC_Directory_CPT::TAXONOMY,
+						'field'    => 'slug',
+						'terms'    => array( 'groups-to-join' ),
+						'operator' => 'NOT IN',
+					),
+				),
 			)
 		);
 
