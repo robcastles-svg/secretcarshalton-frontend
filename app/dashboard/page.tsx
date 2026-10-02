@@ -241,7 +241,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="dashboard-group">
-        <h2 className="dashboard-group-title">Free listings</h2>
+        <h2 className="dashboard-group-title">Share something free</h2>
 
         <section className="dashboard-section">
           <h3>Your directory listing{myListings.length === 1 ? "" : "s"}</h3>
@@ -370,182 +370,232 @@ export default async function DashboardPage() {
       </div>
 
       <div className="dashboard-group">
-        <h2 className="dashboard-group-title">Paid features</h2>
+        <h2 className="dashboard-group-title">Grow your business</h2>
+        <p className="dashboard-group-intro">
+          Get your business seen — a featured directory spot, a banner ad, or a job listing.
+        </p>
 
-        <section className="dashboard-section">
-          <h3>Directory upgrade</h3>
-          {profile.directory_upgrade_status && profile.directory_upgrade_status !== "rejected" ? (
-            <>
-              <p>
-                Status:{" "}
-                <strong>
-                  {UPGRADE_STATUS_LABEL[profile.directory_upgrade_status] ?? profile.directory_upgrade_status}
-                </strong>
-                {(() => {
-                  const upgradeListing = myListings.find((l) => l.id === profile.directory_upgrade_listing_id);
-                  if (!upgradeListing) return null;
-                  return upgradeListing.status === "publish" ? (
-                    <>
-                      {" "}
-                      for <Link href={`/directory/${upgradeListing.slug}`}>{upgradeListing.title}</Link>
-                    </>
-                  ) : (
-                    <> for {upgradeListing.title}</>
-                  );
-                })()}
-              </p>
-              {profile.directory_upgrade_amount_paid && (
-                <p className="dashboard-hint">
-                  Paid: {profile.directory_upgrade_amount_paid}
-                  {profile.directory_upgrade_expires_at &&
-                    ` — renews ${formatDate(profile.directory_upgrade_expires_at)}`}
-                </p>
-              )}
-            </>
-          ) : (
-            <>
-              {profile.directory_upgrade_status === "rejected" && (
-                <p className="dashboard-hint">Your last request wasn&apos;t approved — you can try again.</p>
-              )}
-              <p>Own a local business? Request a featured directory listing.</p>
-              <Link href="/dashboard/upgrade" className="button-pill">
-                Request directory upgrade
-              </Link>
-            </>
-          )}
-        </section>
-
-        <section className="dashboard-section">
-          <h3>Featured event</h3>
-          {(() => {
-            const featuredEvent = myEvents.find((e) => e.featured);
-            const pendingEvent = myEvents.find((e) => e.featuredStatus === "pending");
-            const eligibleEvents = myEvents.filter(
-              (e) => e.status === "publish" && !e.featured && e.featuredStatus !== "pending"
-            );
-
-            if (featuredEvent) {
-              return (
+        <div className="dashboard-card-grid">
+          <section className="dashboard-card dashboard-card-pink">
+            <h3>Directory upgrade</h3>
+            {profile.directory_upgrade_status && profile.directory_upgrade_status !== "rejected" ? (
+              <>
                 <p>
-                  <Link href={`/events/${featuredEvent.slug}`}>{featuredEvent.title}</Link> is currently featured
-                  at the top of Events.
+                  Status:{" "}
+                  <strong>
+                    {UPGRADE_STATUS_LABEL[profile.directory_upgrade_status] ?? profile.directory_upgrade_status}
+                  </strong>
+                  {(() => {
+                    const upgradeListing = myListings.find((l) => l.id === profile.directory_upgrade_listing_id);
+                    if (!upgradeListing) return null;
+                    return upgradeListing.status === "publish" ? (
+                      <>
+                        {" "}
+                        for <Link href={`/directory/${upgradeListing.slug}`}>{upgradeListing.title}</Link>
+                      </>
+                    ) : (
+                      <> for {upgradeListing.title}</>
+                    );
+                  })()}
                 </p>
-              );
-            }
-            if (pendingEvent) {
-              return (
-                <p>
-                  Request pending review for{" "}
-                  <Link href={`/events/${pendingEvent.slug}`}>{pendingEvent.title}</Link>.
-                </p>
-              );
-            }
-            if (eligibleEvents.length === 0) {
-              return (
+                {profile.directory_upgrade_amount_paid && (
+                  <p className="dashboard-hint">
+                    Paid: {profile.directory_upgrade_amount_paid}
+                    {profile.directory_upgrade_expires_at &&
+                      ` — renews ${formatDate(profile.directory_upgrade_expires_at)}`}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                {profile.directory_upgrade_status === "rejected" && (
+                  <p className="dashboard-hint">Your last request wasn&apos;t approved — you can try again.</p>
+                )}
                 <p className="dashboard-hint">
-                  {myEvents.length === 0
-                    ? "Submit an event first, then you can pay to feature it."
-                    : "None of your events are eligible right now — only a live event can be featured."}
+                  Own a local business? Get the long-form listing — full details, photos and a featured spot
+                  at the top of your category.
                 </p>
-              );
-            }
-            return (
+                <Link href="/dashboard/upgrade" className="button-pill">
+                  Request directory upgrade
+                </Link>
+              </>
+            )}
+          </section>
+
+          <section className="dashboard-card dashboard-card-blue">
+            <h3>Text adverts</h3>
+            {myAds.length === 0 ? (
               <>
                 <p className="dashboard-hint">
-                  Pay to take over the &quot;Coming up next&quot; spot at the top of Events.
+                  Write your own text ad and choose where it appears — sidebar, in-article, or mixed into the
+                  feeds.
                 </p>
-                <ul className="dashboard-my-list">
-                  {eligibleEvents.map((event) => (
-                    <li key={event.id}>
-                      <span>{event.title}</span>
-                      <Link href={`/events/${event.slug}/feature`} className="dashboard-my-list-edit">
-                        Request featured
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                <Link href="/advertise" className="button-pill">
+                  Write an ad
+                </Link>
               </>
-            );
-          })()}
-        </section>
-
-        <section className="dashboard-section">
-          <h3>Your job{myJobs.length === 1 ? "" : "s"}</h3>
-          {myJobs.length === 0 ? (
-            <p className="dashboard-hint">Nothing posted yet — hiring locally? List a vacancy.</p>
-          ) : (
-            <ExpandableList
-              items={myJobs}
-              listClassName="dashboard-my-list"
-              itemKey={(job) => job.id}
-              noun="job"
-              renderItem={(job) => (
-                <>
-                  <span className={`dashboard-status-badge dashboard-status-${job.status}`}>
-                    {job.status === "publish"
-                      ? "Live"
-                      : job.paymentStatus === "paid"
-                        ? "Paid — awaiting review"
-                        : "Awaiting payment"}
-                  </span>
-                  {job.status === "publish" ? (
-                    <Link href={`/jobs/${job.slug}`}>{job.title}</Link>
-                  ) : (
-                    <span>{job.title}</span>
+            ) : (
+              <>
+                <ExpandableList
+                  items={myAds}
+                  listClassName="dashboard-my-list"
+                  itemKey={(ad) => ad.id}
+                  noun="ad"
+                  renderItem={(ad) => (
+                    <>
+                      <span className={`dashboard-status-badge ${ad.active ? "dashboard-status-publish" : "dashboard-status-pending"}`}>
+                        {ad.active ? "Live" : ad.paymentStatus === "paid" ? "Paid — going live soon" : "Awaiting payment"}
+                      </span>
+                      <span>{ad.headline}</span>
+                      <span className="dashboard-my-list-views">
+                        {AD_SELF_SERVE_PLACEMENTS.find((p) => p.slug === ad.placement)?.label ?? ad.placement}
+                      </span>
+                      <span className="dashboard-my-list-views">
+                        {ad.daysRequested} day{ad.daysRequested === 1 ? "" : "s"}
+                      </span>
+                      <span className="dashboard-my-list-views">
+                        {ad.views} view{ad.views === 1 ? "" : "s"}, {ad.clicks} click{ad.clicks === 1 ? "" : "s"}
+                      </span>
+                      {ad.active && <ExtendAdButton adId={ad.id} />}
+                    </>
                   )}
-                  {job.company && <span className="dashboard-my-list-views">{job.company}</span>}
-                </>
-              )}
-            />
-          )}
-          <div className="dashboard-section-actions">
-            <Link href="/jobs" className="button-pill button-pill-secondary">
-              Browse jobs
-            </Link>
-            <Link href="/jobs/submit" className="button-pill">
-              Add a job
-            </Link>
-          </div>
-        </section>
+                />
+                <div className="dashboard-section-actions">
+                  <Link href="/advertise" className="button-pill">
+                    Write another ad
+                  </Link>
+                </div>
+              </>
+            )}
+          </section>
 
-        <section className="dashboard-section">
-          <h3>Text adverts</h3>
-          {myAds.length === 0 ? (
-            <p className="dashboard-hint">
-              Nothing yet — write your own text ad and choose where it appears.
-            </p>
-          ) : (
-            <ExpandableList
-              items={myAds}
-              listClassName="dashboard-my-list"
-              itemKey={(ad) => ad.id}
-              noun="ad"
-              renderItem={(ad) => (
+          <section className="dashboard-card">
+            <h3>Your job{myJobs.length === 1 ? "" : "s"}</h3>
+            {myJobs.length === 0 ? (
+              <>
+                <p className="dashboard-hint">Hiring locally? List your vacancy — reviewed before it goes live.</p>
+                <Link href="/jobs/submit" className="button-pill">
+                  Add a job
+                </Link>
+              </>
+            ) : (
+              <>
+                <ExpandableList
+                  items={myJobs}
+                  listClassName="dashboard-my-list"
+                  itemKey={(job) => job.id}
+                  noun="job"
+                  renderItem={(job) => (
+                    <>
+                      <span className={`dashboard-status-badge dashboard-status-${job.status}`}>
+                        {job.status === "publish"
+                          ? "Live"
+                          : job.paymentStatus === "paid"
+                            ? "Paid — awaiting review"
+                            : "Awaiting payment"}
+                      </span>
+                      {job.status === "publish" ? (
+                        <Link href={`/jobs/${job.slug}`}>{job.title}</Link>
+                      ) : (
+                        <span>{job.title}</span>
+                      )}
+                      {job.company && <span className="dashboard-my-list-views">{job.company}</span>}
+                    </>
+                  )}
+                />
+                <div className="dashboard-section-actions">
+                  <Link href="/jobs" className="button-pill button-pill-secondary">
+                    Browse jobs
+                  </Link>
+                  <Link href="/jobs/submit" className="button-pill">
+                    Add another job
+                  </Link>
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+      </div>
+
+      <div className="dashboard-group">
+        <h2 className="dashboard-group-title">Get more reach</h2>
+        <p className="dashboard-group-intro">
+          Not a business — but if you&apos;re already sharing something here for free, you can pay to get it
+          seen further.
+        </p>
+
+        <div className="dashboard-card-grid">
+          <section className="dashboard-card dashboard-card-pink">
+            <h3>Featured event</h3>
+            {(() => {
+              const featuredEvent = myEvents.find((e) => e.featured);
+              const pendingEvent = myEvents.find((e) => e.featuredStatus === "pending");
+              const eligibleEvents = myEvents.filter(
+                (e) => e.status === "publish" && !e.featured && e.featuredStatus !== "pending"
+              );
+
+              if (featuredEvent) {
+                return (
+                  <p>
+                    <Link href={`/events/${featuredEvent.slug}`}>{featuredEvent.title}</Link> is currently
+                    featured at the top of Events.
+                  </p>
+                );
+              }
+              if (pendingEvent) {
+                return (
+                  <p>
+                    Request pending review for{" "}
+                    <Link href={`/events/${pendingEvent.slug}`}>{pendingEvent.title}</Link>.
+                  </p>
+                );
+              }
+              if (eligibleEvents.length === 0) {
+                return (
+                  <p className="dashboard-hint">
+                    {myEvents.length === 0
+                      ? "Submit an event first, then you can pay to feature it."
+                      : "None of your events are eligible right now — only a live event can be featured."}
+                  </p>
+                );
+              }
+              return (
                 <>
-                  <span className={`dashboard-status-badge ${ad.active ? "dashboard-status-publish" : "dashboard-status-pending"}`}>
-                    {ad.active ? "Live" : ad.paymentStatus === "paid" ? "Paid — going live soon" : "Awaiting payment"}
-                  </span>
-                  <span>{ad.headline}</span>
-                  <span className="dashboard-my-list-views">
-                    {AD_SELF_SERVE_PLACEMENTS.find((p) => p.slug === ad.placement)?.label ?? ad.placement}
-                  </span>
-                  <span className="dashboard-my-list-views">
-                    {ad.daysRequested} day{ad.daysRequested === 1 ? "" : "s"}
-                  </span>
-                  <span className="dashboard-my-list-views">
-                    {ad.views} view{ad.views === 1 ? "" : "s"}, {ad.clicks} click{ad.clicks === 1 ? "" : "s"}
-                  </span>
-                  {ad.active && <ExtendAdButton adId={ad.id} />}
+                  <p className="dashboard-hint">
+                    Pay to take over the &quot;Coming up next&quot; spot at the top of Events.
+                  </p>
+                  <ul className="dashboard-my-list">
+                    {eligibleEvents.map((event) => (
+                      <li key={event.id}>
+                        <span>{event.title}</span>
+                        <Link href={`/events/${event.slug}/feature`} className="dashboard-my-list-edit">
+                          Request featured
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
                 </>
-              )}
-            />
-          )}
-          <div className="dashboard-section-actions">
-            <Link href="/advertise" className="button-pill">
-              Write an ad
-            </Link>
-          </div>
-        </section>
+              );
+            })()}
+          </section>
+
+          <section className="dashboard-card">
+            <h3>Groups &amp; clubs</h3>
+            <p className="dashboard-hint">
+              Run a local group? It lives in{" "}
+              <Link href="/community/groups">Groups to join</Link>, free, the same as any directory listing —
+              and eligible for the same featured upgrade above once it&apos;s added.
+            </p>
+            <div className="dashboard-section-actions">
+              <Link href="/community/groups" className="button-pill button-pill-secondary">
+                Browse groups
+              </Link>
+              <Link href="/directory/submit" className="button-pill">
+                Add your group
+              </Link>
+            </div>
+          </section>
+        </div>
       </div>
 
       <section className="dashboard-section">

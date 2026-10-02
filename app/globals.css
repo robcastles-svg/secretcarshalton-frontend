@@ -3240,6 +3240,42 @@ a.card-category:hover {
   color: #999;
 }
 
+.dashboard-group-intro {
+  margin: 0.4rem 0 1.25rem;
+  color: #555;
+}
+
+/* Card-grid treatment for the two monetised groups (Grow your business /
+   Get more reach) — distinct from the plain list sections above them, which
+   stay simple since there's no sales case to make for free features.
+   Colour accents mirror the Advertise page's product cards (#2f6fb3 blue =
+   ads, #c2607a pink = featured) so the two surfaces read as one system. */
+.dashboard-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.dashboard-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  border-top: 4px solid #ddd;
+}
+
+.dashboard-card h3 {
+  margin: 0 0 0.6rem;
+}
+
+.dashboard-card-pink {
+  border-top-color: #c2607a;
+}
+
+.dashboard-card-blue {
+  border-top-color: #2f6fb3;
+}
+
 .dashboard-coming-soon h3 {
   display: flex;
   align-items: center;
