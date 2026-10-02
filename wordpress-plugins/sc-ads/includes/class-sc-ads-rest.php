@@ -99,8 +99,13 @@ class SC_Ads_REST {
 		return true;
 	}
 
-	/** Billboard/Leaderboard stay admin-set premium banner slots — sold and placed directly, not self-serve. */
-	const MEMBER_SUBMITTABLE_PLACEMENTS = array( 'sidebar', 'in_article', 'in_feed' );
+	/**
+	 * Billboard/Leaderboard stay admin-set premium banner slots — sold and
+	 * placed directly, not self-serve. in_feed removed: it rendered
+	 * identically to sidebar (same stack), and that visual territory is
+	 * reserved for directory-upgrade featured listings, not blue ads.
+	 */
+	const MEMBER_SUBMITTABLE_PLACEMENTS = array( 'sidebar', 'in_article' );
 
 	private static function eligible_ads( $placement ) {
 		$today = current_time( 'Y-m-d' );

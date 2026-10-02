@@ -45,11 +45,11 @@ export default async function ThemePage({
 
   if (!tag) notFound();
 
-  const [posts, allCategories, allTags, inFeedAd, featuredListing] = await Promise.all([
+  const [posts, allCategories, allTags, sidebarAd, featuredListing] = await Promise.all([
     getPostsByTag(tag.id).catch(() => []),
     getCategories().catch(() => []),
     getTags().catch(() => []),
-    getAd("in_feed"),
+    getAd("sidebar"),
     getFeaturedListingForGrid(),
   ]);
 
@@ -64,7 +64,7 @@ export default async function ThemePage({
         {tag.name}
         <CategoryKeyIcon />
       </h1>
-      <MobileTopAd ad={inFeedAd} />
+      <MobileTopAd ad={sidebarAd} />
       {posts.length === 0 && <p>No stories tagged &quot;{tag.name}&quot; yet.</p>}
       <ContentList
         items={pagePosts}

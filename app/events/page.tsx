@@ -41,13 +41,12 @@ export default async function EventsPage({
   const calendarYear = Number(year) || now.getFullYear();
   const calendarMonth = Number(month) || now.getMonth() + 1;
 
-  const [categories, tags, upcoming, allEvents, latestAdded, inFeedAd, sidebarAd] = await Promise.all([
+  const [categories, tags, upcoming, allEvents, latestAdded, sidebarAd] = await Promise.all([
     getScEventCategories().catch(() => []),
     getScEventTags().catch(() => []),
     getUpcomingScEvents(100).catch(() => []),
     getScEvents(300).catch(() => []),
     getLatestAddedScEvents(5).catch(() => []),
-    getAd("in_feed"),
     getAd("sidebar"),
   ]);
 
@@ -173,7 +172,7 @@ export default async function EventsPage({
             )}
           </div>
           <aside className="post-sidebar">
-            <SidebarAds ads={[inFeedAd, sidebarAd]} />
+            <SidebarAds ads={[sidebarAd]} />
           </aside>
         </div>
 

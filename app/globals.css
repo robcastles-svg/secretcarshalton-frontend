@@ -325,14 +325,14 @@ button.button-pill {
  * app/[slug]/page.tsx) use this — image left, text right, on-brand with
  * the blue sidebar AdCard (#2f6fb3 border, same "Advertisement" badge)
  * rather than the plain grey-bordered box this used to be, so it reads as
- * the same ad product wherever it appears. Bigger than the sidebar card's
- * image and full row height (not a small fixed square) — it sits in the
- * article's wider content column, not a narrow sidebar, and in-article is
- * the more prominent/premium placement of the two.
+ * the same ad product wherever it appears. A fixed landscape aspect ratio
+ * (not stretched to match the text column's height) so the image always
+ * reads as a wide photo, not a tall/square one that'd vary with however
+ * much headline/body text sits beside it.
  */
 .ad-slot-text-image {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: 1rem;
   padding: 0.85rem;
   border: 2px solid #2f6fb3;
@@ -343,8 +343,8 @@ button.button-pill {
 
 .ad-slot-text-image img {
   width: 220px;
+  aspect-ratio: 3 / 2;
   height: auto;
-  align-self: stretch;
   object-fit: cover;
   border-radius: 6px;
   flex-shrink: 0;
@@ -385,7 +385,7 @@ button.button-pill {
 
 @media (max-width: 480px) {
   .ad-slot-text-image img {
-    width: 110px;
+    width: 90px;
   }
 }
 

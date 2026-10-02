@@ -17,9 +17,8 @@ export const metadata = {
 };
 
 export default async function CommunityGroupsPage() {
-  const [listings, inFeedAd, sidebarAd] = await Promise.all([
+  const [listings, sidebarAd] = await Promise.all([
     getGroupListings().catch(() => []),
-    getAd("in_feed"),
     getAd("sidebar"),
   ]);
 
@@ -64,7 +63,7 @@ export default async function CommunityGroupsPage() {
         </div>
 
         <aside className="post-sidebar">
-          <SidebarAds ads={[inFeedAd, sidebarAd]} />
+          <SidebarAds ads={[sidebarAd]} />
         </aside>
       </div>
 

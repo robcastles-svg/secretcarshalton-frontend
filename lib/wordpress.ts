@@ -734,8 +734,16 @@ export async function recordAdImpression(adId: number): Promise<void> {
   }
 }
 
-/** Placements a member can self-serve into — matches SC_Ads_REST::MEMBER_SUBMITTABLE_PLACEMENTS. Billboard/Leaderboard stay admin-set. */
 /**
+ * Placements a member can self-serve into — matches
+ * SC_Ads_REST::MEMBER_SUBMITTABLE_PLACEMENTS. Billboard/Leaderboard stay
+ * admin-set. in_feed used to be a third option here, but it rendered
+ * identically to "sidebar" (same stack, same spot) — no real product
+ * difference, and that visual territory (ads mixed into a story/listing
+ * grid) is reserved for directory-upgrade featured listings instead, not
+ * blue self-serve ads. Removed entirely, not just hidden — see getAd()
+ * call sites, none of which fetch "in_feed" any more either.
+ *
  * rateMultiplier scales SubmitAdForm's per-day estimate — sidebar stays
  * the plain baseline rate (1×) so it's still the obviously-cheap option,
  * not just a smaller number next to a bigger one; in-article costs more
@@ -745,7 +753,6 @@ export async function recordAdImpression(adId: number): Promise<void> {
 export const AD_SELF_SERVE_PLACEMENTS: Array<{ slug: string; label: string; rateMultiplier: number }> = [
   { slug: "sidebar", label: "Sidebar", rateMultiplier: 1 },
   { slug: "in_article", label: "In-article", rateMultiplier: 1.5 },
-  { slug: "in_feed", label: "In-feed (mixed into story/listing grids)", rateMultiplier: 1 },
 ];
 
 export interface MyAd {

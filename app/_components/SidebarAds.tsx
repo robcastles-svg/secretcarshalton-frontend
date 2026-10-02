@@ -3,10 +3,11 @@ import type { WPAd } from "@/lib/wordpress";
 import { AdCard } from "./AdCard";
 
 /**
- * The sidebar ad column, as many stacked blue cards as there are active
- * ads across the placements passed in (News/Events/Directory show two —
- * "in_feed" and "sidebar" — Discover shows just "in_feed", matching how
- * many ad blocks the PDF wireframe draws per page). Falls back to a plain
+ * The sidebar ad column — one rotating blue card per active ad passed in.
+ * Every page now passes a single "sidebar" ad; "in_feed" used to be a
+ * second, separate pool stacked in here too, but it rendered identically
+ * to "sidebar" (no real product difference) and has been retired — see
+ * AD_SELF_SERVE_PLACEMENTS in lib/wordpress.ts. Falls back to a plain
  * "Advertise here" link when nothing's active, same as AdSlot always did,
  * so the sidebar never just looks broken/empty.
  */

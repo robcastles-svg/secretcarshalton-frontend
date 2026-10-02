@@ -55,11 +55,11 @@ export default async function WalksDistancePage({
 
   if (!category) notFound();
 
-  const [posts, allCategories, allTags, inFeedAd, featuredListing] = await Promise.all([
+  const [posts, allCategories, allTags, sidebarAd, featuredListing] = await Promise.all([
     getPostsByCategory(category.id).catch(() => []),
     getCategories().catch(() => []),
     getTags().catch(() => []),
-    getAd("in_feed"),
+    getAd("sidebar"),
     getFeaturedListingForGrid(),
   ]);
 
@@ -77,7 +77,7 @@ export default async function WalksDistancePage({
           {category.name}
           <CategoryKeyIcon />
         </h1>
-        <MobileTopAd ad={inFeedAd} />
+        <MobileTopAd ad={sidebarAd} />
         <ContentList
           items={pagePosts}
           categoriesById={categoriesById}

@@ -17,7 +17,7 @@ export function ContentList({
   /** When provided, each card shows its tag above the headline and category below it. */
   categoriesById?: Map<number, WPCategory>;
   tagsById?: Map<number, WPTag>;
-  /** A directory listing's own paid-featured slot, interleaved into the grid — see getFeaturedListingForGrid. Pink, like .directory-card-featured everywhere else; the blue in_feed ad slot stays sidebar-only, never mixed into this grid. */
+  /** A directory listing's own paid-featured slot, interleaved into the grid — see getFeaturedListingForGrid. Pink, like .directory-card-featured everywhere else; blue self-serve ads never mix into this grid, only the sidebar — that visual territory is reserved for featured listings. */
   featuredListing?: WPListing | null;
 }) {
   return (

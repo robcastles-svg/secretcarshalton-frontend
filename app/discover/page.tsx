@@ -88,7 +88,7 @@ export default async function DiscoverPage({
     getTags().catch(() => []),
     getDirectoryCategories().catch(() => []),
     getDirectoryListings().catch(() => []),
-    getAd("in_feed"),
+    getAd("sidebar"),
   ]);
 
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
