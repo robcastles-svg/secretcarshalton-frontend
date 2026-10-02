@@ -214,7 +214,11 @@ export default async function EventPage({
             </Link>
           ) : (
             event.sc_event_author_is_staff && (
-              <ClaimEventButton eventId={event.id} isLoggedIn={Boolean(sessionToken)} />
+              <ClaimEventButton
+                eventId={event.id}
+                isLoggedIn={Boolean(sessionToken)}
+                initialPending={Boolean(event.sc_event_claim_pending)}
+              />
             )
           )}
         </div>

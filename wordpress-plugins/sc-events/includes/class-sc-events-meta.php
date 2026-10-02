@@ -52,6 +52,16 @@ class SC_Events_Meta {
 		'sc_event_featured_status'         => 'string', // '' | 'pending' | 'approved' | 'rejected'
 		'sc_event_featured_requested_at'   => 'string',
 		'sc_event_featured_amount_paid'    => 'string',
+		/**
+		 * Mirrors sc-directory's sc_claim_requested_by/at exactly — claiming
+		 * an event used to instantly reassign post_author with no review,
+		 * the same hole sc-directory had and fixed; this is that same fix
+		 * applied here. Who's asking, recorded on the event itself, until
+		 * an admin approves it from the Claim Requests screen (see
+		 * SC_Events_Admin) and post_author actually changes.
+		 */
+		'sc_event_claim_requested_by' => 'integer',
+		'sc_event_claim_requested_at' => 'string',
 	);
 
 	public static function register() {

@@ -1143,6 +1143,7 @@ export interface WPScEvent {
   sc_event_tag: number[];
   sc_event_rsvp_count?: number;
   sc_event_author_is_staff?: boolean;
+  sc_event_claim_pending?: boolean;
   sc_event_company?: { id: number; name: string; slug: string } | null;
   sc_event_listing_id?: number;
   _embedded?: {
@@ -1399,7 +1400,7 @@ export async function updateEvent(
   }
 }
 
-/** Reassigns a staff/import-authored event to the claiming member — see SC_Events_REST::claim_event's docblock. */
+/** Requests ownership of a staff/import-authored event — goes to admin review, doesn't reassign it immediately. See SC_Events_REST::claim_event's docblock. */
 export async function claimEvent(token: string, eventId: number): Promise<{ status: string } | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}/claim`, {

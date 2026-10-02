@@ -150,6 +150,18 @@ class SC_Events_REST {
 			)
 		);
 
+		/** Mirrors sc-directory's sc_claim_pending field exactly — see claim_event's docblock. */
+		register_rest_field(
+			SC_Events_CPT::POST_TYPE,
+			'sc_event_claim_pending',
+			array(
+				'get_callback' => function ( $post ) {
+					return (bool) get_post_meta( $post['id'], 'sc_event_claim_requested_by', true );
+				},
+				'schema'       => array( 'type' => 'boolean' ),
+			)
+		);
+
 		/**
 		 * Resolves sc_event_listing_id (just a post ID in meta) into what
 		 * the frontend actually needs to render "Hosted by [company]" and
@@ -183,13 +195,17 @@ class SC_Events_REST {
 	}
 
 	/**
-	 * Lets a real organiser take ownership of an event that's currently
-	 * sitting under the staff/import account — mirrors
-	 * SC_Directory_REST::claim_listing exactly (unclaimed only, reassigns
-	 * post_author, no verification beyond "you're logged in", same as
-	 * directory claims already work). Once claimed, sc_event_author_is_staff
-	 * naturally flips to false, so the claim button/submitted-by button hide
-	 * and show correctly without any extra state to keep in sync.
+	 * Lets a real organiser *request* ownership of an event that's
+	 * currently sitting under the staff/import account. Used to reassign
+	 * post_author instantly, no verification beyond "you're logged in" —
+	 * mirroring what SC_Directory_REST::claim_listing's own docblock
+	 * explains was a real hole (anyone could take over any unclaimed
+	 * listing/event just by being logged in). This is that same fix,
+	 * applied here: it only records who's asking and leaves post_author
+	 * exactly as it was until an admin approves it from the "Claim
+	 * Requests" screen (SC_Events_Admin), which is also where
+	 * sc_events_event_claimed actually fires — see
+	 * SC_Events_Admin::handle_review_claim().
 	 */
 	public static function claim_event( WP_REST_Request $request ) {
 		$event_id = (int) $request->get_param( 'id' );
@@ -202,19 +218,19 @@ class SC_Events_REST {
 			return new WP_Error( 'already_claimed', 'This event has already been claimed.', array( 'status' => 409 ) );
 		}
 
+		if ( get_post_meta( $event_id, 'sc_event_claim_requested_by', true ) ) {
+			return new WP_Error( 'already_requested', 'A claim request for this event is already awaiting review.', array( 'status' => 409 ) );
+		}
+
 		$user_id = get_current_user_id();
 
-		wp_update_post(
-			array(
-				'ID'          => $event_id,
-				'post_author' => $user_id,
-			)
-		);
+		update_post_meta( $event_id, 'sc_event_claim_requested_by', $user_id );
+		update_post_meta( $event_id, 'sc_event_claim_requested_at', current_time( 'mysql' ) );
 
-		/** sc-membership listens for this and awards claim points. */
-		do_action( 'sc_events_event_claimed', $user_id, $event_id );
+		/** sc-events' own hooks class picks this up and emails Rob about it. */
+		do_action( 'sc_events_event_claim_requested', $user_id, $event_id );
 
-		return array( 'status' => 'claimed' );
+		return array( 'status' => 'pending' );
 	}
 
 	/**
