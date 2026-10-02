@@ -341,7 +341,16 @@ button.button-pill {
   text-decoration: none;
 }
 
-.ad-slot-text-image img {
+/*
+ * a.ad-slot-text-image img, not the bare .ad-slot-text-image img this used
+ * to be — .post-content img (width: 100%, for regular article photos)
+ * has equal specificity and comes later in this file, so it was winning
+ * the tie-break and stretching this image full-width at every screen
+ * size, not just mobile. The extra `a` tag qualifier (AdSlot always
+ * renders this as an <a>, never anything else) beats it outright instead
+ * of depending on source order.
+ */
+a.ad-slot-text-image img {
   width: 220px;
   aspect-ratio: 3 / 2;
   height: auto;
@@ -384,7 +393,7 @@ button.button-pill {
 }
 
 @media (max-width: 480px) {
-  .ad-slot-text-image img {
+  a.ad-slot-text-image img {
     width: 90px;
   }
 }
