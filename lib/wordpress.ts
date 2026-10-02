@@ -759,7 +759,7 @@ export async function recordAdImpression(adId: number): Promise<void> {
  * (embedded in the article body, not the sidebar).
  */
 export const AD_SELF_SERVE_PLACEMENTS: Array<{ slug: string; label: string; rateMultiplier: number }> = [
-  { slug: "sidebar", label: "Sidebar", rateMultiplier: 1 },
+  { slug: "sidebar", label: "Sidebar (posts/category pages)", rateMultiplier: 1 },
   { slug: "in_article", label: "In-article", rateMultiplier: 1.5 },
 ];
 
