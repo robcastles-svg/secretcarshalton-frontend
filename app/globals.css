@@ -4274,3 +4274,111 @@ a.card-category:hover {
   color: #ccc;
   pointer-events: none;
 }
+
+/* ---- Advertise hub (app/advertise/page.tsx) ----
+   Four product cards (banner ads, featured directory, featured event, paid
+   job) reusing the site's existing accent colours rather than inventing new
+   ones — blue (#2f6fb3) matches .ad-card-external, pink (#c2607a) matches
+   .directory-card-featured / the event countdown's featured badge, jobs
+   stays neutral since there's no existing colour for that product. */
+.advertise-hero {
+  max-width: 640px;
+  margin: 0 auto 2.5rem;
+  text-align: center;
+}
+
+.advertise-hero h1 {
+  margin-bottom: 0.5rem;
+}
+
+.advertise-products {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.advertise-product {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 1.75rem;
+  border-top: 4px solid #ddd;
+}
+
+.advertise-product h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.15rem;
+}
+
+.advertise-product-ads {
+  border-top-color: #2f6fb3;
+  grid-column: 1 / -1;
+}
+
+.advertise-product-directory,
+.advertise-product-events {
+  border-top-color: #c2607a;
+}
+
+.advertise-chip {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  margin-bottom: 0.6rem;
+}
+
+.advertise-chip-pink {
+  background: #c2607a;
+  color: #fff;
+}
+
+.advertise-example {
+  max-width: 320px;
+  margin: 1rem 0;
+}
+
+.advertise-price {
+  margin: 1rem 0;
+  font-size: 0.95rem;
+}
+
+.advertise-price-note {
+  color: #666;
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+.advertise-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.advertise-cta-box {
+  margin-top: 1.25rem;
+}
+
+.advertise-cta-box .dashboard-hint {
+  margin-top: 0.6rem;
+}
+
+.advertise-contact-banner {
+  text-align: center;
+  background: #f5f5f5;
+  border-radius: 12px;
+  padding: 2.5rem 1.5rem;
+}
+
+.advertise-contact-banner h2 {
+  margin: 0 0 0.5rem;
+}
+
+.advertise-contact-banner .button-pill {
+  margin-top: 0.75rem;
+}

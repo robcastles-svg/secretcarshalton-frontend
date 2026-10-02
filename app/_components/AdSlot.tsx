@@ -63,7 +63,7 @@ export function AdSlot({
   if (!ad) {
     if (!placeholderClassName) return null;
     return (
-      <Link href="/advertising-contact" className={placeholderClassName}>
+      <Link href="/advertise" className={placeholderClassName}>
         {placeholderText || "Advertise here"}
       </Link>
     );

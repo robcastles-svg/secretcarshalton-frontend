@@ -15,7 +15,7 @@ export function SidebarAds({ ads }: { ads: (WPAd | null)[] }) {
 
   if (active.length === 0) {
     return (
-      <Link href="/advertising-contact" className="sidebar-ad-placeholder">
+      <Link href="/advertise" className="sidebar-ad-placeholder">
         Advertise here
       </Link>
     );

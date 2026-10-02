@@ -60,7 +60,7 @@ const PRIMARY_NAV = [
 
 const UTILITY_NAV = [
   { label: "About", href: "/about-secret-carshalton" },
-  { label: "Advertise", href: "/advertising-contact" },
+  { label: "Advertise", href: "/advertise" },
 ];
 
 /**
@@ -220,7 +220,7 @@ export default async function RootLayout({
                   <Link href="/directory">View all listings</Link>
                 </li>
                 <li>
-                  <Link href="/advertising-contact">Add premium listing</Link>
+                  <Link href="/advertise#directory">Add premium listing</Link>
                 </li>
                 <li>
                   <a href="https://www.secretcarshalton.com/directory-dashboard/">

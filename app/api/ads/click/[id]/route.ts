@@ -11,5 +11,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const adId = Number(id);
   const link = adId ? await recordAdClick(adId) : null;
 
-  return NextResponse.redirect(link || "/advertising-contact", { status: 302 });
+  return NextResponse.redirect(link || "/advertise", { status: 302 });
 }
