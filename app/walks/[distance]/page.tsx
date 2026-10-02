@@ -13,6 +13,7 @@ import {
   getFeaturedListingForGrid,
   getPostsByCategory,
   getTags,
+  stripHtml,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -32,7 +33,13 @@ export async function generateMetadata({
   const { distance } = await params;
   const category = await getCategoryBySlug(distance).catch(() => null);
   if (!category) return {};
-  return { title: `${category.name} — Walks` };
+  const title = `${category.name} — Walks`;
+  const description = stripHtml(category.description) || undefined;
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+  };
 }
 
 export default async function WalksDistancePage({

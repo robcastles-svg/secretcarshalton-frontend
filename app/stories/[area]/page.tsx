@@ -11,6 +11,7 @@ import {
   getFeaturedListingForGrid,
   getPostsByCategory,
   getTags,
+  stripHtml,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -30,7 +31,13 @@ export async function generateMetadata({
   const { area } = await params;
   const category = await getCategoryBySlug(area).catch(() => null);
   if (!category) return {};
-  return { title: `${category.name} — Stories` };
+  const title = `${category.name} — Stories`;
+  const description = stripHtml(category.description) || undefined;
+  return {
+    title,
+    description,
+    openGraph: { title, description },
+  };
 }
 
 export default async function StoriesAreaPage({

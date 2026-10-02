@@ -43,7 +43,29 @@ export async function generateMetadata({
   const { slug } = await params;
   const listing = await getDirectoryListingBySlug(slug).catch(() => null);
   if (!listing) return {};
-  return { title: `${listing.title.rendered} — Directory — Secret Carshalton` };
+
+  const title = `${stripHtml(listing.title.rendered)} — Directory — Secret Carshalton`;
+  const description =
+    listing.meta.sc_tagline || stripHtml(listing.content.rendered).slice(0, 160) || undefined;
+  const image = getFeaturedImage(listing) ?? listing.sc_gallery_images?.[0];
+  const socialImage = image ? ("source_url" in image ? image.source_url : image.url) : undefined;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: socialImage ? [socialImage] : undefined,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: socialImage ? [socialImage] : undefined,
+    },
+  };
 }
 
 export default async function DirectoryListingPage({
