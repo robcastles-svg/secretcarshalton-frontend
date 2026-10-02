@@ -28,12 +28,15 @@ interface Ad {
  */
 export function AdSlot({
   placement,
+  fallbackPlacement,
   className,
   placeholderClassName,
   placeholderText,
   refreshOnNavigate,
 }: {
   placement: string;
+  /** Tried only when `placement` has no active ad — e.g. in_post_1/in_post_2 (admin-managed zones) falling back to in_article (the self-serve pool), so both systems can share one slot. */
+  fallbackPlacement?: string;
   className: string;
   placeholderClassName?: string;
   placeholderText?: string;
@@ -44,8 +47,14 @@ export function AdSlot({
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/ads/active/${placement}`)
-      .then((res) => (res.ok ? res.json() : null))
+
+    async function fetchAd(p: string): Promise<Ad | null> {
+      const res = await fetch(`/api/ads/active/${p}`);
+      return res.ok ? res.json() : null;
+    }
+
+    fetchAd(placement)
+      .then((primary) => (primary || !fallbackPlacement ? primary : fetchAd(fallbackPlacement)))
       .then((data) => {
         if (!cancelled) setAd(data);
       })
@@ -56,7 +65,7 @@ export function AdSlot({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, refreshOnNavigate ? [placement, pathname] : [placement]);
+  }, refreshOnNavigate ? [placement, fallbackPlacement, pathname] : [placement, fallbackPlacement]);
 
   if (ad === undefined) return null;
 
@@ -85,6 +94,7 @@ export function AdSlot({
     <a className={`${className} ad-slot-text-image`} href={`/api/ads/click/${ad.id}`} target="_blank" rel="noopener sponsored">
       {ad.image && <img src={ad.image} alt={ad.alt} loading="lazy" />}
       <span className="ad-slot-text">
+        <span className="ad-slot-badge">Advertisement</span>
         {ad.headline && <span className="ad-slot-headline">{ad.headline}</span>}
         {ad.body && <span className="ad-slot-body">{ad.body}</span>}
       </span>

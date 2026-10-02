@@ -321,24 +321,30 @@ button.button-pill {
 }
 
 /*
- * Every placement except Billboard — a small optional image (a logo,
- * not a designed banner) plus a headline/body an advertiser writes
- * themselves. Replaces the old fixed 300x250 MPU box.
+ * Currently only in_post_1/in_post_2 (the two in-article positions, see
+ * app/[slug]/page.tsx) use this — image left, text right, on-brand with
+ * the blue sidebar AdCard (#2f6fb3 border, same "Advertisement" badge)
+ * rather than the plain grey-bordered box this used to be, so it reads as
+ * the same ad product wherever it appears. Bigger than the sidebar card's
+ * image and full row height (not a small fixed square) — it sits in the
+ * article's wider content column, not a narrow sidebar, and in-article is
+ * the more prominent/premium placement of the two.
  */
 .ad-slot-text-image {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border: 1px solid #eee;
+  align-items: stretch;
+  gap: 1rem;
+  padding: 0.85rem;
+  border: 2px solid #2f6fb3;
   border-radius: 8px;
   background: #fff;
   text-decoration: none;
 }
 
 .ad-slot-text-image img {
-  width: 56px;
-  height: 56px;
+  width: 140px;
+  height: auto;
+  align-self: stretch;
   object-fit: cover;
   border-radius: 6px;
   flex-shrink: 0;
@@ -348,19 +354,39 @@ button.button-pill {
 .ad-slot-text {
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  justify-content: center;
+  gap: 0.25rem;
   min-width: 0;
+}
+
+.ad-slot-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: #2f6fb3;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
 }
 
 .ad-slot-headline {
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: #1a1a1a;
 }
 
 .ad-slot-body {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #666;
+}
+
+@media (max-width: 480px) {
+  .ad-slot-text-image img {
+    width: 90px;
+  }
 }
 
 /* Search — mirrors the live site's /search-page/ filter bar + form layout. */

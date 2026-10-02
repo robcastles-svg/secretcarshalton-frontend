@@ -151,7 +151,7 @@ export default async function ContentPage({
     );
   }
 
-  const [allCategories, allTags, comments, fullThread, sessionToken, viewCount, topToday, sidebarAd, inArticleAd, inFeedAd] =
+  const [allCategories, allTags, comments, fullThread, sessionToken, viewCount, topToday, sidebarAd, inFeedAd] =
     await Promise.all([
       getCategories().catch(() => []),
       getTags().catch(() => []),
@@ -162,11 +162,12 @@ export default async function ContentPage({
       // +1: the current post is filtered out below, so ask for one extra
       // to still land on 5 when it would otherwise have been in the list.
       getTopPostsToday(6),
-      // Up to 3 rotating blue ads in the sidebar (Rob's ask) — reusing
-      // the same 3 self-serve placements as everywhere else, not a new
-      // post-page-specific one.
+      // Two rotating blue ads in the sidebar — reusing the same self-serve
+      // placements as everywhere else. in_article ads aren't included here
+      // any more: they render embedded in the article body instead (see
+      // the two <AdSlot placement="in_article"> below), so a member who
+      // paid for "in-article" isn't also shown in the sidebar for free.
       getAd("sidebar"),
-      getAd("in_article"),
       getAd("in_feed"),
     ]);
 
@@ -180,7 +181,12 @@ export default async function ContentPage({
   // Mirrors the live site's real in-article ad positions (groups 5 and 7
   // sampled mid-article and near the end) — only inserted when the post
   // actually has enough content for the slot to land naturally rather
-  // than right after the opening paragraph.
+  // than right after the opening paragraph. Each slot tries its own
+  // admin-managed zone first (in_post_1/in_post_2 — sc-ads' original
+  // AdRotate-mirroring zones, for ads Rob sells/sets up directly), falling
+  // back to the simpler self-serve "in_article" pool when nothing's set
+  // for that zone — so the two ad systems share these positions instead
+  // of self-serve in-article ads having nowhere of their own to render.
   const contentChunks = splitContentIntoParagraphChunks(post.content.rendered);
   const inPost1After = contentChunks.length > 4 ? 3 : null;
   const inPost2After = contentChunks.length > 9 ? contentChunks.length - 3 : null;
@@ -264,8 +270,12 @@ export default async function ContentPage({
             {contentChunks.map((chunk, i) => (
               <Fragment key={i}>
                 <div dangerouslySetInnerHTML={{ __html: chunk }} />
-                {i === inPost1After && <AdSlot placement="in_post_1" className="ad-slot ad-in-post" />}
-                {i === inPost2After && <AdSlot placement="in_post_2" className="ad-slot ad-in-post" />}
+                {i === inPost1After && (
+                  <AdSlot placement="in_post_1" fallbackPlacement="in_article" className="ad-slot ad-in-post" />
+                )}
+                {i === inPost2After && (
+                  <AdSlot placement="in_post_2" fallbackPlacement="in_article" className="ad-slot ad-in-post" />
+                )}
               </Fragment>
             ))}
           </div>
@@ -314,7 +324,7 @@ export default async function ContentPage({
             </div>
           )}
 
-          <SidebarAds ads={[sidebarAd, inArticleAd, inFeedAd]} />
+          <SidebarAds ads={[sidebarAd, inFeedAd]} />
 
           {allTags.length > 0 && (
             <div className="sidebar-block">
