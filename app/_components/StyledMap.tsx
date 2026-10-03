@@ -132,18 +132,39 @@ export function StyledMap({ query, lat, lng }: { query: string; lat?: number; ln
     };
   }, [query, lat, lng]);
 
-  if (failed) {
-    return (
-      <iframe
-        title="Location map"
-        width="100%"
-        height="220"
-        style={{ border: 0, borderRadius: 8, display: "block" }}
-        loading="lazy"
-        src={`https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`}
-      />
-    );
-  }
+  // Google's keyless "universal" directions URL — no API involved at all,
+  // so this always works regardless of whether the styled map above loaded,
+  // fell back, or the API key isn't configured yet. Opens the Maps app on
+  // mobile or maps.google.com on desktop, routing from wherever the visitor
+  // already is (Google asks/uses their location) to this address or
+  // coordinates — exactly what EventON's own "Get Directions" button does.
+  const directionsHref =
+    typeof lat === "number" && typeof lng === "number" && !Number.isNaN(lat) && !Number.isNaN(lng)
+      ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+      : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(query)}`;
 
-  return <div ref={ref} style={{ width: "100%", height: 220, borderRadius: 8 }} />;
+  return (
+    <>
+      {failed ? (
+        <iframe
+          title="Location map"
+          width="100%"
+          height="220"
+          style={{ border: 0, borderRadius: 8, display: "block" }}
+          loading="lazy"
+          src={`https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`}
+        />
+      ) : (
+        <div ref={ref} style={{ width: "100%", height: 220, borderRadius: 8 }} />
+      )}
+      <a
+        href={directionsHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="button-pill button-pill-secondary styled-map-directions"
+      >
+        Get Directions
+      </a>
+    </>
+  );
 }
