@@ -54,9 +54,9 @@ export function DirectoryListingCard({
       </Link>
       {listing.meta.sc_featured && <span className="directory-badge">Featured</span>}
       {categoriesList?.map((category) => (
-        <span key={category.id} className="card-category">
+        <Link key={category.id} href={`/directory/${category.slug}`} className="card-category">
           {category.name}
-        </span>
+        </Link>
       ))}
       <p>{excerpt}</p>
       {socials.length > 0 && (

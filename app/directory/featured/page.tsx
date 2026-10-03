@@ -1,7 +1,12 @@
 import Link from "next/link";
+import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
+import { getDirectoryCategories, getDirectoryListingBySlug, type WPListing } from "@/lib/wordpress";
 
 export const metadata = { title: "Featured directory listing — Secret Carshalton" };
+
+/** A real, live featured listing — Rob's choice, not a fabricated example — so the comparison below shows the actual card, not an approximation of one. */
+const FEATURED_EXAMPLE_SLUG = "rcb-plumbing-ltd-boiler-servicing-repairs-heating-specialists";
 
 /**
  * Where the Directory page's main "Add a listing" button now sends people,
@@ -14,7 +19,54 @@ export const metadata = { title: "Featured directory listing — Secret Carshalt
  * signed in but no listing to upgrade, already featured/pending) without
  * duplicating that logic.
  */
-export default function FeaturedListingPage() {
+export default async function FeaturedListingPage() {
+  const [featuredListing, categories] = await Promise.all([
+    getDirectoryListingBySlug(FEATURED_EXAMPLE_SLUG).catch(() => null),
+    getDirectoryCategories().catch(() => []),
+  ]);
+  const categoriesById = new Map(categories.map((c) => [c.id, c]));
+  const featuredCategoriesList = featuredListing?.sc_listing_category
+    ?.map((id) => categoriesById.get(id))
+    .filter((c): c is (typeof categories)[number] => Boolean(c));
+
+  // The free tier's actual shape (see SubmitListingForm) — title, website
+  // and one category, nothing else. No real free listing is singled out
+  // here, just that shape, so the comparison is "tier vs. tier" rather
+  // than naming a specific business as the lesser option.
+  const freeExampleListing: WPListing = {
+    id: -1,
+    slug: "",
+    link: "",
+    date: new Date().toISOString(),
+    title: { rendered: "Your Business Name" },
+    content: { rendered: "" },
+    author: 0,
+    sc_listing_category: featuredListing?.sc_listing_category ?? [],
+    meta: {
+      sc_address_street: "",
+      sc_address_town: "",
+      sc_address_region: "",
+      sc_address_postcode: "",
+      sc_address_country: "",
+      sc_website: "",
+      sc_phone: "",
+      sc_email: "",
+      sc_tagline: "",
+      sc_facebook: "",
+      sc_instagram: "",
+      sc_twitter: "",
+      sc_linkedin: "",
+      sc_youtube: "",
+      sc_lat: "",
+      sc_lng: "",
+      sc_featured: false,
+      sc_verified: false,
+      sc_claimed: false,
+      sc_plan: "",
+      sc_claim_expires_at: "",
+    },
+  };
+
   return (
     <main className="container auth-page event-manager-page directory-featured-page">
       <h1>Featured directory listing</h1>
@@ -30,40 +82,22 @@ export default function FeaturedListingPage() {
       </ul>
 
       <h2 className="directory-compare-heading">See the difference</h2>
-      {/* Example content, not a real listing — same reasoning as AdPreview's
-          holding image/text: shows the actual card shapes (plain vs. pink
-          border + badge + fuller details) without implying any specific
-          business is one or the other. */}
-      <ul className="post-list post-list-two-column directory-compare-list">
-        <li>
+      <div className="directory-compare-grid">
+        <div>
           <span className="theme-eyebrow">Free listing</span>
-          <div className="directory-compare-image-placeholder" aria-hidden="true" />
-          <span className="card-title">Example Café</span>
-          <span className="card-category">Cafés</span>
-          <p>A cosy spot for coffee and cake on the high street.</p>
-          <div className="card-meta-row">
-            <div className="card-actions" />
+          <ul className="post-list">
+            <DirectoryListingCard listing={freeExampleListing} categoriesList={featuredCategoriesList} />
+          </ul>
+        </div>
+        {featuredListing && (
+          <div>
+            <span className="theme-eyebrow">Featured listing</span>
+            <ul className="post-list">
+              <DirectoryListingCard listing={featuredListing} categoriesList={featuredCategoriesList} />
+            </ul>
           </div>
-        </li>
-        <li className="directory-card-featured">
-          <span className="theme-eyebrow">Featured listing</span>
-          <div className="directory-compare-image-placeholder" aria-hidden="true" />
-          <span className="card-title">Example Café</span>
-          <span className="directory-badge">Featured</span>
-          <span className="card-category">Cafés</span>
-          <p>
-            A cosy spot for coffee and cake on the high street — freshly roasted beans, home-baked cakes, and a
-            sunny courtyard out back.
-          </p>
-          <div className="directory-card-socials" aria-hidden="true">
-            <span>FB</span>
-            <span>IG</span>
-          </div>
-          <div className="card-meta-row">
-            <div className="card-actions" />
-          </div>
-        </li>
-      </ul>
+        )}
+      </div>
 
       <p className="advertise-price">
         <strong>£10/month</strong>
