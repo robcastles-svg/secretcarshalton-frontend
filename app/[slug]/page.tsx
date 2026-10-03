@@ -291,7 +291,12 @@ export default async function ContentPage({
           {relatedPosts.length > 0 && (
             <section className="related-stories">
               <h2>Related stories</h2>
-              <ContentList items={relatedPosts} categoriesById={categoriesById} tagsById={tagsById} />
+              <ContentList
+                items={relatedPosts}
+                categoriesById={categoriesById}
+                tagsById={tagsById}
+                className="post-list-two-column"
+              />
             </section>
           )}
         </div>

@@ -49,7 +49,7 @@ export default async function CommunityGroupsPage() {
           ) : (
             <>
               {featured.length > 0 && (
-                <ul className="post-list directory-featured-list">
+                <ul className="post-list post-list-two-column directory-featured-list">
                   {featured.map((listing) => (
                     <DirectoryListingCard key={listing.id} listing={listing} />
                   ))}

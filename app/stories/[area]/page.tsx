@@ -80,6 +80,7 @@ export default async function StoriesAreaPage({
           categoriesById={categoriesById}
           tagsById={tagsById}
           featuredListing={featuredListing}
+          className="post-list-two-column"
         />
         <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/stories/${area}?page=${p}`} />
       </main>

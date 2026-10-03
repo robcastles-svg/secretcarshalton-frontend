@@ -182,7 +182,7 @@ export async function DirectoryBrowse({
           ) : (
             <>
               {featuredListings.length > 0 && (
-                <ul className="post-list directory-featured-list">
+                <ul className="post-list post-list-two-column directory-featured-list">
                   {featuredListings.map((listing) => (
                     <DirectoryListingCard
                       key={listing.id}

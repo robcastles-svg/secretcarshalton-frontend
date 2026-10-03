@@ -71,6 +71,7 @@ export default async function ThemePage({
         categoriesById={categoriesById}
         tagsById={tagsById}
         featuredListing={featuredListing}
+        className="post-list-two-column"
       />
       <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/themes/${slug}?page=${p}`} />
     </main>

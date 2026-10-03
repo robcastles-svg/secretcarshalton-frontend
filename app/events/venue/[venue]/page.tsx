@@ -35,7 +35,7 @@ export default async function EventsByVenuePage({
       <span className="theme-eyebrow">Events at this venue</span>
       <h1>{venueName}</h1>
       {venueAddress && <p className="dashboard-hint">{venueAddress}</p>}
-      <ul className="post-list">
+      <ul className="post-list post-list-two-column">
         {events.map((event) => {
           const image = getFeaturedImage(event);
           const startDate = parseEventDate(event.meta.sc_start);

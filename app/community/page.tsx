@@ -100,6 +100,7 @@ export default async function CommunityPage({
               categoriesById={categoriesById}
               tagsById={tagsById}
               featuredListing={featuredListing}
+              className="post-list-two-column"
             />
           )}
           <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/community?page=${p}`} />

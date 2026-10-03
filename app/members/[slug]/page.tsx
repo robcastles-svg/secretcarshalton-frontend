@@ -138,7 +138,7 @@ export default async function MemberProfilePage({
         ) : (
           <ExpandableList
             items={upcomingEvents}
-            listClassName="post-list"
+            listClassName="post-list post-list-two-column"
             itemKey={(event) => event.id}
             noun="event"
             renderItem={(event) => {

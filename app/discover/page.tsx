@@ -230,7 +230,7 @@ export default async function DiscoverPage({
             {pageItems.length === 0 ? (
               <p className="directory-empty">Nothing here yet — check back soon.</p>
             ) : (
-              <ul className="post-list">
+              <ul className="post-list post-list-two-column">
                 {pageItems.map((item) =>
                   item.kind === "post" ? (
                     <PostListCard

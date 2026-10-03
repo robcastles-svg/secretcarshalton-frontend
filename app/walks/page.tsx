@@ -96,6 +96,7 @@ export default async function WalksPage({
                 categoriesById={categoriesById}
                 tagsById={tagsById}
                 featuredListing={featuredListing}
+                className="post-list-two-column"
               />
             )}
             <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />

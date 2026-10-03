@@ -40,7 +40,7 @@ export default async function EventsByOrganizerPage({
           More info
         </a>
       )}
-      <ul className="post-list">
+      <ul className="post-list post-list-two-column">
         {events.map((event) => {
           const image = getFeaturedImage(event);
           const startDate = parseEventDate(event.meta.sc_start);

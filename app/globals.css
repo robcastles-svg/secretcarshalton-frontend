@@ -535,23 +535,32 @@ a.ad-slot-text-image img {
 /* Content lists (posts/events/archives) — vertical cards, full-width
    image on top, matching the reference screenshots' card orientation
    (image → headline → category/date), not a horizontal thumbnail list.
-   A flat 2-column cap on desktop/tablet (not auto-fill, which could
-   stretch to 3+ columns on a wide enough viewport) — Rob wants every
-   section except News consistently 2-up, never more, same as Directory's
-   own masonry grid is separately capped at column-count: 2. Mobile is
-   always 1 column; 720px matches the site's existing mobile/desktop
-   breakpoint (see primary-nav). */
+   Plain auto-fill by default — this base class is shared with things
+   that are NOT content-card grids (SidebarAds, MobileTopAd, AdPreview
+   all reuse .post-list purely for the card look, each usually showing
+   just one narrow-column item), so the column count itself has to be
+   opt-in per context via .post-list-two-column / .post-list-single-column
+   below, not forced here. Forcing 2 columns here once already broke the
+   sidebar ad lists into two cramped half-width columns. */
 .post-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 2rem;
 }
 
+/* The explicit opt-in for an actual category/content grid (Stories,
+   Walks, Discover, Community, search results, member profiles, event
+   venue/organiser pages, Directory's featured row) — a flat 2-column cap
+   on desktop/tablet, never auto-fill's uncapped 3+ at wide viewports.
+   Mobile is always 1 column; 720px matches the site's existing
+   mobile/desktop breakpoint (see primary-nav). .post-list prefixed
+   alongside the single class for specificity — see the row-layout
+   rules further down for why an un-prefixed version isn't reliable. */
 @media (min-width: 720px) {
-  .post-list {
+  .post-list.post-list-two-column {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -559,9 +568,10 @@ a.ad-slot-text-image img {
 /* News's own treatment — one column at every width, not the 2-up grid
    every other section (Stories, Walks, Discover) uses, so News reads as
    a distinct, denser feed rather than matching them. .post-list prefixed
-   alongside the single class — needed to outrank the @media rule just
-   above at equal specificity otherwise (same tie-breaking-by-source-
-   order trap documented further down for the row-layout rules). */
+   alongside the single class — needed to outrank .post-list-two-column
+   at equal specificity if a page ever accidentally passed both (same
+   tie-breaking-by-source-order trap documented further down for the
+   row-layout rules). */
 .post-list.post-list-single-column {
   grid-template-columns: 1fr;
 }

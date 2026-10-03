@@ -14,7 +14,7 @@ export function EventsGrid({ events }: { events: WPScEvent[] }) {
 
   return (
     <>
-      <ul className="post-list">
+      <ul className="post-list post-list-two-column">
         {visible.map((event) => {
           const image = getFeaturedImage(event);
           const startDate = parseEventDate(event.meta.sc_start);

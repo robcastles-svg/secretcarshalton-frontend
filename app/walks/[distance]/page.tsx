@@ -83,6 +83,7 @@ export default async function WalksDistancePage({
           categoriesById={categoriesById}
           tagsById={tagsById}
           featuredListing={featuredListing}
+          className="post-list-two-column"
         />
         <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/walks/${distance}?page=${p}`} />
       </main>

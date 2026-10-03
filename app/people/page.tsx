@@ -28,7 +28,7 @@ export default async function PeoplePage({
         Business Spotlight
         <CategoryKeyIcon />
       </h1>
-      <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} />
+      <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} className="post-list-two-column" />
       <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/people?page=${p}`} />
     </main>
   );

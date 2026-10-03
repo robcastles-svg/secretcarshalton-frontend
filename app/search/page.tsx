@@ -122,7 +122,7 @@ export default async function SearchPage({
         <p className="search-nothing-found">It seems we can&rsquo;t find what you&rsquo;re looking for.</p>
       ) : (
         <>
-        <ul className="post-list search-results-list">
+        <ul className="post-list post-list-two-column search-results-list">
           {pageResults.map((item) => {
             const date = formatDate(item.date);
             return (

@@ -92,7 +92,7 @@ export default async function HomePage() {
           )}
         </section>
 
-        <ContentList items={cardPosts} categoriesById={categoriesById} tagsById={tagsById} />
+        <ContentList items={cardPosts} categoriesById={categoriesById} tagsById={tagsById} className="post-list-two-column" />
       </div>
 
       <div className="newsletter-cta">
