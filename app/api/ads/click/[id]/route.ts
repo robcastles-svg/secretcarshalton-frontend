@@ -11,5 +11,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const adId = Number(id);
   const link = adId ? await recordAdClick(adId) : null;
 
-  return NextResponse.redirect(link || "/advertise", { status: 302 });
+  // NextResponse.redirect() needs an absolute URL — a relative link (most
+  // house ads now use one, e.g. "/advertise", so they stay on whatever
+  // domain the visitor's actually on) throws otherwise. request.url as the
+  // base resolves a relative path; an already-absolute advertiser link
+  // passes through unchanged.
+  return NextResponse.redirect(new URL(link || "/advertise", request.url), { status: 302 });
 }
