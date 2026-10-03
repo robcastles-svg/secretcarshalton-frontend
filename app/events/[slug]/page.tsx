@@ -187,7 +187,13 @@ export default async function EventPage({
             {event.meta.sc_organizer && (
               <p className="event-meta-row">
                 <span className="event-meta-label">Organised By</span>
-                {event.meta.sc_organizer}
+                {event.meta.sc_event_url ? (
+                  <a href={event.meta.sc_event_url} target="_blank" rel="noopener noreferrer">
+                    {event.meta.sc_organizer}
+                  </a>
+                ) : (
+                  event.meta.sc_organizer
+                )}
               </p>
             )}
           </div>
