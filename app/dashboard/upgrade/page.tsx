@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
+import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
 import { getDirectoryCategories, getMemberMe, getMyListings } from "@/lib/wordpress";
 import { SubmitUpgradeRequest } from "./_components/SubmitUpgradeRequest";
 
@@ -29,7 +30,7 @@ export default async function DirectoryUpgradePage() {
       <ul className="advertise-benefits">
         <li>Around 150 views a month from your category pages alone</li>
         <li>Top ranking, above every free listing in your category</li>
-        <li>A mention in our Facebook/Instagram stories</li>
+        <li>A mention in our Facebook/Instagram stories — we reach {SOCIAL_REACH_BLURB}</li>
       </ul>
 
       {profile.directory_upgrade_status === "pending" ? (

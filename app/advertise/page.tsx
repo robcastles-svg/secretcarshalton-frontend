@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getSessionToken } from "@/lib/auth";
+import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
 import { AdPreview } from "./_components/AdPreview";
 import { SubmitAdForm } from "./_components/SubmitAdForm";
 
@@ -75,7 +76,7 @@ export default async function AdvertisePage() {
           <ul className="advertise-benefits">
             <li>Around 150 views a month from your category pages alone</li>
             <li>Top ranking, above every free listing in your category</li>
-            <li>A mention in our Facebook/Instagram stories</li>
+            <li>A mention in our Facebook/Instagram stories — we reach {SOCIAL_REACH_BLURB}</li>
           </ul>
           <p className="advertise-price">
             <strong>£10/month</strong>
