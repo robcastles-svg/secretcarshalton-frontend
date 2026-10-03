@@ -17,22 +17,24 @@ function SearchIcon() {
  * both progressive enhancements). Sitewide search already exists in the
  * main nav; this is a second, section-scoped entry point for anyone who
  * doesn't notice/reach for that while already browsing the directory.
+ *
+ * Posts back to whichever page it's rendered on — /directory or a
+ * category's own /directory/[slug] — rather than a hidden category field,
+ * now that category is part of the path, not a query param.
  */
 export function DirectoryControls({
-  category,
+  basePath,
   q,
   sort,
 }: {
-  category: string;
+  basePath: string;
   q: string;
   sort: string;
 }) {
   const [searchOpen, setSearchOpen] = useState(Boolean(q));
 
   return (
-    <form method="GET" action="/directory" className="directory-controls">
-      {category && <input type="hidden" name="category" value={category} />}
-
+    <form method="GET" action={basePath} className="directory-controls">
       <div className="directory-search-popup-wrap">
         <button
           type="button"

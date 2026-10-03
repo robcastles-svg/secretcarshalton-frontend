@@ -944,6 +944,7 @@ export interface WPDirectoryCategory {
   slug: string;
   name: string;
   count: number;
+  description: string;
 }
 
 export function getDirectoryCategories() {

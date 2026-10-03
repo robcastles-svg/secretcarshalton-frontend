@@ -6,6 +6,7 @@ import { CommentSection } from "@/app/_components/CommentSection";
 import { DirectoryImageSlider } from "@/app/_components/DirectoryImageSlider";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { listingSocials } from "@/app/_components/SocialIcons";
+import { DirectoryBrowse } from "../_components/DirectoryBrowse";
 import { ClaimListingButton } from "./_components/ClaimListingButton";
 import { getSessionToken } from "@/lib/auth";
 import {
@@ -17,6 +18,7 @@ import {
   getMemberMe,
   getMembersByIds,
   getPostViewCount,
+  GROUPS_CATEGORY_SLUG,
   stripHtml,
 } from "@/lib/wordpress";
 
@@ -26,10 +28,24 @@ function formatListedSince(iso: string) {
 
 export const revalidate = 3600;
 
+/**
+ * This one dynamic segment does double duty: a real, crawlable page per
+ * directory category (/directory/pets) for SEO, same reasoning as
+ * /stories/[area] and /walks/[distance] — "someone searching pets in the
+ * area" should land on a dedicated page, not a ?category= query string —
+ * as well as every individual listing's detail page (/directory/the-coffee-shop).
+ * Category slugs are a small, fixed, Rob-controlled set; a listing could in
+ * principle pick the exact same slug (e.g. a business literally named
+ * "Pets"), in which case the category page wins — see the page component
+ * below, which checks categories first.
+ */
 export async function generateStaticParams() {
   try {
-    const listings = await getDirectoryListings();
-    return listings.map((l) => ({ slug: l.slug }));
+    const [listings, categories] = await Promise.all([getDirectoryListings(), getDirectoryCategories()]);
+    const categorySlugs = categories
+      .filter((c) => c.slug !== GROUPS_CATEGORY_SLUG)
+      .map((c) => ({ slug: c.slug }));
+    return [...categorySlugs, ...listings.map((l) => ({ slug: l.slug }))];
   } catch {
     return [];
   }
@@ -41,6 +57,21 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+
+  const category = await getDirectoryCategories()
+    .then((cats) => cats.find((c) => c.slug === slug && c.slug !== GROUPS_CATEGORY_SLUG))
+    .catch(() => undefined);
+  if (category) {
+    const title = `${category.name} — The Sutton Business Directory`;
+    const description = stripHtml(category.description) || undefined;
+    return {
+      title,
+      description,
+      alternates: { canonical: `/directory/${slug}` },
+      openGraph: { title, description },
+    };
+  }
+
   const listing = await getDirectoryListingBySlug(slug).catch(() => null);
   if (!listing) return {};
 
@@ -70,13 +101,29 @@ export async function generateMetadata({
 
 export default async function DirectoryListingPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ q?: string; sort?: string; page?: string }>;
 }) {
   const { slug } = await params;
-  const [listing, categories, sessionToken] = await Promise.all([
+
+  const categories = await getDirectoryCategories().catch(() => []);
+  const category = categories.find((c) => c.slug === slug && c.slug !== GROUPS_CATEGORY_SLUG);
+  if (category) {
+    const { q: rawQ, sort: rawSort, page: rawPage } = await searchParams;
+    return (
+      <DirectoryBrowse
+        activeCategory={category}
+        q={(rawQ ?? "").trim()}
+        sort={rawSort ?? "newest"}
+        rawPage={rawPage}
+      />
+    );
+  }
+
+  const [listing, sessionToken] = await Promise.all([
     getDirectoryListingBySlug(slug).catch(() => null),
-    getDirectoryCategories().catch(() => []),
     getSessionToken(),
   ]);
 
@@ -182,7 +229,7 @@ export default async function DirectoryListingPage({
           {(matchedCategories.length > 0 || meta.sc_featured) && (
             <div className="directory-badges">
               {matchedCategories.map((category) => (
-                <Link key={category.id} href={`/directory?category=${category.slug}`} className="directory-category-pill">
+                <Link key={category.id} href={`/directory/${category.slug}`} className="directory-category-pill">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6Z" />
                   </svg>

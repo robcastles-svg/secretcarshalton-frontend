@@ -3,8 +3,10 @@ import {
   getAllPageSlugs,
   getAllPostSlugs,
   getCategories,
+  getDirectoryCategories,
   getDirectoryListings,
   getScEvents,
+  GROUPS_CATEGORY_SLUG,
 } from "@/lib/wordpress";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.secretcarshalton.com";
@@ -48,12 +50,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 }
 
 async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
-  const [pageSlugs, posts, categories, events, listings] = await Promise.all([
+  const [pageSlugs, posts, categories, events, listings, directoryCategories] = await Promise.all([
     getAllPageSlugs().catch(() => []),
     getAllPostSlugs(),
     getCategories().catch(() => []),
     getScEvents(300).catch(() => []),
     getDirectoryListings().catch(() => []),
+    getDirectoryCategories().catch(() => []),
   ]);
 
   const entries: MetadataRoute.Sitemap = [...FALLBACK_SITEMAP];
@@ -107,6 +110,14 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const listing of listings) {
     entries.push({ url: `${SITE_URL}/directory/${listing.slug}`, changeFrequency: "monthly", priority: 0.5 });
+  }
+
+  // Each directory category's own dedicated page (/directory/{slug}) —
+  // see app/directory/[slug]/page.tsx — the whole point being that "pets
+  // in the area" has a real, crawlable page of its own.
+  for (const category of directoryCategories) {
+    if (category.slug === GROUPS_CATEGORY_SLUG) continue;
+    entries.push({ url: `${SITE_URL}/directory/${category.slug}`, changeFrequency: "weekly", priority: 0.6 });
   }
 
   return entries;

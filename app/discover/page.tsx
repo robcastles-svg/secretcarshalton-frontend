@@ -263,7 +263,7 @@ export default async function DiscoverPage({
                 <ul className="sidebar-theme-list">
                   {directoryCategories.slice(0, 12).map((c) => (
                     <li key={c.id}>
-                      <Link href={`/directory?category=${c.slug}`}>{c.name.toUpperCase()}</Link>
+                      <Link href={`/directory/${c.slug}`}>{c.name.toUpperCase()}</Link>
                     </li>
                   ))}
                 </ul>
