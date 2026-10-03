@@ -19,12 +19,32 @@ import {
   stripHtml,
 } from "@/lib/wordpress";
 import { ClaimEventButton } from "./_components/ClaimEventButton";
+import { EventTimeLeft } from "./_components/EventTimeLeft";
 import { RsvpButton } from "./_components/RsvpButton";
+import { ShareEventRow } from "./_components/ShareEventRow";
 
 export const revalidate = 3600;
 
 function formatTime(date: Date): string {
   return date.toLocaleString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true });
+}
+
+/** YYYYMMDDTHHMMSSZ, the format Google Calendar's own template URL wants, always in UTC regardless of the site's displayed local time. */
+function toGCalDateTime(date: Date): string {
+  return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+}
+
+/** No end time on record for plenty of events — defaults to a 1 hour slot rather than leaving the calendar entry zero-length. */
+function buildGoogleCalendarUrl(title: string, start: Date, end: Date | null, location: string, details: string): string {
+  const endDate = end ?? new Date(start.getTime() + 60 * 60 * 1000);
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: title,
+    dates: `${toGCalDateTime(start)}/${toGCalDateTime(endDate)}`,
+    details,
+    location,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
 function PinIcon() {
@@ -43,6 +63,110 @@ function ClockIcon() {
       <path d="M12 7v5l3.5 2" strokeLinecap="round" />
     </svg>
   );
+}
+
+/**
+ * One distinct glyph per subject tag (see SC_Events_CPT::default_tags for
+ * the full 13) — matching EventON's own "Event Type" list, which shows an
+ * icon per tag rather than the plain comma-joined text this page used to
+ * render. EVENT_TYPE_ICON_PATHS falls back to a generic tag glyph for any
+ * tag name it doesn't recognise, so a future addition to default_tags()
+ * degrades gracefully instead of rendering nothing.
+ */
+function EventTypeIcon({ name }: { name: string }) {
+  const common = { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": true } as const;
+  switch (name) {
+    case "Comedy":
+      return (
+        <svg {...common}>
+          <path d="M4 5h16v10H9l-4 4v-4H4V5Z" strokeLinejoin="round" />
+        </svg>
+      );
+    case "Dance":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="5" r="2" />
+          <path d="M12 7v5M12 12l-4 5M12 12l4 5M9 9l3 1 3-1" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "Festival":
+      return (
+        <svg {...common}>
+          <polygon points="12 2 14.9 8.3 22 9 17 14.1 18.2 22 12 18.6 5.8 22 7 14.1 2 9 9.1 8.3" strokeLinejoin="round" />
+        </svg>
+      );
+    case "Fitness":
+      return (
+        <svg {...common}>
+          <path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10" strokeLinecap="round" />
+        </svg>
+      );
+    case "Free Entry":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="11" x2="12" y2="16" strokeLinecap="round" />
+          <circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "Heritage":
+      return (
+        <svg {...common}>
+          <path d="M12 2 3 8h18L12 2Z" strokeLinejoin="round" />
+          <path d="M5 8v12M9 8v12M15 8v12M19 8v12M3 20h18" strokeLinecap="round" />
+        </svg>
+      );
+    case "Music":
+      return (
+        <svg {...common}>
+          <path d="M9 18V5l10-2v13" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="6.5" cy="18" r="2.5" />
+          <circle cx="16.5" cy="16" r="2.5" />
+        </svg>
+      );
+    case "Nature":
+      return (
+        <svg {...common}>
+          <path d="M5 20c0-8 5-14 14-16-1 9-6 15-14 16Z" strokeLinejoin="round" />
+        </svg>
+      );
+    case "Quiz":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .9-1 1.7" strokeLinecap="round" />
+          <circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "Shopping":
+      return (
+        <svg {...common}>
+          <path d="M6 8h12l-1 12H7L6 8Z" strokeLinejoin="round" />
+          <path d="M9 8V6a3 3 0 0 1 6 0v2" strokeLinecap="round" />
+        </svg>
+      );
+    case "Suitable for kids":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="9" cy="10" r="0.8" fill="currentColor" stroke="none" />
+          <circle cx="15" cy="10" r="0.8" fill="currentColor" stroke="none" />
+          <path d="M8.5 14.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8" strokeLinecap="round" />
+        </svg>
+      );
+    case "Theatre":
+      return (
+        <svg {...common}>
+          <path d="M4 4c4 2 4 14 0 16M20 4c-4 2-4 14 0 16" strokeLinecap="round" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...common}>
+          <path d="M12 4v16M5 7l14 10M19 7 5 17" strokeLinecap="round" />
+        </svg>
+      );
+  }
 }
 
 export async function generateStaticParams() {
@@ -185,10 +309,17 @@ export default async function EventPage({
               </div>
             )}
             {eventTypes.length > 0 && (
-              <p className="event-meta-row">
+              <div className="event-meta-row event-type-row">
                 <span className="event-meta-label">Event Type</span>
-                {eventTypes.map((t) => t.name).join(", ")}
-              </p>
+                <ul className="event-type-list">
+                  {eventTypes.map((t) => (
+                    <li key={t.id}>
+                      <EventTypeIcon name={t.name} />
+                      {t.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
             {event.sc_event_organizer_profile ? (
               <p className="event-meta-row">
@@ -215,11 +346,28 @@ export default async function EventPage({
                 </p>
               )
             )}
+            {startDate && startDate.getTime() > Date.now() && <EventTimeLeft startIso={event.meta.sc_start} />}
           </div>
         </div>
         {image && <img src={image.source_url} alt={image.alt_text} />}
 
         <div className="event-detail-actions">
+          {startDate && (
+            <a
+              href={buildGoogleCalendarUrl(
+                stripHtml(event.title.rendered),
+                startDate,
+                endDate,
+                mapQuery,
+                stripHtml(event.content.rendered).slice(0, 500)
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="button-pill button-pill-secondary"
+            >
+              Add to Google Calendar
+            </a>
+          )}
           {event.meta.sc_venue_name && (
             <Link href={`/events/venue/${slugifyVenue(event.meta.sc_venue_name)}`} className="button-pill button-pill-secondary">
               See all events at {event.meta.sc_venue_name}
@@ -260,6 +408,8 @@ export default async function EventPage({
           initialGoing={rsvpStatus?.going ?? false}
           initialCount={rsvpStatus?.going_count ?? event.sc_event_rsvp_count ?? 0}
         />
+
+        <ShareEventRow path={`/events/${event.slug}`} title={stripHtml(event.title.rendered)} />
 
         <CommentSection
           postId={event.id}
