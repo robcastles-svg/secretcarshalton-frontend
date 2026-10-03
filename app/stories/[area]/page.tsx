@@ -3,9 +3,12 @@ import { notFound } from "next/navigation";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { CategoryMiniNav } from "@/app/_components/CategoryMiniNav";
 import { ContentList } from "@/app/_components/ContentList";
+import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
+import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
 import {
+  getAd,
   getCategories,
   getCategoryBySlug,
   getFeaturedListingForGrid,
@@ -54,10 +57,13 @@ export default async function StoriesAreaPage({
 
   if (!category) notFound();
 
-  const [posts, allCategories, allTags, featuredListing] = await Promise.all([
+  const [posts, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3, featuredListing] = await Promise.all([
     getPostsByCategory(category.id).catch(() => []),
     getCategories().catch(() => []),
     getTags().catch(() => []),
+    getAd("sidebar", 1),
+    getAd("sidebar", 2),
+    getAd("sidebar", 3),
     getFeaturedListingForGrid(),
   ]);
 
@@ -75,14 +81,22 @@ export default async function StoriesAreaPage({
           {category.name}
           <CategoryKeyIcon />
         </h1>
-        <ContentList
-          items={pagePosts}
-          categoriesById={categoriesById}
-          tagsById={tagsById}
-          featuredListing={featuredListing}
-          className="post-list-two-column"
-        />
-        <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/stories/${area}?page=${p}`} />
+        <MobileTopAd ad={sidebarAd1} />
+        <div className="post-layout">
+          <div className="post-body">
+            <ContentList
+              items={pagePosts}
+              categoriesById={categoriesById}
+              tagsById={tagsById}
+              featuredListing={featuredListing}
+              className="post-list-two-column"
+            />
+            <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/stories/${area}?page=${p}`} />
+          </div>
+          <aside className="post-sidebar">
+            <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} hideFirstOnMobile />
+          </aside>
+        </div>
       </main>
     </>
   );

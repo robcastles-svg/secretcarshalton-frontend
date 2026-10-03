@@ -1,8 +1,10 @@
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
+import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
+import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
+import { getAd, getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -12,10 +14,13 @@ export default async function PeoplePage({
   searchParams: Promise<{ page?: string }>;
 }) {
   const { page: rawPage } = await searchParams;
-  const [category, allCategories, allTags] = await Promise.all([
+  const [category, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
     getCategoryBySlug("people").catch(() => null),
     getCategories().catch(() => []),
     getTags().catch(() => []),
+    getAd("sidebar", 1),
+    getAd("sidebar", 2),
+    getAd("sidebar", 3),
   ]);
   const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
@@ -28,8 +33,16 @@ export default async function PeoplePage({
         Business Spotlight
         <CategoryKeyIcon />
       </h1>
-      <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} className="post-list-two-column" />
-      <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/people?page=${p}`} />
+      <MobileTopAd ad={sidebarAd1} />
+      <div className="post-layout">
+        <div className="post-body">
+          <ContentList items={pagePosts} categoriesById={categoriesById} tagsById={tagsById} className="post-list-two-column" />
+          <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/people?page=${p}`} />
+        </div>
+        <aside className="post-sidebar">
+          <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} hideFirstOnMobile />
+        </aside>
+      </div>
     </main>
   );
 }

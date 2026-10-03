@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Pagination } from "@/app/_components/Pagination";
+import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getTags, searchSite } from "@/lib/wordpress";
+import { getAd, getTags, searchSite } from "@/lib/wordpress";
 
 export const metadata = { title: "Search" };
 
@@ -51,9 +52,12 @@ export default async function SearchPage({
   const tag = params.tag || "";
   const sort = params.sort || "";
 
-  const [allTags, results] = await Promise.all([
+  const [allTags, results, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
     getTags().catch(() => []),
     q ? searchSite({ q, category, searchMode, tag, sort }).catch(() => []) : Promise.resolve([]),
+    getAd("sidebar", 1),
+    getAd("sidebar", 2),
+    getAd("sidebar", 3),
   ]);
 
   const tabQuery = { s: q, search_mode: searchMode, tag, sort };
@@ -121,28 +125,33 @@ export default async function SearchPage({
       ) : results.length === 0 ? (
         <p className="search-nothing-found">It seems we can&rsquo;t find what you&rsquo;re looking for.</p>
       ) : (
-        <>
-        <ul className="post-list post-list-two-column search-results-list">
-          {pageResults.map((item) => {
-            const date = formatDate(item.date);
-            return (
-              <li key={`${item.type}-${item.id}`}>
-                <Link href={item.href}>
-                  {item.image && <img src={item.image.source_url} alt={item.image.alt_text} loading="lazy" />}
-                  <div className="card-text">
-                    <span className="card-tag">{RESULT_TYPE_LABEL[item.type]}</span>
-                    <span className="card-title">{item.title}</span>
-                    {item.meta && <span className="card-category">{item.meta}</span>}
-                  </div>
-                </Link>
-                {date && <time dateTime={item.date}>{date}</time>}
-                <p>{item.excerpt}</p>
-              </li>
-            );
-          })}
-        </ul>
-        <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />
-        </>
+        <div className="post-layout">
+          <div className="post-body">
+            <ul className="post-list post-list-two-column search-results-list">
+              {pageResults.map((item) => {
+                const date = formatDate(item.date);
+                return (
+                  <li key={`${item.type}-${item.id}`}>
+                    <Link href={item.href}>
+                      {item.image && <img src={item.image.source_url} alt={item.image.alt_text} loading="lazy" />}
+                      <div className="card-text">
+                        <span className="card-tag">{RESULT_TYPE_LABEL[item.type]}</span>
+                        <span className="card-title">{item.title}</span>
+                        {item.meta && <span className="card-category">{item.meta}</span>}
+                      </div>
+                    </Link>
+                    {date && <time dateTime={item.date}>{date}</time>}
+                    <p>{item.excerpt}</p>
+                  </li>
+                );
+              })}
+            </ul>
+            <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />
+          </div>
+          <aside className="post-sidebar">
+            <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
+          </aside>
+        </div>
       )}
     </main>
   );

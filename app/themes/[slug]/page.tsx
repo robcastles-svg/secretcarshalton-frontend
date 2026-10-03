@@ -4,6 +4,7 @@ import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
+import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
 import {
   getAd,
@@ -45,11 +46,13 @@ export default async function ThemePage({
 
   if (!tag) notFound();
 
-  const [posts, allCategories, allTags, sidebarAd, featuredListing] = await Promise.all([
+  const [posts, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3, featuredListing] = await Promise.all([
     getPostsByTag(tag.id).catch(() => []),
     getCategories().catch(() => []),
     getTags().catch(() => []),
-    getAd("sidebar"),
+    getAd("sidebar", 1),
+    getAd("sidebar", 2),
+    getAd("sidebar", 3),
     getFeaturedListingForGrid(),
   ]);
 
@@ -64,16 +67,23 @@ export default async function ThemePage({
         {tag.name}
         <CategoryKeyIcon />
       </h1>
-      <MobileTopAd ad={sidebarAd} />
+      <MobileTopAd ad={sidebarAd1} />
       {posts.length === 0 && <p>No stories tagged &quot;{tag.name}&quot; yet.</p>}
-      <ContentList
-        items={pagePosts}
-        categoriesById={categoriesById}
-        tagsById={tagsById}
-        featuredListing={featuredListing}
-        className="post-list-two-column"
-      />
-      <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/themes/${slug}?page=${p}`} />
+      <div className="post-layout">
+        <div className="post-body">
+          <ContentList
+            items={pagePosts}
+            categoriesById={categoriesById}
+            tagsById={tagsById}
+            featuredListing={featuredListing}
+            className="post-list-two-column"
+          />
+          <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/themes/${slug}?page=${p}`} />
+        </div>
+        <aside className="post-sidebar">
+          <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} hideFirstOnMobile />
+        </aside>
+      </div>
     </main>
   );
 }
