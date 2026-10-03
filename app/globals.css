@@ -551,6 +551,50 @@ a.ad-slot-text-image img {
   grid-template-columns: 1fr;
 }
 
+/* A single full-width card using the normal vertical (image-on-top)
+   layout reads as oversized — the image alone spans the whole content
+   column. Desktop only: each card becomes its own 2-column grid, a
+   fixed-size thumbnail on the left and title/tag/category/date stacked
+   on the right — a denser row, not a giant block. The thumbnail's own
+   height is fixed (not stretched to match the text column) since grid
+   row heights are otherwise auto/content-driven here — simpler and more
+   predictable than trying to match a height nothing else constrains.
+   Mobile keeps the ordinary vertical card (full-width image makes sense
+   again once there's no second column to compare it against). The image
+   link is always the <li>'s first child when present (see
+   PostListCard) — targeted positionally rather than needing its own
+   class. */
+@media (min-width: 720px) {
+  .post-list-single-column li {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    column-gap: 1.5rem;
+    align-items: start;
+  }
+
+  .post-list-single-column li > a:first-child {
+    grid-column: 1;
+  }
+
+  .post-list-single-column li > a:first-child img {
+    height: 180px;
+    aspect-ratio: auto;
+    margin-bottom: 0;
+  }
+
+  .post-list-single-column .card-tag,
+  .post-list-single-column .card-title,
+  .post-list-single-column .card-category,
+  .post-list-single-column .card-meta-row {
+    grid-column: 2;
+    margin-left: 0;
+  }
+
+  .post-list-single-column .card-title {
+    margin-top: 0.5rem;
+  }
+}
+
 .post-list li {
   display: flex;
   flex-direction: column;
