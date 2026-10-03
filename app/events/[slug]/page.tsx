@@ -200,14 +200,18 @@ export default async function EventPage({
             ) : (
               event.meta.sc_organizer && (
                 <p className="event-meta-row">
+                  {/*
+                   * No link here, even though sc_event_url is often set —
+                   * "Organised By" reads as site navigation, and sending
+                   * people straight off Secret Carshalton from it is the
+                   * exact thing Rob flagged. Once SC_Events_CPT::backfill_organizer_terms
+                   * runs (see its docblock), every event with a legacy name
+                   * gets a real sc_event_organizer_profile and lands in the
+                   * branch above instead — this is only the gap before
+                   * that backfill has run on a given environment.
+                   */}
                   <span className="event-meta-label">Organised By</span>
-                  {event.meta.sc_event_url ? (
-                    <a href={event.meta.sc_event_url} target="_blank" rel="noopener noreferrer">
-                      {event.meta.sc_organizer}
-                    </a>
-                  ) : (
-                    event.meta.sc_organizer
-                  )}
+                  {event.meta.sc_organizer}
                 </p>
               )
             )}

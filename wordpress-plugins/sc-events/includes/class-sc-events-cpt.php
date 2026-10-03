@@ -165,4 +165,73 @@ class SC_Events_CPT {
 			update_post_meta( $id, '_sc_events_comments_backfilled', 1 );
 		}
 	}
+
+	/**
+	 * Wires every event's legacy sc_organizer/sc_event_url text into a real
+	 * sc_event_organizer term — the same taxonomy a fresh submission
+	 * attaches to via SC_Events_REST::set_organizer_from_request. Without
+	 * this, the ~257 events that existed before that feature shipped would
+	 * have no sc_event_organizer_profile, and the frontend's "Organised
+	 * By" row would keep linking straight off the site to sc_event_url
+	 * instead of an internal organiser page — exactly what Rob flagged.
+	 *
+	 * Reuses an existing term by name rather than inserting a new one per
+	 * event, so e.g. every "Carshalton Jazz" event ends up sharing one
+	 * organiser term and showing up on that one organiser page together,
+	 * the same cross-linking a fresh submission already gets for free.
+	 *
+	 * Idempotent via the same "_sc_events_..._backfilled" marker-meta
+	 * pattern as open_comments_on_existing_events, so re-running this on
+	 * every version bump (not just once) is cheap and safe — an event
+	 * someone re-attaches a different organiser to later isn't touched
+	 * again, since it already has a term.
+	 */
+	public static function backfill_organizer_terms() {
+		$ids = get_posts(
+			array(
+				'post_type'      => self::POST_TYPE,
+				'post_status'    => 'any',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+				'meta_query'     => array(
+					array(
+						'key'     => '_sc_events_organizer_backfilled',
+						'compare' => 'NOT EXISTS',
+					),
+				),
+			)
+		);
+
+		foreach ( $ids as $id ) {
+			update_post_meta( $id, '_sc_events_organizer_backfilled', 1 );
+
+			$existing = wp_get_post_terms( $id, self::ORGANIZER_TAXONOMY, array( 'fields' => 'ids' ) );
+			if ( ! is_wp_error( $existing ) && ! empty( $existing ) ) {
+				continue; // Already has a profile — e.g. submitted after the organiser picker shipped.
+			}
+
+			$name = trim( (string) get_post_meta( $id, 'sc_organizer', true ) );
+			if ( '' === $name ) {
+				continue; // Nothing to migrate — this event never had an organiser name at all.
+			}
+
+			$term = get_term_by( 'name', $name, self::ORGANIZER_TAXONOMY );
+			if ( $term ) {
+				$term_id = $term->term_id;
+			} else {
+				$inserted = wp_insert_term( $name, self::ORGANIZER_TAXONOMY );
+				if ( is_wp_error( $inserted ) ) {
+					continue;
+				}
+				$term_id = is_array( $inserted ) ? $inserted['term_id'] : $inserted;
+
+				$url = get_post_meta( $id, 'sc_event_url', true );
+				if ( $url ) {
+					update_term_meta( $term_id, 'sc_organizer_url', esc_url_raw( $url ) );
+				}
+			}
+
+			wp_set_object_terms( $id, array( $term_id ), self::ORGANIZER_TAXONOMY );
+		}
+	}
 }

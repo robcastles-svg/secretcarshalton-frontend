@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Events
  * Description: Events. Replaces the EventON data layer with real REST-exposed start/end/venue fields, so the frontend no longer has to scrape schema.org JSON-LD out of rendered HTML to get a date. Hooked into sc-membership for RSVP points.
- * Version: 0.10.0
+ * Version: 0.11.0
  * Author: Secret Carshalton
  * Text Domain: sc-events
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_EVENTS_VERSION', '0.10.0' );
+define( 'SC_EVENTS_VERSION', '0.11.0' );
 define( 'SC_EVENTS_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_EVENTS_DIR . 'includes/class-sc-events-cpt.php';
@@ -46,6 +46,7 @@ add_action(
 			SC_Events_CPT::seed_categories();
 			SC_Events_CPT::seed_tags();
 			SC_Events_CPT::open_comments_on_existing_events();
+			SC_Events_CPT::backfill_organizer_terms();
 			update_option( 'sc_events_db_version', SC_EVENTS_VERSION );
 		}
 	}
