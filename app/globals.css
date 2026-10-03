@@ -3295,6 +3295,37 @@ a.card-category:hover {
   line-height: 1.4;
 }
 
+/* Wider still — the side-by-side free/featured comparison below needs
+   more room than plain benefit copy to read as two real cards rather
+   than two cramped columns. .auth-page.directory-featured-page (not
+   just the bare class) so this reliably wins over .auth-page's own
+   max-width regardless of the two rules' order in the file. */
+.auth-page.directory-featured-page {
+  max-width: 720px;
+}
+
+.directory-compare-heading {
+  margin-top: 2rem;
+}
+
+.directory-compare-list {
+  margin-bottom: 1.5rem;
+}
+
+/* Stands in for a real photo — same spot/sizing a real listing's image
+   would take (.post-list li img's own width/aspect-ratio), just a flat
+   tint since there's no actual photo for an illustrative example card.
+   .post-list prefixed (two classes) — it's a direct-child <div> of the
+   card <li>, same as AdPreview's .ad-card-row, so without this it falls
+   victim to .post-list li > div's blanket "hide the excerpt div" rule. */
+.post-list .directory-compare-image-placeholder {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #dce9f7;
+  margin-bottom: 0.75rem;
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -4313,7 +4344,8 @@ a.card-category:hover {
   display: flex;
 }
 
-.directory-card-socials a {
+.directory-card-socials a,
+.directory-card-socials span {
   color: #777;
 }
 
