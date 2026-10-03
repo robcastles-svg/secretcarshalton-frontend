@@ -1,22 +1,20 @@
 import type { Metadata } from "next";
-import { Fragment } from "react";
+import { Fragment, Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
 import { AdSlot } from "@/app/_components/AdSlot";
 import { CommentCountLink } from "@/app/_components/CommentCountLink";
-import { CommentSection } from "@/app/_components/CommentSection";
+import { CommentSectionAsync } from "@/app/_components/CommentSectionAsync";
 import { ContentList } from "@/app/_components/ContentList";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { SidebarAds } from "@/app/_components/SidebarAds";
-import { getSessionToken } from "@/lib/auth";
 import {
   getAd,
   getAllPageSlugs,
   getCategories,
   getCommentsForPost,
   getFeaturedImage,
-  getMemberMe,
   getMembersByIds,
   getPageBySlug,
   getPostBySlug,
@@ -151,13 +149,12 @@ export default async function ContentPage({
     );
   }
 
-  const [allCategories, allTags, comments, fullThread, sessionToken, viewCount, topToday, sidebarAd1, sidebarAd2, sidebarAd3] =
+  const [allCategories, allTags, comments, fullThread, viewCount, topToday, sidebarAd1, sidebarAd2, sidebarAd3] =
     await Promise.all([
       getCategories().catch(() => []),
       getTags().catch(() => []),
       getCommentsForPost(post.id, 3).catch(() => []),
       getCommentsForPost(post.id, 50).catch(() => []),
-      getSessionToken(),
       getPostViewCount(post.id),
       // +1: the current post is filtered out below, so ask for one extra
       // to still land on 5 when it would otherwise have been in the list.
@@ -171,12 +168,12 @@ export default async function ContentPage({
       getAd("sidebar", 3),
     ]);
 
-  const [commenterProfileMap, profile] = await Promise.all([
-    getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
-      () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
-    ),
-    sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
-  ]);
+  // The viewer's own session (cookies()) isn't fetched here — see
+  // CommentSectionAsync's docblock for why that has to be isolated behind
+  // its own <Suspense> boundary rather than read directly in this page.
+  const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
+    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
+  );
 
   // Mirrors the live site's real in-article ad positions (groups 5 and 7
   // sampled mid-article and near the end) — only inserted when the post
@@ -280,13 +277,9 @@ export default async function ContentPage({
             ))}
           </div>
 
-          <CommentSection
-            postId={post.id}
-            comments={fullThread}
-            isLoggedIn={Boolean(sessionToken)}
-            commenterProfiles={commenterProfileMap}
-            currentUserId={profile?.id}
-          />
+          <Suspense fallback={null}>
+            <CommentSectionAsync postId={post.id} comments={fullThread} commenterProfiles={commenterProfileMap} />
+          </Suspense>
 
           {relatedPosts.length > 0 && (
             <section className="related-stories">

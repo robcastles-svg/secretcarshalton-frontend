@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import Link from "next/link";
+import { Suspense } from "react";
 import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
-import { getSessionToken } from "@/lib/auth";
 import { ActiveNavSectionProvider } from "./_components/ActiveNavSection";
 import { AdSlot } from "./_components/AdSlot";
 import { BackToTop } from "./_components/BackToTop";
+import { MemberBenefitsBar } from "./_components/MemberBenefitsBar";
 import { PrimaryNav } from "./_components/PrimaryNav";
 import { SiteDateWeather } from "./_components/SiteDateWeather";
+import { UtilityNavAuth } from "./_components/UtilityNavAuth";
 import "./globals.css";
 
 const roboto = Roboto({
@@ -79,11 +81,10 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [stories, walks, allCategories, sessionToken] = await Promise.all([
+  const [stories, walks, allCategories] = await Promise.all([
     getCategoryBySlug("stories"),
     getCategoryBySlug("walks"),
     getCategories(),
-    getSessionToken(),
   ]);
   const storyAreas = stories ? allCategories.filter((c) => c.parent === stories.id && c.count > 0) : [];
   const walkDistances = walks ? allCategories.filter((c) => c.parent === walks.id && c.count > 0) : [];
@@ -96,11 +97,17 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
         />
-        <div className={`member-benefits-bar${sessionToken ? " member-benefits-bar-loggedin" : ""}`}>
-          <Link href={sessionToken ? "/dashboard" : "/register"} className="container member-benefits-inner">
-            {sessionToken ? "Member dashboard" : "Member benefits"}
-          </Link>
-        </div>
+        <Suspense
+          fallback={
+            <div className="member-benefits-bar">
+              <Link href="/register" className="container member-benefits-inner">
+                Member benefits
+              </Link>
+            </div>
+          }
+        >
+          <MemberBenefitsBar />
+        </Suspense>
         {/*
          * Just the one top-of-page ad slot now — billboard, admin-managed
          * via sc-ads. Used to be paired with a second "leaderboard" slot
@@ -131,14 +138,16 @@ export default async function RootLayout({
                   </Link>
                 )
               )}
-              {sessionToken ? (
-                <Link href="/dashboard">Member dashboard</Link>
-              ) : (
-                <>
-                  <Link href="/register">Join</Link>
-                  <Link href="/login">Login</Link>
-                </>
-              )}
+              <Suspense
+                fallback={
+                  <>
+                    <Link href="/register">Join</Link>
+                    <Link href="/login">Login</Link>
+                  </>
+                }
+              >
+                <UtilityNavAuth />
+              </Suspense>
             </div>
           </div>
         </div>
