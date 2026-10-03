@@ -4013,6 +4013,16 @@ a.card-category:hover {
   margin: 0.6rem 1rem 0;
 }
 
+/* Organiser sidebar block's "More info" + "See all events by" pair —
+   wraps on narrow sidebars instead of the two button-pills (display:
+   inline-block, no gap on their own) running flush into each other. */
+.sidebar-block-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
 /* Two classes beats .post-list li > div's (0,1,2) specificity (line ~510),
    which otherwise blanket-hides every direct-child <div> of a card <li> —
    this was silently swallowing the socials row on every directory card

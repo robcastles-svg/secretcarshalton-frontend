@@ -34,12 +34,11 @@ export default async function EventsByOrganizerPage({
       <span className="theme-eyebrow">Events by this organiser</span>
       <h1>{organizer?.name}</h1>
       {organizer?.address && <p className="dashboard-hint">{organizer.address}</p>}
+      {organizer?.phone && <p className="dashboard-hint">{organizer.phone}</p>}
       {organizer?.url && (
-        <p>
-          <a href={organizer.url} target="_blank" rel="noopener noreferrer">
-            {organizer.url.replace(/^https?:\/\//, "")}
-          </a>
-        </p>
+        <a href={organizer.url} target="_blank" rel="noopener noreferrer" className="button-pill button-pill-secondary">
+          More info
+        </a>
       )}
       <ul className="post-list">
         {events.map((event) => {

@@ -274,20 +274,29 @@ export default async function EventPage({
         {event.sc_event_organizer_profile && (
           <div className="sidebar-block">
             <h2>Organiser</h2>
-            <p>{event.sc_event_organizer_profile.name}</p>
+            <p>
+              <Link href={`/events/organiser/${event.sc_event_organizer_profile.slug}`}>
+                {event.sc_event_organizer_profile.name}
+              </Link>
+            </p>
             {event.sc_event_organizer_profile.address && <p>{event.sc_event_organizer_profile.address}</p>}
             {event.sc_event_organizer_profile.phone && <p>{event.sc_event_organizer_profile.phone}</p>}
-            {event.sc_event_organizer_profile.url && (
-              <p>
-                <a href={event.sc_event_organizer_profile.url} target="_blank" rel="noopener noreferrer">
-                  {event.sc_event_organizer_profile.url.replace(/^https?:\/\//, "")}
-                </a>
-              </p>
-            )}
             {event.sc_event_organizer_profile.socials && <p>{event.sc_event_organizer_profile.socials}</p>}
-            <Link href={`/events/organiser/${event.sc_event_organizer_profile.slug}`} className="button-pill button-pill-secondary">
-              See all events by {event.sc_event_organizer_profile.name}
-            </Link>
+            <div className="sidebar-block-actions">
+              {event.sc_event_organizer_profile.url && (
+                <a
+                  href={event.sc_event_organizer_profile.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="button-pill button-pill-secondary"
+                >
+                  More info
+                </a>
+              )}
+              <Link href={`/events/organiser/${event.sc_event_organizer_profile.slug}`} className="button-pill button-pill-secondary">
+                See all events by {event.sc_event_organizer_profile.name}
+              </Link>
+            </div>
           </div>
         )}
 
@@ -296,11 +305,9 @@ export default async function EventPage({
             <h2>More info</h2>
             {addressParts.length > 0 && <p>{addressParts.join(", ")}</p>}
             {event.meta.sc_event_url && (
-              <p>
-                <a href={event.meta.sc_event_url} target="_blank" rel="noopener noreferrer">
-                  {event.meta.sc_event_url.replace(/^https?:\/\//, "")}
-                </a>
-              </p>
+              <a href={event.meta.sc_event_url} target="_blank" rel="noopener noreferrer" className="button-pill">
+                Tickets / more info
+              </a>
             )}
           </div>
         )}
