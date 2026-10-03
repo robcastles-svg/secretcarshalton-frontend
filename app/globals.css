@@ -3277,6 +3277,24 @@ a.card-category:hover {
   max-width: 420px;
 }
 
+/* Wider than the plain login/register forms above — benefit copy plus a
+   bulleted list reads cramped at 420px. */
+.event-manager-page {
+  max-width: 560px;
+}
+
+.event-manager-benefits {
+  margin: 1.5rem 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.event-manager-benefits li {
+  line-height: 1.4;
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;

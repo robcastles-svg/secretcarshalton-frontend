@@ -284,7 +284,13 @@ export default async function DashboardPage() {
         </section>
 
         <section className="dashboard-section">
-          <h3>Your event{myEvents.length === 1 ? "" : "s"}</h3>
+          {/* "Event Manager" (not "Your events") — same name the old
+              EventON "What's On Event Manager" used for this, and worth
+              promoting on its own terms: adding your own events is a
+              distinct member benefit, not just a list of what you've
+              submitted. The button below keeps its own "Submit an event"
+              wording. */}
+          <h3>Event Manager</h3>
           {myEvents.length === 0 ? (
             <p className="dashboard-hint">Nothing submitted yet.</p>
           ) : (

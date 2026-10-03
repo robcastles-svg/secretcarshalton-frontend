@@ -7,7 +7,7 @@ export const metadata = { title: "Submit an event — Secret Carshalton" };
 
 export default async function EventsSubmitPage() {
   const token = await getSessionToken();
-  if (!token) redirect("/login");
+  if (!token) redirect("/events/manager");
 
   const [categories, tags, listings, venues, organizers] = await Promise.all([
     getScEventCategories().catch(() => []),
