@@ -580,16 +580,18 @@ a.ad-slot-text-image img {
    layout reads as oversized — the image alone spans the whole content
    column. Desktop only: each card becomes its own 2-column grid, a
    thumbnail on the left and title/tag/category/date stacked on the
-   right — a denser row, not a giant block. The thumbnail spans every
-   row the text column uses (grid-row: 1 / -1, align-self: stretch) and
-   is itself height: 100%/object-fit: cover, so it butts up against the
-   card's actual bottom edge instead of sitting at a fixed 180px with
-   blank card background below it whenever the text column runs taller.
-   Mobile keeps the ordinary vertical card (full-width image makes sense
-   again once there's no second column to compare it against). The image
-   link is always the <li>'s first child when present (see
-   PostListCard) — targeted positionally rather than needing its own
-   class. */
+   right — a denser row, not a giant block. The thumbnail is a fixed,
+   uniform size on every card (not stretched to match each card's own
+   text length — that made images vary card to card, since one card's
+   text column is naturally taller than another's) and is pinned to the
+   bottom of its grid area (grid-row: 1 / -1, align-self: end), so it
+   still butts up against the card's actual bottom edge — any slack from
+   a shorter text column shows as space above the image instead of
+   stretching the image itself or leaving a gap below it. Mobile keeps
+   the ordinary vertical card (full-width image makes sense again once
+   there's no second column to compare it against). The image link is
+   always the <li>'s first child when present (see PostListCard) —
+   targeted positionally rather than needing its own class. */
 @media (min-width: 720px) {
   /* .post-list.post-list-single-column (both classes), not just
      .post-list-single-column — needed to out-specificity .post-list li's
@@ -625,17 +627,18 @@ a.ad-slot-text-image img {
      title, category, meta-row, and for the interleaved Featured card
      also badge/excerpt/socials below) each auto-place into their own
      row within column 2, so the text column is several grid rows deep,
-     not one. Without spanning every row, the image only filled row 1's
-     height and left blank card background under it for the height of
-     every row below — the "gap at the bottom" this is fixing. */
+     not one. The image's own grid area needs to span that full height
+     too (even though the image itself stays a fixed size within it) so
+     align-self: end has the whole card's height to push down against —
+     spanning only row 1 would pin it to row 1's bottom, not the card's. */
   .post-list-single-column li > a:first-child {
     grid-column: 1;
     grid-row: 1 / -1;
-    align-self: stretch;
+    align-self: end;
   }
 
   .post-list-single-column li > a:first-child img {
-    height: 100%;
+    height: 180px;
     aspect-ratio: auto;
     margin-bottom: 0;
   }
