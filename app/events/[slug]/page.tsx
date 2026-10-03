@@ -346,7 +346,7 @@ export default async function EventPage({
                 </p>
               )
             )}
-            {startDate && startDate.getTime() > Date.now() && <EventTimeLeft startIso={event.meta.sc_start} />}
+            {startDate && startDate.getTime() > Date.now() && <EventTimeLeft targetMs={startDate.getTime()} />}
           </div>
         </div>
         {image && <img src={image.source_url} alt={image.alt_text} />}

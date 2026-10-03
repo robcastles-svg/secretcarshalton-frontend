@@ -26,16 +26,23 @@ function timeRemaining(target: number): Remaining {
  * Ticks client-side; renders nothing once the countdown reaches zero
  * rather than freezing at 0:00:00 (the event has started by then, not
  * "time left").
+ *
+ * Takes the already-parsed timestamp, not the raw meta.sc_start string —
+ * WordPress's own format ("2026-10-22T19:30+0:00") isn't standard ISO
+ * 8601 (that trailing "+0:00" offset, not "+00:00"), so a plain
+ * `new Date(raw)` silently produces an Invalid Date in some engines. The
+ * page already runs this through lib/wordpress.ts's parseEventDate for
+ * the date tile and time row above; this reuses that same result rather
+ * than re-parsing the raw string a second, less careful way.
  */
-export function EventTimeLeft({ startIso }: { startIso: string }) {
-  const target = new Date(startIso).getTime();
+export function EventTimeLeft({ targetMs }: { targetMs: number }) {
   const [remaining, setRemaining] = useState<Remaining | null>(null);
 
   useEffect(() => {
-    setRemaining(timeRemaining(target));
-    const interval = setInterval(() => setRemaining(timeRemaining(target)), 1000);
+    setRemaining(timeRemaining(targetMs));
+    const interval = setInterval(() => setRemaining(timeRemaining(targetMs)), 1000);
     return () => clearInterval(interval);
-  }, [target]);
+  }, [targetMs]);
 
   if (!remaining) return null;
   if (remaining.days === 0 && remaining.hours === 0 && remaining.minutes === 0 && remaining.seconds === 0) {
