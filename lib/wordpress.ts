@@ -1416,19 +1416,30 @@ export async function getScEventsByVenue(venueSlug: string): Promise<WPScEvent[]
 }
 
 /**
- * "All upcoming events by this organiser" — the whole point of making
- * organisers a real taxonomy term instead of a free-text name. Matches by
- * the term's own slug (stable even if the organiser's display name is
- * edited later), fetching the same way getScEventsByVenue/getScEventsByAuthor
- * do rather than trusting the WP REST taxonomy query param, since this
- * CPT's REST layer has already turned out not to support every query
- * param you'd expect (see getScEvents's orderby/meta_value docblock).
+ * Every event by this organiser, past and upcoming both — deliberately
+ * NOT upcoming-only like getScEventsByVenue. An organiser page is meant
+ * to be a real profile ("who are they, what have they run"), and an
+ * organiser whose events have all already happened is a completely
+ * normal case (most things that happened once, happened in the past) —
+ * filtering those out left the page with zero events and a genuine 404
+ * on click, not a "nothing upcoming" message. Matches by the term's own
+ * slug (stable even if the organiser's display name is edited later),
+ * fetching the same way getScEventsByVenue/getScEventsByAuthor do rather
+ * than trusting the WP REST taxonomy query param, since this CPT's REST
+ * layer has already turned out not to support every query param you'd
+ * expect (see getScEvents's orderby/meta_value docblock). Sorted
+ * soonest/most-recent first, same direction isUpcoming callers already
+ * expect from this file's other by-X helpers.
  */
 export async function getScEventsByOrganizer(organizerSlug: string): Promise<WPScEvent[]> {
   const events = await getScEvents(300);
-  return events.filter(
-    (e) => e.sc_event_organizer_profile?.slug === organizerSlug && isUpcoming(e)
-  );
+  return events
+    .filter((e) => e.sc_event_organizer_profile?.slug === organizerSlug)
+    .sort((a, b) => {
+      const aTime = parseEventDate(a.meta.sc_start)?.getTime() ?? 0;
+      const bTime = parseEventDate(b.meta.sc_start)?.getTime() ?? 0;
+      return bTime - aTime;
+    });
 }
 
 /**
