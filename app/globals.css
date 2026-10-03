@@ -1822,6 +1822,20 @@ a.card-category:hover {
 .event-map iframe {
   display: block;
   border-radius: 8px;
+  /*
+   * EventON's own location map (still live on staging at
+   * /whats-on-in-carshalton/ etc) uses a custom dark magenta Google Maps
+   * style — real custom styling needs a Maps JavaScript API key tied to
+   * a billed Google Cloud project (a Map ID + Cloud Console theme), which
+   * this project doesn't have and Rob hasn't asked to set up (see the
+   * in-app draft button in CLAUDE.md for the same "don't add billing
+   * Rob didn't ask for" reasoning). This recolours the existing free
+   * lightweight embed with a CSS filter instead — zero new cost or
+   * infrastructure, same technique widely used for "dark mode" Google
+   * Maps iframes. Applies everywhere .event-map is used (this event's
+   * own page, directory listings) for a consistent look.
+   */
+  filter: invert(90%) hue-rotate(305deg) saturate(2.5) brightness(0.9) contrast(1.05);
 }
 
 .member-promoted-event {
