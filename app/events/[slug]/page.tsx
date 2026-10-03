@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
+import { StyledMap } from "@/app/_components/StyledMap";
 import { getSessionToken } from "@/lib/auth";
 import {
   getCommentsForPost,
@@ -465,14 +466,7 @@ export default async function EventPage({
 
         {mapQuery && (
           <div className="sidebar-block event-map">
-            <iframe
-              title="Event location map"
-              width="100%"
-              height="220"
-              style={{ border: 0 }}
-              loading="lazy"
-              src={`https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`}
-            />
+            <StyledMap query={mapQuery} />
           </div>
         )}
       </aside>

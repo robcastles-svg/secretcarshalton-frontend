@@ -6,6 +6,7 @@ import { CommentSection } from "@/app/_components/CommentSection";
 import { DirectoryImageSlider } from "@/app/_components/DirectoryImageSlider";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { listingSocials } from "@/app/_components/SocialIcons";
+import { StyledMap } from "@/app/_components/StyledMap";
 import { DirectoryBrowse } from "../_components/DirectoryBrowse";
 import { ClaimListingButton } from "./_components/ClaimListingButton";
 import { getSessionToken } from "@/lib/auth";
@@ -158,10 +159,8 @@ export default async function DirectoryListingPage({
     meta.sc_address_postcode,
   ].filter(Boolean);
   const mapQuery = addressParts.join(", ");
-  const mapSrc =
-    meta.sc_lat && meta.sc_lng
-      ? `https://www.google.com/maps?q=${meta.sc_lat},${meta.sc_lng}&z=15&output=embed`
-      : `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`;
+  const mapLat = meta.sc_lat ? Number(meta.sc_lat) : undefined;
+  const mapLng = meta.sc_lng ? Number(meta.sc_lng) : undefined;
 
   const ratings = fullThread.map((c) => c.rating).filter((r): r is number => typeof r === "number");
   const averageRating = ratings.length ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length : null;
@@ -297,14 +296,7 @@ export default async function DirectoryListingPage({
 
         {(mapQuery || (meta.sc_lat && meta.sc_lng)) && (
           <div className="sidebar-block event-map">
-            <iframe
-              title="Listing location map"
-              width="100%"
-              height="220"
-              style={{ border: 0 }}
-              loading="lazy"
-              src={mapSrc}
-            />
+            <StyledMap query={mapQuery} lat={mapLat} lng={mapLng} />
           </div>
         )}
       </aside>
