@@ -4218,12 +4218,18 @@ a.card-category:hover {
    isn't true masonry (items flow down each column before wrapping to the
    next, not strictly by shortest-column), but it's the simplest approach
    that needs no JS and packs the same way visually. Desktop only — a
-   single mobile column has nothing to pack. */
+   single mobile column has nothing to pack.
+   column-fill: balance (the spec default, but set explicitly since it's
+   load-bearing here) asks the browser to equalise total column height
+   rather than just filling column 1 first — the best a CSS-only masonry
+   can do for an odd item count; DirectoryBrowse's own 8-per-page (even,
+   not the shared 9) keeps every *full* page genuinely even besides. */
 @media (min-width: 861px) {
   .directory-list {
     display: block;
     column-count: 2;
     column-gap: 2rem;
+    column-fill: balance;
   }
 
   .directory-list li {

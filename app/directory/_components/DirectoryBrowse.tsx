@@ -105,7 +105,14 @@ export async function DirectoryBrowse({
   const regularListings = sortListings(filteredListings.filter((l) => !l.meta.sc_featured), sort);
 
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
-  const { items: pageListings, page, totalPages } = paginate(regularListings, parsePageParam(rawPage));
+  // An even page size, not the shared PAGE_SIZE (9) every other section
+  // uses — .directory-list's masonry is CSS column-count, which fills
+  // one column completely before starting the next rather than true
+  // shortest-column placement, so an odd item count on a full page
+  // reliably left one column visibly longer than the other. This can't
+  // fix a partial final page (a category total that isn't itself even),
+  // but it does mean every *full* page balances evenly.
+  const { items: pageListings, page, totalPages } = paginate(regularListings, parsePageParam(rawPage), 8);
 
   const buildPageHref = (p: number) => {
     const params = new URLSearchParams();
