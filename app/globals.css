@@ -565,7 +565,13 @@ a.ad-slot-text-image img {
    PostListCard) — targeted positionally rather than needing its own
    class. */
 @media (min-width: 720px) {
-  .post-list-single-column li {
+  /* .post-list.post-list-single-column (both classes), not just
+     .post-list-single-column — needed to out-specificity .post-list li's
+     own display:flex a little further down the file. Equal-specificity
+     selectors resolve by source order, and that base rule comes later,
+     so it was winning and silently turning this grid back into the
+     ordinary flex column card. */
+  .post-list.post-list-single-column li {
     display: grid;
     grid-template-columns: 240px 1fr;
     column-gap: 1.5rem;
@@ -582,10 +588,15 @@ a.ad-slot-text-image img {
     margin-bottom: 0;
   }
 
-  .post-list-single-column .card-tag,
-  .post-list-single-column .card-title,
-  .post-list-single-column .card-category,
-  .post-list-single-column .card-meta-row {
+  /* .post-list prefixed on each of these too, same reason as the li rule
+     above — .post-list .card-title/.card-tag/.card-category/time's 1rem
+     inset-margin rule and .post-list .card-meta-row's own margin-left
+     are both later in the file at equal specificity otherwise, and
+     would silently win back the 1rem this is trying to zero out. */
+  .post-list.post-list-single-column .card-tag,
+  .post-list.post-list-single-column .card-title,
+  .post-list.post-list-single-column .card-category,
+  .post-list.post-list-single-column .card-meta-row {
     grid-column: 2;
     margin-left: 0;
   }
