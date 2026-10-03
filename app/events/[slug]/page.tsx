@@ -282,21 +282,22 @@ export default async function EventPage({
             {event.sc_event_organizer_profile.address && <p>{event.sc_event_organizer_profile.address}</p>}
             {event.sc_event_organizer_profile.phone && <p>{event.sc_event_organizer_profile.phone}</p>}
             {event.sc_event_organizer_profile.socials && <p>{event.sc_event_organizer_profile.socials}</p>}
-            <div className="sidebar-block-actions">
-              {event.sc_event_organizer_profile.url && (
-                <a
-                  href={event.sc_event_organizer_profile.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="button-pill button-pill-secondary"
-                >
-                  More info
-                </a>
-              )}
-              <Link href={`/events/organiser/${event.sc_event_organizer_profile.slug}`} className="button-pill button-pill-secondary">
-                See all events by {event.sc_event_organizer_profile.name}
+            {/*
+             * Goes to the organiser's own page, not profile.url directly —
+             * that field is free text an organiser typed in when they were
+             * created (see SC_Events_CPT::backfill_organizer_terms for the
+             * legacy events it was migrated from), so it isn't guaranteed
+             * to be a working link. The organiser page shows their real
+             * website too when it has one, plus every other event by them.
+             */}
+            <p>
+              <Link
+                href={`/events/organiser/${event.sc_event_organizer_profile.slug}`}
+                className="button-pill button-pill-secondary"
+              >
+                More info
               </Link>
-            </div>
+            </p>
           </div>
         )}
 
