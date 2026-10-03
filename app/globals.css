@@ -579,11 +579,12 @@ a.ad-slot-text-image img {
 /* A single full-width card using the normal vertical (image-on-top)
    layout reads as oversized — the image alone spans the whole content
    column. Desktop only: each card becomes its own 2-column grid, a
-   fixed-size thumbnail on the left and title/tag/category/date stacked
-   on the right — a denser row, not a giant block. The thumbnail's own
-   height is fixed (not stretched to match the text column) since grid
-   row heights are otherwise auto/content-driven here — simpler and more
-   predictable than trying to match a height nothing else constrains.
+   thumbnail on the left and title/tag/category/date stacked on the
+   right — a denser row, not a giant block. The thumbnail spans every
+   row the text column uses (grid-row: 1 / -1, align-self: stretch) and
+   is itself height: 100%/object-fit: cover, so it butts up against the
+   card's actual bottom edge instead of sitting at a fixed 180px with
+   blank card background below it whenever the text column runs taller.
    Mobile keeps the ordinary vertical card (full-width image makes sense
    again once there's no second column to compare it against). The image
    link is always the <li>'s first child when present (see
@@ -599,16 +600,42 @@ a.ad-slot-text-image img {
   .post-list.post-list-single-column li {
     display: grid;
     grid-template-columns: 240px 1fr;
+    /* Declared explicitly (rather than left implicit) so the image's
+       "grid-row: 1 / -1" below has a real last line to span to — with no
+       grid-template-rows at all, the explicit grid has zero row tracks,
+       and a negative line index counts from the end of the EXPLICIT grid
+       only, so "-1" silently resolved to line 1 (no span at all) rather
+       than the last of the text column's actual (implicit) rows. 10 auto
+       rows is more than the text column ever needs (tag/title/category/
+       meta-row is 4; the interleaved Featured card's title/badge/multiple
+       categories/excerpt/socials/meta-row tops out lower than that) —
+       unused trailing rows have no content assigned to them, so they
+       size to 0 and cost nothing. */
+    grid-template-rows: repeat(10, auto);
     column-gap: 1.5rem;
-    align-items: start;
+    /* Zeroed so the stretched image (below) can reach the card's actual
+       bottom edge — .post-list li's shared 1rem bottom padding otherwise
+       left a blank strip under the thumbnail. Restored on .card-meta-row
+       instead, which is always the last element in the text column, so
+       that column still gets its usual breathing room underneath. */
+    padding-bottom: 0;
   }
 
+  /* grid-row: 1 / -1 (not just "grid-column: 1") — the text side (tag,
+     title, category, meta-row, and for the interleaved Featured card
+     also badge/excerpt/socials below) each auto-place into their own
+     row within column 2, so the text column is several grid rows deep,
+     not one. Without spanning every row, the image only filled row 1's
+     height and left blank card background under it for the height of
+     every row below — the "gap at the bottom" this is fixing. */
   .post-list-single-column li > a:first-child {
     grid-column: 1;
+    grid-row: 1 / -1;
+    align-self: stretch;
   }
 
   .post-list-single-column li > a:first-child img {
-    height: 180px;
+    height: 100%;
     aspect-ratio: auto;
     margin-bottom: 0;
   }
@@ -622,6 +649,23 @@ a.ad-slot-text-image img {
   .post-list.post-list-single-column .card-title,
   .post-list.post-list-single-column .card-category,
   .post-list.post-list-single-column .card-meta-row {
+    grid-column: 2;
+    margin-left: 0;
+  }
+
+  .post-list.post-list-single-column .card-meta-row {
+    padding-bottom: 1rem;
+  }
+
+  /* DirectoryListingCard's own extra elements — the interleaved Featured
+     listing card (News's featuredListing slot) renders these alongside
+     the card-title/card-category above, but PostListCard never has them,
+     so the row-layout rules above never positioned them. Without this
+     they fall back to CSS Grid auto-placement in column 1, under the
+     thumbnail, which is the broken layout reported on News desktop. */
+  .post-list.post-list-single-column .directory-badge,
+  .post-list.post-list-single-column li > p,
+  .post-list.post-list-single-column .directory-card-socials {
     grid-column: 2;
     margin-left: 0;
   }

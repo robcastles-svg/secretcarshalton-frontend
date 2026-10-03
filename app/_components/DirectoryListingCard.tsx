@@ -20,24 +20,37 @@ export function DirectoryListingCard({
 
   return (
     <li className={listing.meta.sc_featured ? "directory-card-featured" : undefined}>
-      <Link href={`/directory/${listing.slug}`}>
-        {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
-        <span className="card-title">
-          {verified && (
-            <svg
-              className="directory-verified-check directory-verified-check-sm"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-label="Verified listing"
-            >
-              <circle cx="12" cy="12" r="10" fill="#0a5c36" />
-              <path d="M7 12.5l3 3 7-7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          )}
-          <span dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
-        </span>
+      {/*
+       * Image and title as two separate links (both to the same listing),
+       * not one wrapping both — matches PostListCard's own pattern (see
+       * that component's docblock). This card gets interleaved into
+       * .post-list grids built for PostListCard elsewhere (News's
+       * featuredListing slot, Discover), whose desktop row-layout CSS
+       * targets the image as "the <li>'s first child" and the title as
+       * its own positioned grid item — a single wrapping link doesn't
+       * let the two end up in different grid columns, which is how the
+       * featured card's image+badge ended up visually broken on News.
+       */}
+      {image && (
+        <Link href={`/directory/${listing.slug}`}>
+          <img src={image.source_url} alt={image.alt_text} loading="lazy" />
+        </Link>
+      )}
+      <Link href={`/directory/${listing.slug}`} className="card-title">
+        {verified && (
+          <svg
+            className="directory-verified-check directory-verified-check-sm"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            aria-label="Verified listing"
+          >
+            <circle cx="12" cy="12" r="10" fill="#0a5c36" />
+            <path d="M7 12.5l3 3 7-7" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
+        <span dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
       </Link>
       {listing.meta.sc_featured && <span className="directory-badge">Featured</span>}
       {categoriesList?.map((category) => (
