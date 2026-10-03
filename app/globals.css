@@ -4742,6 +4742,17 @@ a.card-category:hover {
   margin: 1rem 0;
 }
 
+/* Reused on /dashboard/upgrade too — same pitch at the actual point of
+   requesting the upgrade, not just on the marketing page. */
+.advertise-benefits {
+  margin: 1rem 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+}
+
 .advertise-price {
   margin: 1rem 0;
   font-size: 0.95rem;

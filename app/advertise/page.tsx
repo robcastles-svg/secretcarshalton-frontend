@@ -72,9 +72,14 @@ export default async function AdvertisePage() {
             Upgrade a free business listing to featured — the long-form version with your full
             details, photos and socials, plus a featured spot at the top of your category.
           </p>
+          <ul className="advertise-benefits">
+            <li>Around 150 views a month from your category pages alone</li>
+            <li>Top ranking, above every free listing in your category</li>
+            <li>A mention in our Facebook/Instagram stories</li>
+          </ul>
           <p className="advertise-price">
             <strong>£10/month</strong>
-            <span className="advertise-price-note"> — a monthly subscription, cancel any time.</span>
+            <span className="advertise-price-note"> — billed annually (£120/year), cancel any time.</span>
           </p>
           <div className="advertise-cta-row">
             <Link href="/directory/submit" className="button-pill button-pill-secondary">

@@ -176,8 +176,9 @@ export function SubmitUpgradeRequest({
       {photos.length > 0 && <p className="auth-hint">{photos.length} photo(s) selected.</p>}
 
       <p className="dashboard-hint">
-        £10/month, cancel any time. There&apos;s no automated payment yet — once you submit this, we&apos;ll
-        review it and get in touch to arrange payment (PayPal). Nothing is charged now.
+        £10/month, billed annually (£120/year), cancel any time. There&apos;s no automated payment yet — once
+        you submit this, we&apos;ll review it and get in touch to arrange payment (PayPal). Nothing is charged
+        now.
       </p>
 
       {error && <p className="auth-error">{error}</p>}
