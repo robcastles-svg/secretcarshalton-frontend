@@ -61,6 +61,13 @@ class SC_Events_REST {
 			)
 		);
 
+		/**
+		 * Organiser *terms* already have their own core REST route for free
+		 * (wp/v2/sc_event_organizer, since the taxonomy is show_in_rest) —
+		 * no custom /organizers route needed the way /venues was, because
+		 * venue is free text with no taxonomy behind it.
+		 */
+
 		register_rest_route(
 			'sc-events/v1',
 			'/(?P<id>\d+)',
@@ -187,6 +194,39 @@ class SC_Events_REST {
 						'id'   => $listing->ID,
 						'name' => get_the_title( $listing ),
 						'slug' => $listing->post_name,
+					);
+				},
+				'schema'       => array( 'type' => 'object' ),
+			)
+		);
+
+		/**
+		 * Resolves the attached sc_event_organizer term (if any) plus its
+		 * term meta into what the frontend needs to render a structured
+		 * "Organised By" block and link to "other events by this
+		 * organiser" — one field instead of a second fetch per event. Null
+		 * whenever no organiser term is attached, which is still the case
+		 * for every event that only ever had the legacy free-text
+		 * sc_organizer/sc_event_url pair; the frontend falls back to those.
+		 */
+		register_rest_field(
+			SC_Events_CPT::POST_TYPE,
+			'sc_event_organizer_profile',
+			array(
+				'get_callback' => function ( $post ) {
+					$terms = wp_get_post_terms( $post['id'], SC_Events_CPT::ORGANIZER_TAXONOMY );
+					if ( empty( $terms ) || is_wp_error( $terms ) ) {
+						return null;
+					}
+					$term = $terms[0];
+					return array(
+						'id'      => $term->term_id,
+						'name'    => $term->name,
+						'slug'    => $term->slug,
+						'address' => get_term_meta( $term->term_id, 'sc_organizer_address', true ),
+						'phone'   => get_term_meta( $term->term_id, 'sc_organizer_phone', true ),
+						'url'     => get_term_meta( $term->term_id, 'sc_organizer_url', true ),
+						'socials' => get_term_meta( $term->term_id, 'sc_organizer_socials', true ),
 					);
 				},
 				'schema'       => array( 'type' => 'object' ),
@@ -483,6 +523,88 @@ class SC_Events_REST {
 		}
 
 		self::set_listing_from_request( $post_id, $request );
+		self::set_organizer_from_request( $post_id, $request );
+	}
+
+	/**
+	 * Attaches a reusable sc_event_organizer term to this event — either an
+	 * existing one (organizer_id, picked from the form's list) or a brand
+	 * new one (organizer_name + optional address/phone/url/socials, typed
+	 * in by the submitter). Members have no manage_categories capability
+	 * so they can't create or edit a term through WordPress's own REST
+	 * auth — same capability gap check_owns_event's docblock covers for
+	 * post editing — so this does the term creation/attachment itself in
+	 * PHP, the same "the REST layer trusts its own validation" pattern
+	 * set_listing_from_request already uses for listing_id.
+	 *
+	 * Leaves the legacy sc_organizer/sc_event_url meta fields completely
+	 * alone — both mechanisms can coexist on the same event, and the
+	 * frontend prefers this structured profile when one is attached.
+	 *
+	 * organizer_id = 0 (or any falsy value) clears the association, same
+	 * as listing_id's own convention. organizer_id takes priority over
+	 * organizer_name when both are somehow present (picking an existing
+	 * organiser and also typing a name shouldn't create a duplicate).
+	 */
+	private static function set_organizer_from_request( $post_id, WP_REST_Request $request ) {
+		// organizer_id, whenever the key is present at all (even "" or "0"),
+		// is the authoritative signal: it either attaches a known term or
+		// explicitly clears the association. Only when the key is entirely
+		// absent does the form mean "I'm adding a brand new one" — see
+		// organizer_name below. This mirrors set_listing_from_request's own
+		// "falsy clears, explicit presence required" convention.
+		$organizer_id = $request->get_param( 'organizer_id' );
+		if ( null !== $organizer_id ) {
+			$organizer_id = (int) $organizer_id;
+			if ( ! $organizer_id ) {
+				wp_set_object_terms( $post_id, array(), SC_Events_CPT::ORGANIZER_TAXONOMY );
+				return;
+			}
+			$term = get_term( $organizer_id, SC_Events_CPT::ORGANIZER_TAXONOMY );
+			if ( $term && ! is_wp_error( $term ) ) {
+				wp_set_object_terms( $post_id, array( $organizer_id ), SC_Events_CPT::ORGANIZER_TAXONOMY );
+			}
+			return;
+		}
+
+		$name = $request->get_param( 'organizer_name' );
+		if ( null === $name || '' === trim( (string) $name ) ) {
+			return;
+		}
+		$name = sanitize_text_field( (string) $name );
+
+		// Reusing an existing organiser's name attaches that same term
+		// rather than creating a near-duplicate — but never overwrites
+		// their already-stored contact details just because a second
+		// submitter typed the same name in the "add new" field.
+		$existing = get_term_by( 'name', $name, SC_Events_CPT::ORGANIZER_TAXONOMY );
+		if ( $existing ) {
+			wp_set_object_terms( $post_id, array( $existing->term_id ), SC_Events_CPT::ORGANIZER_TAXONOMY );
+			return;
+		}
+
+		$inserted = wp_insert_term( $name, SC_Events_CPT::ORGANIZER_TAXONOMY );
+		if ( is_wp_error( $inserted ) ) {
+			return;
+		}
+		$term_id = is_array( $inserted ) ? $inserted['term_id'] : $inserted;
+
+		$fields = array(
+			'organizer_address' => 'sc_organizer_address',
+			'organizer_phone'   => 'sc_organizer_phone',
+			'organizer_url'     => 'sc_organizer_url',
+			'organizer_socials' => 'sc_organizer_socials',
+		);
+		foreach ( $fields as $param => $meta_key ) {
+			$value = $request->get_param( $param );
+			if ( null === $value || '' === trim( (string) $value ) ) {
+				continue;
+			}
+			$value = 'sc_organizer_url' === $meta_key ? esc_url_raw( (string) $value ) : sanitize_text_field( (string) $value );
+			update_term_meta( $term_id, $meta_key, $value );
+		}
+
+		wp_set_object_terms( $post_id, array( $term_id ), SC_Events_CPT::ORGANIZER_TAXONOMY );
 	}
 
 	/**

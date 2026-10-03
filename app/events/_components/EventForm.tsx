@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import type { MyListing, WPEventVenue, WPScEventCategory, WPScEventTag } from "@/lib/wordpress";
+import type { MyListing, WPEventOrganizer, WPEventVenue, WPScEventCategory, WPScEventTag } from "@/lib/wordpress";
 
 export interface EventFormInitial {
   title: string;
@@ -11,14 +11,18 @@ export interface EventFormInitial {
   end: string;
   venue_name: string;
   venue_address: string;
+  /** Legacy free-text organiser name — still shown/sent for events that predate the organiser picker below. */
   organizer: string;
   event_url: string;
+  /** Term ID of the attached sc_event_organizer profile, if any — takes priority over the legacy `organizer` text above. */
+  organizer_id: string;
   category: string;
   tags: string[];
   listing_id: string;
 }
 
 const NEW_VENUE = "__new__";
+const NEW_ORGANIZER = "__new__";
 
 /**
  * Shared by /events/submit (create, always lands as 'pending') and
@@ -34,6 +38,7 @@ export function EventForm({
   tags,
   listings,
   venues,
+  organizers,
   initial,
 }: {
   mode: "create" | "edit";
@@ -43,6 +48,7 @@ export function EventForm({
   tags: WPScEventTag[];
   listings: MyListing[];
   venues: WPEventVenue[];
+  organizers: WPEventOrganizer[];
   initial?: EventFormInitial;
 }) {
   const router = useRouter();
@@ -75,6 +81,39 @@ export function EventForm({
     setVenueAddress(venues.find((v) => v.name === value)?.address ?? "");
   }
 
+  // Same "land on the free-text input, don't silently drop it" reasoning
+  // as the venue state above: an event whose organiser was only ever the
+  // legacy sc_organizer text (no profile attached yet) should open on
+  // "add a new organiser" pre-filled with that name, not a blank picker.
+  const [addingNewOrganizer, setAddingNewOrganizer] = useState(
+    Boolean(initial?.organizer) && !initial?.organizer_id
+  );
+  const [organizerId, setOrganizerId] = useState(initial?.organizer_id ?? "");
+  const [organizerName, setOrganizerName] = useState(
+    !initial?.organizer_id ? initial?.organizer ?? "" : ""
+  );
+  const [organizerAddress, setOrganizerAddress] = useState("");
+  const [organizerPhone, setOrganizerPhone] = useState("");
+  const [organizerUrl, setOrganizerUrl] = useState("");
+  const [organizerSocials, setOrganizerSocials] = useState("");
+
+  function handleOrganizerSelect(value: string) {
+    if (value === NEW_ORGANIZER) {
+      setAddingNewOrganizer(true);
+      setOrganizerId("");
+      setOrganizerName("");
+      setOrganizerAddress("");
+      setOrganizerPhone("");
+      setOrganizerUrl("");
+      setOrganizerSocials("");
+      return;
+    }
+    setAddingNewOrganizer(false);
+    setOrganizerId(value);
+  }
+
+  const selectedOrganizer = organizers.find((o) => String(o.id) === organizerId);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
@@ -82,12 +121,25 @@ export function EventForm({
 
     const form = new FormData(e.currentTarget);
     const data: Record<string, string | string[]> = {};
-    for (const key of ["title", "description", "start", "end", "organizer", "event_url", "category", "listing_id"]) {
+    for (const key of ["title", "description", "start", "end", "event_url", "category", "listing_id"]) {
       data[key] = String(form.get(key) ?? "");
     }
     data.venue_name = venueName;
     data.venue_address = venueAddress;
     data.tags = selectedTags;
+
+    // See SC_Events_REST::set_organizer_from_request's docblock: organizer_id
+    // present (even "") means "attach this term or clear the association";
+    // its total absence is what signals "attach a brand new one by name".
+    if (addingNewOrganizer) {
+      data.organizer_name = organizerName;
+      data.organizer_address = organizerAddress;
+      data.organizer_phone = organizerPhone;
+      data.organizer_url = organizerUrl;
+      data.organizer_socials = organizerSocials;
+    } else {
+      data.organizer_id = organizerId;
+    }
 
     const endpoint = mode === "create" ? "/api/events/submit" : `/api/events/${eventId}`;
     const res = await fetch(endpoint, {
@@ -165,15 +217,68 @@ export function EventForm({
         <input type="text" value={venueAddress} onChange={(e) => setVenueAddress(e.target.value)} />
       </label>
       <label>
-        Organiser / company name
-        <input type="text" name="organizer" defaultValue={initial?.organizer} placeholder="e.g. Carshalton Rotary Club" />
+        Organiser
+        <select value={addingNewOrganizer ? NEW_ORGANIZER : organizerId} onChange={(e) => handleOrganizerSelect(e.target.value)}>
+          <option value="">No organiser / just me</option>
+          {organizers.map((o) => (
+            <option key={o.id} value={o.id}>
+              {o.name}
+            </option>
+          ))}
+          <option value={NEW_ORGANIZER}>+ Add a new organiser</option>
+        </select>
         <span className="event-form-hint">
-          The name shown publicly as who&apos;s running this event — a business or group name, not a personal one.
+          Who&apos;s running this event — a business or group, not a personal name. Picking an existing organiser
+          links this event to every other event they&apos;ve run.
         </span>
       </label>
+      {!addingNewOrganizer && selectedOrganizer && (
+        <p className="event-form-hint">
+          {[selectedOrganizer.address, selectedOrganizer.phone, selectedOrganizer.url]
+            .filter(Boolean)
+            .join(" · ") || "No contact details on file for this organiser yet."}
+        </p>
+      )}
+      {addingNewOrganizer && (
+        <>
+          <label>
+            Organiser name
+            <input
+              type="text"
+              value={organizerName}
+              onChange={(e) => setOrganizerName(e.target.value)}
+              placeholder="e.g. Carshalton Rotary Club"
+            />
+          </label>
+          <label>
+            Organiser address
+            <input type="text" value={organizerAddress} onChange={(e) => setOrganizerAddress(e.target.value)} />
+          </label>
+          <label>
+            Organiser phone
+            <input type="tel" value={organizerPhone} onChange={(e) => setOrganizerPhone(e.target.value)} />
+          </label>
+          <label>
+            Organiser website
+            <input type="url" value={organizerUrl} onChange={(e) => setOrganizerUrl(e.target.value)} placeholder="https://" />
+          </label>
+          <label>
+            Organiser social links
+            <input
+              type="text"
+              value={organizerSocials}
+              onChange={(e) => setOrganizerSocials(e.target.value)}
+              placeholder="Facebook, Instagram, etc — paste links separated by commas"
+            />
+          </label>
+        </>
+      )}
       <label>
-        Event website/link
+        Event-specific link (optional)
         <input type="url" name="event_url" placeholder="https://" defaultValue={initial?.event_url} />
+        <span className="event-form-hint">
+          A ticket page or other link just for this event, if different from the organiser&apos;s own website above.
+        </span>
       </label>
       {listings.length > 0 && (
         <label>

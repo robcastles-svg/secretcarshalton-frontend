@@ -25,6 +25,17 @@ class SC_Events_CPT {
 	 * what's already live.
 	 */
 	const TAG_TAXONOMY = 'sc_event_tag';
+	/**
+	 * Reusable organiser profiles (name + address/phone/url/socials as term
+	 * meta — see SC_Events_Organizer_Meta) — a real taxonomy rather than
+	 * sc_organizer's plain free-text meta field, specifically so "all other
+	 * events by this organiser" is a normal term query instead of a
+	 * name-matching hack (the trade-off sc_venue_name's own docblock
+	 * already flags as future work if venues ever need the same). The
+	 * legacy sc_organizer/sc_event_url meta fields stay as the fallback
+	 * for events that only ever had plain text.
+	 */
+	const ORGANIZER_TAXONOMY = 'sc_event_organizer';
 
 	public static function default_categories() {
 		return array(
@@ -80,6 +91,18 @@ class SC_Events_CPT {
 				'show_in_rest' => true,
 				'hierarchical' => false,
 				'rewrite'      => array( 'slug' => 'events/tag' ),
+			)
+		);
+
+		register_taxonomy(
+			self::ORGANIZER_TAXONOMY,
+			self::POST_TYPE,
+			array(
+				'label'        => 'Event Organisers',
+				'public'       => true,
+				'show_in_rest' => true,
+				'hierarchical' => false,
+				'rewrite'      => array( 'slug' => 'events/organiser' ),
 			)
 		);
 	}

@@ -1130,6 +1130,17 @@ export interface WPScEventMeta {
   sc_event_featured: boolean;
 }
 
+/** A reusable organiser profile — see WPEventOrganizer's docblock for where this data actually lives. */
+export interface WPEventOrganizerProfile {
+  id: number;
+  name: string;
+  slug: string;
+  address: string;
+  phone: string;
+  url: string;
+  socials: string;
+}
+
 export interface WPScEvent {
   id: number;
   slug: string;
@@ -1141,11 +1152,15 @@ export interface WPScEvent {
   meta: WPScEventMeta;
   sc_event_category: number[];
   sc_event_tag: number[];
+  /** Term ID(s) of the attached sc_event_organizer taxonomy term, if any — see sc_event_organizer_profile for the resolved version. */
+  sc_event_organizer?: number[];
   sc_event_rsvp_count?: number;
   sc_event_author_is_staff?: boolean;
   sc_event_claim_pending?: boolean;
   sc_event_company?: { id: number; name: string; slug: string } | null;
   sc_event_listing_id?: number;
+  /** Null until an organiser term is attached — every event migrated from EventON only has the legacy meta.sc_organizer/sc_event_url pair instead. */
+  sc_event_organizer_profile?: WPEventOrganizerProfile | null;
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
     author?: WPPublicUser[];
@@ -1296,6 +1311,49 @@ export async function getEventVenues(): Promise<WPEventVenue[]> {
 }
 
 /**
+ * Every organiser already in use, for the add/edit event form's picker —
+ * unlike venues, this is a real taxonomy (sc_event_organizer), so it's
+ * WordPress's own core term REST route rather than a custom one; the
+ * term's own registered meta (see SC_Events_Organizer_Meta) comes back
+ * under `meta` for free once show_in_rest is set on each field.
+ */
+export interface WPEventOrganizer {
+  id: number;
+  name: string;
+  slug: string;
+  address: string;
+  phone: string;
+  url: string;
+  socials: string;
+}
+
+export async function getEventOrganizers(): Promise<WPEventOrganizer[]> {
+  const terms = await scDirectoryFetch<
+    Array<{
+      id: number;
+      name: string;
+      slug: string;
+      meta?: {
+        sc_organizer_address?: string;
+        sc_organizer_phone?: string;
+        sc_organizer_url?: string;
+        sc_organizer_socials?: string;
+      };
+    }>
+  >(`/sc_event_organizer?per_page=100&orderby=name&order=asc`);
+
+  return terms.map((t) => ({
+    id: t.id,
+    name: t.name,
+    slug: t.slug,
+    address: t.meta?.sc_organizer_address ?? "",
+    phone: t.meta?.sc_organizer_phone ?? "",
+    url: t.meta?.sc_organizer_url ?? "",
+    socials: t.meta?.sc_organizer_socials ?? "",
+  }));
+}
+
+/**
  * `orderby=meta_value&meta_key=sc_start` looks like the obvious way to get
  * events in date order from WP's REST API, but this CPT never registered
  * the custom REST query-var support meta-value sorting needs — sending
@@ -1313,7 +1371,7 @@ export async function getScEvents(perPage = 100): Promise<WPScEvent[]> {
   while (events.length < perPage) {
     const batchSize = Math.min(100, perPage - events.length);
     const batch = await scDirectoryFetch<WPScEvent[]>(
-      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,author,title,content,meta,sc_event_category,sc_event_tag,sc_event_rsvp_count,sc_event_author_is_staff,sc_event_company,_links&_embed=author,wp:featuredmedia`
+      `/sc-events?per_page=${batchSize}&page=${page}&_fields=id,slug,link,date,author,title,content,meta,sc_event_category,sc_event_tag,sc_event_rsvp_count,sc_event_author_is_staff,sc_event_company,sc_event_organizer_profile,_links&_embed=author,wp:featuredmedia`
     );
     events.push(...batch);
     if (batch.length < batchSize) break;
@@ -1353,6 +1411,22 @@ export async function getScEventsByVenue(venueSlug: string): Promise<WPScEvent[]
   const events = await getScEvents(300);
   return events.filter(
     (e) => e.meta.sc_venue_name && slugifyVenue(e.meta.sc_venue_name) === venueSlug && isUpcoming(e)
+  );
+}
+
+/**
+ * "All upcoming events by this organiser" — the whole point of making
+ * organisers a real taxonomy term instead of a free-text name. Matches by
+ * the term's own slug (stable even if the organiser's display name is
+ * edited later), fetching the same way getScEventsByVenue/getScEventsByAuthor
+ * do rather than trusting the WP REST taxonomy query param, since this
+ * CPT's REST layer has already turned out not to support every query
+ * param you'd expect (see getScEvents's orderby/meta_value docblock).
+ */
+export async function getScEventsByOrganizer(organizerSlug: string): Promise<WPScEvent[]> {
+  const events = await getScEvents(300);
+  return events.filter(
+    (e) => e.sc_event_organizer_profile?.slug === organizerSlug && isUpcoming(e)
   );
 }
 

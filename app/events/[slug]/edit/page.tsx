@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
 import {
+  getEventOrganizers,
   getEventVenues,
   getMemberMe,
   getMyListings,
@@ -30,13 +31,14 @@ export default async function EditEventPage({
   const token = await getSessionToken();
   if (!token) redirect("/login");
 
-  const [event, profile, categories, tags, listings, venues] = await Promise.all([
+  const [event, profile, categories, tags, listings, venues, organizers] = await Promise.all([
     getScEventBySlug(slug).catch(() => null),
     getMemberMe(token),
     getScEventCategories().catch(() => []),
     getScEventTags().catch(() => []),
     getMyListings(token),
     getEventVenues().catch(() => []),
+    getEventOrganizers().catch(() => []),
   ]);
 
   if (!event) notFound();
@@ -61,6 +63,7 @@ export default async function EditEventPage({
     venue_address: event.meta.sc_venue_address ?? "",
     organizer: event.meta.sc_organizer ?? "",
     event_url: event.meta.sc_event_url ?? "",
+    organizer_id: event.sc_event_organizer_profile ? String(event.sc_event_organizer_profile.id) : "",
     category: category?.slug ?? "",
     tags: eventTags.map((t) => t.slug),
     listing_id: event.sc_event_listing_id ? String(event.sc_event_listing_id) : "",
@@ -77,6 +80,7 @@ export default async function EditEventPage({
         tags={tags}
         listings={listings}
         venues={venues}
+        organizers={organizers}
         initial={initial}
       />
     </main>

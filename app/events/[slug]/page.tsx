@@ -123,7 +123,13 @@ export default async function EventPage({
           address: event.meta.sc_venue_address || undefined,
         }
       : undefined,
-    organizer: event.meta.sc_organizer
+    organizer: event.sc_event_organizer_profile
+      ? {
+          "@type": "Organization",
+          name: event.sc_event_organizer_profile.name,
+          url: event.sc_event_organizer_profile.url || undefined,
+        }
+      : event.meta.sc_organizer
       ? { "@type": "Organization", name: event.meta.sc_organizer, url: event.meta.sc_event_url || undefined }
       : undefined,
     image: image ? [image.source_url] : undefined,
@@ -184,17 +190,26 @@ export default async function EventPage({
                 {eventTypes.map((t) => t.name).join(", ")}
               </p>
             )}
-            {event.meta.sc_organizer && (
+            {event.sc_event_organizer_profile ? (
               <p className="event-meta-row">
                 <span className="event-meta-label">Organised By</span>
-                {event.meta.sc_event_url ? (
-                  <a href={event.meta.sc_event_url} target="_blank" rel="noopener noreferrer">
-                    {event.meta.sc_organizer}
-                  </a>
-                ) : (
-                  event.meta.sc_organizer
-                )}
+                <Link href={`/events/organiser/${event.sc_event_organizer_profile.slug}`}>
+                  {event.sc_event_organizer_profile.name}
+                </Link>
               </p>
+            ) : (
+              event.meta.sc_organizer && (
+                <p className="event-meta-row">
+                  <span className="event-meta-label">Organised By</span>
+                  {event.meta.sc_event_url ? (
+                    <a href={event.meta.sc_event_url} target="_blank" rel="noopener noreferrer">
+                      {event.meta.sc_organizer}
+                    </a>
+                  ) : (
+                    event.meta.sc_organizer
+                  )}
+                </p>
+              )
             )}
           </div>
         </div>
@@ -252,6 +267,26 @@ export default async function EventPage({
       </div>
 
       <aside className="post-sidebar">
+        {event.sc_event_organizer_profile && (
+          <div className="sidebar-block">
+            <h2>Organiser</h2>
+            <p>{event.sc_event_organizer_profile.name}</p>
+            {event.sc_event_organizer_profile.address && <p>{event.sc_event_organizer_profile.address}</p>}
+            {event.sc_event_organizer_profile.phone && <p>{event.sc_event_organizer_profile.phone}</p>}
+            {event.sc_event_organizer_profile.url && (
+              <p>
+                <a href={event.sc_event_organizer_profile.url} target="_blank" rel="noopener noreferrer">
+                  {event.sc_event_organizer_profile.url.replace(/^https?:\/\//, "")}
+                </a>
+              </p>
+            )}
+            {event.sc_event_organizer_profile.socials && <p>{event.sc_event_organizer_profile.socials}</p>}
+            <Link href={`/events/organiser/${event.sc_event_organizer_profile.slug}`} className="button-pill button-pill-secondary">
+              See all events by {event.sc_event_organizer_profile.name}
+            </Link>
+          </div>
+        )}
+
         {(event.meta.sc_event_url || addressParts.length > 0) && (
           <div className="sidebar-block">
             <h2>More info</h2>
