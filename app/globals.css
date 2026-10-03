@@ -4067,6 +4067,19 @@ a.card-category:hover {
   }
 }
 
+/* .post-list li > div's blanket "hide every direct-child div" rule
+   (meant only for PostListCard's unclassed excerpt div, further up this
+   file) was also swallowing .ad-card-row itself — nothing un-hid it
+   outside the mobile media query below, so the desktop "advertise"
+   preview card rendered completely empty (no image, no headline, no
+   body) despite the surrounding border showing. Two classes to beat
+   that rule's specificity, same pattern as .directory-card-socials'
+   equivalent override above. Block, not flex — desktop's vertical
+   shape (image stacked above the text) doesn't need a row. */
+.post-list .ad-card-row {
+  display: block;
+}
+
 /* .ad-card-row, not a bare "a" selector — AdPreview.tsx reuses this same
    layout on a plain <div> (no real link to click on a preview), so the
    selector needs to match both.
@@ -4176,9 +4189,33 @@ a.card-category:hover {
   font-style: italic;
 }
 
-.ad-preview-placeholder-image {
-  border-radius: 6px;
+/* The holding placeholder is an <svg>, not an <img>, so it never matched
+   .post-list li img's base rule (full-width top image, desktop) or the
+   mobile .post-list li.ad-card-external img rule (72px row square) below
+   — it just sat at its raw 52x52 intrinsic size everywhere, which read
+   as a small, oddly-placed icon on desktop's full-width vertical card
+   (the row-layout square it's sized for is mobile-only) rather than the
+   "fills the image slot" placeholder it's meant to be. Mirrored here so
+   it gets the same treatment as a real uploaded image at both widths. */
+.post-list li.ad-card-external .ad-preview-placeholder-image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  display: block;
+  margin-bottom: 0.75rem;
+  border-radius: 0;
   flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .post-list li.ad-card-external .ad-preview-placeholder-image {
+    width: 72px;
+    height: auto;
+    aspect-ratio: auto;
+    align-self: stretch;
+    border-radius: 6px;
+    margin-bottom: 0;
+  }
 }
 
 /* On mobile, jump the preview (and its "this is what it'll look like"
