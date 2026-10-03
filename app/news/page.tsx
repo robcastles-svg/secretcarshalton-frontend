@@ -49,6 +49,7 @@ export default async function NewsPage({
             categoriesById={categoriesById}
             tagsById={tagsById}
             featuredListing={featuredListing}
+            className="post-list-single-column"
           />
           <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/news?page=${p}`} />
         </div>

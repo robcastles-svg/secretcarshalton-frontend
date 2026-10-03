@@ -544,6 +544,13 @@ a.ad-slot-text-image img {
   gap: 2rem;
 }
 
+/* News's own treatment — one column at every width, not the 2-up
+   auto-fill grid every other section (Stories, Walks, Discover) uses,
+   so News reads as a distinct, denser feed rather than matching them. */
+.post-list-single-column {
+  grid-template-columns: 1fr;
+}
+
 .post-list li {
   display: flex;
   flex-direction: column;
@@ -774,6 +781,7 @@ a.ad-slot-text-image img {
 .post-list .card-title,
 .post-list .card-tag,
 .post-list .card-category,
+.post-list .directory-badge,
 .post-list time {
   margin-left: 1rem;
   margin-right: 1rem;
@@ -4136,7 +4144,7 @@ a.card-category:hover {
 @media (min-width: 861px) {
   .directory-list {
     display: block;
-    column-count: 3;
+    column-count: 2;
     column-gap: 2rem;
   }
 
@@ -4148,14 +4156,18 @@ a.card-category:hover {
   }
 }
 
-/* Featured listings' own row, kept off the masonry grid above deliberately —
-   .directory-list's column-count layout fills one column top-to-bottom
-   before starting the next, so featured-first sorting into that same list
-   only ever put them at the top of column 1, not across the top of the
-   page. This stays on .post-list's plain row-based grid at every width, so
-   "along the top on desktop" is just what the grid does by default. No
-   extra margin below it — the regular grid picks up directly after, same
-   gap as between any other pair of cards. */
+/* .directory-featured-list (/community/groups' own featured-group row —
+   see that page) is the one remaining place featured cards get a separate,
+   non-masonry row above the rest: .directory-list's column-count layout
+   fills one column top-to-bottom before starting the next, so featured-
+   first sorting into the *same* masonry list only ever puts them at the
+   top of column 1, not across the top of the page. Directory's own
+   category pages (DirectoryBrowse) used to do this too but don't any
+   more — Rob wants featured listings sitting with the rest, not cordoned
+   off, so they're sorted first into the one shared .directory-list grid
+   instead. No extra margin below .directory-featured-list — the regular
+   grid picks up directly after, same gap as between any other pair of
+   cards. */
 
 @media (max-width: 720px) {
   /* The image is the first thing in the card with nothing above it, so

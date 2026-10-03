@@ -90,18 +90,17 @@ export async function DirectoryBrowse({
     .filter((l) => matchesQuery(l, q))
     .filter((l) => !groupsCategory || !l.sc_listing_category?.includes(groupsCategory.id));
 
-  // Featured listings get their own row above the rest — both on the
-  // unfiltered "All" view and within whichever category is being browsed.
-  // Sorting featured-first into one shared masonry list (the previous
-  // approach) only put them at the top of the *first* CSS column on
-  // desktop, since column-based masonry fills one column fully before
-  // starting the next — splitting them into a separate, non-masonry grid
-  // is what actually gets every featured listing into the top row.
+  // Featured listings sort first, but stay in the same masonry grid as
+  // everything else (not a separate row above it) — Rob wants them
+  // nearer the rest of the page, not visually cordoned off. Un-paginated
+  // (always shown in full, every page of this category) the way the
+  // separate row used to be; regular listings paginate as normal after them.
   const featuredListings = sortListings(filteredListings.filter((l) => l.meta.sc_featured), sort);
   const regularListings = sortListings(filteredListings.filter((l) => !l.meta.sc_featured), sort);
 
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
   const { items: pageListings, page, totalPages } = paginate(regularListings, parsePageParam(rawPage));
+  const gridListings = [...featuredListings, ...pageListings];
 
   const buildPageHref = (p: number) => {
     const params = new URLSearchParams();
@@ -170,25 +169,9 @@ export async function DirectoryBrowse({
             </p>
           ) : (
             <>
-              {featuredListings.length > 0 && (
-                <ul className="post-list directory-featured-list">
-                  {featuredListings.map((listing) => (
-                    <DirectoryListingCard
-                      key={listing.id}
-                      listing={listing}
-                      categoriesList={
-                        listing.sc_listing_category
-                          ?.map((id) => categoriesById.get(id))
-                          .filter((c): c is (typeof categories)[number] => Boolean(c))
-                      }
-                    />
-                  ))}
-                </ul>
-              )}
-
-              {pageListings.length > 0 && (
+              {gridListings.length > 0 && (
                 <ul className="post-list directory-list">
-                  {pageListings.map((listing) => (
+                  {gridListings.map((listing) => (
                     <DirectoryListingCard
                       key={listing.id}
                       listing={listing}

@@ -12,6 +12,7 @@ export function ContentList({
   categoriesById,
   tagsById,
   featuredListing,
+  className,
 }: {
   items: WPContentItem[];
   /** When provided, each card shows its tag above the headline and category below it. */
@@ -19,9 +20,11 @@ export function ContentList({
   tagsById?: Map<number, WPTag>;
   /** A directory listing's own paid-featured slot, interleaved into the grid — see getFeaturedListingForGrid. Pink, like .directory-card-featured everywhere else; blue self-serve ads never mix into this grid, only the sidebar — that visual territory is reserved for featured listings. */
   featuredListing?: WPListing | null;
+  /** Extra class(es) alongside the base .post-list grid — e.g. News's own single-column-on-desktop treatment, see .post-list-single-column. */
+  className?: string;
 }) {
   return (
-    <ul className="post-list">
+    <ul className={className ? `post-list ${className}` : "post-list"}>
       {items.map((item, index) => (
         <Fragment key={item.id}>
           {featuredListing && index === FEATURED_LISTING_POSITION && (
