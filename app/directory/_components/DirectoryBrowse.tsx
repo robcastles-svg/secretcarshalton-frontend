@@ -90,17 +90,22 @@ export async function DirectoryBrowse({
     .filter((l) => matchesQuery(l, q))
     .filter((l) => !groupsCategory || !l.sc_listing_category?.includes(groupsCategory.id));
 
-  // Featured listings sort first, but stay in the same masonry grid as
-  // everything else (not a separate row above it) — Rob wants them
-  // nearer the rest of the page, not visually cordoned off. Un-paginated
-  // (always shown in full, every page of this category) the way the
-  // separate row used to be; regular listings paginate as normal after them.
+  // Featured listings get their own row above the rest, back to a plain
+  // row-based grid rather than merged into .directory-list's masonry —
+  // tried merging them in (sorted first into one shared masonry list) so
+  // they'd sit nearer the rest of the page, but CSS multi-column masonry
+  // fills one column fully top-to-bottom before starting the next, so
+  // "sorted first" only ever guaranteed the top of *column 1* — with real
+  // data (3+ featured, or regular listings of uneven height) they stop
+  // landing "across the top" at all, which is what Rob actually wants.
+  // No extra margin below this row — the masonry grid picks up directly
+  // after, same gap as between any other pair of cards, so it still
+  // reads as nearer than a large separated block.
   const featuredListings = sortListings(filteredListings.filter((l) => l.meta.sc_featured), sort);
   const regularListings = sortListings(filteredListings.filter((l) => !l.meta.sc_featured), sort);
 
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
   const { items: pageListings, page, totalPages } = paginate(regularListings, parsePageParam(rawPage));
-  const gridListings = [...featuredListings, ...pageListings];
 
   const buildPageHref = (p: number) => {
     const params = new URLSearchParams();
@@ -169,9 +174,25 @@ export async function DirectoryBrowse({
             </p>
           ) : (
             <>
-              {gridListings.length > 0 && (
+              {featuredListings.length > 0 && (
+                <ul className="post-list directory-featured-list">
+                  {featuredListings.map((listing) => (
+                    <DirectoryListingCard
+                      key={listing.id}
+                      listing={listing}
+                      categoriesList={
+                        listing.sc_listing_category
+                          ?.map((id) => categoriesById.get(id))
+                          .filter((c): c is (typeof categories)[number] => Boolean(c))
+                      }
+                    />
+                  ))}
+                </ul>
+              )}
+
+              {pageListings.length > 0 && (
                 <ul className="post-list directory-list">
-                  {gridListings.map((listing) => (
+                  {pageListings.map((listing) => (
                     <DirectoryListingCard
                       key={listing.id}
                       listing={listing}

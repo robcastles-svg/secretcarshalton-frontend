@@ -534,20 +534,35 @@ a.ad-slot-text-image img {
 
 /* Content lists (posts/events/archives) — vertical cards, full-width
    image on top, matching the reference screenshots' card orientation
-   (image → headline → category/date), not a horizontal thumbnail list. */
+   (image → headline → category/date), not a horizontal thumbnail list.
+   A flat 2-column cap on desktop/tablet (not auto-fill, which could
+   stretch to 3+ columns on a wide enough viewport) — Rob wants every
+   section except News consistently 2-up, never more, same as Directory's
+   own masonry grid is separately capped at column-count: 2. Mobile is
+   always 1 column; 720px matches the site's existing mobile/desktop
+   breakpoint (see primary-nav). */
 .post-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: 1fr;
   gap: 2rem;
 }
 
-/* News's own treatment — one column at every width, not the 2-up
-   auto-fill grid every other section (Stories, Walks, Discover) uses,
-   so News reads as a distinct, denser feed rather than matching them. */
-.post-list-single-column {
+@media (min-width: 720px) {
+  .post-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* News's own treatment — one column at every width, not the 2-up grid
+   every other section (Stories, Walks, Discover) uses, so News reads as
+   a distinct, denser feed rather than matching them. .post-list prefixed
+   alongside the single class — needed to outrank the @media rule just
+   above at equal specificity otherwise (same tie-breaking-by-source-
+   order trap documented further down for the row-layout rules). */
+.post-list.post-list-single-column {
   grid-template-columns: 1fr;
 }
 
@@ -601,7 +616,15 @@ a.ad-slot-text-image img {
     margin-left: 0;
   }
 
-  .post-list-single-column .card-title {
+  /* Bigger than the shared .post-list .card-title size (further down
+     this file, same specificity, later source order — same tie-breaking
+     trap as everything else in this block, so .post-list prefixed here
+     too) — deliberately off the shared type scale. News headlines read
+     as a denser, punchier feed than Stories/Walks, and with a fixed
+     180px-tall thumbnail next to it, the default size left real empty
+     space in the text column rather than filling it. */
+  .post-list.post-list-single-column .card-title {
+    font-size: 1.5rem;
     margin-top: 0.5rem;
   }
 }
@@ -4211,18 +4234,17 @@ a.card-category:hover {
   }
 }
 
-/* .directory-featured-list (/community/groups' own featured-group row —
-   see that page) is the one remaining place featured cards get a separate,
-   non-masonry row above the rest: .directory-list's column-count layout
-   fills one column top-to-bottom before starting the next, so featured-
-   first sorting into the *same* masonry list only ever puts them at the
-   top of column 1, not across the top of the page. Directory's own
-   category pages (DirectoryBrowse) used to do this too but don't any
-   more — Rob wants featured listings sitting with the rest, not cordoned
-   off, so they're sorted first into the one shared .directory-list grid
-   instead. No extra margin below .directory-featured-list — the regular
-   grid picks up directly after, same gap as between any other pair of
-   cards. */
+/* .directory-featured-list — a plain, non-masonry row for featured cards,
+   above .directory-list's own masonry grid (used both by DirectoryBrowse's
+   category pages and /community/groups' featured-group row). Deliberately
+   NOT merged into the masonry grid below: .directory-list's column-count
+   layout fills one column top-to-bottom before starting the next, so
+   featured-first sorting into that *same* masonry list only ever
+   guarantees the top of column 1, not across the top of the page — tried
+   that, Rob confirmed featured cards ended up stuck in the left column
+   with real data. This plain grid is the only way to actually guarantee
+   "featured along the top." No extra margin below it — the masonry grid
+   picks up directly after, same gap as between any other pair of cards. */
 
 @media (max-width: 720px) {
   /* The image is the first thing in the card with nothing above it, so
