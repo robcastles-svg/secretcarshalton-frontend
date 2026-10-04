@@ -166,7 +166,7 @@ export default async function DashboardPage() {
           <Link href="/events/submit" className="dash-sidebar-link">
             Submit an event
           </Link>
-          <Link href="/jobs/submit" className="dash-sidebar-link">
+          <Link href="/jobs/manager" className="dash-sidebar-link">
             Submit a job
           </Link>
           <Link href="/directory/submit" className="dash-sidebar-link">
@@ -220,7 +220,7 @@ export default async function DashboardPage() {
               <strong>Submit an event</strong>
               <span className="dash-action-meta">Free · promote for £5</span>
             </Link>
-            <Link href="/jobs/submit" className="dash-action">
+            <Link href="/jobs/manager" className="dash-action">
               <strong>Submit a job</strong>
               <span className="dash-action-meta">From £15 · runs 7 days</span>
             </Link>
@@ -427,7 +427,7 @@ export default async function DashboardPage() {
                 <div className="dash-panel dash-panel-tight" id="submissions-jobs">
                   <div className="dash-panel-head">
                     <h3 className="dash-h3">Jobs</h3>
-                    <Link href="/jobs/submit" className="dash-manage-link">
+                    <Link href="/jobs/manager" className="dash-manage-link">
                       Manage
                     </Link>
                   </div>

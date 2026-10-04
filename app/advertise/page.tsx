@@ -334,7 +334,7 @@ export default async function AdvertisePage() {
               <li>Visible for the full 7-day period</li>
               <li>Automatic expiry — no need to remember to remove it</li>
             </ul>
-            <Link href="/jobs/submit" className="button-pill adv-card-cta">
+            <Link href="/jobs/manager" className="button-pill adv-card-cta">
               Post a job
             </Link>
           </div>

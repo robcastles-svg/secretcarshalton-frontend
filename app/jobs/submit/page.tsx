@@ -1,20 +1,11 @@
 import { redirect } from "next/navigation";
-import { getSessionToken } from "@/lib/auth";
-import { SubmitJobForm } from "./_components/SubmitJobForm";
 
-export const metadata = { title: "Post a job — Secret Carshalton" };
-
-export default async function SubmitJobPage() {
-  const token = await getSessionToken();
-  if (!token) redirect("/login?next=/jobs/submit");
-
-  return (
-    <main className="container auth-page">
-      <h1>Post a job</h1>
-      <p>
-        Hiring locally? List your vacancy here — a paid listing, reviewed before it goes live.
-      </p>
-      <SubmitJobForm />
-    </main>
-  );
+/**
+ * Retired as a separate page — posting a job is now one page
+ * (/jobs/manager: pitch, pricing and the form together, styled like
+ * /advertise), not a two-step explain-then-form flow. Redirects here for
+ * anyone with the old link bookmarked or indexed.
+ */
+export default function JobsSubmitRedirect() {
+  redirect("/jobs/manager");
 }
