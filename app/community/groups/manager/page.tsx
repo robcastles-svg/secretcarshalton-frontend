@@ -6,18 +6,16 @@ export const metadata = { title: "List your group — Secret Carshalton" };
 /**
  * Where "Groups to join"'s own "List your group" button sends people,
  * instead of straight to the submission form — same idea as
- * /events/manager and /directory/featured, but framed around free
- * listing + optional promotion rather than Featured's business tiers
- * (which don't really apply to a community group). Groups are the same
- * underlying directory listing as a business (see SubmitListingForm),
- * just a different category, so this hands off to the same
- * /directory/submit form — it already offers the "Promote my group"
- * checkbox when Free is selected.
+ * /events/manager and /directory/featured. Hands off to
+ * /community/groups/submit — a deliberately separate, simpler form from
+ * the business-focused /directory/submit: no Featured tiers, just free
+ * or the flat £10 promotion, kept distinct per Rob's call that groups
+ * should read as their own clear, separate thing.
  *
- * The CTA goes straight to /directory/submit (no auth check here) —
- * that page already handles the not-signed-in case on its own
- * (redirects to /directory/manager), so this page doesn't need to
- * duplicate that logic.
+ * The CTA goes straight to /community/groups/submit (no auth check
+ * here) — that page already handles the not-signed-in case on its own
+ * (redirects back here), so this page doesn't need to duplicate that
+ * logic.
  */
 export default function GroupsManagerPage() {
   return (
@@ -36,7 +34,7 @@ export default function GroupsManagerPage() {
       </ul>
 
       <div className="advertise-cta-box">
-        <Link href="/directory/submit" className="button-pill">
+        <Link href="/community/groups/submit" className="button-pill">
           List your group
         </Link>
         <p className="dashboard-hint">

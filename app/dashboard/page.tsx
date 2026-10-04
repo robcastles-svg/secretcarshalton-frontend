@@ -169,7 +169,7 @@ export default async function DashboardPage() {
           <Link href="/jobs/manager" className="dash-sidebar-link">
             Submit a job
           </Link>
-          <Link href="/directory/submit" className="dash-sidebar-link">
+          <Link href="/community/groups/submit" className="dash-sidebar-link">
             Submit a community group
           </Link>
           <Link href="/advertise" className="dash-sidebar-link dash-sidebar-link-highlight">
@@ -224,7 +224,7 @@ export default async function DashboardPage() {
               <strong>Submit a job</strong>
               <span className="dash-action-meta">From £15 · runs 7 days</span>
             </Link>
-            <Link href="/directory/submit" className="dash-action">
+            <Link href="/community/groups/submit" className="dash-action">
               <strong>Submit a group</strong>
               <span className="dash-action-meta">Free · promote for £10</span>
             </Link>
@@ -650,7 +650,7 @@ export default async function DashboardPage() {
                   <Link href="/community/groups" className="button-pill button-pill-secondary">
                     Browse groups
                   </Link>
-                  <Link href="/directory/submit" className="button-pill">
+                  <Link href="/community/groups/submit" className="button-pill">
                     Add your group
                   </Link>
                 </div>

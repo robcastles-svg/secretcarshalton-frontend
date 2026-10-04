@@ -364,7 +364,7 @@ export default async function AdvertisePage() {
               is an optional upgrade for extra visibility — once your group&apos;s listed, request promotion from
               its page.
             </div>
-            <Link href="/directory/submit" className="button-pill adv-card-cta">
+            <Link href="/community/groups/submit" className="button-pill adv-card-cta">
               Submit your group
             </Link>
           </div>

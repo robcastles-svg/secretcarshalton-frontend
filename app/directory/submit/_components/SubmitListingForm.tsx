@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FEATURED_DIRECTORY_TIERS, GROUP_PROMOTION_PRICE } from "@/lib/pricing";
+import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
 import type { WPDirectoryCategory } from "@/lib/wordpress";
 
 /** Mirrors SC_Directory_REST's PAID_CATEGORY_LIMIT/PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap. */
@@ -20,16 +20,20 @@ const FREE_TIER = {
 const TIER_CHOICES = [FREE_TIER, ...FEATURED_DIRECTORY_TIERS];
 
 /**
- * One form for the whole directory-listing flow: basic details always
- * shown, then a tier picker (Free or one of the four Featured packages).
- * Choosing Free reveals the optional group-promotion checkbox; choosing
- * a Featured tier reveals the richer profile fields (same ones
- * /dashboard/upgrade's SubmitUpgradeRequest asks for) right here instead
- * of requiring a second trip back later. Submitting always creates the
- * listing first (POST /api/directory/submit), then — only if a paid tier
- * or promotion was chosen — makes one follow-up request against the new
- * listing's id, the same two-step pattern already used for bundling
- * Community Group Promotion into this form.
+ * One form for business/organisation directory listings: basic details
+ * always shown, then a tier picker (Free or one of the four Featured
+ * packages). Choosing a Featured tier reveals the richer profile fields
+ * (same ones /dashboard/upgrade's SubmitUpgradeRequest asks for) right
+ * here instead of requiring a second trip back later. Submitting always
+ * creates the listing first (POST /api/directory/submit), then — only
+ * if a paid tier was chosen — makes one follow-up request against the
+ * new listing's id to request the upgrade.
+ *
+ * Community groups are a deliberately separate, simpler flow — see
+ * /community/groups/submit's SubmitGroupForm — not this one: groups
+ * have no Featured tiers, just free or the flat £10 promotion, and
+ * mixing that choice into this business-focused form read as confusing
+ * ("promote my group" on a form titled "business/organisation name").
  */
 export function SubmitListingForm({
   categories,
@@ -63,7 +67,6 @@ export function SubmitListingForm({
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    const wantsPromotion = formData.get("promote") === "on";
     const basicData = {
       title: formData.get("title"),
       website: formData.get("website"),
@@ -118,13 +121,6 @@ export function SubmitListingForm({
         upgradeRes.ok
           ? "Thanks — your listing and Featured request are both in. There's no automated payment yet, so we'll be in touch to arrange it (PayPal); your listing goes featured once that's sorted and we've approved it."
           : "Your listing was submitted, but we couldn't send the Featured request just now — you can request it again from your dashboard once the listing's live."
-      );
-    } else if (wantsPromotion) {
-      const promoRes = await fetch(`/api/directory/${id}/request-promotion`, { method: "POST" });
-      setResultMessage(
-        promoRes.ok
-          ? "Thanks — your listing has been submitted, and your group promotion request has also gone in. It'll run for 30 days once approved."
-          : "Your listing was submitted, but we couldn't send the promotion request just now — you can request it again from your listing's page once it's live."
       );
     } else {
       setResultMessage(
@@ -267,18 +263,7 @@ export function SubmitListingForm({
           </label>
           {photos.length > 0 && <p className="auth-hint">{photos.length} photo(s) selected.</p>}
         </>
-      ) : (
-        <>
-          <label className="auth-form-radio">
-            <input type="checkbox" name="promote" />
-            Promote my group — {GROUP_PROMOTION_PRICE}
-          </label>
-          <p className="dashboard-hint">
-            Optional — featured placement within the Community section for 30 days. Your listing itself is always
-            free; this just gets it seen more. Subject to approval, like the listing itself.
-          </p>
-        </>
-      )}
+      ) : null}
 
       <p className="dashboard-hint">
         {isFeatured ? (
