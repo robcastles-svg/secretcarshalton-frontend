@@ -3721,6 +3721,8 @@ a.card-category:hover {
   font-size: 1rem;
   font-weight: 600;
   color: #555;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .dashboard-avatar {
@@ -5437,6 +5439,7 @@ a.card-category:hover {
   letter-spacing: -0.015em;
   color: var(--ad-text);
   margin: 0 0 0.3rem;
+  overflow-wrap: anywhere;
 }
 
 .dash-h2 {
@@ -5444,6 +5447,7 @@ a.card-category:hover {
   font-size: 1.5rem;
   color: var(--ad-text);
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .dash-h3 {
@@ -5459,6 +5463,15 @@ a.card-category:hover {
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem 1.5rem;
+}
+
+/* The greeting (dash-h1) renders the member's display name, which can be
+   a single long unbroken word (business account usernames, etc.) — same
+   failure mode documented on .member-directory-item elsewhere in this
+   file. Without min-width: 0, a flex item won't shrink below its
+   content's natural width no matter how wide its sibling layout is. */
+.dash-hero > div:first-child {
+  min-width: 0;
 }
 
 .dash-hero-sub {
@@ -5499,6 +5512,10 @@ a.card-category:hover {
   text-decoration: none;
   color: var(--ad-text);
   min-height: 44px;
+  /* Grid items default to min-width: auto — the "My profile" card renders
+     the member's display name here, which can be one long unbroken word. */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .dash-action:hover {
@@ -5515,7 +5532,10 @@ a.card-category:hover {
   color: var(--ad-text-faint);
 }
 
-.dash-action-stat {
+/* Two classes to out-specificity ".dash-action strong" (0,1,1) above,
+   which would otherwise win and force this back to 1rem — same kind of
+   specificity trap documented on .adv-page h1/h2/h3 in this file. */
+.dash-activity-stats .dash-action-stat {
   font-family: var(--ad-font-heading);
   font-size: 1.6rem;
 }
@@ -5566,6 +5586,12 @@ a.card-category:hover {
   gap: 0.75rem;
 }
 
+/* Same min-width: 0 fix as dash-hero — the business-name heading here can
+   be long and unbroken. */
+.dash-panel-head > * {
+  min-width: 0;
+}
+
 .dash-panel-tight .dash-panel-head {
   padding-bottom: 0.85rem;
 }
@@ -5601,6 +5627,7 @@ a.card-category:hover {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
 }
 
 .dash-stat-card-dark {
@@ -5624,6 +5651,7 @@ a.card-category:hover {
   font-family: var(--ad-font-heading);
   font-weight: 700;
   font-size: 1.3rem;
+  overflow-wrap: anywhere;
 }
 
 .dash-stat-sub {
@@ -5749,6 +5777,14 @@ a.card-category:hover {
   gap: 0.5rem 1rem;
   padding: 0.85rem 0;
   border-top: 1px solid var(--ad-border-subtle);
+  overflow-wrap: anywhere;
+}
+
+/* Event/job/community titles here are arbitrary member-submitted text —
+   same min-width: 0 fix as elsewhere in this block, so a long unbroken
+   title can't force the row (and the page) wider than the viewport. */
+.dash-row-list > li > * {
+  min-width: 0;
 }
 
 .dash-row-list > li:first-child {
