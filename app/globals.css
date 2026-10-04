@@ -2591,6 +2591,7 @@ a.card-category:hover {
 
 .post-hero-overlay .container {
   padding-bottom: 2rem;
+  text-align: left;
 }
 
 .post-hero-overlay h1 {
@@ -2598,10 +2599,12 @@ a.card-category:hover {
   margin: 0;
   font-size: 2rem;
   line-height: 1.2;
+  text-align: left;
 }
 
 .post-hero-meta {
   display: flex;
+  justify-content: flex-start;
   gap: 0.75rem;
   margin-bottom: 0.5rem;
 }
@@ -2628,6 +2631,7 @@ a.card-category:hover {
 /* Meta above headline when there's no featured image */
 .post-hero-meta + h1 {
   margin-top: 0;
+  text-align: left;
 }
 
 /* minmax(0, 1fr), not a bare 1fr: 1fr alone is really minmax(auto, 1fr),
@@ -2690,12 +2694,11 @@ a.card-category:hover {
 
 /* Article body copy (News/Stories/Walks/etc. — the shared [slug] post
    template) — otherwise inherits the site's 1rem base, which reads
-   small for a long-form article. Rob's second pass: bigger again (1.125
-   → 1.25rem) and tighter leading (1.7 → 1.55) now there's more text per
-   line to carry. */
+   small for a long-form article. Third pass per Rob: leading tighter
+   still (1.55 → 1.4). */
 .post-content {
   font-size: 1.25rem;
-  line-height: 1.55;
+  line-height: 1.4;
 }
 
 .post-content img {
@@ -2746,7 +2749,7 @@ a.card-category:hover {
 .post-content figcaption,
 .post-content .wp-caption-text {
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   margin-top: 0.35rem;
   padding-bottom: 0.5rem;
   border-bottom: 1px solid #ccc;
