@@ -2,25 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AD_SELF_SERVE_PLACEMENTS } from "@/lib/wordpress";
+import { BLUE_AD_TIERS } from "@/lib/pricing";
 import { AdPreview } from "./AdPreview";
 
-/**
- * Holding figures, not final pricing (Rob confirmed using these while the
- * real pricing gets settled): £2.50/day under 10 days, £1/day at 10+,
- * scaled by the placement's rateMultiplier (see AD_SELF_SERVE_PLACEMENTS —
- * sidebar stays the plain baseline, in-article costs more since it's the
- * more-likely-to-be-seen spot). A plain two-tier day rate, not a smooth
- * taper — simplest honest reading of "£2.50 for one day, down to £1 in
- * blocks of 10 or more".
- */
-function dayRate(days: number, multiplier: number): number {
-  const base = days >= 10 ? 1 : 2.5;
-  return base * multiplier;
-}
-
-function estimateCost(days: number, multiplier: number): number {
-  return days * dayRate(days, multiplier);
+function estimateCost(days: number, pricePerDay: number): number {
+  return days * pricePerDay;
 }
 
 export function SubmitAdForm() {
@@ -34,8 +20,7 @@ export function SubmitAdForm() {
   const [body, setBody] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  const selectedPlacement = AD_SELF_SERVE_PLACEMENTS.find((p) => p.slug === placement);
-  const multiplier = selectedPlacement?.rateMultiplier ?? 1;
+  const selectedPlacement = BLUE_AD_TIERS.find((p) => p.placement === placement);
 
   // Object URLs must be revoked or they leak — only ever hold the latest one.
   useEffect(() => {
@@ -128,10 +113,9 @@ export function SubmitAdForm() {
           <option value="" disabled>
             Choose where it appears…
           </option>
-          {AD_SELF_SERVE_PLACEMENTS.map((p) => (
-            <option key={p.slug} value={p.slug}>
-              {p.label}
-              {p.rateMultiplier !== 1 ? ` — +${Math.round((p.rateMultiplier - 1) * 100)}%, seen more` : " — standard rate"}
+          {BLUE_AD_TIERS.map((p) => (
+            <option key={p.placement} value={p.placement}>
+              {p.label} — £{p.pricePerDay.toFixed(2)}/day
             </option>
           ))}
         </select>
@@ -139,12 +123,12 @@ export function SubmitAdForm() {
       <p className="dashboard-hint">
         {selectedPlacement ? (
           <>
-            Estimated cost: <strong>£{estimateCost(days, multiplier).toFixed(2)}</strong> (£
-            {dayRate(days, multiplier).toFixed(2)}/day for {selectedPlacement.label.toLowerCase()} — holding
-            figures while pricing gets finalised).
+            Estimated cost: <strong>£{estimateCost(days, selectedPlacement.pricePerDay).toFixed(2)}</strong> (£
+            {selectedPlacement.pricePerDay.toFixed(2)}/day for {selectedPlacement.label.toLowerCase()} —
+            discounts available for 10+ bookings).
           </>
         ) : (
-          <>Estimated cost: choose a placement above to see the rate (holding figures while pricing gets finalised).</>
+          <>Estimated cost: choose a placement above to see the rate.</>
         )}{" "}
         We&apos;ll confirm the exact amount when we get in touch about payment.
       </p>

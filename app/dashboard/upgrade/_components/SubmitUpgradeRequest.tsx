@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
 import type { MyListing, WPDirectoryCategory } from "@/lib/wordpress";
 
 /** Mirrors SC_Directory_REST's PAID_CATEGORY_LIMIT/PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap. */
@@ -17,6 +18,7 @@ export function SubmitUpgradeRequest({
 }) {
   const router = useRouter();
   const [listingId, setListingId] = useState(listings[0]?.id ?? null);
+  const [tier, setTier] = useState(FEATURED_DIRECTORY_TIERS[0].slug);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -90,6 +92,31 @@ export function SubmitUpgradeRequest({
           Requesting a featured upgrade for <strong>{listings[0]?.title}</strong>.
         </p>
       )}
+
+      <fieldset className="upgrade-tier-fieldset">
+        <legend>Package</legend>
+        <div className="upgrade-tier-grid">
+          {FEATURED_DIRECTORY_TIERS.map((t) => (
+            <label
+              key={t.slug}
+              className={`upgrade-tier-card${tier === t.slug ? " upgrade-tier-card-selected" : ""}`}
+            >
+              <input
+                type="radio"
+                name="tier"
+                value={t.slug}
+                checked={tier === t.slug}
+                onChange={() => setTier(t.slug)}
+              />
+              <span className="upgrade-tier-name">{t.label}</span>
+              <span className="upgrade-tier-price">
+                {t.price} <span className="upgrade-tier-per">{t.per}</span>
+              </span>
+              <span className="upgrade-tier-exposure">{t.exposureNote}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       <fieldset className="directory-category-fieldset">
         <legend>
@@ -176,9 +203,11 @@ export function SubmitUpgradeRequest({
       {photos.length > 0 && <p className="auth-hint">{photos.length} photo(s) selected.</p>}
 
       <p className="dashboard-hint">
-        £10/month, billed annually (£120/year), cancel any time. There&apos;s no automated payment yet — once
-        you submit this, we&apos;ll review it and get in touch to arrange payment (PayPal). Nothing is charged
-        now.
+        {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.label}:{" "}
+        {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.price}{" "}
+        {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.per}. There&apos;s no automated payment yet —
+        once you submit this, we&apos;ll review it and get in touch to arrange payment (PayPal). Nothing is
+        charged now.
       </p>
 
       {error && <p className="auth-error">{error}</p>}

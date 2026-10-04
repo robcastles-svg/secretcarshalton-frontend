@@ -64,6 +64,9 @@ export default async function FeaturedListingPage() {
       sc_claimed: false,
       sc_plan: "",
       sc_claim_expires_at: "",
+      sc_featured_tier: "",
+      sc_group_promoted: false,
+      sc_group_promo_expires_at: "",
     },
   };
 

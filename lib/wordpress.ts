@@ -865,6 +865,11 @@ export interface WPListingMeta {
   sc_claimed: boolean;
   sc_plan: string;
   sc_claim_expires_at: string;
+  /** Which Featured package — 'featured' | 'featured_6mo' | 'featured_plus' | 'featured_gold', empty when sc_featured is false. See /advertise's Featured Directory cards. */
+  sc_featured_tier: string;
+  /** Community Group Promotion (£10/30 days) — separate from the Featured tiers above. */
+  sc_group_promoted: boolean;
+  sc_group_promo_expires_at: string;
 }
 
 export interface WPListingGalleryImage {
@@ -886,6 +891,8 @@ export interface WPListing {
   meta: WPListingMeta;
   /** True once a claim has been requested but not yet approved — see SC_Directory_REST::claim_listing. */
   sc_claim_pending?: boolean;
+  /** True once a Community Group Promotion has been requested but not yet approved — see SC_Directory_REST::request_promotion. */
+  sc_group_promo_pending?: boolean;
   /** Resolved from the sc_gallery attachment-ID meta server-side — see SC_Directory_REST's sc_gallery_images REST field. */
   sc_gallery_images?: WPListingGalleryImage[];
   /** Rolled up from approved review comments (sc_rating meta) server-side — see SC_Directory_REST's sc_review_stats REST field. Powers the Most Reviews / Highest Rated directory sort. */
@@ -1751,6 +1758,8 @@ export interface MemberProfile {
   points_to_next_tier: number | null;
   next_tier: { slug: string; label: string } | null;
   directory_upgrade_status: string | null;
+  /** Which Featured package was requested — 'featured' | 'featured_6mo' | 'featured_plus' | 'featured_gold'. */
+  directory_upgrade_tier: string | null;
   directory_upgrade_listing_id: number | null;
   directory_upgrade_amount_paid: string | null;
   directory_upgrade_payment_status: string | null;
@@ -1883,6 +1892,28 @@ export async function claimListing(
     const body = await res.json();
     if (!res.ok) {
       return { code: body.code ?? "claim_failed", message: body.message ?? "Could not claim this listing." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Community Group Promotion (£10/30 days) — a request only, same as claimListing; an admin approving it from the Group Promotions queue is what actually sets sc_group_promoted. */
+export async function requestGroupPromotion(
+  token: string,
+  listingId: number
+): Promise<{ status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/${listingId}/request-promotion`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "request_failed", message: body.message ?? "Could not request promotion for this listing." };
     }
     return body;
   } catch {

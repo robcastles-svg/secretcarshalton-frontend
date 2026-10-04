@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { JOB_RATE_BRACKETS } from "@/lib/pricing";
 
 export function SubmitJobForm() {
   const router = useRouter();
+  const [rateBracket, setRateBracket] = useState<string>(JOB_RATE_BRACKETS[0].slug);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -54,6 +56,16 @@ export function SubmitJobForm() {
         <input type="text" name="salary" placeholder="e.g. £12/hour, or £24,000 - £28,000" />
       </label>
       <label>
+        Hourly rate band
+        <select name="rate_bracket" value={rateBracket} onChange={(e) => setRateBracket(e.target.value)}>
+          {JOB_RATE_BRACKETS.map((b) => (
+            <option key={b.slug} value={b.slug}>
+              {b.label} — {b.price}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label>
         How to apply
         <input type="text" name="apply_url" placeholder="A link to apply, or an email address" />
       </label>
@@ -63,8 +75,9 @@ export function SubmitJobForm() {
       </label>
 
       <p className="dashboard-hint">
-        This is a paid listing — there&apos;s no automated payment yet, so once you submit this, we&apos;ll
-        review it and get in touch to arrange payment (PayPal). Nothing is charged now.
+        {JOB_RATE_BRACKETS.find((b) => b.slug === rateBracket)?.price} for 7 days, based on the rate band above.
+        There&apos;s no automated payment yet, so once you submit this, we&apos;ll review it and get in touch to
+        arrange payment (PayPal). Nothing is charged now.
       </p>
 
       {error && <p className="auth-error">{error}</p>}

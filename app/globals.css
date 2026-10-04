@@ -5,6 +5,36 @@
      stays consistent everywhere it's used. */
   --color-active: #e2761f;
   --color-active-dark: #c2630f;
+
+  /* Advertise/Dashboard palette — placeholder values from the design
+     reference, not the site's final brand colours. Everything on those
+     two pages is built against these tokens rather than hardcoded hex,
+     so retheming is a find-and-replace here, not a markup change. */
+  --ad-navy: #14213d;
+  --ad-gold: #f2c14e;
+  --ad-gold-dark: #e5b03a;
+  --ad-blue: #1e40af;
+  --ad-blue-dark: #172f7a;
+  --ad-blue-bg: #e8eefc;
+  --ad-bg: #f5f6f8;
+  --ad-card-bg: #ffffff;
+  --ad-border: #e1e4ea;
+  --ad-border-subtle: #eef0f3;
+  --ad-text: #14171c;
+  --ad-text-muted: #3b414c;
+  --ad-text-faint: #5b6270;
+  --ad-success-bg: #e3f3ea;
+  --ad-success-text: #1a6b43;
+  --ad-warn-bg: #fff1d6;
+  --ad-warn-text: #7a4e00;
+  --ad-off-bg: #eef0f3;
+  --ad-off-text: #4e5562;
+  /* Design reference uses Bricolage Grotesque (headings) / Public Sans
+     (body) — not loaded on this site, and adding a new Google Fonts
+     import is a separate decision, so these just alias the existing
+     site font for now. Swap the value here once real fonts are chosen. */
+  --ad-font-heading: var(--font-body), system-ui, sans-serif;
+  --ad-font-body: var(--font-body), system-ui, sans-serif;
 }
 
 body {
@@ -4515,6 +4545,78 @@ a.card-category:hover {
   width: auto;
 }
 
+/* The Featured package picker on /dashboard/upgrade — four selectable
+   cards (radio inputs, styled as cards rather than bare buttons), same
+   four tiers as /advertise's Featured Directory section. */
+.upgrade-tier-fieldset {
+  border: 1px solid var(--ad-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 0.5rem 0;
+}
+
+.upgrade-tier-fieldset legend {
+  font-size: 0.85rem;
+  color: var(--ad-text-faint);
+  padding: 0 0.4rem;
+}
+
+.upgrade-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.upgrade-tier-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border: 1.5px solid var(--ad-border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  font-weight: 400;
+}
+
+.upgrade-tier-card input {
+  position: absolute;
+  top: 0.85rem;
+  right: 1rem;
+  width: auto;
+}
+
+.upgrade-tier-card-selected {
+  border-color: var(--ad-blue);
+  background: var(--ad-blue-bg);
+}
+
+.upgrade-tier-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding-right: 1.5rem;
+}
+
+.upgrade-tier-price {
+  font-family: var(--ad-font-heading);
+  font-weight: 700;
+  font-size: 1.3rem;
+  color: var(--ad-text);
+}
+
+.upgrade-tier-per {
+  font-family: var(--ad-font-body);
+  font-weight: 500;
+  font-size: 0.8rem;
+  color: var(--ad-text-faint);
+}
+
+.upgrade-tier-exposure {
+  font-size: 0.78rem;
+  color: var(--ad-blue);
+  font-weight: 600;
+}
+
 .directory-claim-expiry {
   margin: 1.5rem 0;
   padding: 0.75rem 1rem;
@@ -4708,72 +4810,15 @@ a.card-category:hover {
   pointer-events: none;
 }
 
-/* ---- Advertise hub (app/advertise/page.tsx) ----
-   Four product cards (banner ads, featured directory, featured event, paid
-   job) reusing the site's existing accent colours rather than inventing new
-   ones — blue (#2f6fb3) matches .ad-card-external, pink (#c2607a) matches
-   .directory-card-featured / the event countdown's featured badge, jobs
-   stays neutral since there's no existing colour for that product. */
-.advertise-hero {
-  max-width: 640px;
-  margin: 0 auto 2.5rem;
-  text-align: center;
-}
-
-.advertise-hero h1 {
-  margin-bottom: 0.5rem;
-}
-
-.advertise-products {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-}
-
-.advertise-product {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: 1.75rem;
-  border-top: 4px solid #ddd;
-}
-
-.advertise-product h2 {
-  margin: 0 0 0.6rem;
-  font-size: 1.15rem;
-}
-
-.advertise-product-ads {
-  border-top-color: #2f6fb3;
-  grid-column: 1 / -1;
-}
-
-.advertise-product-directory,
-.advertise-product-events {
-  border-top-color: #c2607a;
-}
-
-.advertise-chip {
-  display: inline-block;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  margin-bottom: 0.6rem;
-}
-
-.advertise-chip-pink {
-  background: #c2607a;
-  color: #fff;
-}
-
-.advertise-example {
-  max-width: 320px;
-  margin: 1rem 0;
-}
+/* ---- Legacy Advertise hub classes still in use elsewhere ----
+   app/advertise/page.tsx itself was rebuilt against the new design
+   reference (see the .adv-* block further down) and no longer uses any of
+   these — kept only because /events/manager, /directory/featured and
+   /dashboard/upgrade still do. Everything else this block used to hold
+   (.advertise-hero, .advertise-product*, .advertise-chip*,
+   .advertise-example, .advertise-cta-row, .advertise-contact-banner) had
+   no other callers once the rebuild landed, so it's gone rather than kept
+   as dead weight. */
 
 /* Reused on /dashboard/upgrade too — same pitch at the actual point of
    requesting the upgrade, not just on the marketing page. */
@@ -4797,13 +4842,6 @@ a.card-category:hover {
   font-size: 0.85rem;
 }
 
-.advertise-cta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
 .advertise-cta-box {
   margin-top: 1.25rem;
 }
@@ -4812,17 +4850,953 @@ a.card-category:hover {
   margin-top: 0.6rem;
 }
 
-.advertise-contact-banner {
-  text-align: center;
-  background: #f5f5f5;
-  border-radius: 12px;
-  padding: 2.5rem 1.5rem;
+/* ====================================================================
+   New /advertise page (app/advertise/page.tsx), built against the
+   dashboard/advertise design reference. "adv-" prefixed throughout so
+   nothing here collides with the legacy .advertise-* classes above
+   (still used by three other pages) or anything else site-wide. Colours
+   all come from the --ad-* tokens in :root at the top of this file —
+   change the design there, not here, to retheme. Fonts likewise alias
+   the site's existing font via --ad-font-heading/--ad-font-body until
+   real ones are chosen (see that same :root block).
+   ==================================================================== */
+
+.adv-page {
+  background: var(--ad-bg);
+  color: var(--ad-text);
+  font-family: var(--ad-font-body);
 }
 
-.advertise-contact-banner h2 {
-  margin: 0 0 0.5rem;
+/* font-family only, no color — color is set per-element below
+   (.adv-hero-title, .adv-card-title-light, etc.), and a bare h1/h2/h3
+   selector here has higher specificity than those single-class
+   selectors, so it would silently win and override them regardless of
+   which comes later in the file (same tie-breaking-by-specificity trap
+   documented elsewhere in this file). */
+.adv-page h1,
+.adv-page h2,
+.adv-page h3 {
+  font-family: var(--ad-font-heading);
 }
 
-.advertise-contact-banner .button-pill {
+.adv-eyebrow {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ad-blue);
+}
+
+.adv-eyebrow-gold {
+  color: var(--ad-gold);
+}
+
+/* ---- Hero ---- */
+.adv-hero {
+  background: var(--ad-navy);
+  color: #fff;
+}
+
+.adv-hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem 3.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.adv-hero-copy {
+  flex: 999 1 420px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.adv-hero-title {
+  color: #fff;
+  font-size: clamp(2.3rem, 6vw, 4rem);
+  line-height: 1.03;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+
+.adv-hero-subtitle {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  color: #c9d2e3;
+  max-width: 540px;
+}
+
+.adv-hero-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.adv-btn-gold {
+  background: var(--ad-gold);
+  color: var(--ad-text);
+}
+
+.adv-btn-gold:hover {
+  background: var(--ad-gold-dark);
+  color: var(--ad-text);
+}
+
+.adv-btn-outline-light {
+  background: transparent;
+  color: #fff;
+  box-shadow: inset 0 0 0 1.5px #fff;
+}
+
+.adv-btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.adv-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 0.75rem;
+}
+
+.adv-jump a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.adv-jump a:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.adv-hero-example {
+  flex: 1 1 300px;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.adv-hero-example-label {
+  font-size: 0.8rem;
+  color: #aeb7c7;
+  font-weight: 600;
+}
+
+/* ---- How it works ---- */
+.adv-how {
+  background: var(--ad-card-bg);
+  border-bottom: 1px solid var(--ad-border);
+}
+
+.adv-how-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.adv-how-step {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.adv-how-number {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--ad-blue-bg);
+  color: var(--ad-blue);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adv-how-title {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.adv-how-text {
+  font-size: 0.92rem;
+  color: var(--ad-text-faint);
+  line-height: 1.45;
+  margin-top: 0.25rem;
+}
+
+/* ---- Shared section/card scaffolding ---- */
+.adv-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.adv-closing {
+  padding-bottom: 4rem;
+}
+
+.adv-section-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 720px;
+}
+
+.adv-section-intro-wide {
+  max-width: 760px;
+}
+
+.adv-h2 {
+  font-size: clamp(1.7rem, 4vw, 2.5rem);
+  letter-spacing: -0.015em;
+  line-height: 1.08;
+}
+
+.adv-h3 {
+  font-size: 1.35rem;
+}
+
+.adv-lede {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--ad-text-muted);
+}
+
+.adv-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.adv-card-grid-4 {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.adv-card {
+  background: var(--ad-card-bg);
+  border: 1px solid var(--ad-border);
+  border-radius: 16px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.adv-card-highlight {
+  border: 2px solid var(--ad-blue);
+}
+
+.adv-card-dark {
+  background: var(--ad-navy);
+  border-color: var(--ad-navy);
+}
+
+.adv-card-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.adv-card-head-split {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.adv-card-title {
+  font-size: 1.3rem;
+}
+
+.adv-card-title-light {
+  color: #fff;
+}
+
+.adv-card-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.adv-price {
+  font-family: var(--ad-font-heading);
+  font-size: 2.3rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ad-text);
+}
+
+.adv-price-light {
+  color: #fff;
+}
+
+.adv-per {
+  font-size: 0.85rem;
+  color: var(--ad-text-faint);
+  font-weight: 500;
+}
+
+.adv-per-light {
+  color: #aeb7c7;
+}
+
+.adv-pill {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--ad-blue-bg);
+  color: var(--ad-blue);
+}
+
+.adv-pill-green {
+  background: var(--ad-success-bg);
+  color: var(--ad-success-text);
+}
+
+.adv-pill-gold {
+  background: var(--ad-gold);
+  color: var(--ad-text);
+}
+
+.adv-card-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ad-text-muted);
+}
+
+.adv-card-text-light {
+  color: #c9d2e3;
+}
+
+.adv-ticks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.adv-ticks li {
+  position: relative;
+  padding-left: 1.6rem;
+}
+
+.adv-ticks li::before {
+  content: "";
+  position: absolute;
+  left: 0.3rem;
+  top: 0.25rem;
+  width: 5px;
+  height: 10px;
+  border: solid var(--ad-blue);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.adv-tick-muted {
+  color: var(--ad-text-faint);
+  font-size: 0.85rem;
+}
+
+.adv-ticks-dark li {
+  color: #e6e9f0;
+}
+
+.adv-ticks-dark li::before {
+  border-color: var(--ad-gold);
+}
+
+.adv-card-cta {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.adv-card-footnote {
+  margin: -0.5rem 0 0;
+  font-size: 0.82rem;
+  color: var(--ad-text-faint);
+  text-align: center;
+}
+
+.adv-footnote-inline {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ad-text-faint);
+}
+
+.adv-rate-table {
+  border: 1px solid var(--ad-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.adv-rate-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  font-size: 0.92rem;
+  border-bottom: 1px solid var(--ad-border);
+}
+
+.adv-rate-row:last-child {
+  border-bottom: none;
+}
+
+.adv-note-box {
+  background: var(--ad-bg);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ad-text-muted);
+}
+
+.adv-inline-form {
+  background: var(--ad-card-bg);
+  border: 1px solid var(--ad-border);
+  border-radius: 16px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.adv-cta-box {
+  background: var(--ad-card-bg);
+  border: 1px solid var(--ad-border);
+  border-radius: 16px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+/* ---- Closing member banner ---- */
+.adv-member-banner {
+  background: var(--ad-card-bg);
+  border: 1px solid var(--ad-border);
+  border-radius: 16px;
+  padding: 1.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.adv-member-banner > div:first-child {
+  flex: 999 1 380px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.adv-disclaimer {
+  margin: 1.5rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--ad-text-faint);
+  max-width: 860px;
+}
+
+@media (max-width: 720px) {
+  .adv-hero-inner {
+    padding: 2.75rem 1.25rem 2.25rem;
+  }
+
+  .adv-price {
+    font-size: 1.9rem;
+  }
+
+  .adv-card {
+    padding: 1.35rem;
+  }
+
+  .adv-section {
+    padding: 3rem 1.25rem 0;
+  }
+
+  .adv-member-banner {
+    padding: 1.35rem;
+  }
+}
+
+/* ===========================================================
+   Dashboard rebuild — reuses the --ad-* tokens defined above
+   (same placeholder palette as /advertise, by design).
+   =========================================================== */
+
+.dash-page {
+  background: var(--ad-bg);
+  padding: 1.75rem 0 3rem;
+}
+
+.dash-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1.75rem;
+}
+
+.dash-sidebar {
+  flex: 1 1 220px;
+  max-width: 270px;
+  background: var(--ad-card-bg);
+  border: 1px solid var(--ad-border);
+  border-radius: 16px;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  position: sticky;
+  top: 1.25rem;
+}
+
+.dash-sidebar-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ad-text-faint);
+  padding: 0.9rem 0.75rem 0.4rem;
+}
+
+.dash-sidebar-link {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  color: var(--ad-text);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.dash-sidebar-link:hover {
+  background: var(--ad-border-subtle);
+  color: var(--ad-text);
+}
+
+.dash-sidebar-link-current {
+  background: var(--ad-blue-bg);
+  color: var(--ad-blue);
+  font-weight: 700;
+}
+
+.dash-sidebar-link-highlight {
+  color: var(--ad-blue);
+  font-weight: 600;
+}
+
+.dash-main {
+  flex: 999 1 560px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.dash-h1 {
+  font-family: var(--ad-font-heading);
+  font-size: clamp(1.7rem, 3.2vw, 2.3rem);
+  letter-spacing: -0.015em;
+  color: var(--ad-text);
+  margin: 0 0 0.3rem;
+}
+
+.dash-h2 {
+  font-family: var(--ad-font-heading);
+  font-size: 1.5rem;
+  color: var(--ad-text);
+  margin: 0;
+}
+
+.dash-h3 {
+  font-family: var(--ad-font-heading);
+  font-size: 1.1rem;
+  color: var(--ad-text);
+  margin: 0 0 0.75rem;
+}
+
+.dash-hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+}
+
+.dash-hero-sub {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--ad-text-muted);
+}
+
+.dash-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dash-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ad-text-faint);
+  margin-bottom: 0.3rem;
+}
+
+.dash-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.85rem;
+}
+
+.dash-action {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.1rem;
+  border: 1px solid var(--ad-border);
+  border-radius: 14px;
+  background: var(--ad-card-bg);
+  text-decoration: none;
+  color: var(--ad-text);
+  min-height: 44px;
+}
+
+.dash-action:hover {
+  border-color: var(--ad-blue);
+  color: var(--ad-text);
+}
+
+.dash-action strong {
+  font-size: 1rem;
+}
+
+.dash-action-meta {
+  font-size: 0.85rem;
+  color: var(--ad-text-faint);
+}
+
+.dash-action-stat {
+  font-family: var(--ad-font-heading);
+  font-size: 1.6rem;
+}
+
+.dash-action-cta {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ad-blue);
+}
+
+.dash-activity-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.85rem;
+}
+
+.dash-panel {
+  background: var(--ad-card-bg);
+  border: 1px solid var(--ad-border);
+  border-radius: 16px;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.dash-panel-tight {
+  gap: 0;
+}
+
+.dash-editor-cta {
+  background: var(--ad-navy);
+  border-color: var(--ad-navy);
+}
+
+.dash-editor-cta .dash-h3,
+.dash-editor-cta .dashboard-hint {
+  color: #fff;
+}
+
+.dash-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dash-panel-tight .dash-panel-head {
+  padding-bottom: 0.85rem;
+}
+
+.dash-panel-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.dash-manage-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ad-blue);
+  text-decoration: none;
+}
+
+.dash-manage-link:hover {
+  color: var(--ad-blue-dark);
+}
+
+.dash-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.dash-stat-card {
+  flex: 1 1 180px;
+  background: var(--ad-bg);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dash-stat-card-dark {
+  background: var(--ad-navy);
+  color: #fff;
+}
+
+.dash-stat-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ad-text-faint);
+}
+
+.dash-stat-label-gold {
+  color: var(--ad-gold);
+}
+
+.dash-stat-value {
+  font-family: var(--ad-font-heading);
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.dash-stat-sub {
+  font-size: 0.85rem;
+  color: var(--ad-text-faint);
+}
+
+.dash-stat-card-dark .dash-stat-sub {
+  color: #c9d2e3;
+}
+
+.dash-stat-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ad-blue);
+}
+
+.dash-campaign-title {
+  font-weight: 700;
+  font-size: 1rem;
+  padding-bottom: 0.25rem;
+}
+
+.dash-table-wrap {
+  overflow-x: auto;
+}
+
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 560px;
+}
+
+.dash-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ad-text-faint);
+  padding: 0 0.75rem 0.6rem 0;
+  border-bottom: 1px solid var(--ad-border);
+}
+
+.dash-table td {
+  padding: 0.85rem 0.75rem 0.85rem 0;
+  border-bottom: 1px solid var(--ad-border-subtle);
+  vertical-align: middle;
+}
+
+.dash-table-actions {
+  text-align: right;
+}
+
+.dash-sr-only {
+  position: absolute;
+  left: -9999px;
+}
+
+.dash-meta {
+  font-size: 0.85rem;
+  color: var(--ad-text-faint);
+}
+
+.dash-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dash-chip::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.dash-chip-ok {
+  background: var(--ad-success-bg);
+  color: var(--ad-success-text);
+}
+
+.dash-chip-wait {
+  background: var(--ad-warn-bg);
+  color: var(--ad-warn-text);
+}
+
+.dash-chip-sched {
+  background: var(--ad-blue-bg);
+  color: var(--ad-blue);
+}
+
+.dash-chip-off {
+  background: var(--ad-off-bg);
+  color: var(--ad-off-text);
+}
+
+.dash-submissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.dash-row-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dash-row-list > li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--ad-border-subtle);
+}
+
+.dash-row-list > li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.dash-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dash-group-title {
+  font-family: var(--ad-font-heading);
+  font-size: 1.3rem;
+  color: var(--ad-text);
+  margin: 0;
+}
+
+.dash-group-intro {
+  margin: -0.5rem 0 0;
+  color: var(--ad-text-muted);
+}
+
+@media (max-width: 860px) {
+  /* The sidebar is just jump links to sections already on this page —
+     on a narrow screen it's more useful after the content than as a
+     20-link wall above it, so it drops to the bottom via flex order
+     rather than changing DOM/tab order. */
+  .dash-sidebar {
+    position: static;
+    max-width: none;
+    flex-basis: 100%;
+    order: 2;
+  }
+
+  .dash-main {
+    order: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .dash-panel {
+    padding: 1.1rem;
+  }
+
+  .dash-hero {
+    align-items: flex-start;
+  }
 }
