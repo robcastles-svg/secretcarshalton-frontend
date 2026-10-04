@@ -561,6 +561,7 @@ class SC_Membership_REST {
 				'label' => $next['tier']['label'],
 			) : null,
 			'directory_upgrade_status' => $member->directory_upgrade_status,
+			'directory_upgrade_tier'   => $member->directory_upgrade_tier,
 			'directory_upgrade_listing_id' => $member->directory_upgrade_listing_id ? (int) $member->directory_upgrade_listing_id : null,
 			// Payment holding fields — filled in by hand when an admin approves (see
 			// SC_Membership_Admin::handle_review_upgrade), not yet tied to real payment
@@ -588,12 +589,13 @@ class SC_Membership_REST {
 		$user_id    = get_current_user_id();
 		$member     = SC_Membership_DB::get_or_create_member( $user_id );
 		$listing_id = $request->get_param( 'listing_id' ) ? (int) $request->get_param( 'listing_id' ) : null;
+		$tier       = (string) $request->get_param( 'tier' );
 
 		if ( 'pending' === $member->directory_upgrade_status ) {
 			return new WP_Error( 'already_pending', 'An upgrade request is already pending review.', array( 'status' => 409 ) );
 		}
 
-		do_action( 'sc_directory_upgrade_requested', $user_id, $listing_id );
+		do_action( 'sc_directory_upgrade_requested', $user_id, $listing_id, $tier );
 
 		return array( 'status' => 'pending' );
 	}

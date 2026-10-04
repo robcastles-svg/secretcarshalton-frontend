@@ -182,7 +182,7 @@ class SC_Membership_Admin {
 		}
 
 		echo '<table class="wp-list-table widefat fixed striped"><thead><tr>'
-			. '<th>Member</th><th>Listing</th><th>Tier</th><th>Points</th><th>Requested</th><th>Action</th>'
+			. '<th>Member</th><th>Listing</th><th>Package requested</th><th>Member tier</th><th>Points</th><th>Requested</th><th>Action</th>'
 			. '</tr></thead><tbody>';
 
 		foreach ( $pending as $row ) {
@@ -190,9 +190,10 @@ class SC_Membership_Admin {
 			$tier    = SC_Membership_Tiers::get( $row->tier );
 			$listing = $row->directory_upgrade_listing_id ? get_post( $row->directory_upgrade_listing_id ) : null;
 			printf(
-				'<tr><td>%1$s</td><td>%2$s</td><td>%3$s</td><td>%4$d</td><td>%5$s</td><td>%6$s</td></tr>',
+				'<tr><td>%1$s</td><td>%2$s</td><td>%3$s</td><td>%4$s</td><td>%5$d</td><td>%6$s</td><td>%7$s</td></tr>',
 				esc_html( $user ? $user->display_name . ' (' . $user->user_email . ')' : 'Unknown user' ),
 				$listing ? '<a href="' . esc_url( get_edit_post_link( $listing->ID, '' ) ) . '">' . esc_html( $listing->post_title ) . '</a>' : '<em>General request</em>',
+				esc_html( self::upgrade_tier_label( $row->directory_upgrade_tier ) ),
 				esc_html( $tier ? $tier['label'] : $row->tier ),
 				(int) $row->points,
 				esc_html( $row->directory_upgrade_requested_at ),
@@ -201,6 +202,24 @@ class SC_Membership_Admin {
 		}
 
 		echo '</tbody></table>';
+	}
+
+	/**
+	 * Display label for the Featured package a member requested — the
+	 * directory_upgrade_tier column's raw slug, same four options
+	 * SC_Membership_Hooks::VALID_UPGRADE_TIERS accepts. Kept local to this
+	 * one admin screen rather than shared across plugins — plugins here
+	 * only talk to each other via actions, not by calling each other's
+	 * classes directly.
+	 */
+	private static function upgrade_tier_label( $tier ) {
+		$labels = array(
+			'featured'       => 'Featured (£50/mo)',
+			'featured_6mo'   => 'Featured — 6 months (£150)',
+			'featured_plus'  => 'Featured Plus (£70/mo)',
+			'featured_gold'  => 'Featured Gold (£150/mo)',
+		);
+		return isset( $labels[ $tier ] ) ? $labels[ $tier ] : ( $tier ? $tier : '—' );
 	}
 
 	private static function upgrade_review_buttons( $user_id ) {
@@ -248,7 +267,7 @@ class SC_Membership_Admin {
 		if ( $user_id && in_array( $decision, array( 'approved', 'rejected' ), true ) ) {
 			global $wpdb;
 			$table   = SC_Membership_DB::members_table();
-			$member  = $wpdb->get_row( $wpdb->prepare( "SELECT directory_upgrade_listing_id FROM {$table} WHERE user_id = %d", $user_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$member  = $wpdb->get_row( $wpdb->prepare( "SELECT directory_upgrade_listing_id, directory_upgrade_tier FROM {$table} WHERE user_id = %d", $user_id ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 
 			$fields  = array(
 				'directory_upgrade_status'      => $decision,
@@ -279,7 +298,8 @@ class SC_Membership_Admin {
 			 * for a general membership-level request (no specific listing).
 			 */
 			$listing_id = $member && $member->directory_upgrade_listing_id ? (int) $member->directory_upgrade_listing_id : null;
-			do_action( 'sc_membership_upgrade_reviewed', $user_id, $decision, $listing_id );
+			$tier       = $member && $member->directory_upgrade_tier ? $member->directory_upgrade_tier : '';
+			do_action( 'sc_membership_upgrade_reviewed', $user_id, $decision, $listing_id, $tier );
 		}
 
 		wp_safe_redirect( admin_url( 'admin.php?page=sc-membership' ) );

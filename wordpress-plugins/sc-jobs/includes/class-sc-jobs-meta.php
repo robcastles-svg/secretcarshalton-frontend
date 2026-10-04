@@ -23,6 +23,16 @@ class SC_Jobs_Meta {
 		'job_company'     => 'string',
 		'job_salary_text' => 'string',
 		/**
+		 * Self-serve price bracket — '' | 'up_to_15' | '15_to_20' | 'over_20'
+		 * (£15/£20/£40 for 7 days, see /advertise's Job Post card). Only
+		 * meaningful for 'member' source jobs; a synced 'api' job has no
+		 * bracket and keeps using job_salary_text for display only. Not
+		 * itself the price — amount_paid below still holds what was
+		 * actually arranged/paid, same as every other paid listing on the
+		 * site (no payment automation yet).
+		 */
+		'job_rate_bracket' => 'string',
+		/**
 		 * A member's own job posting is a paid listing (Reed-synced ones
 		 * are free to us, so this never applies to 'api' source jobs) —
 		 * no payment automation yet, same holding-field pattern as

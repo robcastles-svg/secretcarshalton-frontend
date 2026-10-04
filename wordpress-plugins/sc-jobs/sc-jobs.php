@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_JOBS_VERSION', '0.4.0' );
+define( 'SC_JOBS_VERSION', '0.5.0' );
 define( 'SC_JOBS_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_JOBS_DIR . 'includes/class-sc-jobs-cpt.php';

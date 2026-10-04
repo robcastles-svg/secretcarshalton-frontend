@@ -59,6 +59,16 @@ class SC_Directory_REST {
 
 		register_rest_route(
 			'sc-directory/v1',
+			'/(?P<id>\d+)/request-promotion',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'request_promotion' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_listing' ),
+			)
+		);
+
+		register_rest_route(
+			'sc-directory/v1',
 			'/submit',
 			array(
 				'methods'             => 'POST',
@@ -118,6 +128,18 @@ class SC_Directory_REST {
 				'get_callback' => function ( $post ) {
 					return ! get_post_meta( $post['id'], 'sc_claimed', true )
 						&& (bool) get_post_meta( $post['id'], 'sc_claim_requested_by', true );
+				},
+				'schema'       => array( 'type' => 'boolean' ),
+			)
+		);
+
+		/** Same shape as sc_claim_pending above, for Community Group Promotion's own request/approve flow — see request_promotion. */
+		register_rest_field(
+			SC_Directory_CPT::POST_TYPE,
+			'sc_group_promo_pending',
+			array(
+				'get_callback' => function ( $post ) {
+					return (bool) get_post_meta( $post['id'], 'sc_group_promo_requested_by', true );
 				},
 				'schema'       => array( 'type' => 'boolean' ),
 			)
@@ -683,6 +705,28 @@ class SC_Directory_REST {
 	}
 
 	/**
+	 * Community Group Promotion — £10/30 days, a separate, cheaper, more
+	 * casual product than the Featured tiers (no form fields to fill in,
+	 * just a flag + expiry on the listing you already have). Same
+	 * request → admin-approve shape as claim_listing: this only records
+	 * the request, SC_Directory_Admin's promotion queue is what actually
+	 * sets sc_group_promoted. check_owns_listing (this route's permission
+	 * callback) already proved the requester owns the listing.
+	 */
+	public static function request_promotion( WP_REST_Request $request ) {
+		$listing_id = (int) $request->get_param( 'id' );
+
+		if ( get_post_meta( $listing_id, 'sc_group_promo_requested_by', true ) ) {
+			return new WP_Error( 'already_requested', 'A promotion request for this listing is already awaiting review.', array( 'status' => 409 ) );
+		}
+
+		update_post_meta( $listing_id, 'sc_group_promo_requested_by', get_current_user_id() );
+		update_post_meta( $listing_id, 'sc_group_promo_requested_at', current_time( 'mysql' ) );
+
+		return array( 'status' => 'pending' );
+	}
+
+	/**
 	 * A free listing is just title/website/category — the upgrade form is
 	 * where the rest of a full profile (address, contact details, socials,
 	 * extra categories, photos) gets filled in, at the same time as
@@ -768,9 +812,18 @@ class SC_Directory_REST {
 		/**
 		 * Lands in the same approval queue sc-membership already exposes
 		 * at Membership → Directory Upgrade Requests, with the listing
-		 * attached so the reviewer knows which one it's for.
+		 * attached so the reviewer knows which one it's for. $tier is one
+		 * of 'featured' | 'featured_6mo' | 'featured_plus' | 'featured_gold'
+		 * (see /advertise's Featured Directory cards) — sc-membership just
+		 * carries it through to the approval queue and, on approval, back
+		 * to us via sc_membership_upgrade_reviewed so it can land on the
+		 * listing as sc_featured_tier. Not validated against that list
+		 * here — an unrecognised value just shows raw in the admin queue
+		 * and sc_featured_tier, same "trust the admin to notice" level of
+		 * strictness as every other free-text field in this request.
 		 */
-		do_action( 'sc_directory_upgrade_requested', $user_id, $listing_id );
+		$tier = sanitize_key( (string) $request->get_param( 'tier' ) );
+		do_action( 'sc_directory_upgrade_requested', $user_id, $listing_id, $tier );
 
 		return array( 'status' => 'pending' );
 	}

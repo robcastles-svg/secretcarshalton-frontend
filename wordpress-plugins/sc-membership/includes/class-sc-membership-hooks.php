@@ -34,8 +34,11 @@ class SC_Membership_Hooks {
 
 		add_action( 'sc_directory_listing_claimed', array( __CLASS__, 'on_listing_claimed' ), 10, 2 );
 		add_action( 'sc_directory_listing_submitted', array( __CLASS__, 'on_listing_submitted' ), 10, 2 );
-		add_action( 'sc_directory_upgrade_requested', array( __CLASS__, 'on_upgrade_requested' ), 10, 2 );
+		add_action( 'sc_directory_upgrade_requested', array( __CLASS__, 'on_upgrade_requested' ), 10, 3 );
 	}
+
+	/** Must match the slugs SC_Directory_REST::request_upgrade accepts and SC_Directory_Hooks::on_upgrade_reviewed writes onto the listing. */
+	const VALID_UPGRADE_TIERS = array( 'featured', 'featured_6mo', 'featured_plus', 'featured_gold' );
 
 	public static function on_comment_status_transition( $new_status, $old_status, $comment ) {
 		if ( 'approved' === $new_status && 'approved' !== $old_status && (int) $comment->user_id > 0 ) {
@@ -72,10 +75,15 @@ class SC_Membership_Hooks {
 	 * @param int|null $listing_id Which listing the upgrade is for, when the
 	 *                             request came from sc-directory. Null for a
 	 *                             general membership-level request.
+	 * @param string   $tier       Which Featured package was requested — one
+	 *                             of VALID_UPGRADE_TIERS. Carried onto the
+	 *                             listing's own sc_featured_tier meta once
+	 *                             approved, see SC_Directory_Hooks::on_upgrade_reviewed.
 	 */
-	public static function on_upgrade_requested( $user_id, $listing_id = null ) {
+	public static function on_upgrade_requested( $user_id, $listing_id = null, $tier = '' ) {
 		global $wpdb;
 		$user_id = (int) $user_id;
+		$tier    = in_array( $tier, self::VALID_UPGRADE_TIERS, true ) ? $tier : '';
 
 		SC_Membership_DB::get_or_create_member( $user_id );
 
@@ -83,12 +91,13 @@ class SC_Membership_Hooks {
 			SC_Membership_DB::members_table(),
 			array(
 				'directory_upgrade_status'       => 'pending',
+				'directory_upgrade_tier'         => $tier ? $tier : null,
 				'directory_upgrade_listing_id'   => $listing_id ? (int) $listing_id : null,
 				'directory_upgrade_requested_at' => current_time( 'mysql' ),
 				'updated_at'                      => current_time( 'mysql' ),
 			),
 			array( 'user_id' => $user_id ),
-			array( '%s', '%d', '%s', '%s' ),
+			array( '%s', '%s', '%d', '%s', '%s' ),
 			array( '%d' )
 		);
 	}

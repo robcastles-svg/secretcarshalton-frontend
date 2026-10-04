@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_DIRECTORY_VERSION', '0.8.0' );
+define( 'SC_DIRECTORY_VERSION', '0.9.0' );
 define( 'SC_DIRECTORY_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_DIRECTORY_DIR . 'includes/class-sc-directory-cpt.php';
@@ -53,4 +53,5 @@ add_action( 'rest_api_init', array( 'SC_Directory_REST', 'register_routes' ) );
 add_action( 'plugins_loaded', array( 'SC_Directory_Hooks', 'init' ) );
 add_action( 'admin_menu', array( 'SC_Directory_Admin', 'register_menu' ) );
 add_action( 'admin_post_sc_directory_review_claim', array( 'SC_Directory_Admin', 'handle_review_claim' ) );
+add_action( 'admin_post_sc_directory_review_promotion', array( 'SC_Directory_Admin', 'handle_review_promotion' ) );
 add_action( 'admin_post_sc_directory_backfill_owners', array( 'SC_Directory_Admin', 'handle_backfill_owners' ) );

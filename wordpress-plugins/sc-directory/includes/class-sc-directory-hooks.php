@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SC_Directory_Hooks {
 
 	public static function init() {
-		add_action( 'sc_membership_upgrade_reviewed', array( __CLASS__, 'on_upgrade_reviewed' ), 10, 3 );
+		add_action( 'sc_membership_upgrade_reviewed', array( __CLASS__, 'on_upgrade_reviewed' ), 10, 4 );
 		add_action( 'sc_directory_listing_claim_requested', array( __CLASS__, 'on_claim_requested' ), 10, 2 );
 		add_action( 'sc_directory_check_claim_expiry', array( __CLASS__, 'expire_claims' ) );
 
@@ -64,6 +64,43 @@ class SC_Directory_Hooks {
 		foreach ( $expired->posts as $listing_id ) {
 			update_post_meta( $listing_id, 'sc_claimed', '0' );
 		}
+
+		self::expire_group_promotions();
+	}
+
+	/** Same daily sweep as claims above, for Community Group Promotion's own 30-day expiry — kept as a separate query (different meta keys) but called from the same cron rather than scheduling a second one. */
+	private static function expire_group_promotions() {
+		$expired = new WP_Query(
+			array(
+				'post_type'      => SC_Directory_CPT::POST_TYPE,
+				'post_status'    => 'any',
+				'posts_per_page' => 200,
+				'fields'         => 'ids',
+				'meta_query'     => array(
+					'relation' => 'AND',
+					array(
+						'key'     => 'sc_group_promoted',
+						'value'   => '1',
+						'compare' => '=',
+					),
+					array(
+						'key'     => 'sc_group_promo_expires_at',
+						'value'   => '',
+						'compare' => '!=',
+					),
+					array(
+						'key'     => 'sc_group_promo_expires_at',
+						'value'   => gmdate( 'Y-m-d\TH:i:s' ),
+						'compare' => '<',
+						'type'    => 'DATETIME',
+					),
+				),
+			)
+		);
+
+		foreach ( $expired->posts as $listing_id ) {
+			update_post_meta( $listing_id, 'sc_group_promoted', '0' );
+		}
 	}
 
 	/**
@@ -89,7 +126,7 @@ class SC_Directory_Hooks {
 		);
 	}
 
-	public static function on_upgrade_reviewed( $user_id, $decision, $listing_id ) {
+	public static function on_upgrade_reviewed( $user_id, $decision, $listing_id, $tier = '' ) {
 		if ( ! $listing_id ) {
 			return;
 		}
@@ -102,6 +139,9 @@ class SC_Directory_Hooks {
 		if ( 'approved' === $decision ) {
 			update_post_meta( $listing_id, 'sc_plan', 'paid' );
 			update_post_meta( $listing_id, 'sc_featured', true );
+			if ( $tier ) {
+				update_post_meta( $listing_id, 'sc_featured_tier', $tier );
+			}
 		}
 		// Rejected: leave the listing as-is — no downgrade, since it likely
 		// wasn't upgraded yet in the first place. Nothing to undo.

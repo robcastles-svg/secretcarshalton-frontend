@@ -63,6 +63,11 @@ class SC_Jobs_REST {
 		update_post_meta( $post_id, 'source', 'member' );
 		update_post_meta( $post_id, 'job_company', sanitize_text_field( (string) $request->get_param( 'company' ) ) );
 		update_post_meta( $post_id, 'job_salary_text', sanitize_text_field( (string) $request->get_param( 'salary' ) ) );
+
+		$rate_bracket = sanitize_key( (string) $request->get_param( 'rate_bracket' ) );
+		if ( in_array( $rate_bracket, array( 'up_to_15', '15_to_20', 'over_20' ), true ) ) {
+			update_post_meta( $post_id, 'job_rate_bracket', $rate_bracket );
+		}
 		// A member job posting is paid — no automated payment yet, so this
 		// just flags it for Rob to arrange payment before approving (same
 		// holding pattern as sc-ads' payment_status).

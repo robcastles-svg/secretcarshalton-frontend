@@ -40,6 +40,26 @@ class SC_Directory_Meta {
 		'sc_plan'             => 'string', // 'free' | 'paid'
 		'sc_claim_expires_at' => 'string', // ISO date, empty string when not applicable
 		/**
+		 * Which Featured package this listing is on — 'featured' |
+		 * 'featured_6mo' | 'featured_plus' | 'featured_gold', empty when
+		 * sc_featured is false. Set by SC_Directory_Hooks::on_upgrade_reviewed
+		 * from whatever the member picked on /dashboard/upgrade (see
+		 * SC_Membership_Hooks::VALID_UPGRADE_TIERS in sc-membership) —
+		 * never set directly here.
+		 */
+		'sc_featured_tier'    => 'string',
+		/**
+		 * Community Group Promotion — a separate, cheaper, time-limited
+		 * (30 day) boost for "groups-to-join" listings, distinct from the
+		 * Featured tiers above. Same request → admin-approve → expire
+		 * shape as sc_claimed/sc_claim_expires_at, see
+		 * SC_Directory_REST::request_promotion/SC_Directory_Admin's
+		 * promotion queue, and SC_Directory_Hooks::expire_claims (which
+		 * also sweeps this).
+		 */
+		'sc_group_promoted'          => 'boolean',
+		'sc_group_promo_expires_at'  => 'string', // ISO date, empty when not applicable
+		/**
 		 * The directory-upgrade perk of showing up in News/Discover/etc
 		 * category grids, not just the Directory page's own featured
 		 * section — capped at 150 impressions/month for now (Rob's holding
