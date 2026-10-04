@@ -1258,14 +1258,6 @@ a.card-category:hover {
   color: #c2607a;
 }
 
-.mini-category-nav a[aria-current="page"] {
-  color: #1a1a1a;
-  text-decoration: underline;
-  text-decoration-color: #c2607a;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 4px;
-}
-
 @media (max-width: 720px) {
   .mini-category-nav {
     display: none;
