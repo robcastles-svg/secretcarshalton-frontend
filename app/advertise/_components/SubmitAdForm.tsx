@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BLUE_AD_TIERS } from "@/lib/pricing";
+import { TEXT_AD_TIERS } from "@/lib/pricing";
 import { AdPreview } from "./AdPreview";
 
 function estimateCost(days: number, pricePerDay: number): number {
@@ -20,7 +20,7 @@ export function SubmitAdForm() {
   const [body, setBody] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  const selectedPlacement = BLUE_AD_TIERS.find((p) => p.placement === placement);
+  const selectedPlacement = TEXT_AD_TIERS.find((p) => p.placement === placement);
 
   // Object URLs must be revoked or they leak — only ever hold the latest one.
   useEffect(() => {
@@ -113,7 +113,7 @@ export function SubmitAdForm() {
           <option value="" disabled>
             Choose where it appears…
           </option>
-          {BLUE_AD_TIERS.map((p) => (
+          {TEXT_AD_TIERS.map((p) => (
             <option key={p.placement} value={p.placement}>
               {p.label} — £{p.pricePerDay.toFixed(2)}/day
             </option>

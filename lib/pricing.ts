@@ -8,15 +8,15 @@
  * copy).
  */
 
-export const BLUE_AD_TIERS = [
+export const TEXT_AD_TIERS = [
   {
     placement: "sidebar",
-    label: "Standard Blue Ad",
+    label: "Standard Text Ad",
     pricePerDay: 2.5,
   },
   {
     placement: "in_article",
-    label: "Premium Blue Ad",
+    label: "Premium Text Ad",
     pricePerDay: 3,
   },
 ] as const;

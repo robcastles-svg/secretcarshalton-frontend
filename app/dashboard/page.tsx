@@ -228,8 +228,8 @@ export default async function DashboardPage() {
               <strong>Submit a group</strong>
               <span className="dash-action-meta">Free · promote for £10</span>
             </Link>
-            <Link href="/advertise#blue-ads" className="dash-action">
-              <strong>Create a Blue Ad</strong>
+            <Link href="/advertise#text-ads" className="dash-action">
+              <strong>Create a Text Ad</strong>
               <span className="dash-action-meta">From £2.50 a day</span>
             </Link>
           </div>
@@ -691,7 +691,7 @@ export default async function DashboardPage() {
                 <h2 id="advertising-h" className="dash-h2">
                   My advertising
                 </h2>
-                <Link href="/advertise#blue-ads" className="button-pill button-pill-secondary">
+                <Link href="/advertise#text-ads" className="button-pill button-pill-secondary">
                   Advertise again
                 </Link>
               </div>
@@ -740,7 +740,7 @@ export default async function DashboardPage() {
                 wired up.
               </p>
               <div className="dashboard-section-actions">
-                <Link href="/advertise#blue-ads" className="button-pill">
+                <Link href="/advertise#text-ads" className="button-pill">
                   Write another ad
                 </Link>
               </div>

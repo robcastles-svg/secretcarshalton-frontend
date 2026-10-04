@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getSessionToken } from "@/lib/auth";
-import { BLUE_AD_TIERS, EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS, GROUP_PROMOTION_PRICE, JOB_RATE_BRACKETS } from "@/lib/pricing";
+import { TEXT_AD_TIERS, EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS, GROUP_PROMOTION_PRICE, JOB_RATE_BRACKETS } from "@/lib/pricing";
 import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
 import { AdPreview } from "./_components/AdPreview";
 import { SubmitAdForm } from "./_components/SubmitAdForm";
@@ -16,7 +16,7 @@ export const metadata = {
 };
 
 const JUMP_LINKS = [
-  { href: "#blue-ads", label: "Blue Ads" },
+  { href: "#text-ads", label: "Text Ads" },
   { href: "#featured", label: "Featured Directory" },
   { href: "#events", label: "Events" },
   { href: "#jobs", label: "Jobs" },
@@ -36,8 +36,8 @@ export default async function AdvertisePage() {
             <h1 className="adv-hero-title">Instant Ads from £2.50</h1>
             <p className="adv-hero-subtitle">No design required — make your own text ads. Subject to approval.</p>
             <div className="adv-hero-ctas">
-              <a href="#blue-ads" className="button-pill adv-btn-gold">
-                Create a Blue Ad
+              <a href="#text-ads" className="button-pill adv-btn-gold">
+                Create a Text Ad
               </a>
               <a href="#featured" className="button-pill adv-btn-outline-light">
                 See Featured packages
@@ -52,7 +52,7 @@ export default async function AdvertisePage() {
             </nav>
           </div>
           <div className="adv-hero-example">
-            <span className="adv-hero-example-label">Example Blue Ad</span>
+            <span className="adv-hero-example-label">Example Text Ad</span>
             <AdPreview headline="" body="" imageUrl={null} />
           </div>
         </div>
@@ -85,10 +85,10 @@ export default async function AdvertisePage() {
         </div>
       </section>
 
-      {/* Blue Ads */}
-      <section id="blue-ads" className="adv-section">
+      {/* Text Ads */}
+      <section id="text-ads" className="adv-section">
         <div className="adv-section-intro">
-          <span className="adv-eyebrow">Blue Ads</span>
+          <span className="adv-eyebrow">Text Ads</span>
           <h2 className="adv-h2">Your own text ad, live in minutes</h2>
           <p className="adv-lede">
             A simple, low-cost way to promote your business, event or service. Write it yourself, choose your
@@ -98,9 +98,9 @@ export default async function AdvertisePage() {
         <div className="adv-card-grid">
           <div className="adv-card">
             <div className="adv-card-head">
-              <h3 className="adv-card-title">{BLUE_AD_TIERS[0].label}</h3>
+              <h3 className="adv-card-title">{TEXT_AD_TIERS[0].label}</h3>
               <div className="adv-card-price-row">
-                <span className="adv-price">£{BLUE_AD_TIERS[0].pricePerDay.toFixed(2)}</span>
+                <span className="adv-price">£{TEXT_AD_TIERS[0].pricePerDay.toFixed(2)}</span>
                 <span className="adv-per">per day</span>
               </div>
             </div>
@@ -118,9 +118,9 @@ export default async function AdvertisePage() {
           <div className="adv-card adv-card-highlight">
             <div className="adv-card-head adv-card-head-split">
               <div>
-                <h3 className="adv-card-title">{BLUE_AD_TIERS[1].label}</h3>
+                <h3 className="adv-card-title">{TEXT_AD_TIERS[1].label}</h3>
                 <div className="adv-card-price-row">
-                  <span className="adv-price">£{BLUE_AD_TIERS[1].pricePerDay.toFixed(2)}</span>
+                  <span className="adv-price">£{TEXT_AD_TIERS[1].pricePerDay.toFixed(2)}</span>
                   <span className="adv-per">per day</span>
                 </div>
               </div>
@@ -190,7 +190,7 @@ export default async function AdvertisePage() {
               <li>Prominent exposure within your category</li>
               <li>Category image displayed across the site</li>
             </ul>
-            <Link href="/dashboard/upgrade" className="button-pill button-pill-secondary adv-card-cta">
+            <Link href={`/directory/submit?tier=${FEATURED_DIRECTORY_TIERS[0].slug}`} className="button-pill button-pill-secondary adv-card-cta">
               Get Featured
             </Link>
           </div>
@@ -210,7 +210,7 @@ export default async function AdvertisePage() {
               <li>Six-month listing</li>
               <li>All Featured benefits</li>
             </ul>
-            <Link href="/dashboard/upgrade" className="button-pill button-pill-secondary adv-card-cta">
+            <Link href={`/directory/submit?tier=${FEATURED_DIRECTORY_TIERS[1].slug}`} className="button-pill button-pill-secondary adv-card-cta">
               Choose 6 months
             </Link>
           </div>
@@ -229,14 +229,14 @@ export default async function AdvertisePage() {
               <li>
                 <strong>Everything in Featured</strong>
               </li>
-              <li>One Premium Blue Ad</li>
+              <li>One Premium Text Ad</li>
               <li>Designed banner</li>
               <li>Banner displayed across the site</li>
               <li>Social Story promotion</li>
               <li>Choose your start date within a 2-week window</li>
               <li>Choose how many months you want to run</li>
             </ul>
-            <Link href="/dashboard/upgrade" className="button-pill adv-card-cta">
+            <Link href={`/directory/submit?tier=${FEATURED_DIRECTORY_TIERS[2].slug}`} className="button-pill adv-card-cta">
               Choose Featured Plus
             </Link>
           </div>
@@ -258,14 +258,14 @@ export default async function AdvertisePage() {
               <li>
                 <strong>Everything in Featured Plus</strong>
               </li>
-              <li>One Premium Blue Ad</li>
+              <li>One Premium Text Ad</li>
               <li>Designed banner displayed across the site</li>
               <li>Written article about your business, organisation or event</li>
               <li>Social media post promoting the article</li>
               <li>Choose your start date within a 2-week window</li>
               <li>Choose how many months you want to run</li>
             </ul>
-            <Link href="/dashboard/upgrade" className="button-pill adv-btn-gold adv-card-cta">
+            <Link href={`/directory/submit?tier=${FEATURED_DIRECTORY_TIERS[3].slug}`} className="button-pill adv-btn-gold adv-card-cta">
               Choose Featured Gold
             </Link>
           </div>
