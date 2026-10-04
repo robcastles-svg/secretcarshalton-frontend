@@ -5364,7 +5364,12 @@ a.card-category:hover {
 
 .dash-page {
   background: var(--ad-bg);
-  padding: 1.75rem 0 3rem;
+  /* padding-top/-bottom only — a padding shorthand here would zero out
+     the left/right padding .container already sets on this same element
+     (same specificity, later in the file wins), pinning every card to
+     the screen edges with no side margin on mobile. */
+  padding-top: 1.75rem;
+  padding-bottom: 3rem;
 }
 
 .dash-layout {

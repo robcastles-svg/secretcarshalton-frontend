@@ -170,7 +170,11 @@ export default async function DashboardPage() {
           </Link>
         </nav>
 
-        {/* Main column */}
+        {/* Main column — section order below follows the sidebar's own
+            top-to-bottom order (My Secret Carshalton -> My content -> My
+            advertising -> My business), so a sidebar link scrolls roughly
+            the direction its position implies rather than jumping
+            backwards. */}
         <div className="dash-main">
           <div className="dash-hero">
             <div>
@@ -256,129 +260,112 @@ export default async function DashboardPage() {
             </details>
           </div>
 
-          {/* My business — only when the member has an approved Featured package */}
-          {hasBusiness && (
-            <section className="dash-panel" id="business" aria-labelledby="business-h">
-              <div className="dash-panel-head">
-                <div>
-                  <div className="dash-eyebrow">My business</div>
-                  <h2 id="business-h" className="dash-h2">
-                    {businessListing ? businessListing.title : "Your business"}
-                  </h2>
-                </div>
-                {businessListing && (
-                  <div className="dash-panel-head-actions">
-                    {businessListing.status === "publish" && (
-                      <Link href={`/directory/${businessListing.slug}`} className="button-pill button-pill-secondary">
-                        View listing
-                      </Link>
-                    )}
-                    <Link href={`/directory/${businessListing.slug}/edit`} className="button-pill">
-                      Edit listing
-                    </Link>
-                  </div>
-                )}
-              </div>
+          {/* Account — matches the sidebar's "My Secret Carshalton" group, first */}
+          <section className="dash-panel" id="account">
+            <h2 className="dash-h3">Account</h2>
+            <div className="dashboard-account-row">
+              {/* Every member shows the same badge — no profile photo uploads, by design (see SC_Membership_REST::filter_default_avatar). The directory is where we want people putting in effort, not a personal profile. */}
+              <img src="/default-avatar.png" alt="" className="dashboard-avatar" />
+              <span className="dashboard-greeting">
+                {profile.is_returning ? "Welcome back" : "Hello"} {profile.display_name}
+              </span>
+            </div>
+            <p className="dashboard-hint">
+              Username and email aren&apos;t shown here yet — coming soon, once account details are wired up.
+            </p>
+            <a
+              className="button-pill button-pill-secondary"
+              href="https://www.staging19.secretcarshalton.com/wp-login.php?action=lostpassword"
+            >
+              Change password
+            </a>
+          </section>
 
-              <div className="dash-stat-row">
-                <div className="dash-stat-card dash-stat-card-dark">
-                  <span className="dash-stat-label dash-stat-label-gold">Current package</span>
-                  <span className="dash-stat-value">{businessTier?.label ?? "Featured"}</span>
-                  <span className="dash-stat-sub">
-                    {businessTier ? `${businessTier.price} ${businessTier.per}` : profile.directory_upgrade_amount_paid}
-                  </span>
-                </div>
-                <div className="dash-stat-card">
-                  <span className="dash-stat-label">Renewal</span>
-                  <span className="dash-stat-value">
-                    {profile.directory_upgrade_expires_at ? formatDate(profile.directory_upgrade_expires_at) : "—"}
-                  </span>
-                  <Link href="/dashboard/upgrade" className="dash-stat-link">
-                    Manage renewal
-                  </Link>
-                </div>
-                <div className="dash-stat-card">
-                  <span className="dash-stat-label">Listing views</span>
-                  <span className="dash-stat-value">{businessListing ? businessListing.views : "—"}</span>
-                  <span className="dash-stat-sub">All time — monthly stats aren&apos;t tracked yet</span>
-                </div>
-              </div>
+          {/* Free for every member */}
+          <div className="dash-group">
+            <h2 className="dash-group-title">Free for every member</h2>
 
-              <div id="business-campaign" className="dash-campaign">
-                <div className="dash-campaign-title">Campaign progress</div>
+            <section className="dash-panel" id="comments">
+              <h3 className="dash-h3">Your comments</h3>
+              {myComments.length === 0 ? (
+                <p className="dashboard-hint">Nothing yet — comment on a story to join the conversation.</p>
+              ) : (
+                <ExpandableList
+                  items={myComments}
+                  listClassName="dashboard-my-list dashboard-my-comments"
+                  itemKey={(comment) => comment.id}
+                  noun="comment"
+                  renderItem={(comment) => (
+                    <>
+                      <div>
+                        {comment.status !== "approved" && (
+                          <span className="dashboard-status-badge dashboard-status-pending">Awaiting moderation</span>
+                        )}
+                        {(() => {
+                          const link = linkForPostType(comment.post_type, comment.post_slug);
+                          return link ? (
+                            <Link href={link}>{comment.post_title}</Link>
+                          ) : (
+                            <span>{comment.post_title ?? "A post"}</span>
+                          );
+                        })()}
+                        <time>{formatDate(comment.date)}</time>
+                      </div>
+                      <p dangerouslySetInnerHTML={{ __html: comment.content.rendered }} />
+                    </>
+                  )}
+                />
+              )}
+            </section>
+
+            <section className="dash-panel" id="rsvps">
+              <h3 className="dash-h3">Events you&apos;re going to</h3>
+              {myRsvps.length === 0 ? (
+                <p className="dashboard-hint">Nothing yet — RSVP to an event to keep track of it here.</p>
+              ) : (
+                <ExpandableList
+                  items={myRsvps}
+                  listClassName="dashboard-my-list"
+                  itemKey={(rsvp) => rsvp.id}
+                  noun="event"
+                  renderItem={(rsvp) => (
+                    <>
+                      <Link href={`/events/${rsvp.slug}`}>{rsvp.title}</Link>
+                      {rsvp.start && formatEventStart(rsvp.start) && (
+                        <time className="dashboard-my-list-date">{formatEventStart(rsvp.start)}</time>
+                      )}
+                    </>
+                  )}
+                />
+              )}
+            </section>
+
+            <section className="dash-panel" id="bookmarks">
+              <h3 className="dash-h3">Bookmarks</h3>
+              {myBookmarks.length === 0 ? (
                 <p className="dashboard-hint">
-                  Step-by-step tracking for your banner, article and social promotion isn&apos;t built yet — for
-                  now, check with the team directly about where things are up to. This panel will show live status
-                  here once it&apos;s wired up.
+                  Nothing saved yet — bookmark a story or directory listing to find it again here.
                 </p>
-              </div>
+              ) : (
+                <ExpandableList
+                  items={myBookmarks}
+                  listClassName="dashboard-my-list"
+                  itemKey={(bookmark) => `${bookmark.content_type}-${bookmark.content_id}`}
+                  noun="bookmark"
+                  renderItem={(bookmark) => (
+                    <>
+                      <span className={`dashboard-status-badge dashboard-status-${bookmark.content_type}`}>
+                        {bookmark.content_type === "listing" ? "Directory" : "Story"}
+                      </span>
+                      <Link href={bookmark.link}>{bookmark.title}</Link>
+                    </>
+                  )}
+                />
+              )}
             </section>
-          )}
+          </div>
 
-          {/* My advertising — only when the member has at least one ad */}
-          {hasAds && (
-            <section className="dash-panel" id="advertising" aria-labelledby="advertising-h">
-              <div className="dash-panel-head">
-                <h2 id="advertising-h" className="dash-h2">
-                  My advertising
-                </h2>
-                <Link href="/advertise#blue-ads" className="button-pill button-pill-secondary">
-                  Advertise again
-                </Link>
-              </div>
-              <div className="dash-table-wrap">
-                <table className="dash-table">
-                  <thead>
-                    <tr>
-                      <th>Advert</th>
-                      <th>Dates</th>
-                      <th>Status</th>
-                      <th>Performance</th>
-                      <th>
-                        <span className="dash-sr-only">Actions</span>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {myAds.map((ad) => {
-                      const chip = adStatusChip(ad);
-                      return (
-                        <tr key={ad.id}>
-                          <td>
-                            <strong>{ad.headline}</strong>
-                            <div className="dash-meta">
-                              {AD_SELF_SERVE_PLACEMENTS.find((p) => p.slug === ad.placement)?.label ?? ad.placement}
-                              {" · "}
-                              {ad.daysRequested} day{ad.daysRequested === 1 ? "" : "s"}
-                            </div>
-                          </td>
-                          <td className="dash-meta">—</td>
-                          <td>
-                            <span className={`dash-chip ${chip.cls}`}>{chip.label}</span>
-                          </td>
-                          <td className="dash-meta">
-                            {ad.views} view{ad.views === 1 ? "" : "s"}, {ad.clicks} click{ad.clicks === 1 ? "" : "s"}
-                          </td>
-                          <td className="dash-table-actions">{ad.active && <ExtendAdButton adId={ad.id} />}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              <p className="dashboard-hint">
-                Exact start/end dates for each ad aren&apos;t shown here yet — we&apos;ll add them once that&apos;s
-                wired up.
-              </p>
-              <div className="dashboard-section-actions">
-                <Link href="/advertise#blue-ads" className="button-pill">
-                  Write another ad
-                </Link>
-              </div>
-            </section>
-          )}
-
-          {/* My submissions — only when the member has submitted at least one event, job or community post */}
+          {/* My submissions — matches the sidebar's "My content" group (events/jobs/community groups) */}
           {hasSubmissions && (
             <section className="dash-submissions" id="submissions" aria-labelledby="submissions-h">
               <h2 id="submissions-h" className="dash-h2">
@@ -504,115 +491,6 @@ export default async function DashboardPage() {
               </div>
             </section>
           )}
-
-          {/* Directory upgrade upsell — only when not already an approved Featured business */}
-          {!hasBusiness && (
-            <section className="dash-panel" id="grow">
-              <h2 className="dash-h3">Grow your business</h2>
-              {profile.directory_upgrade_status === "rejected" && (
-                <p className="dashboard-hint">Your last request wasn&apos;t approved — you can try again.</p>
-              )}
-              {profile.directory_upgrade_status === "pending" ? (
-                <p>
-                  Status: <strong>{UPGRADE_STATUS_LABEL.pending}</strong>
-                </p>
-              ) : (
-                <>
-                  <p className="dashboard-hint">
-                    Own a local business? Get the long-form listing — full details, photos and a featured spot at
-                    the top of your category, from £50/month.
-                  </p>
-                  <Link href="/dashboard/upgrade" className="button-pill">
-                    Request directory upgrade
-                  </Link>
-                </>
-              )}
-            </section>
-          )}
-
-          {/* Free for every member */}
-          <div className="dash-group">
-            <h2 className="dash-group-title">Free for every member</h2>
-
-            <section className="dash-panel" id="comments">
-              <h3 className="dash-h3">Your comments</h3>
-              {myComments.length === 0 ? (
-                <p className="dashboard-hint">Nothing yet — comment on a story to join the conversation.</p>
-              ) : (
-                <ExpandableList
-                  items={myComments}
-                  listClassName="dashboard-my-list dashboard-my-comments"
-                  itemKey={(comment) => comment.id}
-                  noun="comment"
-                  renderItem={(comment) => (
-                    <>
-                      <div>
-                        {comment.status !== "approved" && (
-                          <span className="dashboard-status-badge dashboard-status-pending">Awaiting moderation</span>
-                        )}
-                        {(() => {
-                          const link = linkForPostType(comment.post_type, comment.post_slug);
-                          return link ? (
-                            <Link href={link}>{comment.post_title}</Link>
-                          ) : (
-                            <span>{comment.post_title ?? "A post"}</span>
-                          );
-                        })()}
-                        <time>{formatDate(comment.date)}</time>
-                      </div>
-                      <p dangerouslySetInnerHTML={{ __html: comment.content.rendered }} />
-                    </>
-                  )}
-                />
-              )}
-            </section>
-
-            <section className="dash-panel" id="rsvps">
-              <h3 className="dash-h3">Events you&apos;re going to</h3>
-              {myRsvps.length === 0 ? (
-                <p className="dashboard-hint">Nothing yet — RSVP to an event to keep track of it here.</p>
-              ) : (
-                <ExpandableList
-                  items={myRsvps}
-                  listClassName="dashboard-my-list"
-                  itemKey={(rsvp) => rsvp.id}
-                  noun="event"
-                  renderItem={(rsvp) => (
-                    <>
-                      <Link href={`/events/${rsvp.slug}`}>{rsvp.title}</Link>
-                      {rsvp.start && formatEventStart(rsvp.start) && (
-                        <time className="dashboard-my-list-date">{formatEventStart(rsvp.start)}</time>
-                      )}
-                    </>
-                  )}
-                />
-              )}
-            </section>
-
-            <section className="dash-panel" id="bookmarks">
-              <h3 className="dash-h3">Bookmarks</h3>
-              {myBookmarks.length === 0 ? (
-                <p className="dashboard-hint">
-                  Nothing saved yet — bookmark a story or directory listing to find it again here.
-                </p>
-              ) : (
-                <ExpandableList
-                  items={myBookmarks}
-                  listClassName="dashboard-my-list"
-                  itemKey={(bookmark) => `${bookmark.content_type}-${bookmark.content_id}`}
-                  noun="bookmark"
-                  renderItem={(bookmark) => (
-                    <>
-                      <span className={`dashboard-status-badge dashboard-status-${bookmark.content_type}`}>
-                        {bookmark.content_type === "listing" ? "Directory" : "Story"}
-                      </span>
-                      <Link href={bookmark.link}>{bookmark.title}</Link>
-                    </>
-                  )}
-                />
-              )}
-            </section>
-          </div>
 
           <div className="dash-group">
             <h2 className="dash-group-title">Share something free</h2>
@@ -773,25 +651,153 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <section className="dash-panel" id="account">
-            <h2 className="dash-h3">Account</h2>
-            <div className="dashboard-account-row">
-              {/* Every member shows the same badge — no profile photo uploads, by design (see SC_Membership_REST::filter_default_avatar). The directory is where we want people putting in effort, not a personal profile. */}
-              <img src="/default-avatar.png" alt="" className="dashboard-avatar" />
-              <span className="dashboard-greeting">
-                {profile.is_returning ? "Welcome back" : "Hello"} {profile.display_name}
-              </span>
-            </div>
-            <p className="dashboard-hint">
-              Username and email aren&apos;t shown here yet — coming soon, once account details are wired up.
-            </p>
-            <a
-              className="button-pill button-pill-secondary"
-              href="https://www.staging19.secretcarshalton.com/wp-login.php?action=lostpassword"
-            >
-              Change password
-            </a>
-          </section>
+          {/* Directory upgrade upsell — only when not already an approved Featured business.
+              Sits right where "My business" would be, matching the sidebar's last group. */}
+          {!hasBusiness && (
+            <section className="dash-panel" id="grow">
+              <h2 className="dash-h3">Grow your business</h2>
+              {profile.directory_upgrade_status === "rejected" && (
+                <p className="dashboard-hint">Your last request wasn&apos;t approved — you can try again.</p>
+              )}
+              {profile.directory_upgrade_status === "pending" ? (
+                <p>
+                  Status: <strong>{UPGRADE_STATUS_LABEL.pending}</strong>
+                </p>
+              ) : (
+                <>
+                  <p className="dashboard-hint">
+                    Own a local business? Get the long-form listing — full details, photos and a featured spot at
+                    the top of your category, from £50/month.
+                  </p>
+                  <Link href="/dashboard/upgrade" className="button-pill">
+                    Request directory upgrade
+                  </Link>
+                </>
+              )}
+            </section>
+          )}
+
+          {/* My advertising — matches the sidebar's "My advertising" group */}
+          {hasAds && (
+            <section className="dash-panel" id="advertising" aria-labelledby="advertising-h">
+              <div className="dash-panel-head">
+                <h2 id="advertising-h" className="dash-h2">
+                  My advertising
+                </h2>
+                <Link href="/advertise#blue-ads" className="button-pill button-pill-secondary">
+                  Advertise again
+                </Link>
+              </div>
+              <div className="dash-table-wrap">
+                <table className="dash-table">
+                  <thead>
+                    <tr>
+                      <th>Advert</th>
+                      <th>Dates</th>
+                      <th>Status</th>
+                      <th>Performance</th>
+                      <th>
+                        <span className="dash-sr-only">Actions</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {myAds.map((ad) => {
+                      const chip = adStatusChip(ad);
+                      return (
+                        <tr key={ad.id}>
+                          <td>
+                            <strong>{ad.headline}</strong>
+                            <div className="dash-meta">
+                              {AD_SELF_SERVE_PLACEMENTS.find((p) => p.slug === ad.placement)?.label ?? ad.placement}
+                              {" · "}
+                              {ad.daysRequested} day{ad.daysRequested === 1 ? "" : "s"}
+                            </div>
+                          </td>
+                          <td className="dash-meta">—</td>
+                          <td>
+                            <span className={`dash-chip ${chip.cls}`}>{chip.label}</span>
+                          </td>
+                          <td className="dash-meta">
+                            {ad.views} view{ad.views === 1 ? "" : "s"}, {ad.clicks} click{ad.clicks === 1 ? "" : "s"}
+                          </td>
+                          <td className="dash-table-actions">{ad.active && <ExtendAdButton adId={ad.id} />}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className="dashboard-hint">
+                Exact start/end dates for each ad aren&apos;t shown here yet — we&apos;ll add them once that&apos;s
+                wired up.
+              </p>
+              <div className="dashboard-section-actions">
+                <Link href="/advertise#blue-ads" className="button-pill">
+                  Write another ad
+                </Link>
+              </div>
+            </section>
+          )}
+
+          {/* My business — matches the sidebar's "My business" group, last */}
+          {hasBusiness && (
+            <section className="dash-panel" id="business" aria-labelledby="business-h">
+              <div className="dash-panel-head">
+                <div>
+                  <div className="dash-eyebrow">My business</div>
+                  <h2 id="business-h" className="dash-h2">
+                    {businessListing ? businessListing.title : "Your business"}
+                  </h2>
+                </div>
+                {businessListing && (
+                  <div className="dash-panel-head-actions">
+                    {businessListing.status === "publish" && (
+                      <Link href={`/directory/${businessListing.slug}`} className="button-pill button-pill-secondary">
+                        View listing
+                      </Link>
+                    )}
+                    <Link href={`/directory/${businessListing.slug}/edit`} className="button-pill">
+                      Edit listing
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              <div className="dash-stat-row">
+                <div className="dash-stat-card dash-stat-card-dark">
+                  <span className="dash-stat-label dash-stat-label-gold">Current package</span>
+                  <span className="dash-stat-value">{businessTier?.label ?? "Featured"}</span>
+                  <span className="dash-stat-sub">
+                    {businessTier ? `${businessTier.price} ${businessTier.per}` : profile.directory_upgrade_amount_paid}
+                  </span>
+                </div>
+                <div className="dash-stat-card">
+                  <span className="dash-stat-label">Renewal</span>
+                  <span className="dash-stat-value">
+                    {profile.directory_upgrade_expires_at ? formatDate(profile.directory_upgrade_expires_at) : "—"}
+                  </span>
+                  <Link href="/dashboard/upgrade" className="dash-stat-link">
+                    Manage renewal
+                  </Link>
+                </div>
+                <div className="dash-stat-card">
+                  <span className="dash-stat-label">Listing views</span>
+                  <span className="dash-stat-value">{businessListing ? businessListing.views : "—"}</span>
+                  <span className="dash-stat-sub">All time — monthly stats aren&apos;t tracked yet</span>
+                </div>
+              </div>
+
+              <div id="business-campaign" className="dash-campaign">
+                <div className="dash-campaign-title">Campaign progress</div>
+                <p className="dashboard-hint">
+                  Step-by-step tracking for your banner, article and social promotion isn&apos;t built yet — for
+                  now, check with the team directly about where things are up to. This panel will show live status
+                  here once it&apos;s wired up.
+                </p>
+              </div>
+            </section>
+          )}
 
           {/* Activity quick stats */}
           <section className="dash-activity-stats" aria-label="My activity">
