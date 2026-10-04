@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EVENT_UPGRADE_PRICE } from "@/lib/pricing";
 
 export const metadata = { title: "Event Manager — Secret Carshalton" };
 
@@ -23,6 +24,7 @@ export default function EventManagerPage() {
       <ul className="event-manager-benefits">
         <li>Reach hundreds of people looking to see what&rsquo;s on, right now</li>
         <li>Newly-added events get shared on our Facebook and Instagram stories</li>
+        <li>Optional — promote your event to the top of the list for {EVENT_UPGRADE_PRICE}, any time after it&rsquo;s live</li>
         <li>Manage everything yourself — add, edit and feature events from your dashboard, any time</li>
         <li>Completely free to submit</li>
       </ul>

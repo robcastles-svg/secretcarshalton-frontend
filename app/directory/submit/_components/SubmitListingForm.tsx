@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { GROUP_PROMOTION_PRICE } from "@/lib/pricing";
 import type { WPDirectoryCategory } from "@/lib/wordpress";
 
 /**
@@ -16,13 +17,18 @@ export function SubmitListingForm({ categories }: { categories: WPDirectoryCateg
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [promotionRequested, setPromotionRequested] = useState(false);
+  const [promotionFailed, setPromotionFailed] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
 
-    const data = Object.fromEntries(new FormData(e.currentTarget).entries());
+    const formData = new FormData(e.currentTarget);
+    const wantsPromotion = formData.get("promote") === "on";
+    formData.delete("promote");
+    const data = Object.fromEntries(formData.entries());
 
     const res = await fetch("/api/directory/submit", {
       method: "POST",
@@ -37,6 +43,16 @@ export function SubmitListingForm({ categories }: { categories: WPDirectoryCateg
       return;
     }
 
+    if (wantsPromotion) {
+      const { id } = await res.json();
+      const promoRes = await fetch(`/api/directory/${id}/request-promotion`, { method: "POST" });
+      if (promoRes.ok) {
+        setPromotionRequested(true);
+      } else {
+        setPromotionFailed(true);
+      }
+    }
+
     setDone(true);
     router.refresh();
   }
@@ -44,9 +60,13 @@ export function SubmitListingForm({ categories }: { categories: WPDirectoryCateg
   if (done) {
     return (
       <p>
-        Thanks — your listing has been submitted and is awaiting review. Once it&apos;s live, you can add the
-        rest of your profile (address, contact details, photos and more) by requesting a featured upgrade from
-        your dashboard.
+        Thanks — your listing has been submitted and is awaiting review.
+        {promotionRequested &&
+          " Your group promotion request has also been submitted — it'll run for 30 days once approved."}
+        {promotionFailed &&
+          " We couldn't submit your group promotion request just now — you can request it again from your listing's page once it's live."}{" "}
+        Once it&apos;s live, you can add the rest of your profile (address, contact details, photos and more) by
+        requesting a featured upgrade from your dashboard.
       </p>
     );
   }
@@ -72,6 +92,15 @@ export function SubmitListingForm({ categories }: { categories: WPDirectoryCateg
           ))}
         </select>
       </label>
+
+      <label className="auth-form-radio">
+        <input type="checkbox" name="promote" />
+        Promote my group — {GROUP_PROMOTION_PRICE}
+      </label>
+      <p className="dashboard-hint">
+        Optional — featured placement within the Community section for 30 days. Your listing itself is always
+        free; this just gets it seen more. Subject to approval, like the listing itself.
+      </p>
 
       {error && <p className="auth-error">{error}</p>}
       <button type="submit" className="button-pill" disabled={submitting}>
