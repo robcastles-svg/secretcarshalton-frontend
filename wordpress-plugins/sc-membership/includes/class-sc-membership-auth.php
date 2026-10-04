@@ -23,13 +23,15 @@ class SC_Membership_Auth {
 	const TOKEN_TTL = 30 * DAY_IN_SECONDS;
 
 	/**
-	 * The Vercel *branch* alias — stable across every new deploy to this
-	 * branch (unlike the per-deployment URL, which changes every push) —
-	 * so email links keep working without this plugin needing to know
-	 * about individual deployments. Swap to the real domain once this
-	 * goes live.
+	 * The live Vercel production alias — stable across every deploy to
+	 * main (unlike the per-deployment URL, which changes every push), so
+	 * avatar URLs and email links keep working without this plugin
+	 * needing to know about individual deployments. Was a branch-preview
+	 * alias (...git-claude-v-dd76e4-...) during early development; that
+	 * alias has since gone stale, which is why default avatars across the
+	 * site started 404ing.
 	 */
-	const FRONTEND_URL = 'https://secretcarshalton-frontend-git-claude-v-dd76e4-secret-carshalton.vercel.app';
+	const FRONTEND_URL = 'https://secretcarshalton-frontend-secret-carshalton.vercel.app';
 
 	public static function register_routes() {
 		register_rest_route(
