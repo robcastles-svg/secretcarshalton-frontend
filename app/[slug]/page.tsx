@@ -145,7 +145,12 @@ export default async function ContentPage({
     return (
       <>
         {ABOUT_PAGE_SLUGS.includes(slug) && <AboutMiniNav activeSlug={slug} />}
-        {slug === "polls" && <YopPollScripts />}
+        {slug === "polls" && (
+          <>
+            <link rel="stylesheet" href="/vendor/yop-poll.css" />
+            <YopPollScripts />
+          </>
+        )}
         <article className="container">
           <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
           <time dateTime={item.date}>{formatDate(item.date)}</time>

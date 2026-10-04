@@ -53,6 +53,17 @@ function loadScript(src: string): Promise<void> {
  * to wait for DOMContentLoaded or run immediately, so loading it late
  * (well after hydration, from a useEffect) still mounts the poll
  * correctly — confirmed by reading the plugin's own bundle.
+ *
+ * The plugin's own CSS (the result-bar fill, answer layout, etc. — the
+ * bars render with correct widths from React's inline styles even
+ * without this, they're just 0 height and invisible) isn't loaded here:
+ * there's no standalone stylesheet URL for it on WP — SiteGround
+ * Optimizer merges it into one sitewide "combined CSS" file under a
+ * hash that changes whenever that cache regenerates, so linking to it
+ * directly isn't stable. See /polls' page.tsx: it ships a one-time
+ * extract of that block as a static file in this app instead
+ * (public/vendor/yop-poll.css), isolated — verified every selector in
+ * it is .yop-poll-prefixed before saving it.
  */
 export function YopPollScripts() {
   useEffect(() => {
