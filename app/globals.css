@@ -5815,20 +5815,63 @@ a.card-category:hover {
   color: var(--ad-text-muted);
 }
 
+/* Mobile nav toggle — hidden checkbox + label driving a CSS-only
+   accordion (no JS) for .dash-sidebar below. Desktop ignores both: the
+   label stays display:none and the sidebar is unaffected by the
+   checkbox's checked state outside the 860px media query. */
+.dash-nav-toggle-input {
+  position: absolute;
+  left: -9999px;
+}
+
+.dash-nav-toggle-label {
+  display: none;
+}
+
 @media (max-width: 860px) {
-  /* The sidebar is just jump links to sections already on this page —
-     on a narrow screen it's more useful after the content than as a
-     20-link wall above it, so it drops to the bottom via flex order
-     rather than changing DOM/tab order. */
+  /* Collapsed by default so the sidebar's ~20 links don't push real
+     content down, but it stays at the TOP of the page (natural DOM
+     order) rather than the bottom — it's a "jump to a section" nav, so
+     putting it after all the sections it jumps to would defeat the
+     point. Tapping the label reveals it in place via :checked. */
+  .dash-nav-toggle-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1rem;
+    background: var(--ad-card-bg);
+    border: 1px solid var(--ad-border);
+    border-radius: 12px;
+    font-weight: 600;
+    color: var(--ad-text);
+    cursor: pointer;
+  }
+
+  .dash-nav-toggle-label::after {
+    content: "▾";
+    transition: transform 0.15s ease;
+  }
+
+  .dash-nav-toggle-input:checked ~ .dash-nav-toggle-label::after {
+    transform: rotate(180deg);
+  }
+
   .dash-sidebar {
     position: static;
     max-width: none;
     flex-basis: 100%;
-    order: 2;
+    max-height: 0;
+    padding: 0 0.6rem;
+    border-width: 0;
+    overflow: hidden;
+    margin-top: -1.75rem;
   }
 
-  .dash-main {
-    order: 1;
+  .dash-nav-toggle-input:checked ~ .dash-sidebar {
+    max-height: 1200px;
+    padding: 0.6rem;
+    border-width: 1px;
+    margin-top: 0;
   }
 }
 

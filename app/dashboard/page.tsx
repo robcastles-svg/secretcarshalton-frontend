@@ -105,7 +105,14 @@ export default async function DashboardPage() {
   return (
     <main className="container dash-page" id="dash-top">
       <div className="dash-layout">
-        {/* Sidebar */}
+        {/* Sidebar — a plain always-visible nav on desktop. On mobile it's
+            collapsed behind a tap-to-expand toggle (CSS-only checkbox hack,
+            no JS) so it stays at the TOP where it's discoverable as
+            navigation, without pushing real content down a 20-link wall. */}
+        <input type="checkbox" id="dash-nav-toggle" className="dash-nav-toggle-input" />
+        <label htmlFor="dash-nav-toggle" className="dash-nav-toggle-label">
+          Jump to a section
+        </label>
         <nav className="dash-sidebar" aria-label="My account">
           <div className="dash-sidebar-label">My Secret Carshalton</div>
           <a href="#dash-top" className="dash-sidebar-link dash-sidebar-link-current">
