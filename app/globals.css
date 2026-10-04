@@ -2690,11 +2690,12 @@ a.card-category:hover {
 
 /* Article body copy (News/Stories/Walks/etc. — the shared [slug] post
    template) — otherwise inherits the site's 1rem base, which reads
-   small for a long-form article. line-height bumped slightly alongside
-   it so paragraphs at the bigger size don't feel cramped. */
+   small for a long-form article. Rob's second pass: bigger again (1.125
+   → 1.25rem) and tighter leading (1.7 → 1.55) now there's more text per
+   line to carry. */
 .post-content {
-  font-size: 1.125rem;
-  line-height: 1.7;
+  font-size: 1.25rem;
+  line-height: 1.55;
 }
 
 .post-content img {
