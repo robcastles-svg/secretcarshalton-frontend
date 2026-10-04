@@ -10,6 +10,7 @@ import { CommentSectionAsync } from "@/app/_components/CommentSectionAsync";
 import { ContentList } from "@/app/_components/ContentList";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { SidebarAds } from "@/app/_components/SidebarAds";
+import { YopPollScripts } from "@/app/_components/YopPollScripts";
 import {
   categoryHref,
   getAd,
@@ -144,6 +145,7 @@ export default async function ContentPage({
     return (
       <>
         {ABOUT_PAGE_SLUGS.includes(slug) && <AboutMiniNav activeSlug={slug} />}
+        {slug === "polls" && <YopPollScripts />}
         <article className="container">
           <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
           <time dateTime={item.date}>{formatDate(item.date)}</time>
