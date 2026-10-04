@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { getSessionToken } from "@/lib/auth";
 import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
 import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
-import { getDirectoryCategories, getMyListings } from "@/lib/wordpress";
+import { getDirectoryCategories, getDirectoryListingBySlug, getMyListings } from "@/lib/wordpress";
 import { SubmitListingForm } from "../submit/_components/SubmitListingForm";
 
 export const metadata = { title: "Featured directory listing — Secret Carshalton" };
+
+/** A real, live Featured listing — Rob's choice, not a fabricated example — so the preview below shows the actual card, not an approximation of one. */
+const FEATURED_EXAMPLE_SLUG = "rcb-plumbing-ltd-boiler-servicing-repairs-heating-specialists";
 
 /**
  * The Premium listing one-pager — same structure as /advertise (navy
@@ -26,10 +30,15 @@ export default async function FeaturedListingPage({
   const { tier } = await searchParams;
   const token = await getSessionToken();
 
-  const [categories, myListings] = await Promise.all([
+  const [categories, featuredListing, myListings] = await Promise.all([
     getDirectoryCategories().catch(() => []),
+    getDirectoryListingBySlug(FEATURED_EXAMPLE_SLUG).catch(() => null),
     token ? getMyListings(token).catch(() => []) : Promise.resolve([]),
   ]);
+  const categoriesById = new Map(categories.map((c) => [c.id, c]));
+  const featuredCategoriesList = featuredListing?.sc_listing_category
+    ?.map((id) => categoriesById.get(id))
+    .filter((c): c is (typeof categories)[number] => Boolean(c));
 
   return (
     <main className="adv-page">
@@ -158,6 +167,20 @@ export default async function FeaturedListingPage({
           A mention in our Facebook/Instagram stories on Featured Plus and Gold — we reach {SOCIAL_REACH_BLURB}.
         </p>
       </section>
+
+      {/* Preview */}
+      {featuredListing && (
+        <section className="adv-section">
+          <div className="adv-section-intro">
+            <span className="adv-eyebrow">Preview</span>
+            <h2 className="adv-h2">How a Featured listing looks</h2>
+            <p className="adv-lede">A real Featured listing, exactly as it appears in the directory grid.</p>
+          </div>
+          <ul className="post-list directory-list">
+            <DirectoryListingCard listing={featuredListing} categoriesList={featuredCategoriesList} />
+          </ul>
+        </section>
+      )}
 
       {/* Form */}
       <section id="add-listing" className="adv-section adv-closing">
