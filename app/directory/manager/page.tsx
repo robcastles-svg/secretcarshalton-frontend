@@ -9,8 +9,20 @@ export const metadata = { title: "Directory Manager — Secret Carshalton" };
  * then offer the login/register routes in. Covers both businesses and
  * community groups, since they're the same free listing underneath (see
  * SubmitListingForm) — just a different category.
+ *
+ * Forwards an incoming ?tier= (from /advertise's Featured CTAs) through
+ * the login detour, so picking "Choose Featured Gold" while logged out
+ * still lands on that tier pre-selected after signing in, instead of
+ * silently resetting to Free.
  */
-export default function DirectoryManagerPage() {
+export default async function DirectoryManagerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tier?: string }>;
+}) {
+  const { tier } = await searchParams;
+  const submitTarget = tier ? `/directory/submit?tier=${encodeURIComponent(tier)}` : "/directory/submit";
+
   return (
     <main className="container auth-page event-manager-page">
       <h1>Directory Manager</h1>
@@ -28,13 +40,12 @@ export default function DirectoryManagerPage() {
       </ul>
 
       <p className="dashboard-hint">
-        Running a local business?{" "}
-        <Link href="/directory/featured">See what Featured includes</Link> before you add your listing — it&apos;s
-        a fuller profile with photos, top placement and more, from £50/month.
+        Running a local business? Once you&apos;re signed in, the same form lets you go Featured — a fuller
+        profile with photos, top placement and more, from £50/month — in one step.
       </p>
 
       <div className="advertise-cta-box">
-        <Link href="/login?next=/directory/submit" className="button-pill">
+        <Link href={`/login?next=${encodeURIComponent(submitTarget)}`} className="button-pill">
           Log in to add your listing
         </Link>
         <p className="dashboard-hint">
