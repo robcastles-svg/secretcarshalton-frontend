@@ -2688,6 +2688,15 @@ a.card-category:hover {
   color: var(--color-active-dark);
 }
 
+/* Article body copy (News/Stories/Walks/etc. — the shared [slug] post
+   template) — otherwise inherits the site's 1rem base, which reads
+   small for a long-form article. line-height bumped slightly alongside
+   it so paragraphs at the bigger size don't feel cramped. */
+.post-content {
+  font-size: 1.125rem;
+  line-height: 1.7;
+}
+
 .post-content img {
   width: 100%;
   border-radius: 4px;
