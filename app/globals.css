@@ -212,6 +212,10 @@ button.button-pill {
   text-decoration: none;
   font-size: 1.05rem;
   font-weight: 400;
+  /* Otherwise inherits body's 1.6 — nav links are single words that
+     never wrap, so that just padded out the bar's vertical rhythm for
+     no reason. */
+  line-height: 1.2;
 }
 
 .primary-nav a:hover {
@@ -2589,7 +2593,17 @@ a.card-category:hover {
   background: linear-gradient(to top, rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0) 60%);
 }
 
+/* The real fix for the "short headlines look centred" bug: .container's
+   own margin: 0 auto centres it horizontally in a normal block context,
+   but as a flex item here (.post-hero-overlay is display:flex) those
+   auto margins instead soak up the row's free space either side of it,
+   since a flex item's width defaults to its content's size rather than
+   stretching full width. A short title/category/tag (little content)
+   then floats to the middle of the hero; a long wrapped headline
+   happened to mask this by nearly filling the row anyway. width: 100%
+   leaves the auto margins nothing to distribute. */
 .post-hero-overlay .container {
+  width: 100%;
   padding-bottom: 2rem;
   text-align: left;
 }
@@ -2597,8 +2611,8 @@ a.card-category:hover {
 .post-hero-overlay h1 {
   color: #fff;
   margin: 0;
-  font-size: 2rem;
-  line-height: 1.2;
+  font-size: 2.3rem;
+  line-height: 1.15;
   text-align: left;
 }
 
@@ -2617,6 +2631,11 @@ a.card-category:hover {
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
+  text-decoration: none;
+}
+
+.post-category:hover {
+  background: #a84f64;
 }
 
 .post-tag {
@@ -2626,11 +2645,20 @@ a.card-category:hover {
   text-transform: uppercase;
   align-self: center;
   opacity: 0.85;
+  text-decoration: none;
 }
 
-/* Meta above headline when there's no featured image */
+.post-tag:hover {
+  text-decoration: underline;
+}
+
+/* Meta above headline when there's no featured image — matches
+   .post-hero-overlay h1's size so a post reads the same with or
+   without a featured image. */
 .post-hero-meta + h1 {
   margin-top: 0;
+  font-size: 2.3rem;
+  line-height: 1.15;
   text-align: left;
 }
 
@@ -3270,8 +3298,9 @@ a.card-category:hover {
     min-height: 220px;
   }
 
-  .post-hero-overlay h1 {
-    font-size: 1.5rem;
+  .post-hero-overlay h1,
+  .post-hero-meta + h1 {
+    font-size: 1.65rem;
   }
 
   /* Brief requirement: article photos extend edge-to-edge on mobile, no

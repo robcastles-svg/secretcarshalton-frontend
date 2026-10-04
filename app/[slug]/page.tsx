@@ -10,6 +10,7 @@ import { ContentList } from "@/app/_components/ContentList";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import {
+  categoryHref,
   getAd,
   getAllPageSlugs,
   getCategories,
@@ -233,8 +234,16 @@ export default async function ContentPage({
           <div className="post-hero-overlay">
             <div className="container">
               <div className="post-hero-meta">
-                {category && <span className="post-category">{category.name}</span>}
-                {tag && <span className="post-tag">{tag.name}</span>}
+                {category && (
+                  <Link href={categoryHref(category, categoriesById)} className="post-category">
+                    {category.name}
+                  </Link>
+                )}
+                {tag && (
+                  <Link href={`/themes/${tag.slug}`} className="post-tag">
+                    {tag.name}
+                  </Link>
+                )}
               </div>
               <h1 dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
             </div>
@@ -243,8 +252,16 @@ export default async function ContentPage({
       ) : (
         <div className="container">
           <div className="post-hero-meta">
-            {category && <span className="post-category">{category.name}</span>}
-            {tag && <span className="post-tag">{tag.name}</span>}
+            {category && (
+              <Link href={categoryHref(category, categoriesById)} className="post-category">
+                {category.name}
+              </Link>
+            )}
+            {tag && (
+              <Link href={`/themes/${tag.slug}`} className="post-tag">
+                {tag.name}
+              </Link>
+            )}
           </div>
           <h1 dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
         </div>
