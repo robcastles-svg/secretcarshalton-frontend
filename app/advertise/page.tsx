@@ -190,7 +190,7 @@ export default async function AdvertisePage() {
               <li>Prominent exposure within your category</li>
               <li>Category image displayed across the site</li>
             </ul>
-            <Link href={`/directory/submit?tier=${FEATURED_DIRECTORY_TIERS[0].slug}`} className="button-pill button-pill-secondary adv-card-cta">
+            <Link href={`/directory/featured?tier=${FEATURED_DIRECTORY_TIERS[0].slug}`} className="button-pill button-pill-secondary adv-card-cta">
               Get Featured
             </Link>
           </div>
@@ -210,7 +210,7 @@ export default async function AdvertisePage() {
               <li>Six-month listing</li>
               <li>All Featured benefits</li>
             </ul>
-            <Link href={`/directory/submit?tier=${FEATURED_DIRECTORY_TIERS[1].slug}`} className="button-pill button-pill-secondary adv-card-cta">
+            <Link href={`/directory/featured?tier=${FEATURED_DIRECTORY_TIERS[1].slug}`} className="button-pill button-pill-secondary adv-card-cta">
               Choose 6 months
             </Link>
           </div>
@@ -236,7 +236,7 @@ export default async function AdvertisePage() {
               <li>Choose your start date within a 2-week window</li>
               <li>Choose how many months you want to run</li>
             </ul>
-            <Link href={`/directory/submit?tier=${FEATURED_DIRECTORY_TIERS[2].slug}`} className="button-pill adv-card-cta">
+            <Link href={`/directory/featured?tier=${FEATURED_DIRECTORY_TIERS[2].slug}`} className="button-pill adv-card-cta">
               Choose Featured Plus
             </Link>
           </div>
@@ -265,7 +265,7 @@ export default async function AdvertisePage() {
               <li>Choose your start date within a 2-week window</li>
               <li>Choose how many months you want to run</li>
             </ul>
-            <Link href={`/directory/submit?tier=${FEATURED_DIRECTORY_TIERS[3].slug}`} className="button-pill adv-btn-gold adv-card-cta">
+            <Link href={`/directory/featured?tier=${FEATURED_DIRECTORY_TIERS[3].slug}`} className="button-pill adv-btn-gold adv-card-cta">
               Choose Featured Gold
             </Link>
           </div>

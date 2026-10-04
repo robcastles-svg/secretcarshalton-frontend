@@ -1,53 +1,45 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
-import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
-import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
 import { getDirectoryCategories, getDirectoryListingBySlug, getMyListings, type WPListing } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 import { SubmitListingForm } from "./_components/SubmitListingForm";
 
-export const metadata = { title: "Add a listing — Secret Carshalton" };
+export const metadata = { title: "Add a free listing — Secret Carshalton" };
 
-/** A real, live featured listing — Rob's choice, not a fabricated example — so the comparison below shows the actual card, not an approximation of one. */
-const FEATURED_EXAMPLE_SLUG = "rcb-plumbing-ltd-boiler-servicing-repairs-heating-specialists";
+/** A real, live listing — Rob's choice, not a fabricated example — so the category badges on the preview card below are genuine. Only its categories are borrowed; the title/content shown is the generic placeholder below. */
+const EXAMPLE_SLUG = "rcb-plumbing-ltd-boiler-servicing-repairs-heating-specialists";
 
 /**
- * The one page for adding a directory listing — free or any Featured
- * tier, picked in the same form rather than a separate trip to
- * /dashboard/upgrade later (that page still exists, but now only for
- * upgrading a listing you already have — see its own redirect when you
- * have none). Replaces the old split between this page (free-only) and
- * /directory/featured (a standalone sales/comparison page); that
- * comparison content now lives here, right above the form.
+ * The Free listing one-pager — mirrors /jobs/manager's structure (hero,
+ * brief explainer, form, all on one page) but in "sc pink" rather than
+ * navy, per Rob's call that pink marks the free path on these Directory
+ * pages and navy/blue stays reserved for paid channels (see
+ * /directory/featured, the Premium equivalent in navy). The two pages
+ * link to each other via the toggle button under the headline, and
+ * DirectoryBrowse's "Add a listing" area links to both directly.
+ *
+ * No redirect for signed-out visitors (unlike the old combined page this
+ * replaces) — same as /jobs/manager, the hero/explainer/preview are
+ * worth showing either way, with the form swapped for a sign-in CTA box.
  */
-export default async function DirectorySubmitPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tier?: string }>;
-}) {
-  const { tier } = await searchParams;
-
+export default async function DirectorySubmitPage() {
   const token = await getSessionToken();
-  if (!token) redirect(tier ? `/directory/manager?tier=${encodeURIComponent(tier)}` : "/directory/manager");
 
-  const initialTier = FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.slug ?? "free";
-
-  const [categories, featuredListing, myListings] = await Promise.all([
+  const [categories, exampleListing, myListings] = await Promise.all([
     getDirectoryCategories().catch(() => []),
-    getDirectoryListingBySlug(FEATURED_EXAMPLE_SLUG).catch(() => null),
-    getMyListings(token),
+    getDirectoryListingBySlug(EXAMPLE_SLUG).catch(() => null),
+    token ? getMyListings(token).catch(() => []) : Promise.resolve([]),
   ]);
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
-  const featuredCategoriesList = featuredListing?.sc_listing_category
+  const exampleCategoriesList = exampleListing?.sc_listing_category
     ?.map((id) => categoriesById.get(id))
     .filter((c): c is (typeof categories)[number] => Boolean(c));
 
   // The free tier's actual shape (see SubmitListingForm) — title, website
-  // and one category, nothing else. No real free listing is singled out
-  // here, just that shape, so the comparison is "tier vs. tier" rather
-  // than naming a specific business as the lesser option.
-  const freeExampleListing: WPListing = {
+  // and one category, nothing else. A generic placeholder name, not a
+  // real business, so this reads as "here's the shape" rather than
+  // singling anyone out.
+  const previewListing: WPListing = {
     id: -1,
     slug: "",
     link: "",
@@ -55,7 +47,7 @@ export default async function DirectorySubmitPage({
     title: { rendered: "Your Business Name" },
     content: { rendered: "" },
     author: 0,
-    sc_listing_category: featuredListing?.sc_listing_category ?? [],
+    sc_listing_category: exampleListing?.sc_listing_category ?? [],
     meta: {
       sc_address_street: "",
       sc_address_town: "",
@@ -85,47 +77,100 @@ export default async function DirectorySubmitPage({
   };
 
   return (
-    <main className="container auth-page directory-featured-page">
-      <h1>Add a listing</h1>
-      <p>
-        Own or run a local business, organisation or community group? Add it here — it&apos;s free, and you can
-        optionally go Featured in the same step below for more visibility. Listings are reviewed before they go
-        live.
-      </p>
-
-      {myListings.length > 0 && (
-        <p className="dashboard-hint">
-          Already have a listing? <Link href="/dashboard/upgrade">Upgrade it to Featured</Link> from your
-          dashboard instead of adding a new one.
-        </p>
-      )}
-
-      {featuredListing && (
-        <>
-          <h2 className="directory-compare-heading">Free vs. Featured</h2>
-          <ul className="event-manager-benefits">
-            <li>Around 150 views a month from your category pages alone, on Featured</li>
-            <li>Featured ranks above every free listing in its category</li>
-            <li>A mention in our Facebook/Instagram stories on Featured Plus and Gold — we reach {SOCIAL_REACH_BLURB}</li>
-          </ul>
-          <div className="directory-compare-grid">
-            <div>
-              <span className="theme-eyebrow">Free listing</span>
-              <ul className="post-list">
-                <DirectoryListingCard listing={freeExampleListing} categoriesList={featuredCategoriesList} />
-              </ul>
-            </div>
-            <div>
-              <span className="theme-eyebrow">Featured listing</span>
-              <ul className="post-list">
-                <DirectoryListingCard listing={featuredListing} categoriesList={featuredCategoriesList} />
-              </ul>
+    <main className="adv-page">
+      {/* Hero */}
+      <section className="adv-hero adv-hero-pink">
+        <div className="adv-hero-inner">
+          <div className="adv-hero-copy">
+            <span className="adv-eyebrow adv-eyebrow-gold">Directory</span>
+            <h1 className="adv-hero-title">Get started. Free listing.</h1>
+            <p className="adv-hero-subtitle">
+              Add your business, organisation or community group to the Sutton Business Directory — free, reviewed
+              before it goes live, and yours to manage from your dashboard any time.
+            </p>
+            <div className="adv-hero-ctas">
+              <a href="#add-listing" className="button-pill adv-btn-gold">
+                Add your free listing
+              </a>
+              <Link href="/directory/featured" className="button-pill adv-btn-outline-light">
+                Premium listing →
+              </Link>
             </div>
           </div>
-        </>
-      )}
+        </div>
+      </section>
 
-      <SubmitListingForm categories={categories} initialTier={initialTier} />
+      {/* What you get */}
+      <section className="adv-how">
+        <div className="adv-how-inner">
+          <div className="adv-how-step">
+            <span className="adv-how-number">1</span>
+            <div>
+              <p className="adv-how-title">Listed for free</p>
+              <p className="adv-how-text">Your name, website and category, found by anyone browsing the directory.</p>
+            </div>
+          </div>
+          <div className="adv-how-step">
+            <span className="adv-how-number">2</span>
+            <div>
+              <p className="adv-how-title">Reviewed, not instant</p>
+              <p className="adv-how-text">We check listings before they go live — usually within a day or two.</p>
+            </div>
+          </div>
+          <div className="adv-how-step">
+            <span className="adv-how-number">3</span>
+            <div>
+              <p className="adv-how-title">Upgrade any time</p>
+              <p className="adv-how-text">
+                Manage it from your dashboard, or go <Link href="/directory/featured">Featured</Link> later for more reach.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Preview */}
+      <section className="adv-section">
+        <div className="adv-section-intro">
+          <span className="adv-eyebrow">Preview</span>
+          <h2 className="adv-h2">How it looks in the directory</h2>
+          <p className="adv-lede">Your free listing shows up in the grid just like this.</p>
+        </div>
+        <ul className="post-list directory-list">
+          <DirectoryListingCard listing={previewListing} categoriesList={exampleCategoriesList} />
+        </ul>
+      </section>
+
+      {/* Form */}
+      <section id="add-listing" className="adv-section adv-closing">
+        <div className="adv-section-intro">
+          <span className="adv-eyebrow">Add your listing</span>
+          <h2 className="adv-h2">Add your free listing</h2>
+        </div>
+
+        {token ? (
+          <div className="adv-inline-form">
+            <h3 className="adv-card-title">Your details</h3>
+            <SubmitListingForm categories={categories} mode="free" />
+          </div>
+        ) : (
+          <div className="adv-cta-box">
+            <Link href="/login?next=/directory/submit" className="button-pill">
+              Sign in to add your listing
+            </Link>
+            <p className="dashboard-hint">
+              New here? <Link href="/register">Create a free account</Link> — it only takes a minute.
+            </p>
+          </div>
+        )}
+
+        {myListings.length > 0 && (
+          <p className="dashboard-hint">
+            Already have a listing? <Link href="/dashboard/upgrade">Upgrade it to Featured</Link> from your
+            dashboard instead of adding a new one.
+          </p>
+        )}
+      </section>
     </main>
   );
 }

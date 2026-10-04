@@ -1,128 +1,209 @@
 import Link from "next/link";
-import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
+import { getSessionToken } from "@/lib/auth";
 import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
 import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
-import { getDirectoryCategories, getDirectoryListingBySlug, type WPListing } from "@/lib/wordpress";
+import { getDirectoryCategories, getMyListings } from "@/lib/wordpress";
+import { SubmitListingForm } from "../submit/_components/SubmitListingForm";
 
 export const metadata = { title: "Featured directory listing — Secret Carshalton" };
 
-/** A real, live featured listing — Rob's choice, not a fabricated example — so the comparison below shows the actual card, not an approximation of one. */
-const FEATURED_EXAMPLE_SLUG = "rcb-plumbing-ltd-boiler-servicing-repairs-heating-specialists";
-
 /**
- * Where the Directory page's main "Add a listing" button sends people,
- * instead of straight to the free listing form — same idea as
- * /events/manager: lead with the benefit of the thing worth paying for,
- * free stays one click away underneath for anyone who just wants that.
- * Business-focused framing specifically — /community/groups/manager is
- * the equivalent page for people adding a free community group instead.
- *
- * The CTA goes straight to /directory/submit (no auth check here) — that
- * page already handles the not-signed-in case on its own (redirects to
- * /directory/manager), so this page doesn't need to duplicate that logic.
+ * The Premium listing one-pager — same structure as /advertise (navy
+ * hero, "clean coloured boxes" for the packages, form below), rather
+ * than /directory/submit's pink/free structure, per Rob's call that
+ * navy/blue stays reserved for paid channels on these Directory pages.
+ * The four tier cards mirror /advertise's Featured Directory section
+ * (same copy, same card treatment) so the two surfaces read as one
+ * system; their CTAs jump down to the form here and pre-select that
+ * tier via ?tier=, instead of linking out to a separate page.
  */
-export default async function FeaturedListingPage() {
-  const [featuredListing, categories] = await Promise.all([
-    getDirectoryListingBySlug(FEATURED_EXAMPLE_SLUG).catch(() => null),
-    getDirectoryCategories().catch(() => []),
-  ]);
-  const categoriesById = new Map(categories.map((c) => [c.id, c]));
-  const featuredCategoriesList = featuredListing?.sc_listing_category
-    ?.map((id) => categoriesById.get(id))
-    .filter((c): c is (typeof categories)[number] => Boolean(c));
+export default async function FeaturedListingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tier?: string }>;
+}) {
+  const { tier } = await searchParams;
+  const token = await getSessionToken();
 
-  // The free tier's actual shape (see SubmitListingForm) — title, website
-  // and one category, nothing else. No real free listing is singled out
-  // here, just that shape, so the comparison is "tier vs. tier" rather
-  // than naming a specific business as the lesser option.
-  const freeExampleListing: WPListing = {
-    id: -1,
-    slug: "",
-    link: "",
-    date: new Date().toISOString(),
-    title: { rendered: "Your Business Name" },
-    content: { rendered: "" },
-    author: 0,
-    sc_listing_category: featuredListing?.sc_listing_category ?? [],
-    meta: {
-      sc_address_street: "",
-      sc_address_town: "",
-      sc_address_region: "",
-      sc_address_postcode: "",
-      sc_address_country: "",
-      sc_website: "",
-      sc_phone: "",
-      sc_email: "",
-      sc_tagline: "",
-      sc_facebook: "",
-      sc_instagram: "",
-      sc_twitter: "",
-      sc_linkedin: "",
-      sc_youtube: "",
-      sc_lat: "",
-      sc_lng: "",
-      sc_featured: false,
-      sc_verified: false,
-      sc_claimed: false,
-      sc_plan: "",
-      sc_claim_expires_at: "",
-      sc_featured_tier: "",
-      sc_group_promoted: false,
-      sc_group_promo_expires_at: "",
-    },
-  };
+  const [categories, myListings] = await Promise.all([
+    getDirectoryCategories().catch(() => []),
+    token ? getMyListings(token).catch(() => []) : Promise.resolve([]),
+  ]);
 
   return (
-    <main className="container auth-page event-manager-page directory-featured-page">
-      <h1>Featured directory listing</h1>
-      <p>
-        The long-form version of a free listing — your full details, photos and socials, plus a featured spot at
-        the top of your category on both Directory and Discover. Four packages, from £50/month.
-      </p>
-
-      <ul className="event-manager-benefits">
-        <li>Around 150 views a month from your category pages alone</li>
-        <li>Top ranking, above every free listing in your category</li>
-        <li>Featured Plus and Gold add a designed banner, editorial coverage and social promotion</li>
-        <li>A mention in our Facebook/Instagram stories on Featured Plus and Gold — we reach {SOCIAL_REACH_BLURB}</li>
-      </ul>
-
-      <h2 className="directory-compare-heading">See the difference</h2>
-      <div className="directory-compare-grid">
-        <div>
-          <span className="theme-eyebrow">Free listing</span>
-          <ul className="post-list">
-            <DirectoryListingCard listing={freeExampleListing} categoriesList={featuredCategoriesList} />
-          </ul>
+    <main className="adv-page">
+      {/* Hero */}
+      <section className="adv-hero">
+        <div className="adv-hero-inner">
+          <div className="adv-hero-copy">
+            <span className="adv-eyebrow adv-eyebrow-gold">Directory</span>
+            <h1 className="adv-hero-title">Get more exposure. Go Featured.</h1>
+            <p className="adv-hero-subtitle">
+              A full profile with photos, map and links — plus top placement in your category. From £50/month,
+              reviewed before it goes live.
+            </p>
+            <div className="adv-hero-ctas">
+              <a href="#packages" className="button-pill adv-btn-gold">
+                See packages
+              </a>
+              <Link href="/directory/submit" className="button-pill adv-btn-outline-light">
+                Free listing →
+              </Link>
+            </div>
+          </div>
         </div>
-        {featuredListing && (
-          <div>
-            <span className="theme-eyebrow">Featured listing</span>
-            <ul className="post-list">
-              <DirectoryListingCard listing={featuredListing} categoriesList={featuredCategoriesList} />
+      </section>
+
+      {/* Packages */}
+      <section id="packages" className="adv-section">
+        <div className="adv-section-intro adv-section-intro-wide">
+          <span className="adv-eyebrow">Packages</span>
+          <h2 className="adv-h2">Put your business in front of Carshalton</h2>
+          <p className="adv-lede">
+            A proper directory listing with photos, map and links — plus, on Plus and Gold, a designed banner,
+            social promotion and editorial coverage from the Secret Carshalton team.
+          </p>
+        </div>
+        <div className="adv-card-grid adv-card-grid-4">
+          <div className="adv-card">
+            <div className="adv-card-head">
+              <h3 className="adv-card-title">{FEATURED_DIRECTORY_TIERS[0].label}</h3>
+              <div className="adv-card-price-row">
+                <span className="adv-price">{FEATURED_DIRECTORY_TIERS[0].price}</span>
+                <span className="adv-per">{FEATURED_DIRECTORY_TIERS[0].per}</span>
+              </div>
+            </div>
+            <span className="adv-pill">{FEATURED_DIRECTORY_TIERS[0].exposureNote}</span>
+            <p className="adv-card-text">A prominent directory listing with exposure within the relevant category.</p>
+            <ul className="adv-ticks">
+              <li>Up to 3 photos</li>
+              <li>Title, description &amp; tagline</li>
+              <li>Website URL &amp; address</li>
+              <li>Social media links</li>
+              <li>Map location</li>
+              <li>Featured directory listing</li>
+              <li>Prominent exposure within your category</li>
+              <li>Category image displayed across the site</li>
             </ul>
+            <a href="#add-listing" className="button-pill button-pill-secondary adv-card-cta">
+              Get Featured
+            </a>
+          </div>
+
+          <div className="adv-card">
+            <div className="adv-card-head">
+              <h3 className="adv-card-title">{FEATURED_DIRECTORY_TIERS[1].label}</h3>
+              <div className="adv-card-price-row">
+                <span className="adv-price">{FEATURED_DIRECTORY_TIERS[1].price}</span>
+                <span className="adv-per">{FEATURED_DIRECTORY_TIERS[1].per}</span>
+              </div>
+            </div>
+            <span className="adv-pill adv-pill-green">{FEATURED_DIRECTORY_TIERS[1].exposureNote}</span>
+            <p className="adv-card-text">Our discounted longer-term Featured option.</p>
+            <ul className="adv-ticks">
+              <li>Est. 50+ monthly exposure*</li>
+              <li>Six-month listing</li>
+              <li>All Featured benefits</li>
+            </ul>
+            <a href="#add-listing" className="button-pill button-pill-secondary adv-card-cta">
+              Choose 6 months
+            </a>
+          </div>
+
+          <div className="adv-card adv-card-highlight">
+            <div className="adv-card-head">
+              <h3 className="adv-card-title">{FEATURED_DIRECTORY_TIERS[2].label}</h3>
+              <div className="adv-card-price-row">
+                <span className="adv-price">{FEATURED_DIRECTORY_TIERS[2].price}</span>
+                <span className="adv-per">{FEATURED_DIRECTORY_TIERS[2].per}</span>
+              </div>
+            </div>
+            <span className="adv-pill">{FEATURED_DIRECTORY_TIERS[2].exposureNote}</span>
+            <p className="adv-card-text">A Featured listing combined with additional advertising and social promotion.</p>
+            <ul className="adv-ticks">
+              <li>
+                <strong>Everything in Featured</strong>
+              </li>
+              <li>One Premium Text Ad</li>
+              <li>Designed banner</li>
+              <li>Banner displayed across the site</li>
+              <li>Social Story promotion</li>
+              <li>Choose your start date within a 2-week window</li>
+              <li>Choose how many months you want to run</li>
+            </ul>
+            <a href="#add-listing" className="button-pill adv-card-cta">
+              Choose Featured Plus
+            </a>
+          </div>
+
+          <div className="adv-card adv-card-dark">
+            <div className="adv-card-head">
+              <span className="adv-eyebrow adv-eyebrow-gold">Highest level of promotion</span>
+              <h3 className="adv-card-title adv-card-title-light">{FEATURED_DIRECTORY_TIERS[3].label}</h3>
+              <div className="adv-card-price-row">
+                <span className="adv-price adv-price-light">{FEATURED_DIRECTORY_TIERS[3].price}</span>
+                <span className="adv-per adv-per-light">{FEATURED_DIRECTORY_TIERS[3].per}</span>
+              </div>
+            </div>
+            <span className="adv-pill adv-pill-gold">{FEATURED_DIRECTORY_TIERS[3].exposureNote}</span>
+            <p className="adv-card-text adv-card-text-light">
+              A Featured listing, advertising and editorial coverage combined.
+            </p>
+            <ul className="adv-ticks adv-ticks-dark">
+              <li>
+                <strong>Everything in Featured Plus</strong>
+              </li>
+              <li>One Premium Text Ad</li>
+              <li>Designed banner displayed across the site</li>
+              <li>Written article about your business, organisation or event</li>
+              <li>Social media post promoting the article</li>
+              <li>Choose your start date within a 2-week window</li>
+              <li>Choose how many months you want to run</li>
+            </ul>
+            <a href="#add-listing" className="button-pill adv-btn-gold adv-card-cta">
+              Choose Featured Gold
+            </a>
+          </div>
+        </div>
+        <p className="adv-footnote-inline">
+          A mention in our Facebook/Instagram stories on Featured Plus and Gold — we reach {SOCIAL_REACH_BLURB}.
+        </p>
+      </section>
+
+      {/* Form */}
+      <section id="add-listing" className="adv-section adv-closing">
+        <div className="adv-section-intro">
+          <span className="adv-eyebrow">Add your listing</span>
+          <h2 className="adv-h2">Add your Featured listing</h2>
+          <p className="adv-lede">
+            There&apos;s no automated payment yet — submit this and we&apos;ll be in touch to arrange it (PayPal).
+            Nothing is charged now.
+          </p>
+        </div>
+
+        {token ? (
+          <div className="adv-inline-form">
+            <h3 className="adv-card-title">Your details</h3>
+            <SubmitListingForm categories={categories} mode="featured" initialTier={tier} />
+          </div>
+        ) : (
+          <div className="adv-cta-box">
+            <Link href={`/login?next=${encodeURIComponent(tier ? `/directory/featured?tier=${tier}` : "/directory/featured")}`} className="button-pill">
+              Sign in to add your listing
+            </Link>
+            <p className="dashboard-hint">
+              New here? <Link href="/register">Create a free account</Link> — it only takes a minute.
+            </p>
           </div>
         )}
-      </div>
 
-      {FEATURED_DIRECTORY_TIERS.map((t) => (
-        <p key={t.slug} className="advertise-price">
-          <strong>{t.label}</strong>
-          <span className="advertise-price-note">
-            {" "}
-            — {t.price} {t.per}
-          </span>
-        </p>
-      ))}
-
-      <div className="advertise-cta-box">
-        <Link href="/directory/submit?tier=featured" className="button-pill">
-          Get Featured
-        </Link>
-        <p className="dashboard-hint">
-          Just want the basics? <Link href="/directory/submit">Add a free listing</Link> instead.
-        </p>
-      </div>
+        {myListings.length > 0 && (
+          <p className="dashboard-hint">
+            Already have a listing? <Link href="/dashboard/upgrade">Upgrade it to Featured</Link> from your
+            dashboard instead of adding a new one.
+          </p>
+        )}
+      </section>
     </main>
   );
 }

@@ -160,9 +160,14 @@ export async function DirectoryBrowse({
             )}
             <p>Local businesses and organisations in and around Carshalton.</p>
           </div>
-          <Link href="/directory/featured" className="button-pill">
-            Add a listing
-          </Link>
+          <div className="directory-add-listing-ctas">
+            <Link href="/directory/submit" className="button-pill">
+              Free listing
+            </Link>
+            <Link href="/directory/featured" className="button-pill button-pill-secondary">
+              Premium listing
+            </Link>
+          </div>
         </div>
       </div>
 

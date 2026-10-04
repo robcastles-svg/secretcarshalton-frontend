@@ -9,25 +9,17 @@ import type { WPDirectoryCategory } from "@/lib/wordpress";
 const CATEGORY_LIMIT = 3;
 const PHOTO_LIMIT = 10;
 
-const FREE_TIER = {
-  slug: "free",
-  label: "Free listing",
-  price: "£0",
-  per: "forever",
-  exposureNote: "Found by name in your category",
-} as const;
-
-const TIER_CHOICES = [FREE_TIER, ...FEATURED_DIRECTORY_TIERS];
-
 /**
- * One form for business/organisation directory listings: basic details
- * always shown, then a tier picker (Free or one of the four Featured
- * packages). Choosing a Featured tier reveals the richer profile fields
- * (same ones /dashboard/upgrade's SubmitUpgradeRequest asks for) right
- * here instead of requiring a second trip back later. Submitting always
- * creates the listing first (POST /api/directory/submit), then — only
- * if a paid tier was chosen — makes one follow-up request against the
- * new listing's id to request the upgrade.
+ * Business/organisation directory listing form, used in two distinct
+ * contexts — see /directory/submit (free one-pager) and /directory/featured
+ * (premium one-pager) — rather than one combined free+upgrade page/form.
+ * `mode="free"` shows just the basic fields and always creates a free
+ * listing; `mode="featured"` shows a tier picker across the four Featured
+ * packages (never "free" — that's the other page's job) plus the richer
+ * profile fields (same ones /dashboard/upgrade's SubmitUpgradeRequest
+ * asks for). Submitting always creates the listing first (POST
+ * /api/directory/submit), then — in featured mode — makes one follow-up
+ * request against the new listing's id to request the upgrade.
  *
  * Community groups are a deliberately separate, simpler flow — see
  * /community/groups/submit's SubmitGroupForm — not this one: groups
@@ -37,13 +29,20 @@ const TIER_CHOICES = [FREE_TIER, ...FEATURED_DIRECTORY_TIERS];
  */
 export function SubmitListingForm({
   categories,
-  initialTier = "free",
+  mode,
+  initialTier,
 }: {
   categories: WPDirectoryCategory[];
+  mode: "free" | "featured";
+  /** Featured mode only — pre-selects one of FEATURED_DIRECTORY_TIERS' slugs. */
   initialTier?: string;
 }) {
   const router = useRouter();
-  const [tier, setTier] = useState(initialTier);
+  const [tier, setTier] = useState(
+    mode === "featured"
+      ? FEATURED_DIRECTORY_TIERS.find((t) => t.slug === initialTier)?.slug ?? FEATURED_DIRECTORY_TIERS[0].slug
+      : "free"
+  );
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -51,7 +50,7 @@ export function SubmitListingForm({
   const [done, setDone] = useState(false);
   const [resultMessage, setResultMessage] = useState("");
 
-  const isFeatured = tier !== "free";
+  const isFeatured = mode === "featured";
 
   function toggleCategory(slug: string) {
     setSelectedCategories((prev) => {
@@ -158,24 +157,26 @@ export function SubmitListingForm({
         </select>
       </label>
 
-      <fieldset className="upgrade-tier-fieldset">
-        <legend>Package</legend>
-        <div className="upgrade-tier-grid">
-          {TIER_CHOICES.map((t) => (
-            <label
-              key={t.slug}
-              className={`upgrade-tier-card${tier === t.slug ? " upgrade-tier-card-selected" : ""}`}
-            >
-              <input type="radio" name="tier" value={t.slug} checked={tier === t.slug} onChange={() => setTier(t.slug)} />
-              <span className="upgrade-tier-name">{t.label}</span>
-              <span className="upgrade-tier-price">
-                {t.price} <span className="upgrade-tier-per">{t.per}</span>
-              </span>
-              <span className="upgrade-tier-exposure">{t.exposureNote}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      {mode === "featured" && (
+        <fieldset className="upgrade-tier-fieldset">
+          <legend>Package</legend>
+          <div className="upgrade-tier-grid">
+            {FEATURED_DIRECTORY_TIERS.map((t) => (
+              <label
+                key={t.slug}
+                className={`upgrade-tier-card${tier === t.slug ? " upgrade-tier-card-selected" : ""}`}
+              >
+                <input type="radio" name="tier" value={t.slug} checked={tier === t.slug} onChange={() => setTier(t.slug)} />
+                <span className="upgrade-tier-name">{t.label}</span>
+                <span className="upgrade-tier-price">
+                  {t.price} <span className="upgrade-tier-per">{t.per}</span>
+                </span>
+                <span className="upgrade-tier-exposure">{t.exposureNote}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
       {isFeatured ? (
         <>
@@ -268,8 +269,9 @@ export function SubmitListingForm({
       <p className="dashboard-hint">
         {isFeatured ? (
           <>
-            {TIER_CHOICES.find((t) => t.slug === tier)?.label}: {TIER_CHOICES.find((t) => t.slug === tier)?.price}{" "}
-            {TIER_CHOICES.find((t) => t.slug === tier)?.per}. There&apos;s no automated payment yet — once you
+            {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.label}:{" "}
+            {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.price}{" "}
+            {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.per}. There&apos;s no automated payment yet — once you
             submit this, we&apos;ll review it and get in touch to arrange payment (PayPal). Nothing is charged
             now.
           </>
