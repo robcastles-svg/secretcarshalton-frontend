@@ -51,6 +51,14 @@ h3 {
   font-family: var(--font-body), system-ui, sans-serif;
   font-weight: 700;
   color: #1a1a1a;
+  /* Headings otherwise inherit body's 1.6 — fine for paragraph text, way
+     too loose for bold display type, especially once a heading wraps to
+     two lines. Component-specific headline styles elsewhere in this file
+     already set their own tighter value and take precedence over this;
+     this is just the default for the many bare <h1>s (Events, Jobs,
+     News, Community, Discover, Walks, Themes, Stories, People, and
+     Directory's .section-hero h1) that don't. */
+  line-height: 1.15;
 }
 
 a {
@@ -1372,6 +1380,15 @@ a.card-category:hover {
   margin: 0 0 0.5rem;
 }
 
+/* CategoryKeyIcon's source PNG is solid black — invisible against this
+   band's dark grey. brightness(0) invert(1) recolours it white without
+   needing a second image asset; scoped to .section-hero since every
+   other page using the icon sits on a plain white background, where a
+   white key would be the one that disappears. */
+.section-hero h1 .category-key-icon {
+  filter: brightness(0) invert(1);
+}
+
 .section-hero p {
   color: #ddd;
   margin: 0;
@@ -1860,6 +1877,10 @@ a.card-category:hover {
 .events-dark h1,
 .events-dark h2 {
   color: #fff;
+}
+
+.events-dark .category-key-icon {
+  filter: brightness(0) invert(1);
 }
 
 .events-dark .event-tag-dropdown label {
