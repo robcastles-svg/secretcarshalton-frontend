@@ -60,7 +60,7 @@ export default async function JobsPage() {
           </h1>
           <p>Local vacancies from around Carshalton, Sutton and the surrounding area.</p>
         </div>
-        <Link href="/jobs/submit" className="button-pill">
+        <Link href="/jobs/manager" className="button-pill">
           Add a job
         </Link>
       </div>

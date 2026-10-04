@@ -37,7 +37,7 @@ export default async function CommunityGroupsPage() {
           </h1>
           <p>{DESCRIPTION}</p>
         </div>
-        <Link href="/directory/submit" className="button-pill">
+        <Link href="/community/groups/manager" className="button-pill">
           List your group
         </Link>
       </div>
@@ -70,7 +70,7 @@ export default async function CommunityGroupsPage() {
       </div>
 
       <p className="community-groups-note">
-        Run a local group? <Link href="/directory/submit">Add it for free</Link> — choose
+        Run a local group? <Link href="/community/groups/manager">Add it for free</Link> — choose
         &quot;Groups to join&quot; as the category.
       </p>
     </main>
