@@ -29,12 +29,6 @@
   --ad-warn-text: #7a4e00;
   --ad-off-bg: #eef0f3;
   --ad-off-text: #4e5562;
-  /* "sc pink" — the free-tier hero colour on the Directory one-pagers,
-     set opposite --ad-navy per Rob's call: pink marks the free path,
-     navy/blue stays reserved for paid channels. Scoped to those pages
-     via .adv-hero-pink rather than changing .adv-hero's default, since
-     Advertise/Jobs still use navy for their (paid) hero. */
-  --ad-pink: #c2607a;
   /* Design reference uses Bricolage Grotesque (headings) / Public Sans
      (body) — not loaded on this site, and adding a new Google Fonts
      import is a separate decision, so these just alias the existing
@@ -4912,8 +4906,12 @@ a.card-category:hover {
   color: #fff;
 }
 
-.adv-hero-pink {
-  background: var(--ad-pink);
+/* The Free listing one-pager's hero — --ad-blue rather than --ad-navy,
+   so it still reads as distinct from /directory/featured and
+   /advertise/jobs' (paid) navy hero, without the full-strength pink
+   Rob found too loud. */
+.adv-hero-blue {
+  background: var(--ad-blue);
 }
 
 .adv-hero-inner {

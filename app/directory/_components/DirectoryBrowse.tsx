@@ -164,7 +164,7 @@ export async function DirectoryBrowse({
             <Link href="/directory/submit" className="button-pill">
               Free listing
             </Link>
-            <Link href="/directory/featured" className="button-pill button-pill-secondary">
+            <Link href="/directory/featured" className="button-pill adv-btn-gold">
               Premium listing
             </Link>
           </div>

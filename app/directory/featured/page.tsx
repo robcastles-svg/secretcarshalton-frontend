@@ -9,13 +9,14 @@ export const metadata = { title: "Featured directory listing — Secret Carshalt
 
 /**
  * The Premium listing one-pager — same structure as /advertise (navy
- * hero, "clean coloured boxes" for the packages, form below), rather
- * than /directory/submit's pink/free structure, per Rob's call that
- * navy/blue stays reserved for paid channels on these Directory pages.
- * The four tier cards mirror /advertise's Featured Directory section
- * (same copy, same card treatment) so the two surfaces read as one
- * system; their CTAs jump down to the form here and pre-select that
- * tier via ?tier=, instead of linking out to a separate page.
+ * hero, "clean coloured boxes" for the packages, form below), distinct
+ * from /directory/submit's --ad-blue free-page hero. The four tier cards
+ * mirror /advertise's Featured Directory section (same copy, same card
+ * treatment) so the two surfaces read as one system — info only, no CTA
+ * button per card, since there's one form below, not four separate
+ * sign-up paths. Its package is picked via a dropdown in that form
+ * (SubmitListingForm, mode="featured"), pre-selectable via ?tier= (see
+ * /advertise's links here) rather than per-card buttons.
  */
 export default async function FeaturedListingPage({
   searchParams,
@@ -85,9 +86,6 @@ export default async function FeaturedListingPage({
               <li>Prominent exposure within your category</li>
               <li>Category image displayed across the site</li>
             </ul>
-            <a href="#add-listing" className="button-pill button-pill-secondary adv-card-cta">
-              Get Featured
-            </a>
           </div>
 
           <div className="adv-card">
@@ -105,9 +103,6 @@ export default async function FeaturedListingPage({
               <li>Six-month listing</li>
               <li>All Featured benefits</li>
             </ul>
-            <a href="#add-listing" className="button-pill button-pill-secondary adv-card-cta">
-              Choose 6 months
-            </a>
           </div>
 
           <div className="adv-card adv-card-highlight">
@@ -131,9 +126,6 @@ export default async function FeaturedListingPage({
               <li>Choose your start date within a 2-week window</li>
               <li>Choose how many months you want to run</li>
             </ul>
-            <a href="#add-listing" className="button-pill adv-card-cta">
-              Choose Featured Plus
-            </a>
           </div>
 
           <div className="adv-card adv-card-dark">
@@ -160,9 +152,6 @@ export default async function FeaturedListingPage({
               <li>Choose your start date within a 2-week window</li>
               <li>Choose how many months you want to run</li>
             </ul>
-            <a href="#add-listing" className="button-pill adv-btn-gold adv-card-cta">
-              Choose Featured Gold
-            </a>
           </div>
         </div>
         <p className="adv-footnote-inline">

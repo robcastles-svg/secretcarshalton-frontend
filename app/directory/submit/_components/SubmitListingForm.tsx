@@ -158,24 +158,16 @@ export function SubmitListingForm({
       </label>
 
       {mode === "featured" && (
-        <fieldset className="upgrade-tier-fieldset">
-          <legend>Package</legend>
-          <div className="upgrade-tier-grid">
+        <label>
+          Package
+          <select name="tier" value={tier} onChange={(e) => setTier(e.target.value)}>
             {FEATURED_DIRECTORY_TIERS.map((t) => (
-              <label
-                key={t.slug}
-                className={`upgrade-tier-card${tier === t.slug ? " upgrade-tier-card-selected" : ""}`}
-              >
-                <input type="radio" name="tier" value={t.slug} checked={tier === t.slug} onChange={() => setTier(t.slug)} />
-                <span className="upgrade-tier-name">{t.label}</span>
-                <span className="upgrade-tier-price">
-                  {t.price} <span className="upgrade-tier-per">{t.per}</span>
-                </span>
-                <span className="upgrade-tier-exposure">{t.exposureNote}</span>
-              </label>
+              <option key={t.slug} value={t.slug}>
+                {t.label} — {t.price} {t.per}
+              </option>
             ))}
-          </div>
-        </fieldset>
+          </select>
+        </label>
       )}
 
       {isFeatured ? (

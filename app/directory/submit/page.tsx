@@ -11,12 +11,12 @@ const EXAMPLE_SLUG = "rcb-plumbing-ltd-boiler-servicing-repairs-heating-speciali
 
 /**
  * The Free listing one-pager — mirrors /jobs/manager's structure (hero,
- * brief explainer, form, all on one page) but in "sc pink" rather than
- * navy, per Rob's call that pink marks the free path on these Directory
- * pages and navy/blue stays reserved for paid channels (see
- * /directory/featured, the Premium equivalent in navy). The two pages
- * link to each other via the toggle button under the headline, and
- * DirectoryBrowse's "Add a listing" area links to both directly.
+ * brief explainer, form, all on one page) but in --ad-blue rather than
+ * --ad-navy, so it still reads as distinct from /directory/featured (the
+ * Premium equivalent, in navy) without the full-strength pink Rob tried
+ * first and found too loud. The two pages link to each other via the
+ * toggle button under the headline, and DirectoryBrowse's directory page
+ * links to both directly.
  *
  * No redirect for signed-out visitors (unlike the old combined page this
  * replaces) — same as /jobs/manager, the hero/explainer/preview are
@@ -79,7 +79,7 @@ export default async function DirectorySubmitPage() {
   return (
     <main className="adv-page">
       {/* Hero */}
-      <section className="adv-hero adv-hero-pink">
+      <section className="adv-hero adv-hero-blue">
         <div className="adv-hero-inner">
           <div className="adv-hero-copy">
             <span className="adv-eyebrow adv-eyebrow-gold">Directory</span>
