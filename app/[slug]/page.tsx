@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fragment, Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AboutMiniNav, ABOUT_PAGE_SLUGS } from "@/app/_components/AboutMiniNav";
 import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
 import { AdSlot } from "@/app/_components/AdSlot";
 import { CommentCountLink } from "@/app/_components/CommentCountLink";
@@ -141,12 +142,15 @@ export default async function ContentPage({
   // category/tag, sidebar, or comments, since those are post concepts.
   if (!post) {
     return (
-      <article className="container">
-        <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
-        <time dateTime={item.date}>{formatDate(item.date)}</time>
-        {image && <img src={image.source_url} alt={image.alt_text} />}
-        <div dangerouslySetInnerHTML={{ __html: item.content.rendered }} />
-      </article>
+      <>
+        {ABOUT_PAGE_SLUGS.includes(slug) && <AboutMiniNav activeSlug={slug} />}
+        <article className="container">
+          <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
+          <time dateTime={item.date}>{formatDate(item.date)}</time>
+          {image && <img src={image.source_url} alt={image.alt_text} />}
+          <div dangerouslySetInnerHTML={{ __html: item.content.rendered }} />
+        </article>
+      </>
     );
   }
 

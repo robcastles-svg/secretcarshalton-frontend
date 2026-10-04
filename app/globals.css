@@ -176,7 +176,7 @@ button.button-pill {
   gap: 1.5rem;
   align-items: center;
   justify-content: space-between;
-  padding: 1.25rem 1.5rem 1rem;
+  padding: 1.25rem 1.5rem 1.35rem;
 }
 
 .site-logo {
@@ -214,8 +214,10 @@ button.button-pill {
   font-weight: 400;
   /* Otherwise inherits body's 1.6 — nav links are single words that
      never wrap, so that just padded out the bar's vertical rhythm for
-     no reason. */
-  line-height: 1.2;
+     no reason. Second pass per Rob: tighter still (1.2 → 1.05), offset
+     by a bit more padding below the bar (see .site-header-inner) so it
+     doesn't end up feeling cramped against the border underneath. */
+  line-height: 1.05;
 }
 
 .primary-nav a:hover {
@@ -1254,6 +1256,14 @@ a.card-category:hover {
 
 .mini-category-nav a:hover {
   color: #c2607a;
+}
+
+.mini-category-nav a[aria-current="page"] {
+  color: #1a1a1a;
+  text-decoration: underline;
+  text-decoration-color: #c2607a;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 
 @media (max-width: 720px) {
