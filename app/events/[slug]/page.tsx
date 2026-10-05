@@ -21,6 +21,7 @@ import {
   stripHtml,
 } from "@/lib/wordpress";
 import { ClaimEventButton } from "./_components/ClaimEventButton";
+import { EventDetailImage } from "./_components/EventDetailImage";
 import { EventTimeLeft } from "./_components/EventTimeLeft";
 import { RsvpButton } from "./_components/RsvpButton";
 import { ShareEventRow } from "./_components/ShareEventRow";
@@ -352,7 +353,7 @@ export default async function EventPage({
             {startDate && startDate.getTime() > Date.now() && <EventTimeLeft targetMs={startDate.getTime()} />}
           </div>
         </div>
-        {image && <img src={image.source_url} alt={image.alt_text} />}
+        {image && <EventDetailImage image={image} alt={stripHtml(event.title.rendered)} />}
 
         <div className="event-detail-actions">
           {startDate && (

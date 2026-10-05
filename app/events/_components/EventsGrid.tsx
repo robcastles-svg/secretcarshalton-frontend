@@ -20,15 +20,8 @@ export function EventsGrid({ events }: { events: WPScEvent[] }) {
           const startDate = parseEventDate(event.meta.sc_start);
           return (
             <li key={event.id}>
-              {/* Image is a sibling of the Link, not nested inside it —
-                  it's its own click-to-enlarge button (see EventImage's
-                  expandable prop), and a <button> can't nest inside an
-                  <a>. The Link still covers the heading (date badge +
-                  title), so the card overall still has one obvious click
-                  target through to the event; the photo is the one part
-                  that does something else when clicked. */}
-              <EventImage image={image} alt={stripHtml(event.title.rendered)} expandable />
               <Link href={`/events/${event.slug}`}>
+                <EventImage image={image} alt={stripHtml(event.title.rendered)} />
                 <div className="event-card-heading">
                   {startDate && (
                     <div className="event-card-date-badge">
