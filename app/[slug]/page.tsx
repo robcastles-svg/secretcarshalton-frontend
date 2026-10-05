@@ -152,12 +152,12 @@ export default async function ContentPage({
             <YopPollScripts />
           </>
         )}
-        {/* Defensive fallback, not the normal path: none of the four About
-            pages actually have a WP featured image set (confirmed via the
-            REST API — featured_media: 0 on all of them) — their real
-            "main image" is the first image embedded in the page's own
-            content, handled by .about-page-content's CSS below. This
-            only fires if Rob ever sets a real featured image later. */}
+        {/* The main image for two of the four About pages: Latest Comments
+            and Polls both have a real WP featured image set (checked via
+            the REST API). The other two (About Secret Carshalton, Welcome
+            to Carshalton) don't — featured_media: 0 — their main image is
+            the first one embedded in the page's own content instead,
+            handled by .sow-image-container's CSS further down. */}
         {isAboutPage && image && <img src={image.source_url} alt={image.alt_text} className="about-page-image" />}
         <article className="container">
           {!isAboutPage && <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />}

@@ -2587,13 +2587,44 @@ a.card-category:hover {
 }
 
 /* About page cluster (about-secret-carshalton, welcome-to-carshalton,
-   latest-comments, polls). .about-page-image is the defensive fallback
-   path (see [slug]/page.tsx) — full-bleed since it sits outside
-   .container, natural aspect ratio kept (no forced height/crop, unlike
-   .post-hero). */
+   latest-comments, polls) — the main image, whichever of the two code
+   paths it comes from. .about-page-image is a real WP featured image
+   (Latest Comments and Polls both have one set — it's the normal path
+   for those two, not a fallback despite the name); .sow-image-container
+   img is the other two pages' image embedded in their own content (see
+   below). Both go genuinely full-viewport width at every size —
+   .about-page-image already sits outside .container so needs nothing
+   extra; .sow-image-container img needs the breakout margin trick since
+   it's nested deep inside the content column.
+   Height: natural aspect ratio on mobile (these images range from
+   roughly square to wide, and a shared fixed band read as too thin a
+   sliver for the squarer ones at phone width); a shared fixed crop
+   band on desktop instead, so all four images present at the same
+   height regardless of their own proportions — see the desktop rule
+   below, half of .post-hero's own numbers (60vh/320/520 → 30vh/160/260),
+   which this deliberately echoes. */
 .about-page-image {
   display: block;
   width: 100%;
+}
+
+.sow-image-container img {
+  display: block;
+  width: 100vw;
+  max-width: 100vw;
+  height: auto;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+}
+
+@media (min-width: 721px) {
+  .about-page-image,
+  .sow-image-container img {
+    height: 30vh;
+    min-height: 160px;
+    max-height: 260px;
+    object-fit: cover;
+  }
 }
 
 /* The page's own embedded title — the mini-nav above already labels
@@ -2620,22 +2651,6 @@ a.card-category:hover {
   display: block;
 }
 
-/* The actual "main image" on the two About pages that have one (About
-   Secret Carshalton, Welcome to Carshalton) — a SiteOrigin image-widget
-   figure, left over from the original site build. It carries its
-   upload-time pixel width (900/1200px) as the <img>'s width/height
-   attributes rather than stretching to the column, so it sits short of
-   the full content width unless forced. Scoped to this specific
-   widget's wrapper class rather than every image in the content — the
-   other two About pages (Latest Comments, Polls) have no
-   .sow-image-container at all, so their small avatar/logo images are
-   correctly left alone. */
-.sow-image-container img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
 /* Standard WP core alignment class — floats the map image so body text
    wraps beside it, desktop only (see the mobile reset below, which must
    come after this at equal specificity to actually win on narrow
@@ -2650,18 +2665,6 @@ a.card-category:hover {
 }
 
 @media (max-width: 720px) {
-  /* Edge-to-edge on mobile, no side margins — same full-bleed trick as
-     .post-content's own mobile images. Safe regardless of how deeply
-     .sow-image-container sits inside the SiteOrigin wrapper chain: all
-     of those ancestors are plain block flow with no overflow:hidden or
-     transform to clip the breakout (checked). */
-  .sow-image-container img {
-    width: 100vw;
-    max-width: 100vw;
-    margin-left: calc(50% - 50vw);
-    margin-right: calc(50% - 50vw);
-  }
-
   /* Floating the map tight against wrapped text doesn't work at mobile
      widths — stack it full-width like everything else instead. Must
      come after the base .alignright rule above (same specificity) to
