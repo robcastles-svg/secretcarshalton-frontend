@@ -2657,6 +2657,18 @@ a.card-category:hover {
   display: none;
 }
 
+/* About Secret Carshalton's embedded image (it has no real
+   featured_media, like Welcome to Carshalton) butts up flush under
+   AboutMiniNav instead of sitting inside .container's own 2rem top
+   padding — matching how Latest Comments/Polls' real featured image
+   already sits flush at the top there. Welcome to Carshalton shares
+   this exact same no-featured-image code path but keeps its current
+   (non-flush) spacing, per Rob — scoped to this one page's own
+   wrapper class rather than applied to .sow-image-container generally. */
+.about-page-content-flush-top-image .sow-image-container img {
+  margin-top: -2rem;
+}
+
 /* Standard WP core alignment class — floats the map image so body text
    wraps beside it, desktop only (see the mobile reset below, which must
    come after this at equal specificity to actually win on narrow

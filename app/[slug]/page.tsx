@@ -144,14 +144,13 @@ export default async function ContentPage({
   // category/tag, sidebar, or comments, since those are post concepts.
   if (!post) {
     const isAboutPage = ABOUT_PAGE_SLUGS.includes(slug);
-    // About Secret Carshalton stays full-width for now, per Rob — the
-    // other three About pages get the same Directory promo + ads sidebar
+    // All four About pages get the same Directory promo + ads sidebar
     // Discover uses, mainly to narrow the text column on desktop (full
     // width was reading too wide). No MobileTopAd here unlike Discover's
     // own sidebar — these pages keep every ad at the bottom on mobile
     // (where .post-sidebar already lands once .post-layout collapses to
     // one column), not duplicated up top as well.
-    const showAboutSidebar = isAboutPage && slug !== "about-secret-carshalton";
+    const showAboutSidebar = isAboutPage;
 
     let directoryCategories: Awaited<ReturnType<typeof getDirectoryCategories>> = [];
     let sidebarAd1: Awaited<ReturnType<typeof getAd>> = null;
@@ -178,7 +177,14 @@ export default async function ContentPage({
                 // Rob — except Welcome to Carshalton's first one, which is
                 // genuinely empty (a single &nbsp;, left over from the
                 // original page build) rather than a real heading to show.
-                `about-page-content${slug === "welcome-to-carshalton" ? " about-page-content-hide-empty-heading" : ""}`
+                // About Secret Carshalton's embedded image (it has no real
+                // featured_media, see below) butts up flush against
+                // AboutMiniNav instead of sitting inside .container's own
+                // top padding, matching Latest Comments/Polls' real
+                // featured-image pages — Welcome to Carshalton shares this
+                // same no-featured-image code path but deliberately keeps
+                // its current (non-flush) treatment, per Rob.
+                `about-page-content${slug === "welcome-to-carshalton" ? " about-page-content-hide-empty-heading" : ""}${slug === "about-secret-carshalton" ? " about-page-content-flush-top-image" : ""}`
               : undefined
           }
           dangerouslySetInnerHTML={{ __html: item.content.rendered }}

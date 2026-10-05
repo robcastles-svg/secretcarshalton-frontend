@@ -42,7 +42,7 @@ export default async function NewsPage({
           News
           <CategoryKeyIcon />
         </h1>
-        <p className="category-header-description">The latest from Secret Carshalton, newest first.</p>
+        <p className="category-header-description">A round-up of the key news affecting you</p>
       </div>
       <MobileTopAd ad={sidebarAd1} />
       <div className="post-layout">

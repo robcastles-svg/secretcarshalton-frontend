@@ -85,7 +85,7 @@ export default async function WalksPage({
             <CategoryKeyIcon />
           </h1>
           <p className="category-header-description">
-            Circular and one-way walks around Carshalton, grouped by how long they take.
+            Great ideas for often FREE places to visit in a day, from Carshalton
           </p>
         </div>
 
