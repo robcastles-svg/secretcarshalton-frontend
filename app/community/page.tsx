@@ -69,18 +69,18 @@ export default async function CommunityPage({
 
   return (
     <main className="container">
-      <div className="page-header-row">
-        <div>
-          <h1>
-            Community
-            <CategoryKeyIcon />
-          </h1>
-          <p>Local groups, causes and community-led news from around Carshalton.</p>
-        </div>
-        <Link href="/community/submit" className="button-pill">
-          Share community news
-        </Link>
+      <div className="category-header-row">
+        <h1>
+          Community
+          <CategoryKeyIcon />
+        </h1>
+        <p className="category-header-description">
+          Local groups, causes and community-led news from around Carshalton.
+        </p>
       </div>
+      <Link href="/community/submit" className="category-header-text-link">
+        Share community news
+      </Link>
 
       {featuredGroup ? (
         <div className="mobile-top-ad">

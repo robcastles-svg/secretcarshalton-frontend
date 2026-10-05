@@ -1376,7 +1376,7 @@ a.card-category:hover {
   background-color: #4a4a4a;
 }
 
-.section-hero .page-header-row {
+.section-hero .container {
   padding: 2.5rem 1.5rem;
 }
 
@@ -4132,6 +4132,61 @@ a.card-category:hover {
   flex-wrap: wrap;
 }
 
+/* A category/section page's title + one-line strapline, ranged right on
+   the same row as the title on desktop (Rob's call, 2026-10) rather than
+   stacked underneath — used by Discover, Community, Groups to join,
+   Jobs Board, Directory, News and Walks. A separate class from the
+   plain .page-header-row above (used where the second slot is a button,
+   e.g. Events/Members) so this doesn't affect those. Stacks back to
+   title-then-strapline, both left-aligned, on mobile. */
+.category-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+}
+
+.category-header-row h1 {
+  margin: 0;
+}
+
+.category-header-description {
+  margin: 0;
+  color: #555;
+}
+
+@media (min-width: 721px) {
+  .category-header-description {
+    text-align: right;
+    max-width: 50%;
+  }
+}
+
+@media (max-width: 720px) {
+  .category-header-row {
+    flex-direction: column;
+  }
+}
+
+/* The button that used to share that row with the title now has nowhere
+   to go once the strapline moves beside the title instead of under it —
+   demoted to a small text link under the strapline instead of a full
+   pill button competing for the same row (Rob's call, 2026-10, "like on
+   Community" — applied the same way wherever else a button was in the
+   header row). */
+.category-header-text-link {
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #c2607a;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.category-header-text-link:hover {
+  text-decoration: underline;
+}
+
 .directory-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -5158,7 +5213,10 @@ a.card-category:hover {
 }
 
 .adv-hero-inner {
-  max-width: 1200px;
+  /* Matches .container's own 1100px so every adv-* page's content lines
+     up on the left with the logo/nav above it, rather than running wider
+     than the rest of the site (Rob's call, 2026-10). */
+  max-width: 1100px;
   margin: 0 auto;
   padding: 4rem 1.5rem 3.5rem;
   display: flex;
@@ -5261,7 +5319,7 @@ a.card-category:hover {
 }
 
 .adv-how-inner {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 2.25rem 1.5rem;
   display: grid;
@@ -5302,7 +5360,7 @@ a.card-category:hover {
 
 /* ---- Shared section/card scaffolding ---- */
 .adv-section {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 4.5rem 1.5rem 0;
   display: flex;

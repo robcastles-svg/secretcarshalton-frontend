@@ -79,10 +79,15 @@ export default async function WalksPage({
       </div>
 
       <main className="container">
-        <h1>
-          {activeDistance ? activeDistance.name : "Walks"}
-          <CategoryKeyIcon />
-        </h1>
+        <div className="category-header-row">
+          <h1>
+            {activeDistance ? activeDistance.name : "Walks"}
+            <CategoryKeyIcon />
+          </h1>
+          <p className="category-header-description">
+            Circular and one-way walks around Carshalton, grouped by how long they take.
+          </p>
+        </div>
 
         <MobileTopAd ad={sidebarAd1} />
 

@@ -37,10 +37,13 @@ export default async function NewsPage({
 
   return (
     <main className="container">
-      <h1>
-        News
-        <CategoryKeyIcon />
-      </h1>
+      <div className="category-header-row">
+        <h1>
+          News
+          <CategoryKeyIcon />
+        </h1>
+        <p className="category-header-description">The latest from Secret Carshalton, newest first.</p>
+      </div>
       <MobileTopAd ad={sidebarAd1} />
       <div className="post-layout">
         <div className="post-body">

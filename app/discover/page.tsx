@@ -210,18 +210,22 @@ export default async function DiscoverPage({
       </div>
 
       <main className="container">
-        {activeArea ? (
-          <h1>
-            {activeArea.name}
-            <CategoryKeyIcon />
-          </h1>
-        ) : (
-          <h1>
-            Discover
-            <CategoryKeyIcon />
-          </h1>
-        )}
-        <p>Timeless and fascinating stories from around Carshalton and nearby areas</p>
+        <div className="category-header-row">
+          {activeArea ? (
+            <h1>
+              {activeArea.name}
+              <CategoryKeyIcon />
+            </h1>
+          ) : (
+            <h1>
+              Discover
+              <CategoryKeyIcon />
+            </h1>
+          )}
+          <p className="category-header-description">
+            Timeless and fascinating stories from around Carshalton and nearby areas
+          </p>
+        </div>
 
         <MobileTopAd ad={ad1} />
 
