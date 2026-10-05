@@ -2627,6 +2627,24 @@ a.card-category:hover {
   }
 }
 
+/* The gap under the main image to the headline below was landing at two
+   different sizes depending on which code path the page's image took.
+   Latest Comments/Polls (.about-page-image, outside .container) got
+   .container's own 2rem top padding plus the heading's default browser
+   margin on top of that; About Secret Carshalton/Welcome to Carshalton
+   (.sow-image-container img, embedded in the content, past that padding
+   already) only ever got the heading's own default margin — about 2/3
+   the size. Zeroing the heading's margin and giving the embedded image
+   the same 2rem .container already uses elsewhere makes all four match. */
+.about-page-content h1,
+.about-page-content h2 {
+  margin-top: 0;
+}
+
+.sow-image-container img {
+  margin-bottom: 2rem;
+}
+
 /* The page's own embedded headings (About Secret Carshalton, Introducing
    Carshalton, "Here's the newest 50 comments...", LIVE Poll) all stay
    visible, per Rob — no hiding by default. The one exception: Welcome to
