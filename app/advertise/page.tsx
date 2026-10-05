@@ -94,6 +94,9 @@ export default async function AdvertisePage() {
             A simple, low-cost way to promote your business, event or service. Write it yourself, choose your
             dates, and we&apos;ll approve it.
           </p>
+          <p className="adv-footnote-inline">
+            Text Ads are for promotions, sales and announcements — not job vacancies or ongoing business listings.
+          </p>
         </div>
         <div className="adv-card-grid">
           <div className="adv-card">

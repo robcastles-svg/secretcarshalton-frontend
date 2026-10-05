@@ -75,3 +75,6 @@ export const JOB_RATE_BRACKETS = [
 ] as const;
 
 export const GROUP_PROMOTION_PRICE = "£10 for 30 days";
+
+/** The basic directory tier — no longer free, per Rob's call (2026-10): a nominal yearly fee filters low-effort/spam submissions and funds the renewal touchpoint, without pricing anyone out the way a monthly fee would. Featured is unaffected by this change. */
+export const STANDARD_LISTING_PRICE = "£2.50/year";

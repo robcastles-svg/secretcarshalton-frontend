@@ -229,12 +229,10 @@ export default async function RootLayout({
                   <Link href="/directory">View all listings</Link>
                 </li>
                 <li>
-                  <Link href="/advertise#directory">Add premium listing</Link>
+                  <Link href="/directory/featured">Add premium listing</Link>
                 </li>
                 <li>
-                  <a href="https://www.secretcarshalton.com/directory-dashboard/">
-                    Add free listing
-                  </a>
+                  <Link href="/directory/submit">Add a listing</Link>
                 </li>
               </ul>
             </div>

@@ -25,11 +25,11 @@ export default async function DirectoryUpgradePage() {
         A featured listing gets a highlighted pink border and shows in the featured row above the regular list,
         on both Directory and Discover — more visibility for your business. It&apos;s also where the rest of
         your profile goes: address, contact details, socials, extra categories and photos, on top of the
-        title/website/category your free listing already has.
+        title/website/category your Standard listing already has.
       </p>
       <ul className="advertise-benefits">
         <li>Around 150 views a month from your category pages alone</li>
-        <li>Top ranking, above every free listing in your category</li>
+        <li>Top ranking, above every Standard listing in your category</li>
         <li>A mention in our Facebook/Instagram stories — we reach {SOCIAL_REACH_BLURB}</li>
       </ul>
 

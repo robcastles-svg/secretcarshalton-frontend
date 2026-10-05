@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
+import { FEATURED_DIRECTORY_TIERS, STANDARD_LISTING_PRICE } from "@/lib/pricing";
 import type { WPDirectoryCategory } from "@/lib/wordpress";
 
 /** Mirrors SC_Directory_REST's PAID_CATEGORY_LIMIT/PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap. */
@@ -11,11 +11,12 @@ const PHOTO_LIMIT = 10;
 
 /**
  * Business/organisation directory listing form, used in two distinct
- * contexts — see /directory/submit (free one-pager) and /directory/featured
- * (premium one-pager) — rather than one combined free+upgrade page/form.
- * `mode="free"` shows just the basic fields and always creates a free
- * listing; `mode="featured"` shows a tier picker across the four Featured
- * packages (never "free" — that's the other page's job) plus the richer
+ * contexts — see /directory/submit (standard one-pager) and
+ * /directory/featured (premium one-pager) — rather than one combined
+ * standard+upgrade page/form. `mode="standard"` shows just the basic
+ * fields and creates a Standard-tier listing (STANDARD_LISTING_PRICE —
+ * no longer free, per Rob's call 2026-10); `mode="featured"` shows a
+ * tier picker across the four Featured packages plus the richer
  * profile fields (same ones /dashboard/upgrade's SubmitUpgradeRequest
  * asks for). Submitting always creates the listing first (POST
  * /api/directory/submit), then — in featured mode — makes one follow-up
@@ -33,7 +34,7 @@ export function SubmitListingForm({
   initialTier,
 }: {
   categories: WPDirectoryCategory[];
-  mode: "free" | "featured";
+  mode: "standard" | "featured";
   /** Featured mode only — pre-selects one of FEATURED_DIRECTORY_TIERS' slugs. */
   initialTier?: string;
 }) {
@@ -41,7 +42,7 @@ export function SubmitListingForm({
   const [tier, setTier] = useState(
     mode === "featured"
       ? FEATURED_DIRECTORY_TIERS.find((t) => t.slug === initialTier)?.slug ?? FEATURED_DIRECTORY_TIERS[0].slug
-      : "free"
+      : "standard"
   );
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
@@ -123,7 +124,7 @@ export function SubmitListingForm({
       );
     } else {
       setResultMessage(
-        "Thanks — your listing has been submitted and is awaiting review. Once it's live, you can add the rest of your profile (address, contact details, photos and more) by requesting a Featured upgrade from your dashboard."
+        `Thanks — your listing has been submitted. There's no automated payment yet, so we'll review it and get in touch to arrange the ${STANDARD_LISTING_PRICE} payment (PayPal); nothing's charged now. Once it's live, you can add the rest of your profile (address, contact details, photos and more) by requesting a Featured upgrade from your dashboard.`
       );
     }
 
@@ -268,7 +269,10 @@ export function SubmitListingForm({
             now.
           </>
         ) : (
-          "Listings are reviewed before they go live."
+          <>
+            Standard listing: {STANDARD_LISTING_PRICE}. There&apos;s no automated payment yet — once you submit
+            this, we&apos;ll review it and get in touch to arrange payment (PayPal). Nothing is charged now.
+          </>
         )}
       </p>
 

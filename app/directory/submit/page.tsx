@@ -1,22 +1,30 @@
 import Link from "next/link";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
+import { STANDARD_LISTING_PRICE } from "@/lib/pricing";
 import { getDirectoryCategories, getDirectoryListingBySlug, getMyListings, type WPListing } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 import { SubmitListingForm } from "./_components/SubmitListingForm";
 
-export const metadata = { title: "Add a free listing — Secret Carshalton" };
+export const metadata = { title: "Add a listing — Secret Carshalton" };
 
 /** A real, live listing — Rob's choice, not a fabricated example — so the category badges on the preview card below are genuine. Only its categories are borrowed; the title/content shown is the generic placeholder below. */
 const EXAMPLE_SLUG = "rcb-plumbing-ltd-boiler-servicing-repairs-heating-specialists";
 
 /**
- * The Free listing one-pager — mirrors /jobs/manager's structure (hero,
- * brief explainer, form, all on one page) but in --ad-blue rather than
- * --ad-navy, so it still reads as distinct from /directory/featured (the
- * Premium equivalent, in navy) without the full-strength pink Rob tried
- * first and found too loud. The two pages link to each other via the
- * toggle button under the headline, and DirectoryBrowse's directory page
- * links to both directly.
+ * The Standard listing one-pager — mirrors /jobs/manager's structure
+ * (hero, brief explainer, form, all on one page) but in --ad-blue rather
+ * than --ad-navy, so it still reads as distinct from /directory/featured
+ * (the Premium equivalent, in navy) without the full-strength pink Rob
+ * tried first and found too loud. The two pages link to each other via
+ * the toggle button under the headline, and DirectoryBrowse's directory
+ * page links to both directly.
+ *
+ * Standard listings cost STANDARD_LISTING_PRICE, not free — Rob's call
+ * (2026-10): a free, non-expiring tier sitting next to a £50/month
+ * Featured one undercut the point of upgrading, and a nominal yearly
+ * fee filters low-effort submissions. Still "submit, then we arrange
+ * payment by hand" like every other tier on the site — no automated
+ * billing yet.
  *
  * No redirect for signed-out visitors (unlike the old combined page this
  * replaces) — same as /jobs/manager, the hero/explainer/preview are
@@ -35,10 +43,10 @@ export default async function DirectorySubmitPage() {
     ?.map((id) => categoriesById.get(id))
     .filter((c): c is (typeof categories)[number] => Boolean(c));
 
-  // The free tier's actual shape (see SubmitListingForm) — title, website
-  // and one category, nothing else. A generic placeholder name, not a
-  // real business, so this reads as "here's the shape" rather than
-  // singling anyone out.
+  // The Standard tier's actual shape (see SubmitListingForm) — title,
+  // website and one category, nothing else. A generic placeholder name,
+  // not a real business, so this reads as "here's the shape" rather
+  // than singling anyone out.
   const previewListing: WPListing = {
     id: -1,
     slug: "",
@@ -83,14 +91,14 @@ export default async function DirectorySubmitPage() {
         <div className="adv-hero-inner">
           <div className="adv-hero-copy">
             <span className="adv-eyebrow adv-eyebrow-gold">Directory</span>
-            <h1 className="adv-hero-title">Get started. Free listing.</h1>
+            <h1 className="adv-hero-title">Get started. {STANDARD_LISTING_PRICE}.</h1>
             <p className="adv-hero-subtitle">
-              Add your business, organisation or community group to the Sutton Business Directory — free, reviewed
-              before it goes live, and yours to manage from your dashboard any time.
+              Add your business, organisation or community group to the Sutton Business Directory — {STANDARD_LISTING_PRICE},
+              reviewed before it goes live, and yours to manage from your dashboard any time.
             </p>
             <div className="adv-hero-ctas">
               <a href="#add-listing" className="button-pill adv-btn-gold">
-                Add your free listing
+                Add your listing
               </a>
               <Link href="/directory/featured" className="button-pill adv-btn-outline-light">
                 Premium listing →
@@ -106,7 +114,7 @@ export default async function DirectorySubmitPage() {
           <div className="adv-how-step">
             <span className="adv-how-number">1</span>
             <div>
-              <p className="adv-how-title">Listed for free</p>
+              <p className="adv-how-title">{STANDARD_LISTING_PRICE}</p>
               <p className="adv-how-text">Your name, website and category, found by anyone browsing the directory.</p>
             </div>
           </div>
@@ -134,7 +142,7 @@ export default async function DirectorySubmitPage() {
         <div className="adv-section-intro">
           <span className="adv-eyebrow">Preview</span>
           <h2 className="adv-h2">How it looks in the directory</h2>
-          <p className="adv-lede">Your free listing shows up in the grid just like this.</p>
+          <p className="adv-lede">Your listing shows up in the grid just like this.</p>
         </div>
         <ul className="post-list directory-list">
           <DirectoryListingCard listing={previewListing} categoriesList={exampleCategoriesList} />
@@ -145,13 +153,13 @@ export default async function DirectorySubmitPage() {
       <section id="add-listing" className="adv-section adv-closing">
         <div className="adv-section-intro">
           <span className="adv-eyebrow">Add your listing</span>
-          <h2 className="adv-h2">Add your free listing</h2>
+          <h2 className="adv-h2">Add your listing</h2>
         </div>
 
         {token ? (
           <div className="adv-inline-form">
             <h3 className="adv-card-title">Your details</h3>
-            <SubmitListingForm categories={categories} mode="free" />
+            <SubmitListingForm categories={categories} mode="standard" />
           </div>
         ) : (
           <div className="adv-cta-box">

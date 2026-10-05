@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { getSessionToken } from "@/lib/auth";
-import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
+import { FEATURED_DIRECTORY_TIERS, STANDARD_LISTING_PRICE } from "@/lib/pricing";
 import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
 import { getDirectoryCategories, getDirectoryListingBySlug, getMyListings } from "@/lib/wordpress";
 import { SubmitListingForm } from "../submit/_components/SubmitListingForm";
@@ -14,7 +14,7 @@ const FEATURED_EXAMPLE_SLUG = "rcb-plumbing-ltd-boiler-servicing-repairs-heating
 /**
  * The Premium listing one-pager — same structure as /advertise (navy
  * hero, "clean coloured boxes" for the packages, form below), distinct
- * from /directory/submit's --ad-blue free-page hero. The four tier cards
+ * from /directory/submit's --ad-blue standard-page hero. The four tier cards
  * mirror /advertise's Featured Directory section (same copy, same card
  * treatment) so the two surfaces read as one system — info only, no CTA
  * button per card, since there's one form below, not four separate
@@ -57,7 +57,7 @@ export default async function FeaturedListingPage({
                 See packages
               </a>
               <Link href="/directory/submit" className="button-pill adv-btn-outline-light">
-                Free listing →
+                Standard listing →
               </Link>
             </div>
           </div>
@@ -190,6 +190,12 @@ export default async function FeaturedListingPage({
           <p className="adv-lede">
             There&apos;s no automated payment yet — submit this and we&apos;ll be in touch to arrange it (PayPal).
             Nothing is charged now.
+          </p>
+          <p className="adv-lede">
+            Cancel anytime — no lock-in. If you cancel, your listing drops back to a Standard listing
+            ({STANDARD_LISTING_PRICE}) rather than disappearing, and everything you added for Featured (photos,
+            description, socials) stays saved on our side — so switching Featured back on later doesn&apos;t mean
+            starting over.
           </p>
         </div>
 

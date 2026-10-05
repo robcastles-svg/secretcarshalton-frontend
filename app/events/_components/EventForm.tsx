@@ -277,7 +277,9 @@ export function EventForm({
         Event-specific link (optional)
         <input type="url" name="event_url" placeholder="https://" defaultValue={initial?.event_url} />
         <span className="event-form-hint">
-          A ticket page or other link just for this event, if different from the organiser&apos;s own website above.
+          Please link to the actual booking or ticket page — not your social media profile or a generic homepage —
+          it makes the listing more useful for readers. Add your business or group&apos;s own details under
+          Organiser above. Leave this blank if there&apos;s no external booking page.
         </span>
       </label>
       {listings.length > 0 && (
