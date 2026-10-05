@@ -258,14 +258,23 @@ export default async function DiscoverPage({
 
           <aside className="post-sidebar">
             {directoryCategories.length > 0 && (
-              <div className="sidebar-block">
-                <h3>Local businesses by category</h3>
-                <ul className="sidebar-theme-list">
-                  {directoryCategories.slice(0, 12).map((c) => (
+              <div className="sidebar-block sidebar-directory-promo">
+                <p className="sidebar-directory-eyebrow">Directory</p>
+                <h3>Discover local business</h3>
+                <p className="sidebar-directory-subtitle">Shops, trades, groups and places around Carshalton.</p>
+                <ul className="sidebar-directory-pills">
+                  {directoryCategories.slice(0, 11).map((c) => (
                     <li key={c.id}>
-                      <Link href={`/directory/${c.slug}`}>{c.name.toUpperCase()}</Link>
+                      <Link href={`/directory/${c.slug}`} className="sidebar-directory-pill">
+                        {c.name}
+                      </Link>
                     </li>
                   ))}
+                  <li>
+                    <Link href="/directory" className="sidebar-directory-pill sidebar-directory-pill-browse">
+                      Browse all →
+                    </Link>
+                  </li>
                 </ul>
               </div>
             )}

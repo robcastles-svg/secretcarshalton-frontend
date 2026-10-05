@@ -3093,6 +3093,73 @@ a.card-category:hover {
   text-decoration: underline;
 }
 
+/* Directory promo card at the top of Discover's sidebar — eyebrow +
+   headline + subtitle + a pink pill grid of categories, per Rob's
+   reference mockup. Its own h3 styling deliberately overrides
+   .sidebar-block h3's generic uppercase/underlined treatment above. */
+.sidebar-directory-promo h3 {
+  font-size: 1.3rem;
+  text-transform: none;
+  letter-spacing: normal;
+  border-bottom: none;
+  font-weight: 800;
+  color: #1a1a1a;
+  padding-bottom: 0;
+  margin: 0.3rem 0 0;
+}
+
+.sidebar-directory-eyebrow {
+  margin: 0;
+  color: #c2607a;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sidebar-directory-subtitle {
+  margin: 0.4rem 0 1rem;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.sidebar-directory-pills {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.sidebar-directory-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: rgba(194, 96, 122, 0.12);
+  color: #c2607a;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  border-radius: 999px;
+  padding: 0.65rem 0.75rem;
+}
+
+.sidebar-directory-pill:hover {
+  background: rgba(194, 96, 122, 0.22);
+}
+
+.sidebar-directory-pill-browse {
+  background: #fff;
+  border: 1px solid #c2607a;
+}
+
+.sidebar-directory-pill-browse:hover {
+  background: rgba(194, 96, 122, 0.08);
+}
+
 /* Comment thread + posting form */
 .comment-section {
   margin-top: 2.5rem;
