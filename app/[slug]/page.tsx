@@ -166,11 +166,11 @@ export default async function ContentPage({
           <div
             className={
               isAboutPage
-                ? // welcome-to-carshalton's own "Introducing Carshalton" heading
-                  // stays visible (SEO + Rob's call that this one reads better
-                  // kept, unlike the other three pages' repeat-of-the-title
-                  // headings) — see .about-page-content-show-heading below.
-                  `about-page-content${slug === "welcome-to-carshalton" ? " about-page-content-show-heading" : ""}`
+                ? // All four pages' embedded headings stay visible now, per
+                  // Rob — except Welcome to Carshalton's first one, which is
+                  // genuinely empty (a single &nbsp;, left over from the
+                  // original page build) rather than a real heading to show.
+                  `about-page-content${slug === "welcome-to-carshalton" ? " about-page-content-hide-empty-heading" : ""}`
                 : undefined
             }
             dangerouslySetInnerHTML={{ __html: item.content.rendered }}

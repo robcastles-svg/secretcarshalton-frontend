@@ -2627,28 +2627,16 @@ a.card-category:hover {
   }
 }
 
-/* The page's own embedded title — the mini-nav above already labels
-   which About page you're on, so a second, repeated title in the
-   content itself just reads as clutter. Default is hidden-not-removed
-   (kept in the markup for SEO) rather than stripped out entirely.
-   Checked all four pages' raw content: each has exactly one h1 or h2
-   playing this role (two on Welcome to Carshalton, one of them empty),
-   no legitimate content subheadings mixed in — safe to hide every
-   h1/h2 here by default. */
-.about-page-content h1,
-.about-page-content h2 {
+/* The page's own embedded headings (About Secret Carshalton, Introducing
+   Carshalton, "Here's the newest 50 comments...", LIVE Poll) all stay
+   visible, per Rob — no hiding by default. The one exception: Welcome to
+   Carshalton's *first* h1 is genuinely empty (a single &nbsp;, left over
+   from the original page build, not a real heading), so that one stays
+   hidden via this page-specific class — :first-of-type picks it out
+   from the two h1s on that page without needing a hook on the heading
+   itself, which the raw WP content doesn't give us. */
+.about-page-content-hide-empty-heading h1:first-of-type {
   display: none;
-}
-
-/* The one exception: Welcome to Carshalton's "Introducing Carshalton"
-   heading stays visible as a real H1, per Rob — unlike the other three
-   pages' repeat-of-the-page-title headings. :last-of-type picks it out
-   from the two h1s on that page (the first is empty, this is the real
-   one) without needing a hook on the heading itself, which the raw WP
-   content doesn't give us. Already sits right after the main image in
-   source order, so no repositioning needed — showing it is enough. */
-.about-page-content-show-heading h1:last-of-type {
-  display: block;
 }
 
 /* Standard WP core alignment class — floats the map image so body text
