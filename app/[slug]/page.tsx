@@ -13,6 +13,7 @@ import { SidebarAds } from "@/app/_components/SidebarAds";
 import { YopPollScripts } from "@/app/_components/YopPollScripts";
 import {
   categoryHref,
+  extractEmbeddedMainImage,
   getAd,
   getAllPageSlugs,
   getCategories,
@@ -165,6 +166,20 @@ export default async function ContentPage({
       ]);
     }
 
+    // About Secret Carshalton and Welcome to Carshalton have no real
+    // featured_media — their main image is the first one embedded in
+    // their own content instead. Leaving it embedded broke once the
+    // sidebar was added: its full-bleed breakout is sized off the
+    // viewport, not the grid column it was sitting in, so it visually
+    // overlapped the sidebar instead of sitting above it. Pulling it out
+    // into a real top-level image (see extractEmbeddedMainImage) puts it
+    // in the exact same position as a genuine featured image, with the
+    // sidebar grid genuinely starting below it. Falls back to the
+    // original embedded rendering if the extraction ever doesn't find
+    // what it expects, rather than silently losing the image.
+    const embeddedImage = isAboutPage && !image ? extractEmbeddedMainImage(item.content.rendered) : null;
+    const contentHtml = embeddedImage ? embeddedImage.html : item.content.rendered;
+
     const content = (
       <>
         {!isAboutPage && <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />}
@@ -177,17 +192,16 @@ export default async function ContentPage({
                 // Rob — except Welcome to Carshalton's first one, which is
                 // genuinely empty (a single &nbsp;, left over from the
                 // original page build) rather than a real heading to show.
-                // About Secret Carshalton's embedded image (it has no real
-                // featured_media, see below) butts up flush against
-                // AboutMiniNav instead of sitting inside .container's own
-                // top padding, matching Latest Comments/Polls' real
-                // featured-image pages — Welcome to Carshalton shares this
-                // same no-featured-image code path but deliberately keeps
-                // its current (non-flush) treatment, per Rob.
-                `about-page-content${slug === "welcome-to-carshalton" ? " about-page-content-hide-empty-heading" : ""}${slug === "about-secret-carshalton" ? " about-page-content-flush-top-image" : ""}`
+                // The flush-top-image fallback only matters if
+                // extractEmbeddedMainImage above couldn't find the image
+                // to pull out — the normal case renders it as a real
+                // top-level element further down instead.
+                `about-page-content${slug === "welcome-to-carshalton" ? " about-page-content-hide-empty-heading" : ""}${
+                  slug === "about-secret-carshalton" && !embeddedImage ? " about-page-content-flush-top-image" : ""
+                }`
               : undefined
           }
-          dangerouslySetInnerHTML={{ __html: item.content.rendered }}
+          dangerouslySetInnerHTML={{ __html: contentHtml }}
         />
       </>
     );
@@ -201,13 +215,25 @@ export default async function ContentPage({
             <YopPollScripts />
           </>
         )}
-        {/* The main image for two of the four About pages: Latest Comments
-            and Polls both have a real WP featured image set (checked via
-            the REST API). The other two (About Secret Carshalton, Welcome
-            to Carshalton) don't — featured_media: 0 — their main image is
-            the first one embedded in the page's own content instead,
-            handled by .sow-image-container's CSS further down. */}
+        {/* The main image for all four About pages now renders the same
+            way — a real top-level element above the sidebar grid, not
+            trapped inside its content column — whether it's a genuine
+            featured_media (Latest Comments, Polls) or pulled out of the
+            page's own content (About Secret Carshalton, Welcome to
+            Carshalton — see extractEmbeddedMainImage above). Welcome to
+            Carshalton keeps its own small top gap instead of sitting
+            fully flush against AboutMiniNav like the other three, per
+            Rob's earlier call. */}
         {isAboutPage && image && <img src={image.source_url} alt={image.alt_text} className="about-page-image" />}
+        {isAboutPage && embeddedImage && (
+          <img
+            src={embeddedImage.src}
+            alt={embeddedImage.alt}
+            className={
+              slug === "welcome-to-carshalton" ? "about-page-image about-page-image-gap-top" : "about-page-image"
+            }
+          />
+        )}
         <article className="container">
           {showAboutSidebar ? (
             <div className="post-layout">

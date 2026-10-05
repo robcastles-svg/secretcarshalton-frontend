@@ -79,6 +79,59 @@ export function getFeaturedImage(item: {
   return media && "source_url" in media ? media : null;
 }
 
+/** Scans forward from just after a div's opening tag, counting nested <div>/</div> pairs, to find the index right after that div's own matching closing tag. */
+function findMatchingDivEnd(html: string, searchFrom: number): number {
+  const tagRe = /<div\b[^>]*>|<\/div\s*>/gi;
+  tagRe.lastIndex = searchFrom;
+  let depth = 1;
+  let match: RegExpExecArray | null;
+  while ((match = tagRe.exec(html))) {
+    if (match[0][1] === "d" || match[0][1] === "D") depth++;
+    else depth--;
+    if (depth === 0) return match.index + match[0].length;
+  }
+  return html.length;
+}
+
+/**
+ * About Secret Carshalton and Welcome to Carshalton have no real
+ * featured_media — their "main image" is the first one embedded in the
+ * page's own legacy SiteOrigin content instead (a .sow-image-container
+ * widget). Rendering the whole content blob (image included) inside the
+ * sidebar grid's content column made the image's full-bleed breakout
+ * visually overlap the sidebar, since the breakout is sized off the
+ * viewport, not that column — see app/[slug]/page.tsx. This pulls the
+ * image's src/alt out and returns the content with that whole widget
+ * block removed, so the page can render the image as a real top-level
+ * element above the grid (same as a genuine featured image) instead.
+ * Finds the containing div by nesting depth rather than a single regex
+ * (which can't match balanced/nested tags), so it removes the image's
+ * whole padded widget wrapper, not just the bare <img> (which would
+ * leave an empty box behind). Returns null if the markup doesn't match
+ * this expected shape, so callers can fall back to the original,
+ * unmodified content rather than silently losing the image.
+ */
+export function extractEmbeddedMainImage(
+  html: string
+): { src: string; alt: string; html: string } | null {
+  const panelOpen = html.match(/<div[^>]*\bclass="[^"]*\bwidget_sow-image\b[^"]*"[^>]*>/i);
+  if (!panelOpen || panelOpen.index === undefined) return null;
+
+  const panelStart = panelOpen.index;
+  const panelEnd = findMatchingDivEnd(html, panelStart + panelOpen[0].length);
+  const panelHtml = html.slice(panelStart, panelEnd);
+
+  const srcMatch = panelHtml.match(/<img[^>]*\ssrc="([^"]*)"/i);
+  if (!srcMatch) return null;
+  const altMatch = panelHtml.match(/<img[^>]*\salt="([^"]*)"/i);
+
+  return {
+    src: srcMatch[1],
+    alt: altMatch?.[1] ?? "",
+    html: html.slice(0, panelStart) + html.slice(panelEnd),
+  };
+}
+
 function decodeEntities(text: string): string {
   return text
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))

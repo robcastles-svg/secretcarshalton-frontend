@@ -2608,6 +2608,14 @@ a.card-category:hover {
   width: 100%;
 }
 
+/* Welcome to Carshalton's own top-level image (see
+   extractEmbeddedMainImage/app/[slug]/page.tsx) keeps the small top gap
+   it already had, rather than sitting fully flush against AboutMiniNav
+   like the other three About pages' images now do by default. */
+.about-page-image-gap-top {
+  margin-top: 2rem;
+}
+
 .sow-image-container img {
   display: block;
   width: 100vw;
