@@ -8,6 +8,7 @@ import { ActiveNavSectionProvider } from "./_components/ActiveNavSection";
 import { AdSlot } from "./_components/AdSlot";
 import { BackToTop } from "./_components/BackToTop";
 import { MemberBenefitsBar } from "./_components/MemberBenefitsBar";
+import { NewsletterForm } from "./newsletter/_components/NewsletterForm";
 import { PrimaryNav } from "./_components/PrimaryNav";
 import { SiteDateWeather } from "./_components/SiteDateWeather";
 import { UtilityNav } from "./_components/UtilityNav";
@@ -168,18 +169,16 @@ export default async function RootLayout({
           <div className="container newsletter-band-inner">
             <div>
               <div className="newsletter-band-title">Insider</div>
-              <p>The Secret Carshalton newsletter — check your inbox to confirm.</p>
+              <p>Get the Secret Carshalton newsletter in your inbox.</p>
             </div>
-            <Link href="/newsletter" className="button-pill">
-              Subscribe
-            </Link>
+            <NewsletterForm />
           </div>
         </div>
 
         <footer className="site-footer">
           <div className="container footer-grid">
             <div>
-              <h2>Stories</h2>
+              <h2>Stories by area</h2>
               <ul>
                 {storyAreas.map((area) => (
                   <li key={area.id}>
@@ -188,6 +187,9 @@ export default async function RootLayout({
                 ))}
                 <li>
                   <Link href="/themes">Stories by theme</Link>
+                </li>
+                <li>
+                  <Link href="/discover">All areas →</Link>
                 </li>
               </ul>
             </div>
@@ -202,10 +204,10 @@ export default async function RootLayout({
               </ul>
             </div>
             <div>
-              <h2>Events</h2>
+              <h2>Events &amp; Directory</h2>
               <ul>
                 <li>
-                  <Link href="/events">All Events</Link>
+                  <Link href="/events">All events</Link>
                 </li>
                 <li>
                   <Link href="/whats-on-in-carshalton">What&apos;s on in Carshalton</Link>
@@ -216,11 +218,6 @@ export default async function RootLayout({
                 <li>
                   <Link href="/whats-on-outside-sutton">What&apos;s on outside Sutton</Link>
                 </li>
-              </ul>
-            </div>
-            <div>
-              <h2>Directory</h2>
-              <ul>
                 <li>
                   <Link href="/directory">View all listings</Link>
                 </li>

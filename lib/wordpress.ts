@@ -79,6 +79,32 @@ export function getFeaturedImage(item: {
   return media && "source_url" in media ? media : null;
 }
 
+/**
+ * Batch post-id -> featured image lookup, one request for however many
+ * ids are passed — used by the homepage's "Most read this week" list,
+ * which only has post_id/slug/title/views from sc-post-views (see
+ * getTopPosts) and needs a thumbnail per row. A single `include=` core
+ * posts request rather than one sc-post-views field addition: the
+ * images already live on the posts themselves, no new plugin surface
+ * needed for them.
+ */
+export async function getFeaturedImagesForPosts(postIds: number[]): Promise<Map<number, WPFeaturedMedia>> {
+  if (postIds.length === 0) return new Map();
+  try {
+    const posts = await wpFetch<Array<{ id: number; _embedded?: { "wp:featuredmedia"?: WPFeaturedMedia[] } }>>(
+      `/posts?include=${postIds.join(",")}&per_page=${postIds.length}&_fields=id,_links&_embed=wp:featuredmedia`
+    );
+    const map = new Map<number, WPFeaturedMedia>();
+    for (const post of posts) {
+      const image = getFeaturedImage(post);
+      if (image) map.set(post.id, image);
+    }
+    return map;
+  } catch {
+    return new Map();
+  }
+}
+
 /** Scans forward from just after a div's opening tag, counting nested <div>/</div> pairs, to find the index right after that div's own matching closing tag. */
 function findMatchingDivEnd(html: string, searchFrom: number): number {
   const tagRe = /<div\b[^>]*>|<\/div\s*>/gi;
@@ -485,11 +511,20 @@ export async function getCategoryBySlug(slug: string): Promise<WPCategory | null
 export async function getLatestPostInCategories(
   categoryIds: number[]
 ): Promise<WPContentItem | null> {
-  if (categoryIds.length === 0) return null;
-  const posts = await wpFetch<WPContentItem[]>(
-    `/posts?categories=${categoryIds.join(",")}&per_page=1&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
-  );
+  const posts = await getLatestPostsInCategories(categoryIds, 1);
   return posts[0] ?? null;
+}
+
+/**
+ * Like getLatestPostInCategories, but more than one — the homepage's
+ * Walks section needs a 2nd-latest fallback for when the latest walk is
+ * already the lead story (see app/page.tsx).
+ */
+export async function getLatestPostsInCategories(categoryIds: number[], count: number): Promise<WPContentItem[]> {
+  if (categoryIds.length === 0) return [];
+  return wpFetch<WPContentItem[]>(
+    `/posts?categories=${categoryIds.join(",")}&per_page=${count}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
+  );
 }
 
 export interface WPComment {
@@ -501,6 +536,10 @@ export interface WPComment {
   author_name: string;
   content: WPRendered;
   date: string;
+  // WP core's own permalink to this one comment on its post (#comment-N)
+  // — only requested by getLatestComments today, for the homepage's
+  // "comment text links to that comment on the article" requirement.
+  link?: string;
   // 1-5, only ever set on directory-listing reviews — see sc-membership's
   // register_rest_field('comment', 'rating', ...). null/absent elsewhere.
   rating?: number | null;
@@ -565,7 +604,7 @@ export async function getLatestComments(count: number): Promise<
   Array<WPComment & { postSlug: string; postTitle: string }>
 > {
   const comments = await wpFetch<WPComment[]>(
-    `/comments?per_page=${count * 3}&orderby=date&order=desc&_fields=id,post,author_name,content,date`
+    `/comments?per_page=${count * 3}&orderby=date&order=desc&_fields=id,post,author,author_name,content,date,link`
   );
   const real = comments.filter((c) => c.author_name !== "Secret Carshalton").slice(0, count);
   if (real.length === 0) return [];
