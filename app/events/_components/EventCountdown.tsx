@@ -56,45 +56,53 @@ export function EventCountdown({
   }, [target]);
 
   return (
-    <Link href={`/events/${slug}`} className="event-countdown">
+    <div className="event-countdown">
       <div className="event-countdown-media">
-        <EventImage image={image} alt={imageAlt} />
+        <EventImage image={image} alt={imageAlt} expandable />
       </div>
-      <div className="event-countdown-heading">
-        <div className="event-countdown-date-badge">
-          <span className="event-countdown-date-badge-weekday">
-            {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
-          </span>
-          <span className="event-countdown-date-badge-day">{startDate.getDate()}</span>
-          <span className="event-countdown-date-badge-month">
-            {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
-          </span>
+      {/* display: contents (see .event-countdown-link) — this Link wraps
+          the heading/timer so the card still has one click-through to
+          the event, without itself taking part in .event-countdown's
+          flex layout; its children lay out exactly as if they were
+          still direct children of .event-countdown, same as before the
+          image became its own separately-clickable element above. */}
+      <Link href={`/events/${slug}`} className="event-countdown-link">
+        <div className="event-countdown-heading">
+          <div className="event-countdown-date-badge">
+            <span className="event-countdown-date-badge-weekday">
+              {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
+            </span>
+            <span className="event-countdown-date-badge-day">{startDate.getDate()}</span>
+            <span className="event-countdown-date-badge-month">
+              {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
+            </span>
+          </div>
+          <div className="event-countdown-body">
+            {featured && <span className="event-countdown-featured-badge">Featured</span>}
+            <span className="event-countdown-title" dangerouslySetInnerHTML={{ __html: title }} />
+            {venueName && <span className="event-countdown-venue">{venueName}</span>}
+          </div>
         </div>
-        <div className="event-countdown-body">
-          {featured && <span className="event-countdown-featured-badge">Featured</span>}
-          <span className="event-countdown-title" dangerouslySetInnerHTML={{ __html: title }} />
-          {venueName && <span className="event-countdown-venue">{venueName}</span>}
+        <div className="event-countdown-timer-wrap">
+          <span className="event-countdown-label">Countdown to event</span>
+          {remaining && (
+            <span className="event-countdown-timer">
+              <span>
+                <strong>{remaining.days}</strong> {remaining.days === 1 ? "day" : "days"}
+              </span>
+              <span>
+                <strong>{String(remaining.hours).padStart(2, "0")}</strong>hrs
+              </span>
+              <span>
+                <strong>{String(remaining.minutes).padStart(2, "0")}</strong>min
+              </span>
+              <span>
+                <strong>{String(remaining.seconds).padStart(2, "0")}</strong>sec
+              </span>
+            </span>
+          )}
         </div>
-      </div>
-      <div className="event-countdown-timer-wrap">
-        <span className="event-countdown-label">Countdown to event</span>
-        {remaining && (
-          <span className="event-countdown-timer">
-            <span>
-              <strong>{remaining.days}</strong> {remaining.days === 1 ? "day" : "days"}
-            </span>
-            <span>
-              <strong>{String(remaining.hours).padStart(2, "0")}</strong>hrs
-            </span>
-            <span>
-              <strong>{String(remaining.minutes).padStart(2, "0")}</strong>min
-            </span>
-            <span>
-              <strong>{String(remaining.seconds).padStart(2, "0")}</strong>sec
-            </span>
-          </span>
-        )}
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
