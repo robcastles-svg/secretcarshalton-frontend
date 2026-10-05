@@ -58,7 +58,15 @@ export default async function ThemePage({
 
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
   const tagsById = new Map(allTags.map((t) => [t.id, t]));
-  const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage));
+  // 10 total squares on a full page, not the shared PAGE_SIZE (9) — this
+  // grid is 2 columns on desktop, and 9 alone always leaves one card as a
+  // widow on its own row. ContentList adds the featured listing as an
+  // extra card on top of the posts (not a swap), so when one's present
+  // the post count drops to 9 to keep the total at 10 either way. Rob's
+  // call (2026-10): keep the familiar 2-column card size — make 10 the
+  // rule instead of narrowing to 3 columns to fit 9.
+  const pageSize = featuredListing ? 9 : 10;
+  const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage), pageSize);
 
   return (
     <main className="container">

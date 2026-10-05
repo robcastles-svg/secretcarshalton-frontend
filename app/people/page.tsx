@@ -25,7 +25,13 @@ export default async function PeoplePage({
   const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
   const tagsById = new Map(allTags.map((t) => [t.id, t]));
-  const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage));
+  // 10 per page, not the shared PAGE_SIZE (9) — this grid is 2 columns on
+  // desktop, and 9 always leaves one card as a widow on its own row; no
+  // featured-listing insert on this page to offset it, unlike
+  // Stories/Walks/Themes, so the post count itself needs to be the even
+  // number. Rob's call (2026-10): keep the familiar 2-column card size —
+  // make 10 the rule instead of narrowing to 3 columns to fit 9.
+  const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage), 10);
 
   return (
     <main className="container">
