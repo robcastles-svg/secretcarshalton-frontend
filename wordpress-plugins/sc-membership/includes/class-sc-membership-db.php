@@ -20,6 +20,11 @@ class SC_Membership_DB {
 		return $wpdb->prefix . 'sc_bookmarks';
 	}
 
+	public static function comment_votes_table() {
+		global $wpdb;
+		return $wpdb->prefix . 'sc_comment_votes';
+	}
+
 	/**
 	 * Creates the tables this plugin owns. Uses dbDelta so it's safe
 	 * to call again on every plugin update (activation hook re-runs it).
@@ -28,10 +33,11 @@ class SC_Membership_DB {
 		global $wpdb;
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
-		$charset_collate = $wpdb->get_charset_collate();
-		$members_table   = self::members_table();
-		$log_table       = self::points_log_table();
-		$bookmarks_table = self::bookmarks_table();
+		$charset_collate     = $wpdb->get_charset_collate();
+		$members_table       = self::members_table();
+		$log_table           = self::points_log_table();
+		$bookmarks_table     = self::bookmarks_table();
+		$comment_votes_table = self::comment_votes_table();
 
 		$sql_members = "CREATE TABLE {$members_table} (
 			user_id BIGINT UNSIGNED NOT NULL,
@@ -75,9 +81,20 @@ class SC_Membership_DB {
 			KEY content (content_type, content_id)
 		) {$charset_collate};";
 
+		$sql_comment_votes = "CREATE TABLE {$comment_votes_table} (
+			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+			user_id BIGINT UNSIGNED NOT NULL,
+			comment_id BIGINT UNSIGNED NOT NULL,
+			created_at DATETIME NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY user_comment (user_id, comment_id),
+			KEY comment_id (comment_id)
+		) {$charset_collate};";
+
 		dbDelta( $sql_members );
 		dbDelta( $sql_log );
 		dbDelta( $sql_bookmarks );
+		dbDelta( $sql_comment_votes );
 	}
 
 	/** Total bookmark count for one piece of content — a public aggregate, same "no privacy concern" bar as this site's post view counts. */
@@ -141,6 +158,77 @@ class SC_Membership_DB {
 				'created_at'   => current_time( 'mysql' ),
 			),
 			array( '%d', '%s', '%d', '%s' )
+		);
+		return true;
+	}
+
+	/** Total upvote count for one comment — a public aggregate, same "no privacy concern" bar as bookmark_count/post view counts. */
+	public static function comment_vote_count( $comment_id ) {
+		global $wpdb;
+		$table = self::comment_votes_table();
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$table} WHERE comment_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$comment_id
+			)
+		);
+	}
+
+	public static function has_voted_comment( $user_id, $comment_id ) {
+		global $wpdb;
+		$table = self::comment_votes_table();
+		return (bool) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT 1 FROM {$table} WHERE user_id = %d AND comment_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$user_id,
+				$comment_id
+			)
+		);
+	}
+
+	/**
+	 * Which of a given batch of comment ids this user has already voted on
+	 * — powers the frontend's initial "already upvoted" state for a whole
+	 * thread in one query, rather than one has_voted_comment() call per
+	 * comment. $comment_ids is assumed already sanitised to ints by the
+	 * caller (see SC_Membership_REST::get_my_comment_votes).
+	 */
+	public static function voted_comment_ids( $user_id, $comment_ids ) {
+		global $wpdb;
+		if ( empty( $comment_ids ) ) {
+			return array();
+		}
+		$table        = self::comment_votes_table();
+		$placeholders = implode( ', ', array_fill( 0, count( $comment_ids ), '%d' ) );
+		$query        = $wpdb->prepare(
+			"SELECT comment_id FROM {$table} WHERE user_id = %d AND comment_id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			array_merge( array( $user_id ), $comment_ids )
+		);
+		return array_map( 'intval', $wpdb->get_col( $query ) );
+	}
+
+	/** Adds or removes the vote and returns the new state (true = now voted). */
+	public static function toggle_comment_vote( $user_id, $comment_id ) {
+		global $wpdb;
+		$table = self::comment_votes_table();
+
+		if ( self::has_voted_comment( $user_id, $comment_id ) ) {
+			$wpdb->delete(
+				$table,
+				array( 'user_id' => $user_id, 'comment_id' => $comment_id ),
+				array( '%d', '%d' )
+			);
+			return false;
+		}
+
+		$wpdb->insert(
+			$table,
+			array(
+				'user_id'    => $user_id,
+				'comment_id' => $comment_id,
+				'created_at' => current_time( 'mysql' ),
+			),
+			array( '%d', '%d', '%s' )
 		);
 		return true;
 	}

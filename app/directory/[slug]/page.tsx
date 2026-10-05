@@ -19,6 +19,7 @@ import {
   getMemberMe,
   getMembersByIds,
   getPostViewCount,
+  getVotedCommentIds,
   GROUPS_CATEGORY_SLUG,
   stripHtml,
 } from "@/lib/wordpress";
@@ -137,9 +138,12 @@ export default async function DirectoryListingPage({
   ]);
   const canEdit = Boolean(profile && (profile.id === listing.author || profile.is_editor));
 
-  const profileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
-    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
-  );
+  const [profileMap, votedCommentIds] = await Promise.all([
+    getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
+      () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
+    ),
+    sessionToken ? getVotedCommentIds(sessionToken, fullThread.map((c) => c.id)) : Promise.resolve([]),
+  ]);
 
   const image = getFeaturedImage(listing);
   const { meta } = listing;
@@ -270,6 +274,7 @@ export default async function DirectoryListingPage({
             isLoggedIn={Boolean(sessionToken)}
             commenterProfiles={profileMap}
             currentUserId={profile?.id}
+            votedCommentIds={votedCommentIds}
             kind="review"
           />
         </div>

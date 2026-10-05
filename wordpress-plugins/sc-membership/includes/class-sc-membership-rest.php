@@ -50,6 +50,31 @@ class SC_Membership_REST {
 			)
 		);
 
+		/**
+		 * Upvote count — a public aggregate (SC_Membership_DB::comment_vote_count),
+		 * same reasoning as 'rating' above: added to core's comment object
+		 * type so the frontend's existing /wp/v2/comments reads (see
+		 * getCommentsForPost) pick it up for free. Deliberately NOT paired
+		 * with a "did I vote on this" field here — that's per-viewer, and
+		 * this frontend's comment reads are ISR-cached (revalidate-based),
+		 * so a per-viewer boolean baked into this same cached response
+		 * would leak one visitor's vote state into another's cached page.
+		 * See get_my_comment_votes below for how the frontend gets that
+		 * instead: a separate, uncached, logged-in-only batch lookup.
+		 */
+		register_rest_field(
+			'comment',
+			'vote_count',
+			array(
+				'get_callback' => function ( $comment ) {
+					return SC_Membership_DB::comment_vote_count( $comment['id'] );
+				},
+				'schema'       => array(
+					'type' => 'integer',
+				),
+			)
+		);
+
 		register_rest_route(
 			'sc-membership/v1',
 			'/me',
@@ -145,6 +170,30 @@ class SC_Membership_REST {
 			array(
 				'methods'             => 'GET',
 				'callback'            => array( __CLASS__, 'get_my_comments' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/comments/(?P<id>\d+)/vote',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'toggle_comment_vote' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
+			'/comments/voted',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_my_comment_votes' ),
 				'permission_callback' => function () {
 					return is_user_logged_in();
 				},
@@ -857,6 +906,38 @@ class SC_Membership_REST {
 			'content' => array( 'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ) ),
 			'rating'  => $rating,
 		);
+	}
+
+	/**
+	 * Toggles the current user's upvote on a comment (any real comment —
+	 * post, event or directory-review alike, since they all share WP
+	 * core's one comments table). No ownership check needed like
+	 * update_comment() has — voting isn't restricted to your own content,
+	 * the comment just has to exist.
+	 */
+	public static function toggle_comment_vote( WP_REST_Request $request ) {
+		$comment_id = (int) $request->get_param( 'id' );
+		if ( ! get_comment( $comment_id ) ) {
+			return new WP_Error( 'comment_not_found', 'That comment no longer exists.', array( 'status' => 404 ) );
+		}
+
+		$voted = SC_Membership_DB::toggle_comment_vote( get_current_user_id(), $comment_id );
+
+		return array(
+			'voted' => $voted,
+			'count' => SC_Membership_DB::comment_vote_count( $comment_id ),
+		);
+	}
+
+	/**
+	 * Which of a given batch of comment ids the current user has already
+	 * upvoted — the frontend calls this once per thread (not embedded in
+	 * the public, ISR-cached comment list itself — see the vote_count
+	 * field's own docblock above for why that split exists).
+	 */
+	public static function get_my_comment_votes( WP_REST_Request $request ) {
+		$ids = array_filter( array_map( 'intval', explode( ',', (string) $request->get_param( 'ids' ) ) ) );
+		return array_values( SC_Membership_DB::voted_comment_ids( get_current_user_id(), $ids ) );
 	}
 
 	/** post/listing only — the two content types cards render bookmark buttons on. */

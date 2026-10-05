@@ -3446,9 +3446,45 @@ a.card-category:hover {
   color: #ddd;
 }
 
+.comment-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.comment-vote-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  color: #666;
+  font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.comment-vote-button:hover {
+  border-color: #c2607a;
+  color: #c2607a;
+}
+
+.comment-vote-button-active {
+  background: rgba(194, 96, 122, 0.12);
+  border-color: #c2607a;
+  color: #c2607a;
+}
+
+.comment-vote-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .comment-edit-link {
   display: inline-block;
-  margin-top: 0.5rem;
   background: none;
   border: none;
   padding: 0;
@@ -3456,6 +3492,22 @@ a.card-category:hover {
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
+}
+
+.comment-empty-hint {
+  margin: 0.75rem 0 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.comment-empty-hint a {
+  color: #c2607a;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.comment-empty-hint a:hover {
+  text-decoration: underline;
 }
 
 .comment-editing {

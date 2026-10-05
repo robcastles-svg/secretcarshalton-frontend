@@ -72,12 +72,94 @@ function StarRatingDisplay({ rating }: { rating: number }) {
   );
 }
 
+/**
+ * Upvoting isn't restricted to your own content, and any logged-in
+ * member can vote on any comment — a guest gets prompted to log in
+ * instead (via onRequireLogin, the same LoginModal every other guarded
+ * action here uses). Optimistic: toggles immediately, then reconciles
+ * with (or reverts to) the server's own count/voted state rather than
+ * trusting the optimistic guess once the request actually returns.
+ */
+function CommentVoteButton({
+  commentId,
+  initialCount,
+  initialVoted,
+  isLoggedIn,
+  onRequireLogin,
+}: {
+  commentId: number;
+  initialCount: number;
+  initialVoted: boolean;
+  isLoggedIn: boolean;
+  onRequireLogin: () => void;
+}) {
+  const [count, setCount] = useState(initialCount);
+  const [voted, setVoted] = useState(initialVoted);
+  const [pending, setPending] = useState(false);
+
+  async function handleClick() {
+    if (pending) return;
+    if (!isLoggedIn) {
+      onRequireLogin();
+      return;
+    }
+
+    setPending(true);
+    const prevVoted = voted;
+    const prevCount = count;
+    const nextVoted = !prevVoted;
+    setVoted(nextVoted);
+    setCount(prevCount + (nextVoted ? 1 : -1));
+
+    const res = await fetch("/api/comments/vote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ commentId }),
+    });
+
+    if (res.ok) {
+      const body = await res.json();
+      setVoted(body.voted);
+      setCount(body.count);
+    } else {
+      setVoted(prevVoted);
+      setCount(prevCount);
+    }
+    setPending(false);
+  }
+
+  return (
+    <button
+      type="button"
+      className={`comment-vote-button${voted ? " comment-vote-button-active" : ""}`}
+      onClick={handleClick}
+      disabled={pending}
+      aria-pressed={voted}
+      aria-label={voted ? "Remove your upvote" : "Upvote this comment"}
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill={voted ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeWidth="2"
+        aria-hidden="true"
+      >
+        <path d="M12 4l8 8h-5v8h-6v-8H4l8-8Z" strokeLinejoin="round" />
+      </svg>
+      {count > 0 ? count : "Upvote"}
+    </button>
+  );
+}
+
 export function CommentSection({
   postId,
   comments,
   isLoggedIn,
   commenterProfiles,
   currentUserId,
+  votedCommentIds,
   kind = "comment",
 }: {
   postId: number;
@@ -91,6 +173,11 @@ export function CommentSection({
   // The logged-in viewer's own member id, for showing an Edit link on
   // their own comments — undefined/null for guests, who can't own any.
   currentUserId?: number | null;
+  // Which of these comments the viewer has already upvoted — see
+  // getVotedCommentIds's docblock for why this is its own prop rather
+  // than a field on each WPComment. Empty/undefined for guests, who
+  // can't have voted on anything.
+  votedCommentIds?: number[];
   // Directory listings get "review" wording + a star rating; posts and
   // events stay plain "comment", no rating.
   kind?: "comment" | "review";
@@ -100,6 +187,7 @@ export function CommentSection({
   const nounPlural = isReview ? "reviews" : "comments";
 
   const [thread, setThread] = useState(comments);
+  const votedSet = new Set(votedCommentIds);
   const [text, setText] = useState("");
   const [rating, setRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -221,6 +309,16 @@ export function CommentSection({
 
       {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} />}
 
+      {/* Reviews (kind="review") skip this — it's specifically pointing
+          at the site's comment activity, not reviews, and /latest-comments
+          only ever shows the former. */}
+      {!isReview && thread.length === 0 && (
+        <p className="comment-empty-hint">
+          No comments here yet — be the first.{" "}
+          <Link href="/latest-comments">View the newest comments on Discover, News and Walks →</Link>
+        </p>
+      )}
+
       <div className="comment-count">
         {thread.length} {nounPlural.toUpperCase()}
       </div>
@@ -262,11 +360,20 @@ export function CommentSection({
                 <time dateTime={c.date}>{formatDate(c.date)}</time>
                 {isReview && typeof c.rating === "number" && <StarRatingDisplay rating={c.rating} />}
                 <div dangerouslySetInnerHTML={{ __html: c.content.rendered }} />
-                {canEdit && (
-                  <button type="button" className="comment-edit-link" onClick={() => setEditingId(c.id)}>
-                    Edit
-                  </button>
-                )}
+                <div className="comment-actions-row">
+                  <CommentVoteButton
+                    commentId={c.id}
+                    initialCount={c.vote_count ?? 0}
+                    initialVoted={votedSet.has(c.id)}
+                    isLoggedIn={isLoggedIn}
+                    onRequireLogin={() => setShowLoginModal(true)}
+                  />
+                  {canEdit && (
+                    <button type="button" className="comment-edit-link" onClick={() => setEditingId(c.id)}>
+                      Edit
+                    </button>
+                  )}
+                </div>
               </li>
             );
           })}

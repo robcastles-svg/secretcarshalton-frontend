@@ -504,6 +504,10 @@ export interface WPComment {
   // 1-5, only ever set on directory-listing reviews — see sc-membership's
   // register_rest_field('comment', 'rating', ...). null/absent elsewhere.
   rating?: number | null;
+  // Public upvote count — see sc-membership's register_rest_field('comment',
+  // 'vote_count', ...). Whether *this viewer* has already voted isn't part
+  // of this (cached) object at all — see getVotedCommentIds.
+  vote_count?: number;
 }
 
 /**
@@ -518,7 +522,7 @@ export interface WPComment {
  */
 export async function getCommentsForPost(postId: number, count: number): Promise<WPComment[]> {
   const comments = await scDirectoryFetch<WPComment[]>(
-    `/comments?post=${postId}&per_page=${count * 2}&orderby=date&order=desc&_fields=id,post,author,author_name,content,date,rating`
+    `/comments?post=${postId}&per_page=${count * 2}&orderby=date&order=desc&_fields=id,post,author,author_name,content,date,rating,vote_count`
   );
   return comments.filter((c) => c.author_name !== "Secret Carshalton").slice(0, count);
 }
@@ -2275,6 +2279,50 @@ export async function editComment(
     return res.json();
   } catch {
     return NETWORK_ERROR;
+  }
+}
+
+/** Not ownership-gated like editComment — any logged-in member can upvote any comment, on their own content or anyone else's. */
+export async function toggleCommentVote(
+  token: string,
+  commentId: number
+): Promise<{ voted: boolean; count: number } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/comments/${commentId}/vote`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "vote_failed", message: body.message ?? "Could not update vote." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/**
+ * Which of a thread's comments the viewer has already upvoted — a
+ * separate, uncached, logged-in-only call rather than a field baked into
+ * getCommentsForPost's own (ISR-cached) response, which would risk one
+ * visitor's vote state leaking into another's cached page. See
+ * SC_Membership_REST::get_my_comment_votes's docblock.
+ */
+export async function getVotedCommentIds(token: string, commentIds: number[]): Promise<number[]> {
+  if (commentIds.length === 0) return [];
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/comments/voted?ids=${commentIds.join(",")}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
   }
 }
 

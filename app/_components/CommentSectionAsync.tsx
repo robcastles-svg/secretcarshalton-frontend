@@ -1,5 +1,5 @@
 import { getSessionToken } from "@/lib/auth";
-import { getMemberMe, type WPComment } from "@/lib/wordpress";
+import { getMemberMe, getVotedCommentIds, type WPComment } from "@/lib/wordpress";
 import { CommentSection } from "./CommentSection";
 
 /**
@@ -10,7 +10,9 @@ import { CommentSection } from "./CommentSection";
  * per-visitor part of an otherwise cacheable ISR page, and calling it
  * directly in the page's own render was throwing DYNAMIC_SERVER_USAGE the
  * first time a post outside the pre-rendered set got requested after a
- * deploy.
+ * deploy. The viewer's own voted-comment-ids are fetched here for the
+ * same reason — see getVotedCommentIds's own docblock for why that can't
+ * just be a field on the (cached) comments themselves.
  */
 export async function CommentSectionAsync({
   postId,
@@ -24,7 +26,10 @@ export async function CommentSectionAsync({
   kind?: "comment" | "review";
 }) {
   const sessionToken = await getSessionToken();
-  const profile = sessionToken ? await getMemberMe(sessionToken) : null;
+  const [profile, votedCommentIds] = await Promise.all([
+    sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
+    sessionToken ? getVotedCommentIds(sessionToken, comments.map((c) => c.id)) : Promise.resolve([]),
+  ]);
 
   return (
     <CommentSection
@@ -33,6 +38,7 @@ export async function CommentSectionAsync({
       isLoggedIn={Boolean(sessionToken)}
       commenterProfiles={commenterProfiles}
       currentUserId={profile?.id}
+      votedCommentIds={votedCommentIds}
       kind={kind}
     />
   );
