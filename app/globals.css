@@ -6370,12 +6370,41 @@ a.card-category:hover {
   object-fit: contain;
 }
 
+/* Placeholder text tile shown before a sponsor has a real logo upload — see DUMMY_SPONSORS in app/page.tsx. */
+.sponsor-strip-name {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #aaa;
+  text-align: center;
+  line-height: 1.1;
+}
+
 /* Lead + Most read: 2fr/1fr desktop */
 .home-top-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 2.5rem;
-  padding: 2rem 0;
+  /* top/bottom only — a padding shorthand here would zero out the
+     left/right padding .container already sets on this same element
+     (same specificity, later in the file wins), pinning the lead story
+     to the screen edges with no side margin on mobile. */
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+.home-lead-kicker {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #1a1a1a;
 }
 
 .home-lead {
@@ -6405,21 +6434,11 @@ a.card-category:hover {
 }
 
 .home-lead-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.15rem 0.7rem;
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-.home-lead-meta span:first-child {
   color: #c2607a;
-}
-
-.home-lead-meta time {
-  color: #999;
 }
 
 .home-lead h1 {
@@ -6436,6 +6455,14 @@ a.card-category:hover {
   color: #555;
   margin: 0;
   max-width: 680px;
+}
+
+.home-lead-date {
+  display: block;
+  color: #999;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 @media (min-width: 760px) {
@@ -6540,7 +6567,10 @@ a.card-category:hover {
 
   .most-read-mobile-slot {
     display: block;
-    padding: 1.5rem 0;
+    /* top/bottom only — see .home-top-grid's own note on why a padding
+       shorthand here would clobber .container's left/right padding. */
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
     border-top: 1px solid #eee;
   }
 }
@@ -6576,6 +6606,36 @@ a.card-category:hover {
   .post-list.post-list-four-column {
     grid-template-columns: repeat(4, 1fr);
   }
+}
+
+/* Mobile only (tablet keeps the 2x2 of all 4): 1 column of 3 cards. */
+@media (max-width: 759px) {
+  .post-list.post-list-four-column {
+    grid-template-columns: 1fr;
+  }
+
+  .post-list.post-list-four-column li:nth-child(4) {
+    display: none;
+  }
+}
+
+/* The excerpt (normally hidden, see .post-list li > div above) shown as a
+   2-line intro under each More Latest card, in a lighter weight/colour
+   than the title above it. */
+.post-list.post-list-four-column li > div {
+  display: block;
+}
+
+.post-list.post-list-four-column li > div p {
+  margin: 0.35rem 1rem 0;
+  font-weight: 400;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: #666;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 /* Events band */
@@ -6614,7 +6674,7 @@ a.card-category:hover {
 
 .home-featured-event .event-countdown-media {
   width: 100%;
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 4 / 3;
   height: auto;
 }
 
@@ -6703,6 +6763,8 @@ a.card-category:hover {
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   gap: 2.5rem;
   align-items: center;
+  text-decoration: none;
+  color: inherit;
 }
 
 .home-walk-image {
@@ -6932,7 +6994,7 @@ a.card-category:hover {
 .home-comment-text {
   display: block;
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: 400;
   line-height: 1.35;
   color: #1a1a1a;
   text-decoration: none;

@@ -57,6 +57,26 @@ const WALK_TIME_CHIPS = [
   { slug: "40-minutes-by-car", label: "40+" },
 ];
 
+// Placeholder tiles so the sponsor strip itself is visible per the design
+// handoff — swap for real premium-member logo uploads once that form field
+// exists (see SponsorStrip's own docblock). No logoUrl, so each tile falls
+// back to showing its name as text.
+const DUMMY_SPONSORS = Array.from({ length: 8 }, (_, i) => ({
+  id: i + 1,
+  name: "Your logo here",
+  href: "/directory/featured",
+}));
+
+// Placeholder reels so the slider itself is visible per the design handoff
+// — the Instagram feed plugin on staging has no public REST API to pull
+// real reels from yet (see ReelsSlider's own docblock); swap these for the
+// real feed once that bridge exists.
+const DUMMY_REELS = Array.from({ length: 9 }, (_, i) => ({
+  id: `dummy-${i + 1}`,
+  thumbnailUrl: `https://picsum.photos/seed/screel${i + 1}/360/640`,
+  videoUrl: "https://www.instagram.com/secret.carshalton/",
+}));
+
 export default async function HomePage() {
   const [
     recentPosts,
@@ -197,7 +217,7 @@ export default async function HomePage() {
 
   return (
     <main>
-      <SponsorStrip sponsors={[]} />
+      <SponsorStrip sponsors={DUMMY_SPONSORS} />
 
       <div className="container home-top-grid">
         <Link href={`/${lead.slug}`} className="home-lead">
@@ -206,12 +226,16 @@ export default async function HomePage() {
               <img src={leadImage.source_url} alt={leadImage.alt_text} />
             </div>
           )}
-          <div className="home-lead-meta">
-            {leadCategory && <span>{leadCategory.name}</span>}
-            <time dateTime={lead.date}>{formatDate(lead.date)}</time>
+          <div className="home-lead-kicker">
+            <span>Latest</span>
+            <CategoryKeyIcon />
           </div>
+          {leadCategory && <div className="home-lead-meta">{leadCategory.name}</div>}
           <h1 dangerouslySetInnerHTML={{ __html: lead.title.rendered }} />
           <p>{stripHtml(lead.excerpt.rendered)}</p>
+          <time className="home-lead-date" dateTime={lead.date}>
+            {formatDate(lead.date)}
+          </time>
         </Link>
 
         {/* Rendered twice — here (desktop sidebar) and again below More
@@ -418,7 +442,7 @@ export default async function HomePage() {
             <div className="home-dir-jobs-col">
               <div className="home-section-header">
                 <h2>
-                  Jobs
+                  Latest jobs
                   <CategoryKeyIcon />
                 </h2>
                 <div className="more-latest-links">
@@ -442,7 +466,7 @@ export default async function HomePage() {
 
               {latestJobs.length > 0 && (
                 <>
-                  <div className="walk-time-heading">Latest jobs</div>
+                  <div className="walk-time-heading">More jobs</div>
                   <ul className="home-latest-rows">
                     {latestJobs.map((job) => {
                       const ageDays = Math.max(
@@ -489,7 +513,7 @@ export default async function HomePage() {
               @secret.carshalton →
             </a>
           </div>
-          <ReelsSlider items={[]} />
+          <ReelsSlider items={DUMMY_REELS} />
         </section>
       </div>
     </main>
