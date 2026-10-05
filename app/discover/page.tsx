@@ -221,7 +221,7 @@ export default async function DiscoverPage({
             <CategoryKeyIcon />
           </h1>
         )}
-        <p>Stories, walks and local businesses from around Carshalton, all in one feed.</p>
+        <p>Timeless and fascinating stories from around Carshalton and nearby areas</p>
 
         <MobileTopAd ad={ad1} />
 
