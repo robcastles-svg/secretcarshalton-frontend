@@ -4136,17 +4136,29 @@ a.card-category:hover {
    row as the title on desktop (Rob's call, 2026-10) rather than stacked
    underneath — Discover, News and Walks only; every other page with a
    .page-header-row (Community, Groups to join, Jobs Board, Directory,
-   Events, Members) is untouched. Stacks back to title-then-strapline,
-   both left-aligned, on mobile. */
+   Events, Members) is untouched.
+   align-items: baseline (not flex-start) so the strapline's text sits
+   on the title's own baseline instead of lining up with its top —
+   flex-start was reading as misaligned since the title's much taller
+   line-height left the strapline looking like it floated near the top
+   of the title rather than sitting next to it.
+   The side-by-side switch is a wider 961px, not the usual 721px
+   breakpoint, specifically so the strapline reliably has room to sit
+   on one line (white-space: nowrap below) rather than wrapping — the
+   longest straplines (Discover/Walks) need ~850px of row width
+   alongside the title, more than a typical tablet width can give
+   safely. Below that it stacks, both left-aligned, same as mobile. */
 .category-header-row {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 0.5rem 1.5rem;
+  gap: 0.75rem 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .category-header-row h1 {
   margin: 0;
+  flex-shrink: 0;
 }
 
 .category-header-description {
@@ -4154,14 +4166,14 @@ a.card-category:hover {
   color: #555;
 }
 
-@media (min-width: 721px) {
+@media (min-width: 961px) {
   .category-header-description {
     text-align: right;
-    max-width: 50%;
+    white-space: nowrap;
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 960px) {
   .category-header-row {
     flex-direction: column;
   }
