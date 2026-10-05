@@ -4132,14 +4132,11 @@ a.card-category:hover {
   flex-wrap: wrap;
 }
 
-/* A category/section page's title + one-line strapline, ranged right on
-   the same row as the title on desktop (Rob's call, 2026-10) rather than
-   stacked underneath — used by Discover, Community, News and Walks.
-   Groups to join, Jobs Board and Directory keep the original
-   .page-header-row (title+description stacked, button on the right) —
-   Rob's call: only Community's button was actually in the way, so only
-   Community moved to this row + the text-link treatment below;
-   everywhere else stays as it was. Stacks back to title-then-strapline,
+/* A section page's title + one-line strapline, ranged right on the same
+   row as the title on desktop (Rob's call, 2026-10) rather than stacked
+   underneath — Discover, News and Walks only; every other page with a
+   .page-header-row (Community, Groups to join, Jobs Board, Directory,
+   Events, Members) is untouched. Stacks back to title-then-strapline,
    both left-aligned, on mobile. */
 .category-header-row {
   display: flex;
@@ -4168,25 +4165,6 @@ a.card-category:hover {
   .category-header-row {
     flex-direction: column;
   }
-}
-
-/* Community's "Share community news" button had nowhere to go once its
-   strapline moved beside the title instead of under it — demoted to a
-   small text link under the strapline instead of a full pill button
-   competing for the same row. Community-only (Rob's call, 2026-10) —
-   Groups to join/Jobs Board/Directory's buttons stay as plain
-   .button-pills in the original .page-header-row. */
-.category-header-text-link {
-  display: inline-block;
-  margin-top: 0.5rem;
-  color: #c2607a;
-  font-weight: 700;
-  font-size: 0.85rem;
-  text-decoration: none;
-}
-
-.category-header-text-link:hover {
-  text-decoration: underline;
 }
 
 .directory-toolbar {
