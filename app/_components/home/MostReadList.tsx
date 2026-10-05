@@ -8,6 +8,7 @@ export interface MostReadItem {
   title: string;
   imageUrl?: string;
   imageAlt?: string;
+  excerpt?: string;
 }
 
 const COLLAPSED_COUNT = 5;
@@ -28,7 +29,10 @@ export function MostReadList({ items }: { items: MostReadItem[] }) {
               <span className="most-read-thumb">
                 {item.imageUrl && <img src={item.imageUrl} alt={item.imageAlt ?? ""} loading="lazy" />}
               </span>
-              <span className="most-read-title">{item.title}</span>
+              <span className="most-read-text">
+                <span className="most-read-title">{item.title}</span>
+                {item.excerpt && <span className="most-read-excerpt">{item.excerpt}</span>}
+              </span>
             </Link>
           </li>
         ))}

@@ -143,14 +143,16 @@ export default async function HomePage() {
   const moreLatest = recentPosts.filter((p) => p.id !== lead.id).slice(0, 4);
 
   // Most read this week — sc-post-views gives post_id/slug/title/views,
-  // no image, so the 60px thumbnails are a separate batched lookup
-  // straight against the posts themselves (see getFeaturedImagesForPosts).
-  const mostReadImages = await getFeaturedImagesForPosts(topThisWeek.map((p) => p.post_id));
+  // no image or excerpt, so the 60px thumbnails and 2-line intros are a
+  // separate batched lookup straight against the posts themselves (see
+  // getFeaturedImagesForPosts).
+  const mostReadDetails = await getFeaturedImagesForPosts(topThisWeek.map((p) => p.post_id));
   const mostReadItems: MostReadItem[] = topThisWeek.map((p) => ({
     slug: p.slug,
     title: p.title,
-    imageUrl: mostReadImages.get(p.post_id)?.source_url,
-    imageAlt: mostReadImages.get(p.post_id)?.alt_text,
+    imageUrl: mostReadDetails.get(p.post_id)?.image?.source_url,
+    imageAlt: mostReadDetails.get(p.post_id)?.image?.alt_text,
+    excerpt: mostReadDetails.get(p.post_id)?.excerpt,
   }));
 
   // Walks: the latest walk, falling back to the 2nd-latest if the latest

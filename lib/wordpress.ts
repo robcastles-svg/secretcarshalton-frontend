@@ -80,24 +80,25 @@ export function getFeaturedImage(item: {
 }
 
 /**
- * Batch post-id -> featured image lookup, one request for however many
+ * Batch post-id -> {image, excerpt} lookup, one request for however many
  * ids are passed — used by the homepage's "Most read this week" list,
  * which only has post_id/slug/title/views from sc-post-views (see
- * getTopPosts) and needs a thumbnail per row. A single `include=` core
- * posts request rather than one sc-post-views field addition: the
- * images already live on the posts themselves, no new plugin surface
- * needed for them.
+ * getTopPosts) and needs a thumbnail and a short intro per row. A single
+ * `include=` core posts request rather than sc-post-views field
+ * additions: the images and excerpts already live on the posts
+ * themselves, no new plugin surface needed for them.
  */
-export async function getFeaturedImagesForPosts(postIds: number[]): Promise<Map<number, WPFeaturedMedia>> {
+export async function getFeaturedImagesForPosts(
+  postIds: number[]
+): Promise<Map<number, { image: WPFeaturedMedia | null; excerpt: string }>> {
   if (postIds.length === 0) return new Map();
   try {
-    const posts = await wpFetch<Array<{ id: number; _embedded?: { "wp:featuredmedia"?: WPFeaturedMedia[] } }>>(
-      `/posts?include=${postIds.join(",")}&per_page=${postIds.length}&_fields=id,_links&_embed=wp:featuredmedia`
-    );
-    const map = new Map<number, WPFeaturedMedia>();
+    const posts = await wpFetch<
+      Array<{ id: number; excerpt: WPRendered; _embedded?: { "wp:featuredmedia"?: WPFeaturedMedia[] } }>
+    >(`/posts?include=${postIds.join(",")}&per_page=${postIds.length}&_fields=id,excerpt,_links&_embed=wp:featuredmedia`);
+    const map = new Map<number, { image: WPFeaturedMedia | null; excerpt: string }>();
     for (const post of posts) {
-      const image = getFeaturedImage(post);
-      if (image) map.set(post.id, image);
+      map.set(post.id, { image: getFeaturedImage(post), excerpt: stripHtml(post.excerpt.rendered) });
     }
     return map;
   } catch {
