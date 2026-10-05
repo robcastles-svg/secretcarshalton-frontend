@@ -164,7 +164,15 @@ export default async function ContentPage({
           {!isAboutPage && <time dateTime={item.date}>{formatDate(item.date)}</time>}
           {!isAboutPage && image && <img src={image.source_url} alt={image.alt_text} />}
           <div
-            className={isAboutPage ? "about-page-content" : undefined}
+            className={
+              isAboutPage
+                ? // welcome-to-carshalton's own "Introducing Carshalton" heading
+                  // stays visible (SEO + Rob's call that this one reads better
+                  // kept, unlike the other three pages' repeat-of-the-title
+                  // headings) — see .about-page-content-show-heading below.
+                  `about-page-content${slug === "welcome-to-carshalton" ? " about-page-content-show-heading" : ""}`
+                : undefined
+            }
             dangerouslySetInnerHTML={{ __html: item.content.rendered }}
           />
         </article>

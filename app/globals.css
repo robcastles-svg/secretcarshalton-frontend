@@ -2598,13 +2598,26 @@ a.card-category:hover {
 
 /* The page's own embedded title — the mini-nav above already labels
    which About page you're on, so a second, repeated title in the
-   content itself just reads as clutter. Checked all four pages' raw
-   content: each has exactly one h1 or h2 playing this role (two on
-   Welcome to Carshalton, one of them empty), no legitimate content
-   subheadings mixed in — safe to hide every h1/h2 here. */
+   content itself just reads as clutter. Default is hidden-not-removed
+   (kept in the markup for SEO) rather than stripped out entirely.
+   Checked all four pages' raw content: each has exactly one h1 or h2
+   playing this role (two on Welcome to Carshalton, one of them empty),
+   no legitimate content subheadings mixed in — safe to hide every
+   h1/h2 here by default. */
 .about-page-content h1,
 .about-page-content h2 {
   display: none;
+}
+
+/* The one exception: Welcome to Carshalton's "Introducing Carshalton"
+   heading stays visible as a real H1, per Rob — unlike the other three
+   pages' repeat-of-the-page-title headings. :last-of-type picks it out
+   from the two h1s on that page (the first is empty, this is the real
+   one) without needing a hook on the heading itself, which the raw WP
+   content doesn't give us. Already sits right after the main image in
+   source order, so no repositioning needed — showing it is enough. */
+.about-page-content-show-heading h1:last-of-type {
+  display: block;
 }
 
 /* The actual "main image" on the two About pages that have one (About
@@ -2621,6 +2634,43 @@ a.card-category:hover {
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* Standard WP core alignment class — floats the map image so body text
+   wraps beside it, desktop only (see the mobile reset below, which must
+   come after this at equal specificity to actually win on narrow
+   viewports). Scoped to the About cluster for now rather than
+   site-wide: .post-content (regular articles) doesn't handle
+   .alignright/.alignleft either, a pre-existing gap this doesn't
+   attempt to fix. */
+.about-page-content .alignright {
+  float: right;
+  max-width: 45%;
+  margin: 0 0 1rem 1.5rem;
+}
+
+@media (max-width: 720px) {
+  /* Edge-to-edge on mobile, no side margins — same full-bleed trick as
+     .post-content's own mobile images. Safe regardless of how deeply
+     .sow-image-container sits inside the SiteOrigin wrapper chain: all
+     of those ancestors are plain block flow with no overflow:hidden or
+     transform to clip the breakout (checked). */
+  .sow-image-container img {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+  }
+
+  /* Floating the map tight against wrapped text doesn't work at mobile
+     widths — stack it full-width like everything else instead. Must
+     come after the base .alignright rule above (same specificity) to
+     win the cascade here. */
+  .about-page-content .alignright {
+    float: none;
+    max-width: 100%;
+    margin: 0 0 1rem;
+  }
 }
 
 /* Article page */
