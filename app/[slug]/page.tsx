@@ -17,6 +17,7 @@ import {
   getAllPageSlugs,
   getCategories,
   getCommentsForPost,
+  getDirectoryCategories,
   getFeaturedImage,
   getMembersByIds,
   getPageBySlug,
@@ -143,6 +144,48 @@ export default async function ContentPage({
   // category/tag, sidebar, or comments, since those are post concepts.
   if (!post) {
     const isAboutPage = ABOUT_PAGE_SLUGS.includes(slug);
+    // About Secret Carshalton stays full-width for now, per Rob — the
+    // other three About pages get the same Directory promo + ads sidebar
+    // Discover uses, mainly to narrow the text column on desktop (full
+    // width was reading too wide). No MobileTopAd here unlike Discover's
+    // own sidebar — these pages keep every ad at the bottom on mobile
+    // (where .post-sidebar already lands once .post-layout collapses to
+    // one column), not duplicated up top as well.
+    const showAboutSidebar = isAboutPage && slug !== "about-secret-carshalton";
+
+    let directoryCategories: Awaited<ReturnType<typeof getDirectoryCategories>> = [];
+    let sidebarAd1: Awaited<ReturnType<typeof getAd>> = null;
+    let sidebarAd2: Awaited<ReturnType<typeof getAd>> = null;
+    let sidebarAd3: Awaited<ReturnType<typeof getAd>> = null;
+    if (showAboutSidebar) {
+      [directoryCategories, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
+        getDirectoryCategories().catch(() => []),
+        getAd("sidebar", 1),
+        getAd("sidebar", 2),
+        getAd("sidebar", 3),
+      ]);
+    }
+
+    const content = (
+      <>
+        {!isAboutPage && <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />}
+        {!isAboutPage && <time dateTime={item.date}>{formatDate(item.date)}</time>}
+        {!isAboutPage && image && <img src={image.source_url} alt={image.alt_text} />}
+        <div
+          className={
+            isAboutPage
+              ? // All four pages' embedded headings stay visible now, per
+                // Rob — except Welcome to Carshalton's first one, which is
+                // genuinely empty (a single &nbsp;, left over from the
+                // original page build) rather than a real heading to show.
+                `about-page-content${slug === "welcome-to-carshalton" ? " about-page-content-hide-empty-heading" : ""}`
+              : undefined
+          }
+          dangerouslySetInnerHTML={{ __html: item.content.rendered }}
+        />
+      </>
+    );
+
     return (
       <>
         {isAboutPage && <AboutMiniNav activeSlug={slug} />}
@@ -160,21 +203,39 @@ export default async function ContentPage({
             handled by .sow-image-container's CSS further down. */}
         {isAboutPage && image && <img src={image.source_url} alt={image.alt_text} className="about-page-image" />}
         <article className="container">
-          {!isAboutPage && <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />}
-          {!isAboutPage && <time dateTime={item.date}>{formatDate(item.date)}</time>}
-          {!isAboutPage && image && <img src={image.source_url} alt={image.alt_text} />}
-          <div
-            className={
-              isAboutPage
-                ? // All four pages' embedded headings stay visible now, per
-                  // Rob — except Welcome to Carshalton's first one, which is
-                  // genuinely empty (a single &nbsp;, left over from the
-                  // original page build) rather than a real heading to show.
-                  `about-page-content${slug === "welcome-to-carshalton" ? " about-page-content-hide-empty-heading" : ""}`
-                : undefined
-            }
-            dangerouslySetInnerHTML={{ __html: item.content.rendered }}
-          />
+          {showAboutSidebar ? (
+            <div className="post-layout">
+              <div className="post-body">{content}</div>
+              <aside className="post-sidebar">
+                {directoryCategories.length > 0 && (
+                  <div className="sidebar-block sidebar-directory-promo">
+                    <p className="sidebar-directory-eyebrow">Directory</p>
+                    <h3>Discover local business</h3>
+                    <p className="sidebar-directory-subtitle">
+                      Shops, trades, groups and places around Carshalton.
+                    </p>
+                    <ul className="sidebar-directory-pills">
+                      {directoryCategories.slice(0, 11).map((c) => (
+                        <li key={c.id}>
+                          <Link href={`/directory/${c.slug}`} className="sidebar-directory-pill">
+                            {c.name}
+                          </Link>
+                        </li>
+                      ))}
+                      <li>
+                        <Link href="/directory" className="sidebar-directory-pill sidebar-directory-pill-browse">
+                          Browse all →
+                        </Link>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+                <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
+              </aside>
+            </div>
+          ) : (
+            content
+          )}
         </article>
       </>
     );
