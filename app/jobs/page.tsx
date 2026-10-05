@@ -52,18 +52,18 @@ export default async function JobsPage() {
 
   return (
     <main className="container">
-      <div className="category-header-row">
-        <h1>
-          Jobs Board
-          <CategoryKeyIcon />
-        </h1>
-        <p className="category-header-description">
-          Local vacancies from around Carshalton, Sutton and the surrounding area.
-        </p>
+      <div className="page-header-row">
+        <div>
+          <h1>
+            Jobs Board
+            <CategoryKeyIcon />
+          </h1>
+          <p>Local vacancies from around Carshalton, Sutton and the surrounding area.</p>
+        </div>
+        <Link href="/jobs/manager" className="button-pill">
+          Add a job
+        </Link>
       </div>
-      <Link href="/jobs/manager" className="category-header-text-link">
-        Add a job
-      </Link>
 
       {memberJobs.length > 0 && (
         <section className="home-section">

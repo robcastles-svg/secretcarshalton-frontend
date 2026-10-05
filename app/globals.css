@@ -1376,7 +1376,7 @@ a.card-category:hover {
   background-color: #4a4a4a;
 }
 
-.section-hero .container {
+.section-hero .page-header-row {
   padding: 2.5rem 1.5rem;
 }
 
@@ -4134,11 +4134,13 @@ a.card-category:hover {
 
 /* A category/section page's title + one-line strapline, ranged right on
    the same row as the title on desktop (Rob's call, 2026-10) rather than
-   stacked underneath — used by Discover, Community, Groups to join,
-   Jobs Board, Directory, News and Walks. A separate class from the
-   plain .page-header-row above (used where the second slot is a button,
-   e.g. Events/Members) so this doesn't affect those. Stacks back to
-   title-then-strapline, both left-aligned, on mobile. */
+   stacked underneath — used by Discover, Community, News and Walks.
+   Groups to join, Jobs Board and Directory keep the original
+   .page-header-row (title+description stacked, button on the right) —
+   Rob's call: only Community's button was actually in the way, so only
+   Community moved to this row + the text-link treatment below;
+   everywhere else stays as it was. Stacks back to title-then-strapline,
+   both left-aligned, on mobile. */
 .category-header-row {
   display: flex;
   align-items: flex-start;
@@ -4168,12 +4170,12 @@ a.card-category:hover {
   }
 }
 
-/* The button that used to share that row with the title now has nowhere
-   to go once the strapline moves beside the title instead of under it —
-   demoted to a small text link under the strapline instead of a full
-   pill button competing for the same row (Rob's call, 2026-10, "like on
-   Community" — applied the same way wherever else a button was in the
-   header row). */
+/* Community's "Share community news" button had nowhere to go once its
+   strapline moved beside the title instead of under it — demoted to a
+   small text link under the strapline instead of a full pill button
+   competing for the same row. Community-only (Rob's call, 2026-10) —
+   Groups to join/Jobs Board/Directory's buttons stay as plain
+   .button-pills in the original .page-header-row. */
 .category-header-text-link {
   display: inline-block;
   margin-top: 0.5rem;

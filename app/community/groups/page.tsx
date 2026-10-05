@@ -29,16 +29,18 @@ export default async function CommunityGroupsPage() {
 
   return (
     <main className="container">
-      <div className="category-header-row">
-        <h1>
-          Groups to join
-          <CategoryKeyIcon />
-        </h1>
-        <p className="category-header-description">{DESCRIPTION}</p>
+      <div className="page-header-row">
+        <div>
+          <h1>
+            Groups to join
+            <CategoryKeyIcon />
+          </h1>
+          <p>{DESCRIPTION}</p>
+        </div>
+        <Link href="/community/groups/manager" className="button-pill">
+          List your group
+        </Link>
       </div>
-      <Link href="/community/groups/manager" className="category-header-text-link">
-        List your group
-      </Link>
 
       <div className="post-layout">
         <div className="post-body">

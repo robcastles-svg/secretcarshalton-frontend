@@ -142,27 +142,25 @@ export async function DirectoryBrowse({
       </div>
 
       <div className="section-hero">
-        <div className="container">
-          <div className="category-header-row">
-            <div>
-              {activeCategory ? (
-                <>
-                  <span className="section-hero-eyebrow">The Sutton Business Directory</span>
-                  <h1>
-                    {activeCategory.name}
-                    <CategoryKeyIcon />
-                  </h1>
-                </>
-              ) : (
+        <div className="container page-header-row">
+          <div>
+            {activeCategory ? (
+              <>
+                <span className="section-hero-eyebrow">The Sutton Business Directory</span>
                 <h1>
-                  The Sutton Business Directory
+                  {activeCategory.name}
                   <CategoryKeyIcon />
                 </h1>
-              )}
-            </div>
-            <p className="category-header-description">Local businesses and organisations in and around Carshalton.</p>
+              </>
+            ) : (
+              <h1>
+                The Sutton Business Directory
+                <CategoryKeyIcon />
+              </h1>
+            )}
+            <p>Local businesses and organisations in and around Carshalton.</p>
           </div>
-          <Link href="/directory/submit" className="category-header-text-link">
+          <Link href="/directory/submit" className="button-pill">
             Add a listing
           </Link>
         </div>
