@@ -9,6 +9,7 @@ import { BackToTop } from "./_components/BackToTop";
 import { MemberBenefitsBar } from "./_components/MemberBenefitsBar";
 import { PrimaryNav } from "./_components/PrimaryNav";
 import { SiteDateWeather } from "./_components/SiteDateWeather";
+import { UtilityNav } from "./_components/UtilityNav";
 import { UtilityNavAuth } from "./_components/UtilityNavAuth";
 import "./globals.css";
 
@@ -127,17 +128,7 @@ export default async function RootLayout({
           <div className="container utility-bar-inner">
             <SiteDateWeather />
             <div className="utility-bar-links">
-              {UTILITY_NAV.map((item) =>
-                item.href.startsWith("http") ? (
-                  <a key={item.label} href={item.href}>
-                    {item.label}
-                  </a>
-                ) : (
-                  <Link key={item.label} href={item.href}>
-                    {item.label}
-                  </Link>
-                )
-              )}
+              <UtilityNav items={UTILITY_NAV} />
               <Suspense
                 fallback={
                   <>

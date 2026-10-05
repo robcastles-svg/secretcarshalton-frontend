@@ -165,6 +165,17 @@ button.button-pill {
   color: #c2607a;
 }
 
+/* Smaller/thinner than .primary-nav a.active's underline — proportional
+   to this bar's much smaller text rather than reusing the same weight. */
+.utility-bar a.active {
+  color: #222;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: #c2607a;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
 /* Header */
 .site-header {
   border-bottom: 1px solid #e5e5e5;
@@ -301,6 +312,9 @@ button.button-pill {
 
   .primary-nav a {
     font-size: 1.2rem;
+    /* Tighter still than the 1.05 base — mobile's bigger font-size
+       otherwise drags the leading up with it. */
+    line-height: 1;
   }
 
   .nav-line-break {
@@ -2724,11 +2738,18 @@ a.card-category:hover {
 
 /* Article body copy (News/Stories/Walks/etc. — the shared [slug] post
    template) — otherwise inherits the site's 1rem base, which reads
-   small for a long-form article. Third pass per Rob: leading tighter
-   still (1.55 → 1.4). */
+   small for a long-form article. Fourth pass per Rob: 1.25rem read a
+   touch big on desktop (mobile was fine), so this is now the mobile
+   size, with a desktop-only reduction below. */
 .post-content {
   font-size: 1.25rem;
   line-height: 1.4;
+}
+
+@media (min-width: 721px) {
+  .post-content {
+    font-size: 1.15rem;
+  }
 }
 
 .post-content img {
