@@ -2549,6 +2549,7 @@ a.card-category:hover {
    text visually hidden but kept for screen readers. */
 .newsletter-band-inner .auth-form {
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.6rem;
   margin-top: 0;
@@ -7126,6 +7127,14 @@ a.card-category:hover {
   margin-left: calc(50% - 50vw);
   width: 100vw;
   padding-left: calc(50vw - 50% + 1.5rem);
+  /* This codebase never resets box-sizing globally, so by default
+     (content-box) the padding-left above was being added ON TOP of the
+     100vw width instead of carved out of it — the element rendered
+     wider than the viewport (by exactly that padding), which widened
+     the whole page and pushed fixed-position elements like
+     .back-to-top off-screen on mobile. border-box makes width:100vw
+     actually mean 100vw, padding included. */
+  box-sizing: border-box;
 }
 
 .reels-track {
