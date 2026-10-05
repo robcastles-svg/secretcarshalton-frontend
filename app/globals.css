@@ -2919,6 +2919,23 @@ a.card-category:hover {
   gap: 2rem;
 }
 
+/* A thin, light vertical rule to the left of the sidebar, differentiating
+   it from the main content column — site-wide, any page using
+   .post-sidebar inside .post-layout (Discover, Stories, Walks, Themes,
+   People, Community, Directory, About, individual posts/listings, etc.).
+   Desktop only, matching .post-layout's own 861px breakpoint for when
+   the sidebar actually sits beside the content rather than stacked
+   below it. Same feint colour as the site's other keylines (#e5e5e5). */
+@media (min-width: 861px) {
+  .post-sidebar {
+    /* border-box so the padding/border eat into the fixed 300px grid
+       track instead of adding to it and overflowing past it. */
+    box-sizing: border-box;
+    padding-left: 2rem;
+    border-left: 1px solid #e5e5e5;
+  }
+}
+
 /* Directory listing detail page: white card, soft shadow, image
    full-bleed at the top of the card (rest of the site stays flat/hairline
    by design — this card treatment is scoped to directory listings only). */
