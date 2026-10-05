@@ -142,20 +142,31 @@ export default async function ContentPage({
   // Pages (About, Contact, Help, etc.) get the plain layout — no
   // category/tag, sidebar, or comments, since those are post concepts.
   if (!post) {
+    const isAboutPage = ABOUT_PAGE_SLUGS.includes(slug);
     return (
       <>
-        {ABOUT_PAGE_SLUGS.includes(slug) && <AboutMiniNav activeSlug={slug} />}
+        {isAboutPage && <AboutMiniNav activeSlug={slug} />}
         {slug === "polls" && (
           <>
             <link rel="stylesheet" href="/vendor/yop-poll.css" />
             <YopPollScripts />
           </>
         )}
+        {/* Defensive fallback, not the normal path: none of the four About
+            pages actually have a WP featured image set (confirmed via the
+            REST API — featured_media: 0 on all of them) — their real
+            "main image" is the first image embedded in the page's own
+            content, handled by .about-page-content's CSS below. This
+            only fires if Rob ever sets a real featured image later. */}
+        {isAboutPage && image && <img src={image.source_url} alt={image.alt_text} className="about-page-image" />}
         <article className="container">
-          <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />
-          <time dateTime={item.date}>{formatDate(item.date)}</time>
-          {image && <img src={image.source_url} alt={image.alt_text} />}
-          <div dangerouslySetInnerHTML={{ __html: item.content.rendered }} />
+          {!isAboutPage && <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />}
+          {!isAboutPage && <time dateTime={item.date}>{formatDate(item.date)}</time>}
+          {!isAboutPage && image && <img src={image.source_url} alt={image.alt_text} />}
+          <div
+            className={isAboutPage ? "about-page-content" : undefined}
+            dangerouslySetInnerHTML={{ __html: item.content.rendered }}
+          />
         </article>
       </>
     );

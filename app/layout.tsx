@@ -3,6 +3,7 @@ import { Roboto } from "next/font/google";
 import Link from "next/link";
 import { Suspense } from "react";
 import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
+import { ABOUT_PAGE_SLUGS } from "./_components/AboutMiniNav";
 import { ActiveNavSectionProvider } from "./_components/ActiveNavSection";
 import { AdSlot } from "./_components/AdSlot";
 import { BackToTop } from "./_components/BackToTop";
@@ -62,7 +63,11 @@ const PRIMARY_NAV = [
 ];
 
 const UTILITY_NAV = [
-  { label: "About", href: "/about-secret-carshalton" },
+  {
+    label: "About",
+    href: "/about-secret-carshalton",
+    extraActivePaths: ABOUT_PAGE_SLUGS.map((slug) => `/${slug}`),
+  },
   { label: "Advertise", href: "/advertise" },
 ];
 

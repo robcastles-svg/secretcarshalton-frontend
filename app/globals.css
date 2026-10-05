@@ -2586,6 +2586,43 @@ a.card-category:hover {
   color: #c2607a;
 }
 
+/* About page cluster (about-secret-carshalton, welcome-to-carshalton,
+   latest-comments, polls). .about-page-image is the defensive fallback
+   path (see [slug]/page.tsx) — full-bleed since it sits outside
+   .container, natural aspect ratio kept (no forced height/crop, unlike
+   .post-hero). */
+.about-page-image {
+  display: block;
+  width: 100%;
+}
+
+/* The page's own embedded title — the mini-nav above already labels
+   which About page you're on, so a second, repeated title in the
+   content itself just reads as clutter. Checked all four pages' raw
+   content: each has exactly one h1 or h2 playing this role (two on
+   Welcome to Carshalton, one of them empty), no legitimate content
+   subheadings mixed in — safe to hide every h1/h2 here. */
+.about-page-content h1,
+.about-page-content h2 {
+  display: none;
+}
+
+/* The actual "main image" on the two About pages that have one (About
+   Secret Carshalton, Welcome to Carshalton) — a SiteOrigin image-widget
+   figure, left over from the original site build. It carries its
+   upload-time pixel width (900/1200px) as the <img>'s width/height
+   attributes rather than stretching to the column, so it sits short of
+   the full content width unless forced. Scoped to this specific
+   widget's wrapper class rather than every image in the content — the
+   other two About pages (Latest Comments, Polls) have no
+   .sow-image-container at all, so their small avatar/logo images are
+   correctly left alone. */
+.sow-image-container img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 /* Article page */
 .post-hero {
   position: relative;
