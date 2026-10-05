@@ -1631,17 +1631,23 @@ a.card-category:hover {
   color: #fff;
   border-radius: 8px;
   padding: 1.25rem 1.75rem;
+  text-decoration: none;
   margin: 1.5rem 0;
 }
 
 /* The image is its own clickable element now (see EventCountdown.tsx),
    so this Link only wraps the heading/timer — display: contents keeps
    its children acting as direct flex items of .event-countdown, exactly
-   as they did back when the whole card was one <Link>, and (since a
-   display: contents element generates no box) there's nothing for the
-   browser's default link underline to render against either. */
+   as they did back when the whole card was one <Link>. It still needs
+   its own color/text-decoration, though: a browser default or the
+   global `a { color }` rule applies directly to THIS anchor, and a
+   direct rule always beats an inherited one regardless of specificity
+   — relying on inheritance from .event-countdown alone let the global
+   pink link colour and underline win here. */
 .event-countdown-link {
   display: contents;
+  color: inherit;
+  text-decoration: none;
 }
 
 .event-countdown-media {
