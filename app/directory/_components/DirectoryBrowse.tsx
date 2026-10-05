@@ -219,6 +219,27 @@ export async function DirectoryBrowse({
         </div>
 
         <aside className="post-sidebar">
+          {categories.length > 0 && (
+            <div className="sidebar-block sidebar-directory-promo">
+              <p className="sidebar-directory-eyebrow">Directory</p>
+              <h3>Discover local business</h3>
+              <p className="sidebar-directory-subtitle">Shops, trades, groups and places around Carshalton.</p>
+              <ul className="sidebar-directory-pills">
+                {categories.slice(0, 11).map((c) => (
+                  <li key={c.id}>
+                    <Link href={`/directory/${c.slug}`} className="sidebar-directory-pill">
+                      {c.name}
+                    </Link>
+                  </li>
+                ))}
+                <li>
+                  <Link href="/directory" className="sidebar-directory-pill sidebar-directory-pill-browse">
+                    Browse all →
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          )}
           <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
         </aside>
       </div>
