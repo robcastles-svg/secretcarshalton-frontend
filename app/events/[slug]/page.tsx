@@ -373,7 +373,10 @@ export default async function EventPage({
             </a>
           )}
           {event.meta.sc_venue_name && (
-            <Link href={`/events/venue/${slugifyVenue(event.meta.sc_venue_name)}`} className="button-pill button-pill-secondary">
+            <Link
+              href={`/events/venue/${slugifyVenue(event.meta.sc_venue_name)}`}
+              className="button-pill button-pill-secondary button-pill-wrap"
+            >
               See all events at {event.meta.sc_venue_name}
             </Link>
           )}

@@ -87,6 +87,17 @@ img {
   white-space: nowrap;
 }
 
+/* Opt-out of .button-pill's own nowrap, for the one pill whose label
+   includes dynamic, unbounded text (a venue name) rather than a fixed
+   short word — nowrap plus a long venue name was forcing this button
+   (and, since flex items don't shrink below their own content width by
+   default, the whole page) wider than the viewport on mobile. */
+.button-pill-wrap {
+  white-space: normal;
+  max-width: 100%;
+  text-align: center;
+}
+
 .button-pill-disabled {
   background: #ccc;
   color: #666;
@@ -898,9 +909,20 @@ a.ad-slot-text-image img {
    ratio (toggling back on a second click) rather than opening a popup —
    this is the one place on the site a photo's full version is worth
    seeing, so it's worth the extra tap, but still starts small. */
+/* aspect-ratio on the button itself (the frame), not just the img inside
+   it — gives it a definite size that doesn't depend on the photo's own
+   intrinsic dimensions. Without this, a tall source photo (portrait
+   flyers/posters are common for events) could contribute its full
+   intrinsic width to .post-layout's grid column during sizing — the
+   same "oversized figure forces the content column wider" problem
+   .post-content figure already had to be fixed for (see its own
+   comment) — showing up as both a horizontal-scroll page and an
+   uncropped, full-size photo instead of the intended 4:3 crop. */
 .event-detail-image {
   display: block;
   width: 100%;
+  max-width: 100%;
+  aspect-ratio: 4 / 3;
   margin: 1.5rem 0;
   padding: 0;
   border: none;
@@ -913,16 +935,18 @@ a.ad-slot-text-image img {
 .event-detail-image img {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  max-width: 100%;
+  height: 100%;
   object-fit: cover;
 }
 
 .event-detail-image-expanded {
   cursor: zoom-out;
+  aspect-ratio: auto;
 }
 
 .event-detail-image-expanded img {
-  aspect-ratio: auto;
+  height: auto;
   object-fit: contain;
 }
 
@@ -3620,8 +3644,15 @@ a.card-category:hover {
 }
 
 @media (max-width: 860px) {
+  /* minmax(0, 1fr), not a bare 1fr — a bare fr track's minimum size
+     defaults to its content's auto/min-content width, not 0, so any
+     child with a wide intrinsic contribution (a tall source photo, a
+     map embed) can still force this single column wider than the
+     viewport even though it's the only track. Matches the desktop
+     rule's own minmax(0, 1fr) further up, which already guards against
+     exactly this (see .post-content figure's comment). */
   .post-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .post-sidebar {
