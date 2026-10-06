@@ -20,9 +20,11 @@ function daysAgoLabel(iso: string) {
 }
 
 function JobRow({ job }: { job: WPJobListing }) {
+  const featured = job.meta.featured;
   return (
-    <li className="job-card">
+    <li className={featured ? "job-card job-card-featured" : "job-card"}>
       <Link href={`/jobs/${job.slug}`} className="job-card-main">
+        {featured && <span className="directory-badge">Featured</span>}
         <span className="card-title" dangerouslySetInnerHTML={{ __html: job.title.rendered }} />
         <div className="job-card-meta">
           {job.meta.job_company && <span className="job-card-company">{job.meta.job_company}</span>}
@@ -45,10 +47,17 @@ export default async function JobsPage() {
   // Reed-synced ("api") and member-submitted ("member") listings are kept
   // in two separate sections rather than merged into one board — Rob's
   // call, since the external-sources disclaimer below only applies to one
-  // of them and mixing the two would blur that distinction.
+  // of them and mixing the two would blur that distinction. A member job
+  // Rob has marked Featured (admin-only toggle) is the one exception: it
+  // also appears pinned at the top of "From around the area" — pink
+  // border + badge mark it as a local, vetted listing distinct from the
+  // auto-pulled external ones underneath, and it's exempt from the 7-day
+  // cutoff since it's a deliberate promotion, not a freshness signal.
   const cutoff = Date.now() - RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000;
   const apiJobs = allJobs.filter((j) => j.meta.source !== "member" && new Date(j.date).getTime() >= cutoff);
   const memberJobs = allJobs.filter((j) => j.meta.source === "member");
+  const featuredMemberJobs = memberJobs.filter((j) => j.meta.featured);
+  const areaJobs = [...featuredMemberJobs, ...apiJobs];
 
   return (
     <main className="container">
@@ -88,13 +97,13 @@ export default async function JobsPage() {
           then apply on the original site.
         </p>
 
-        {apiJobs.length === 0 ? (
+        {areaJobs.length === 0 ? (
           <p className="directory-empty">
             No jobs posted in the last 7 days — check back soon, this board updates automatically every day.
           </p>
         ) : (
           <ul className="job-list">
-            {apiJobs.map((job) => (
+            {areaJobs.map((job) => (
               <JobRow key={job.id} job={job} />
             ))}
           </ul>

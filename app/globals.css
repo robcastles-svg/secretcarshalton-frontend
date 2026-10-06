@@ -4478,6 +4478,13 @@ a.card-category:hover {
   flex-wrap: wrap;
 }
 
+/* Same pink as .directory-card-featured — a Rob-promoted local job
+   pinned into "From around the area", distinct from the plain Reed-
+   synced cards around it. */
+.job-card-featured {
+  border: 2px solid #c2607a;
+}
+
 .job-card-main {
   text-decoration: none;
   flex: 1;

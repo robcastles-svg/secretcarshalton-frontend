@@ -84,6 +84,8 @@ class SC_Jobs_REST {
 			update_post_meta( $post_id, 'external_url', esc_url_raw( $apply_url ) );
 		}
 
+		do_action( 'sc_jobs_job_submitted', $post_id );
+
 		return array( 'id' => $post_id, 'status' => 'pending' );
 	}
 

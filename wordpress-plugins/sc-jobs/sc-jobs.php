@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Jobs
  * Description: Jobs Board. Local job listings synced daily from the Reed API, plus member-submitted local jobs (pending → approved, same as directory listings/events), both browsable on the frontend.
- * Version: 0.4.0
+ * Version: 0.6.0
  * Author: Secret Carshalton
  * Text Domain: sc-jobs
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_JOBS_VERSION', '0.5.0' );
+define( 'SC_JOBS_VERSION', '0.6.0' );
 define( 'SC_JOBS_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_JOBS_DIR . 'includes/class-sc-jobs-cpt.php';
@@ -19,6 +19,8 @@ require_once SC_JOBS_DIR . 'includes/class-sc-jobs-meta.php';
 require_once SC_JOBS_DIR . 'includes/class-sc-jobs-sync.php';
 require_once SC_JOBS_DIR . 'includes/class-sc-jobs-admin.php';
 require_once SC_JOBS_DIR . 'includes/class-sc-jobs-rest.php';
+require_once SC_JOBS_DIR . 'includes/class-sc-jobs-metabox.php';
+require_once SC_JOBS_DIR . 'includes/class-sc-jobs-hooks.php';
 
 register_activation_hook( __FILE__, array( 'SC_Jobs_CPT', 'install' ) );
 register_deactivation_hook(
@@ -53,3 +55,6 @@ add_action( 'rest_api_init', array( 'SC_Jobs_REST', 'register_routes' ) );
 add_action( 'admin_menu', array( 'SC_Jobs_Admin', 'register_menu' ) );
 add_action( 'admin_post_sc_jobs_save_settings', array( 'SC_Jobs_Admin', 'handle_save_settings' ) );
 add_action( 'admin_post_sc_jobs_sync_now', array( 'SC_Jobs_Admin', 'handle_sync_now' ) );
+add_action( 'add_meta_boxes', array( 'SC_Jobs_Metabox', 'register' ) );
+add_action( 'save_post_' . SC_Jobs_CPT::POST_TYPE, array( 'SC_Jobs_Metabox', 'save' ) );
+add_action( 'init', array( 'SC_Jobs_Hooks', 'init' ) );
