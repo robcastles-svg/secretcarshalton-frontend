@@ -42,9 +42,24 @@ class SC_Ads_PayPal {
 			return $res;
 		}
 
-		$body = json_decode( wp_remote_retrieve_body( $res ), true );
+		$status   = wp_remote_retrieve_response_code( $res );
+		$raw_body = wp_remote_retrieve_body( $res );
+		$body     = json_decode( $raw_body, true );
+
 		if ( empty( $body['access_token'] ) ) {
-			return new WP_Error( 'sc_ads_paypal_auth_failed', 'PayPal did not return an access token.', $body );
+			// Surface PayPal's own error (invalid_client, etc.) and the HTTP
+			// status in the message itself — the generic message alone gave
+			// no way to tell "wrong credentials" from "PayPal unreachable"
+			// from "SiteGround can't reach PayPal" apart.
+			$detail = '';
+			if ( is_array( $body ) && ! empty( $body['error_description'] ) ) {
+				$detail = ' — ' . $body['error_description'];
+			} elseif ( is_array( $body ) && ! empty( $body['error'] ) ) {
+				$detail = ' — ' . $body['error'];
+			} elseif ( $raw_body ) {
+				$detail = ' — raw response: ' . substr( $raw_body, 0, 300 );
+			}
+			return new WP_Error( 'sc_ads_paypal_auth_failed', 'PayPal did not return an access token (HTTP ' . (int) $status . ')' . $detail, $body );
 		}
 
 		$ttl = isset( $body['expires_in'] ) ? max( 60, (int) $body['expires_in'] - 120 ) : 3300;
