@@ -91,6 +91,16 @@ class SC_Ads_REST {
 				'permission_callback' => array( __CLASS__, 'check_owns_ad' ),
 			)
 		);
+
+		register_rest_route(
+			'sc-ads/v1',
+			'/(?P<id>\d+)/update',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'update_ad' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_ad' ),
+			)
+		);
 	}
 
 	/** Owner-or-admin — same shape as sc-events' check_owns_event. */
@@ -267,6 +277,55 @@ class SC_Ads_REST {
 		}
 
 		return array( 'deleted' => true );
+	}
+
+	/**
+	 * Lets the owner tweak their own ad's creative (headline, body, link,
+	 * image) after submission — including after it's live and paid for,
+	 * since there's no review queue for edits to go through any more than
+	 * there is for the original submission. Deliberately leaves placement
+	 * and days_requested alone: those are what the PayPal amount was
+	 * actually calculated and charged against, so letting them change here
+	 * would let an owner get a pricier placement for what they paid for a
+	 * cheaper one (or vice versa) without a new payment.
+	 */
+	public static function update_ad( WP_REST_Request $request ) {
+		$id = absint( $request->get_param( 'id' ) );
+
+		if ( null !== $request->get_param( 'headline' ) ) {
+			$headline = sanitize_text_field( (string) $request->get_param( 'headline' ) );
+			if ( ! $headline ) {
+				return new WP_Error( 'missing_fields', 'A headline is required.', array( 'status' => 400 ) );
+			}
+			update_post_meta( $id, 'sc_ad_headline', $headline );
+			update_post_meta( $id, 'sc_ad_alt_text', $headline );
+			wp_update_post( array( 'ID' => $id, 'post_title' => $headline ) );
+		}
+
+		if ( null !== $request->get_param( 'body' ) ) {
+			update_post_meta( $id, 'sc_ad_body', sanitize_text_field( (string) $request->get_param( 'body' ) ) );
+		}
+
+		if ( null !== $request->get_param( 'link' ) ) {
+			$link = esc_url_raw( (string) $request->get_param( 'link' ) );
+			if ( ! $link ) {
+				return new WP_Error( 'missing_fields', 'A valid link is required.', array( 'status' => 400 ) );
+			}
+			update_post_meta( $id, 'sc_ad_link_url', $link );
+		}
+
+		if ( ! empty( $_FILES['image']['tmp_name'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+
+			$attachment_id = media_handle_upload( 'image', $id );
+			if ( ! is_wp_error( $attachment_id ) ) {
+				update_post_meta( $id, 'sc_ad_image_url', wp_get_attachment_url( $attachment_id ) );
+			}
+		}
+
+		return array( 'updated' => true );
 	}
 
 	/**

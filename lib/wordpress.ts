@@ -942,6 +942,30 @@ export async function extendAd(
   }
 }
 
+/** Lets the owner edit their own ad's creative (headline, body, link, optional new image) — see SC_Ads_REST::update_ad's docblock for why placement/days aren't editable here. */
+export async function updateAd(
+  token: string,
+  adId: number,
+  formData: FormData
+): Promise<{ updated: boolean } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/${adId}/update`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "update_failed", message: body.message ?? "Could not update the ad." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
 /** Trashes (not hard-deletes) the owner's own ad — see SC_Ads_REST::delete_ad's docblock; reversible from wp-admin's Trash. */
 export async function deleteAd(token: string, adId: number): Promise<{ deleted: boolean } | MemberAuthError> {
   try {

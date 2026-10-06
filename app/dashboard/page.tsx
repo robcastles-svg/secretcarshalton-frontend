@@ -20,6 +20,7 @@ import { ExpandableList } from "@/app/_components/ExpandableList";
 import { ExtendAdButton } from "./_components/ExtendAdButton";
 import { PayAdButton } from "./_components/PayAdButton";
 import { DeleteAdButton } from "./_components/DeleteAdButton";
+import { EditAdButton } from "./_components/EditAdButton";
 import { LogoutButton } from "./_components/LogoutButton";
 import { VerifyEmailBanner } from "./_components/VerifyEmailBanner";
 
@@ -734,6 +735,7 @@ export default async function DashboardPage() {
                             <span style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem" }}>
                               {ad.active && <ExtendAdButton adId={ad.id} />}
                               {!ad.active && ad.paymentStatus !== "paid" && <PayAdButton adId={ad.id} />}
+                              <EditAdButton adId={ad.id} headline={ad.headline} body={ad.body} link={ad.link} />
                               <DeleteAdButton adId={ad.id} active={ad.active} />
                             </span>
                           </td>
