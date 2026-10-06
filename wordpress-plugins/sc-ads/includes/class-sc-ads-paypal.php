@@ -96,7 +96,20 @@ class SC_Ads_PayPal {
 		$body   = json_decode( wp_remote_retrieve_body( $res ), true );
 
 		if ( $status < 200 || $status >= 300 ) {
-			return new WP_Error( 'sc_ads_paypal_api_error', 'PayPal API returned ' . $status . '.', $body );
+			// A WP_Error's 'status' (if present in its data) is what the REST
+			// server actually uses for the HTTP response code — without it,
+			// any PayPal failure comes back to our own client as a bare 500,
+			// indistinguishable from a real server bug. 409 for PayPal's own
+			// 4xx (the order isn't in a state we can act on — e.g. a capture
+			// attempted before the buyer's approved it, which normally can't
+			// happen since onApprove only fires after approval, but could if
+			// a client retries stale state) vs 502 for a genuine PayPal-side
+			// failure.
+			$issue = $body['details'][0]['issue'] ?? null;
+			if ( 'ORDER_NOT_APPROVED' === $issue ) {
+				return new WP_Error( 'sc_ads_paypal_not_approved', 'This payment has not been approved yet — please complete the PayPal popup first.', array_merge( (array) $body, array( 'status' => 409 ) ) );
+			}
+			return new WP_Error( 'sc_ads_paypal_api_error', 'PayPal API returned ' . $status . '.', array_merge( (array) $body, array( 'status' => $status < 500 ? 409 : 502 ) ) );
 		}
 
 		return $body;

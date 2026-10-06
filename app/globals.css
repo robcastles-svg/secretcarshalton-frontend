@@ -4139,6 +4139,12 @@ a.card-category:hover {
   margin: 0.35rem 0 0;
 }
 
+/* PayPal's own brand blue — a plain text badge, not their logo mark, next to the estimate so it reads as a trust signal before the member reaches the actual PayPal Buttons widget on the payment step. */
+.ad-form-paypal-badge {
+  color: #003087;
+  font-weight: 600;
+}
+
 .dashboard-account-row {
   display: flex;
   align-items: center;

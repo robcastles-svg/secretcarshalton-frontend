@@ -149,13 +149,12 @@ export function SubmitAdForm() {
         {selectedPlacement ? (
           <>
             Estimated cost: <strong>£{estimateCost(days, selectedPlacement.pricePerDay).toFixed(2)}</strong> (£
-            {selectedPlacement.pricePerDay.toFixed(2)}/day for {selectedPlacement.label.toLowerCase()} —
-            discounts available for 10+ bookings).
+            {selectedPlacement.pricePerDay.toFixed(2)}/day for {selectedPlacement.label.toLowerCase()}).
           </>
         ) : (
           <>Estimated cost: choose a placement above to see the rate.</>
         )}{" "}
-        We&apos;ll confirm the exact amount when we get in touch about payment.
+        <span className="ad-form-paypal-badge">You&apos;ll pay securely via PayPal on the next step.</span>
       </p>
       <label>
         Image (optional)
