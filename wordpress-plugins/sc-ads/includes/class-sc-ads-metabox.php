@@ -123,15 +123,15 @@ class SC_Ads_Metabox {
 					<th>Days requested</th>
 					<td>
 						<?php echo esc_html( $days ? $days : '—' ); ?>
-						<?php if ( $days ) : ?>
-							<?php
-							// Holding figures Rob confirmed using while real pricing gets
-							// finalised: £2.50/day under 10 days, £1/day at 10+. Keep in
-							// sync with estimateCost() in SubmitAdForm.tsx if this changes.
-							$rate     = $days >= 10 ? 1 : 2.5;
-							$estimate = $days * $rate;
-							?>
-							<span class="description">(estimated £<?php echo esc_html( number_format_i18n( $estimate, 2 ) ); ?> at £<?php echo esc_html( number_format_i18n( $rate, 2 ) ); ?>/day)</span>
+						<?php
+						// Real rate, same as what create-order actually charges
+						// (SC_Ads_PayPal_REST::PLACEMENT_PRICE_PER_DAY, which itself
+						// mirrors lib/pricing.ts's TEXT_AD_TIERS) — no bulk discount,
+						// per Rob's call: flat days x rate, always.
+						$rate = SC_Ads_PayPal_REST::PLACEMENT_PRICE_PER_DAY[ $placement ] ?? null;
+						?>
+						<?php if ( $days && null !== $rate ) : ?>
+							<span class="description">(£<?php echo esc_html( number_format_i18n( $days * $rate, 2 ) ); ?> at £<?php echo esc_html( number_format_i18n( $rate, 2 ) ); ?>/day)</span>
 						<?php endif; ?>
 					</td>
 				</tr>
@@ -140,7 +140,7 @@ class SC_Ads_Metabox {
 					<td>
 						<input type="text" id="sc_ad_amount_paid" name="sc_ad_amount_paid" style="width:140px"
 							value="<?php echo esc_attr( $amount ); ?>" placeholder="e.g. £10" />
-						<p class="description">Filled in by hand for now — no payment automation yet. Flip Active above once paid.</p>
+						<p class="description">Filled in automatically once the member pays via PayPal (and Active is flipped on at the same time) — only edit this by hand for an ad you're setting up or adjusting yourself.</p>
 					</td>
 				</tr>
 				<tr>

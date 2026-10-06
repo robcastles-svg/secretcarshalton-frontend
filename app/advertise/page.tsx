@@ -113,8 +113,6 @@ export default async function AdvertisePage() {
               <li>No design required</li>
               <li>Sidebar placement</li>
               <li>Choose your start date</li>
-              <li>Discounts available for 10+ bookings</li>
-              <li className="adv-tick-muted">Subject to approval</li>
               <li className="adv-tick-muted">Views are not guaranteed</li>
             </ul>
           </div>
@@ -138,8 +136,6 @@ export default async function AdvertisePage() {
                 <strong>Additional placement within articles and features</strong>
               </li>
               <li>Choose your start date</li>
-              <li>Discounts available for 10+ bookings</li>
-              <li className="adv-tick-muted">Subject to approval</li>
               <li className="adv-tick-muted">Views are not guaranteed</li>
             </ul>
           </div>
