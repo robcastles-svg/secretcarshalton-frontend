@@ -942,6 +942,67 @@ export async function extendAd(
   }
 }
 
+/** Public (never secret) — needed client-side to load PayPal's JS SDK and render its Buttons widget for the active mode (sandbox while testing, live once Rob flips the mode in wp-admin). */
+export async function getAdPayPalClientId(): Promise<{ clientId: string; mode: string; currency: string } | null> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/paypal/client-id`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+/** Starts a PayPal order for one ad's full amount (server recomputes it from the ad's own placement/days — see SC_Ads_PayPal_REST::amount_for_ad). Called right before rendering the PayPal Buttons' createOrder callback. */
+export async function createAdPayPalOrder(
+  token: string,
+  adId: number
+): Promise<{ orderId: string; amount: number } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/paypal/create-order`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ ad_id: adId }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "create_order_failed", message: body.message ?? "Could not start payment." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Captures the order once the member's approved it in PayPal's popup — on success the ad goes live (see SC_Ads_PayPal_REST::capture_order). */
+export async function captureAdPayPalOrder(
+  token: string,
+  adId: number,
+  orderId: string
+): Promise<{ status: string; active: boolean } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/paypal/capture-order`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ ad_id: adId, orderId }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "capture_failed", message: body.message ?? "Could not confirm payment." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // sc-directory — business directory (staging only, see WP_STAGING_ROOT note)
 // ---------------------------------------------------------------------------

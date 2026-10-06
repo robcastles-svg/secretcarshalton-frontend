@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { TEXT_AD_TIERS } from "@/lib/pricing";
 import { AdPreview } from "./AdPreview";
+import { PayPalPayButton } from "./PayPalPayButton";
 
 function estimateCost(days: number, pricePerDay: number): number {
   return days * pricePerDay;
@@ -13,7 +14,8 @@ export function SubmitAdForm() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+  const [step, setStep] = useState<"form" | "payment" | "paid">("form");
+  const [submittedAdId, setSubmittedAdId] = useState<number | null>(null);
   const [days, setDays] = useState(1);
   const [placement, setPlacement] = useState("");
   const [headline, setHeadline] = useState("");
@@ -43,24 +45,47 @@ export function SubmitAdForm() {
     const formData = new FormData(e.currentTarget);
 
     const res = await fetch("/api/ads/submit", { method: "POST", body: formData });
+    const result = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      setError(body.error || "Something went wrong — please try again.");
+      setError(result.error || "Something went wrong — please try again.");
       setSubmitting(false);
       return;
     }
 
-    setDone(true);
+    setSubmittedAdId(result.id);
+    setStep("payment");
     router.refresh();
   }
 
-  if (done) {
+  if (step === "paid") {
     return (
       <p>
-        Thanks — your ad&apos;s been submitted. It stays hidden until payment&apos;s confirmed and we switch it
-        on; you&apos;ll be able to see it and its stats from your dashboard once it&apos;s live.
+        Payment confirmed — your ad is now live. You&apos;ll be able to see it and its stats from your dashboard.
       </p>
+    );
+  }
+
+  if (step === "payment" && submittedAdId) {
+    return (
+      <div>
+        <p>
+          Your ad&apos;s been submitted — one step left. Pay via PayPal below to make it live
+          {selectedPlacement ? (
+            <>
+              {" "}
+              (£{estimateCost(days, selectedPlacement.pricePerDay).toFixed(2)} for {days} day
+              {days === 1 ? "" : "s"} of {selectedPlacement.label.toLowerCase()})
+            </>
+          ) : null}
+          .
+        </p>
+        <PayPalPayButton adId={submittedAdId} onPaid={() => setStep("paid")} />
+        <p className="dashboard-hint">
+          Not ready to pay right now? That&apos;s fine — it&apos;ll sit in your dashboard as unpaid until you come
+          back and pay from there.
+        </p>
+      </div>
     );
   }
 

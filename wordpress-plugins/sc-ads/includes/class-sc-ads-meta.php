@@ -26,6 +26,7 @@ class SC_Ads_Meta {
 		'sc_ad_days_requested' => 'integer',
 		'sc_ad_amount_paid'    => 'string',
 		'sc_ad_payment_status' => 'string', // '' | 'pending' | 'paid'
+		'sc_ad_paypal_order_id' => 'string', // set by create-order, checked by capture-order so a client can only capture the order this ad actually created
 	);
 
 	public static function register() {
