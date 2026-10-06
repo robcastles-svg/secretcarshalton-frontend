@@ -942,6 +942,25 @@ export async function extendAd(
   }
 }
 
+/** Trashes (not hard-deletes) the owner's own ad — see SC_Ads_REST::delete_ad's docblock; reversible from wp-admin's Trash. */
+export async function deleteAd(token: string, adId: number): Promise<{ deleted: boolean } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/${adId}/delete`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "delete_failed", message: body.message ?? "Could not delete the ad." };
+    }
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
 /** Public (never secret) — needed client-side to load PayPal's JS SDK and render its Buttons widget for the active mode (sandbox while testing, live once Rob flips the mode in wp-admin). */
 export async function getAdPayPalClientId(): Promise<{ clientId: string; mode: string; currency: string } | null> {
   try {

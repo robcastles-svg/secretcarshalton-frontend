@@ -81,6 +81,16 @@ class SC_Ads_REST {
 				'permission_callback' => array( __CLASS__, 'check_owns_ad' ),
 			)
 		);
+
+		register_rest_route(
+			'sc-ads/v1',
+			'/(?P<id>\d+)/delete',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'delete_ad' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_ad' ),
+			)
+		);
 	}
 
 	/** Owner-or-admin — same shape as sc-events' check_owns_event. */
@@ -239,6 +249,24 @@ class SC_Ads_REST {
 			'daysRequested' => $current_days + $days,
 			'paymentStatus' => 'pending',
 		);
+	}
+
+	/**
+	 * Trashes (not hard-deletes) the owner's own ad — reversible from
+	 * wp-admin's Trash if someone deletes the wrong one by mistake, same
+	 * safety margin as any other delete in wp-admin itself. A paid, live
+	 * ad can still be removed this way; there's no refund path, so the
+	 * frontend is expected to warn about that before calling this.
+	 */
+	public static function delete_ad( WP_REST_Request $request ) {
+		$id = absint( $request->get_param( 'id' ) );
+
+		$trashed = wp_trash_post( $id );
+		if ( ! $trashed ) {
+			return new WP_Error( 'delete_failed', 'Could not delete this ad.', array( 'status' => 500 ) );
+		}
+
+		return array( 'deleted' => true );
 	}
 
 	/**

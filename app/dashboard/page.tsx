@@ -19,6 +19,7 @@ import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { ExtendAdButton } from "./_components/ExtendAdButton";
 import { PayAdButton } from "./_components/PayAdButton";
+import { DeleteAdButton } from "./_components/DeleteAdButton";
 import { LogoutButton } from "./_components/LogoutButton";
 import { VerifyEmailBanner } from "./_components/VerifyEmailBanner";
 
@@ -730,8 +731,11 @@ export default async function DashboardPage() {
                             {ad.views} view{ad.views === 1 ? "" : "s"}, {ad.clicks} click{ad.clicks === 1 ? "" : "s"}
                           </td>
                           <td className="dash-table-actions">
-                            {ad.active && <ExtendAdButton adId={ad.id} />}
-                            {!ad.active && ad.paymentStatus !== "paid" && <PayAdButton adId={ad.id} />}
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem" }}>
+                              {ad.active && <ExtendAdButton adId={ad.id} />}
+                              {!ad.active && ad.paymentStatus !== "paid" && <PayAdButton adId={ad.id} />}
+                              <DeleteAdButton adId={ad.id} active={ad.active} />
+                            </span>
                           </td>
                         </tr>
                       );
