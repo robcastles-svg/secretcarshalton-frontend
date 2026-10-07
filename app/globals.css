@@ -1633,12 +1633,24 @@ a.card-category:hover {
 }
 
 .event-countdown-media {
+  position: relative;
   flex-shrink: 0;
   width: 240px;
   aspect-ratio: 4 / 3;
 }
 
+/* Absolutely positioned and inset to fill .event-countdown-media's own
+   aspect-ratio box directly, rather than inheriting height via a
+   percentage-height chain (.event-countdown-media -> this frame -> its
+   img, each at height:100%) — that chain depends on every intermediate
+   browser correctly propagating an aspect-ratio-derived used height down
+   two levels, which isn't reliable everywhere (confirmed: a real device
+   rendered this as the raw, uncropped image at its full intrinsic
+   height instead of the intended 4:3 crop). Sizing directly against the
+   nearest positioned ancestor's resolved box sidesteps that entirely. */
 .event-countdown-media .event-image-frame {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   border-radius: 6px;
