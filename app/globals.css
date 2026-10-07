@@ -6100,6 +6100,14 @@ a.card-category:hover {
   color: #fff;
 }
 
+/* .button-pill-secondary's default (#1a1a1a text, #ccc border) is built
+   for a light panel — on this one's navy background it was reading as
+   near-invisible black-on-navy. */
+.dash-editor-cta .button-pill-secondary {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
 .dash-panel-head {
   display: flex;
   flex-wrap: wrap;
