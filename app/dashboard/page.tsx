@@ -13,6 +13,7 @@ import {
   getMyRsvpdEvents,
   linkForPostType,
   parseEventDate,
+  WP_ADMIN_URL,
 } from "@/lib/wordpress";
 import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
 import { getSessionToken } from "@/lib/auth";
@@ -214,6 +215,12 @@ export default async function DashboardPage() {
               <Link href="/admin/draft" className="button-pill">
                 Draft a story
               </Link>
+              <p className="dashboard-hint" style={{ marginTop: "0.75rem" }}>
+                Need the full WordPress backend (approve posts, manage ads/jobs/directory, settings)?
+              </p>
+              <a href={WP_ADMIN_URL} target="_blank" rel="noopener noreferrer" className="button-pill button-pill-secondary">
+                WordPress admin →
+              </a>
             </section>
           )}
 

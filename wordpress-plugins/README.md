@@ -96,6 +96,24 @@ just the three action names between them.
 `sc-events` fires `sc_events_rsvp` on RSVP; `sc-membership` has listened
 for it since before `sc-events` existed (5 points per RSVP).
 
+## Before going live
+
+- [ ] **Admin access to wp-admin after the domain switch.** Right now
+  `www.secretcarshalton.com` points straight at this WordPress hosting, so
+  `/wp-admin` just works. Once that domain gets repointed to the Next.js
+  app (Vercel) so it becomes the live site, `/wp-admin` on that domain
+  stops resolving to WordPress at all — WordPress hasn't moved, the
+  domain just no longer reaches it, so Rob would otherwise be locked out
+  of the CMS. Needs a DNS record (added by Rob/whoever manages the
+  domain, not doable from this sandbox) giving WordPress a stable,
+  separate hostname before the domain switch happens — either keep using
+  `staging19.secretcarshalton.com` permanently, or set up a dedicated one
+  like `cms.secretcarshalton.com`, both pointed at this same hosting.
+  The dashboard's Editorial panel already has a "WordPress admin" button
+  (`WP_ADMIN_URL` in `lib/wordpress.ts`, derived from `WP_STAGING_ROOT`)
+  that'll follow automatically once that constant is repointed at
+  go-live — but the DNS side still needs doing first.
+
 ## Lessons from building this (read before adding a new CPT-based plugin)
 
 Two real outages happened while building `sc-directory`, both worth not

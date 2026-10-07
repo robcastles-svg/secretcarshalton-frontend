@@ -9,6 +9,19 @@ const REVALIDATE_SECONDS = 3600;
  */
 const WP_STAGING_ROOT = "https://www.staging19.secretcarshalton.com/wp-json";
 
+/**
+ * Derived from WP_STAGING_ROOT rather than a second hardcoded URL, so
+ * it stays correct automatically whenever that constant is updated (see
+ * its own docblock) — including the go-live DNS change this is really
+ * for: once www.secretcarshalton.com points at this Next.js app instead
+ * of the WordPress host, /wp-admin on that domain stops resolving to
+ * WordPress at all. Rob needs a stable, separate URL for the CMS login
+ * from that point on — see the "Admin access after go-live" note in
+ * wordpress-plugins/README.md for the actual DNS follow-up this doesn't
+ * replace.
+ */
+export const WP_ADMIN_URL = WP_STAGING_ROOT.replace(/\/wp-json$/, "/wp-admin");
+
 type WPRendered = { rendered: string };
 
 export interface WPFeaturedMedia {
