@@ -7253,9 +7253,13 @@ a.card-category:hover {
 /* Icon-tile section bar under the header (Rob's mockup). Full width,
    7 equal tiles on desktop; 4 + 3 on two rows below 760px. Active tile
    stays in the hover colour so you can see which section you're in. */
+/* Edge to edge — no side padding. (The site has no global
+   box-sizing: border-box, so width:100% plus side padding overflowed
+   the viewport: an inset on the left, cut off on the right.) */
 .tile-nav {
+  box-sizing: border-box;
   width: 100%;
-  padding: 10px 16px;
+  padding: 10px 0;
 }
 
 .tile-nav ul {
