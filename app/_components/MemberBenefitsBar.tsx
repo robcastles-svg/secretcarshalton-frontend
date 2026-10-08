@@ -19,6 +19,9 @@ export async function MemberBenefitsBar() {
     <div className={`member-benefits-bar${sessionToken ? " member-benefits-bar-loggedin" : ""}`}>
       <Link href={sessionToken ? "/dashboard" : "/register"} className="container member-benefits-inner">
         {sessionToken ? "Member dashboard" : "Become a member"}
+        <svg className="member-benefits-arrow" width="22" height="14" viewBox="0 0 22 14" fill="none" stroke="currentColor" strokeWidth="1.25" aria-hidden="true">
+          <path d="M0 7h20M14 1l6 6-6 6" />
+        </svg>
       </Link>
     </div>
   );

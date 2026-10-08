@@ -297,6 +297,20 @@ button.button-pill {
   text-decoration: underline;
 }
 
+/* Thin arrow after the text — nudges right on hover. */
+.member-benefits-arrow {
+  display: inline-block;
+  margin-left: 0.6rem;
+  vertical-align: middle;
+  position: relative;
+  top: -0.08em;
+  transition: transform 0.2s ease;
+}
+
+.member-benefits-inner:hover .member-benefits-arrow {
+  transform: translateX(3px);
+}
+
 @media (max-width: 720px) {
   /* Tighter than the desktop spacing so "About | Advertise | Join |
      Login" fits on one line instead of wrapping. */
