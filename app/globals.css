@@ -260,11 +260,19 @@ button.button-pill {
   color: #555;
 }
 
-/* Off by default (desktop nav fits on one line) — only becomes a real
-   flex item, forcing a break, inside the 720px nav-wrap media query
-   below. */
-.nav-line-break {
+/* Desktop: the About/Advertise/Join/Login links live beside the logo
+   (.primary-nav), so the utility bar only carries date/weather. Below
+   720px it flips — see the media query further down. */
+.utility-bar-links {
   display: none;
+}
+
+.utility-bar a.utility-search {
+  display: flex;
+  align-items: center;
+  margin-left: 0.6rem;
+  padding: 0;
+  border-right: none;
 }
 
 .member-benefits-bar {
@@ -315,23 +323,15 @@ button.button-pill {
     text-align: center;
   }
 
+  /* Mobile: header is just the logo — sections are in the tile bar, and
+     the About/Join/Login links plus search sit in the utility bar above. */
   .primary-nav {
-    justify-content: center;
-    gap: 1rem 1.25rem;
-    width: 100%;
+    display: none;
   }
 
-  .primary-nav a {
-    font-size: 1.2rem;
-    /* Tighter still than the 1.05 base — mobile's bigger font-size
-       otherwise drags the leading up with it. */
-    line-height: 1;
-  }
-
-  .nav-line-break {
-    display: block;
-    flex-basis: 100%;
-    height: 0;
+  .utility-bar-links {
+    display: flex;
+    align-items: center;
   }
 }
 

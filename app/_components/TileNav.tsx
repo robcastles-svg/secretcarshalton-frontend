@@ -7,7 +7,7 @@ import { useActiveNavSectionOverride } from "./ActiveNavSection";
 export type TileNavItem = {
   label: string;
   href: string;
-  /** PRIMARY_NAV label this tile mirrors — what SetActiveNavSection reports for flat-URL posts. */
+  /** Section label SetActiveNavSection reports for flat-URL posts (see navSectionForCategories). */
   section: string;
   icon: React.ReactNode;
   /** Other URL prefixes that should light this tile too (e.g. the /whats-on-in-* pages for Events). */
@@ -15,8 +15,8 @@ export type TileNavItem = {
 };
 
 /**
- * Full-width pink icon-tile bar under the header (Rob's mockup). Same
- * active-section logic as PrimaryNav, so a tile stays lit on its section
+ * Full-width pink icon-tile bar under the header (Rob's mockup). The
+ * active check mirrors the old text nav's, so a tile stays lit on its section
  * landing page, any sub-page under it, and on flat-URL posts via the
  * ActiveNavSection override.
  */

@@ -9,7 +9,6 @@ import { AdSlot } from "./_components/AdSlot";
 import { BackToTop } from "./_components/BackToTop";
 import { MemberBenefitsBar } from "./_components/MemberBenefitsBar";
 import { NewsletterForm } from "./newsletter/_components/NewsletterForm";
-import { PrimaryNav } from "./_components/PrimaryNav";
 import { SiteDateWeather } from "./_components/SiteDateWeather";
 import { TileNav, type TileNavItem } from "./_components/TileNav";
 import { UtilityNav } from "./_components/UtilityNav";
@@ -46,28 +45,11 @@ const ORGANIZATION_SCHEMA = {
 };
 
 /**
- * Spotlight and About have come off the main nav — Spotlight's posts now
- * surface on the new Discover hub instead of their own top-level section
- * (see app/discover/page.tsx), and About's content already has its own
- * full footer column, so it didn't need a nav slot too. Discover replaces
- * Stories' nav slot — the individual /stories/[area] and /themes/[slug]
- * pages it links out to are untouched (kept as separate single pages,
- * good for SEO, per Rob), Discover is just a richer hub in front of them.
- */
-const PRIMARY_NAV = [
-  { label: "News", href: "/news" },
-  { label: "Events", href: "/events" },
-  { label: "Discover", href: "/discover" },
-  { label: "Walks", href: "/walks" },
-  { label: "Community", href: "/community" },
-  { label: "Directory", href: "/directory" },
-  { label: "Jobs", href: "/jobs" },
-];
-
-/**
- * Icon-tile bar under the header — same sections as PRIMARY_NAV, with
- * Events shown as "What's on" per Rob's mockup. `section` must match the
- * PRIMARY_NAV label so the post-page override lights the right tile.
+ * Icon-tile bar under the header — the site's section navigation (the old
+ * text menu beside the logo now holds the About/utility links instead).
+ * Events is shown as "What's on" per Rob's mockup. `section` must match
+ * the label navSectionForCategories() returns, so the post-page override
+ * (SetActiveNavSection) lights the right tile on flat-URL articles.
  */
 const TILE_NAV: TileNavItem[] = [
   { label: "News", href: "/news", section: "News", icon: <TileIcon d={["M4 5h13v13a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z", "M17 9h3v9a2 2 0 0 1-2 2", "M7.5 9h6M7.5 12.5h6M7.5 16h3.5"]} /> },
@@ -88,11 +70,20 @@ const UTILITY_NAV = [
   { label: "Advertise", href: "/advertise" },
 ];
 
+function UtilityNavAuthFallback() {
+  return (
+    <>
+      <Link href="/register">Join</Link>
+      <Link href="/login">Login</Link>
+    </>
+  );
+}
+
 /**
  * Visit/Stay/Community used to live here as icon quick-links (pointing at
  * Directory category filters — "places-to-go"/"places-to-stay"/
  * "groups-to-join", genuine sc_listing_category terms, not standalone
- * pages) alongside Jobs. Jobs has since moved into PRIMARY_NAV proper;
+ * pages) alongside Jobs. Jobs has since moved into the main section nav;
  * Visit/Stay are still reachable via Directory's own category nav; Community
  * is getting a dedicated section (with "groups to join" migrating out of
  * Directory into it) rather than staying a quick-link. This bar is now a
@@ -149,18 +140,15 @@ export default async function RootLayout({
         <div className="utility-bar">
           <div className="container utility-bar-inner">
             <SiteDateWeather />
+            {/* Mobile only — on desktop these links (and search) sit beside the logo instead. */}
             <div className="utility-bar-links">
               <UtilityNav items={UTILITY_NAV} />
-              <Suspense
-                fallback={
-                  <>
-                    <Link href="/register">Join</Link>
-                    <Link href="/login">Login</Link>
-                  </>
-                }
-              >
+              <Suspense fallback={<UtilityNavAuthFallback />}>
                 <UtilityNavAuth />
               </Suspense>
+              <Link href="/search" className="utility-search" aria-label="Search">
+                <SearchIcon size={16} />
+              </Link>
             </div>
           </div>
         </div>
@@ -170,8 +158,12 @@ export default async function RootLayout({
             <Link href="/" className="site-logo">
               <img src="/logo.png" alt="Secret Carshalton" className="site-logo-img" />
             </Link>
+            {/* Desktop only — sections are in the tile bar below; on mobile these links move up into the utility bar. */}
             <nav className="primary-nav">
-              <PrimaryNav items={PRIMARY_NAV} />
+              <UtilityNav items={UTILITY_NAV} />
+              <Suspense fallback={<UtilityNavAuthFallback />}>
+                <UtilityNavAuth />
+              </Suspense>
               <Link href="/search" className="nav-search" aria-label="Search">
                 <SearchIcon />
               </Link>
@@ -335,9 +327,9 @@ function TileIcon({ d, circles = [] }: { d: string[]; circles?: Array<[number, n
   );
 }
 
-function SearchIcon() {
+function SearchIcon({ size = 18 }: { size?: number }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <circle cx="11" cy="11" r="7" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>

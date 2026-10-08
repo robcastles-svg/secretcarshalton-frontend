@@ -4,11 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * Same active-link treatment as PrimaryNav, scaled down for the utility
- * bar's smaller text — bold + a thin underline on whichever of
- * About/Advertise you're currently on. No ActiveNavSection override
- * needed here (unlike PrimaryNav): these are flat standalone pages, not
- * sections with their own sub-content living at other URLs.
+ * About/Advertise links with an active-page state (bold + pink underline).
+ * Rendered twice by layout.tsx: beside the logo on desktop (styled by
+ * .primary-nav) and in the utility bar on mobile (styled by .utility-bar).
+ * No ActiveNavSection override needed: these are flat standalone pages,
+ * not sections with their own sub-content living at other URLs.
  *
  * `extraActivePaths` covers About specifically: it should stay
  * highlighted across the whole About mini-nav cluster (About Carshalton,

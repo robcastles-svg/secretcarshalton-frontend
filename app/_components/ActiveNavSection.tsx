@@ -9,7 +9,7 @@ const ActiveNavSectionContext = createContext<{
 
 /**
  * Individual articles live at a flat /{slug} URL, not nested under
- * /news/, /stories/, etc. — so PrimaryNav's pathname check alone can't
+ * /news/, /stories/, etc. — so TileNav's pathname check alone can't
  * tell which top-level section a given post belongs to. This context lets
  * the post page (which already knows its own categories) tell the nav
  * which section to highlight instead.
