@@ -323,7 +323,7 @@ button.button-pill {
   .primary-nav {
     justify-content: center;
     /* Row gap closed up per Rob so the two nav lines sit tighter. */
-    gap: 0.4rem 1.25rem;
+    gap: 10px 1.25rem;
     width: 100%;
   }
 
