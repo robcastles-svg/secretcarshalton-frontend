@@ -6,7 +6,6 @@ import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
 import { ABOUT_PAGE_SLUGS } from "./_components/AboutMiniNav";
 import { ActiveNavSectionProvider } from "./_components/ActiveNavSection";
 import { BackToTop } from "./_components/BackToTop";
-import { MemberBenefitsBar } from "./_components/MemberBenefitsBar";
 import { NewsletterForm } from "./newsletter/_components/NewsletterForm";
 import { SiteDateWeather } from "./_components/SiteDateWeather";
 import { TileNav, type TileNavItem } from "./_components/TileNav";
@@ -85,8 +84,8 @@ function UtilityNavAuthFallback() {
  * pages) alongside Jobs. Jobs has since moved into the main section nav;
  * Visit/Stay are still reachable via Directory's own category nav; Community
  * is getting a dedicated section (with "groups to join" migrating out of
- * Directory into it) rather than staying a quick-link. This bar is now a
- * single membership CTA instead — see MemberBenefitsBar below.
+ * Directory into it) rather than staying a quick-link. That bar later became
+ * a single membership CTA (MemberBenefitsBar), since removed too.
  */
 
 export default async function RootLayout({
@@ -110,17 +109,9 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_SCHEMA) }}
         />
-        <Suspense
-          fallback={
-            <div className="member-benefits-bar">
-              <Link href="/register" className="container member-benefits-inner">
-                Member benefits
-              </Link>
-            </div>
-          }
-        >
-          <MemberBenefitsBar />
-        </Suspense>
+        {/* The orange/pink "Member benefits" bar used to sit here — removed per
+            Rob. MemberBenefitsBar.tsx is kept; re-add it here (Suspense-wrapped)
+            to bring it back. Join/Login/Member dashboard are in the header. */}
         {/*
          * Fixed Lambert Heating banner in place of the admin-managed
          * billboard AdSlot (sc-ads) for now — same full-width grey band,
@@ -132,7 +123,7 @@ export default async function RootLayout({
           <img src="/ads/lambert-heating.webp" alt="Lambert Heating & Renewables — based in Carshalton" width={728} height={90} />
         </div>
 
-        {/* One merged bar — date/weather on the left, utility links on the right — sits below the billboard and above the logo/nav row, matching the PDF wireframe. Stays the same regardless of login state now — only .member-benefits-bar above switches colour when logged in. */}
+        {/* One merged bar — date/weather on the left, utility links on the right — sits below the billboard and above the logo/nav row, matching the PDF wireframe. Stays the same regardless of login state. */}
         <div className="utility-bar">
           <div className="container utility-bar-inner">
             <SiteDateWeather />
