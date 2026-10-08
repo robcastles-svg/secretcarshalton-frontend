@@ -198,10 +198,7 @@ button.button-pill {
   gap: 1.5rem;
   align-items: center;
   justify-content: space-between;
-  /* Tightened on desktop per Rob — closes up the gap between the
-     utility bar's keyline above and this header's border below. Mobile
-     keeps the roomier original padding (see the 720px query). */
-  padding: 0.7rem 1.5rem 0.8rem;
+  padding: 1.25rem 1.5rem 1.35rem;
 }
 
 .site-logo {
@@ -213,7 +210,7 @@ button.button-pill {
 
 .site-logo-img {
   display: block;
-  height: 34px;
+  height: 42px;
   width: auto;
 }
 
@@ -316,17 +313,17 @@ button.button-pill {
   .site-header-inner {
     justify-content: center;
     text-align: center;
-    padding: 1.25rem 1.5rem 1.35rem;
   }
 
-  /* Desktop's logo was shrunk; mobile stays at the original size. */
+  /* A bit smaller than desktop's 42px, per Rob. */
   .site-logo-img {
-    height: 42px;
+    height: 34px;
   }
 
   .primary-nav {
     justify-content: center;
-    gap: 1rem 1.25rem;
+    /* Row gap closed up per Rob so the two nav lines sit tighter. */
+    gap: 0.4rem 1.25rem;
     width: 100%;
   }
 
