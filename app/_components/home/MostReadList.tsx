@@ -13,17 +13,21 @@ export interface MostReadItem {
 
 const COLLAPSED_COUNT = 5;
 
-/** Homepage's "Most read this week" list — rows 1-5 shown by default, "See all 10" expands the rest in place rather than navigating anywhere. */
+/**
+ * Homepage's "Most read this week" list. Mobile: rows 1-5 shown by
+ * default, "See all 10" expands the rest in place. Desktop: all 10 always
+ * shown in two columns of five, toggle hidden — every row is rendered and
+ * CSS (.most-read-extra / .most-read-expanded) decides what's visible.
+ */
 export function MostReadList({ items }: { items: MostReadItem[] }) {
   const [expanded, setExpanded] = useState(false);
-  const visible = expanded ? items : items.slice(0, COLLAPSED_COUNT);
 
   return (
-    <div className="most-read">
+    <div className={`most-read${expanded ? " most-read-expanded" : ""}`}>
       <div className="most-read-heading">Most read this week</div>
       <ol className="most-read-rows">
-        {visible.map((item, i) => (
-          <li key={item.slug}>
+        {items.map((item, i) => (
+          <li key={item.slug} className={i >= COLLAPSED_COUNT ? "most-read-extra" : undefined}>
             <Link href={`/${item.slug}`}>
               <span className="most-read-rank">{i + 1}</span>
               <span className="most-read-thumb">

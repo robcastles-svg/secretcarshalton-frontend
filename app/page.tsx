@@ -30,12 +30,8 @@ import {
 
 export const revalidate = 3600;
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+function formatDayMonth(iso: string) {
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
 }
 
 // Mirrors app/community/page.tsx's own stand-in — the real "Community"
@@ -137,7 +133,17 @@ export default async function HomePage() {
   }
 
   const leadImage = getFeaturedImage(lead);
-  const leadCategory = lead.categories?.map((id) => categoriesById.get(id)).find(Boolean);
+  const leadCategories = (lead.categories ?? []).map((id) => categoriesById.get(id)).filter((c) => c !== undefined);
+  // "Place" on the lead's date line: a Discover story's area (a child of
+  // Stories), otherwise the section itself for News/Walks posts. Left off
+  // entirely when none applies, as is the theme (the first tag).
+  const leadPlace =
+    leadCategories.find((c) => storiesParent && c.parent === storiesParent.id)?.name ??
+    leadCategories.find((c) => c.id === newsCategory?.id)?.name ??
+    (walksCategory && leadCategories.some((c) => c.id === walksCategory.id || c.parent === walksCategory.id)
+      ? walksCategory.name
+      : undefined);
+  const leadTheme = lead.tags?.map((id) => tagsById.get(id)).find(Boolean)?.name;
 
   // More latest: the 4 newest posts from any category, excluding the lead.
   const moreLatest = recentPosts.filter((p) => p.id !== lead.id).slice(0, 4);
@@ -221,38 +227,34 @@ export default async function HomePage() {
     <main>
       <SponsorStrip sponsors={DUMMY_SPONSORS} />
 
-      <div className="container home-top-grid">
-        <Link href={`/${lead.slug}`} className="home-lead">
-          {leadImage && (
-            <div className="home-lead-image">
-              <img src={leadImage.source_url} alt={leadImage.alt_text} />
-            </div>
-          )}
-          <div className="home-lead-kicker">
-            <span>Latest</span>
-            <CategoryKeyIcon />
-          </div>
-          {leadCategory && <div className="home-lead-meta">{leadCategory.name}</div>}
+      {/* Full-bleed band, not inside .container — the photo runs to the
+          window's right edge on desktop and edge to edge on mobile. The
+          whole band is one link, so hovering anywhere (button included)
+          zooms the photo and darkens the button together. */}
+      <Link href={`/${lead.slug}`} className="home-lead">
+        <div className="home-lead-text">
+          <div className="home-lead-kicker">Latest</div>
           <h1 dangerouslySetInnerHTML={{ __html: lead.title.rendered }} />
           <p>{stripHtml(lead.excerpt.rendered)}</p>
-          <time className="home-lead-date" dateTime={lead.date}>
-            {formatDate(lead.date)}
-          </time>
-        </Link>
-
-        {/* Rendered twice — here (desktop sidebar) and again below More
-            Latest (mobile/tablet) — rather than one instance reordered
-            with CSS, since "move past an entire other section" isn't
-            something a single flex/grid `order` can do once More Latest
-            is a separate full-width band in between. Each copy keeps its
-            own expand/collapse state; CSS shows only one at a time per
-            breakpoint, see .most-read-desktop-slot/.most-read-mobile-slot. */}
-        {mostReadItems.length > 0 && (
-          <div className="most-read-desktop-slot">
-            <MostReadList items={mostReadItems} />
+          <div className="home-lead-meta">
+            {[
+              <time key="date" dateTime={lead.date}>
+                {formatDayMonth(lead.date)}
+              </time>,
+              leadPlace && <span key="place">{leadPlace}</span>,
+              leadTheme && <span key="theme">{leadTheme}</span>,
+            ]
+              .filter(Boolean)
+              .flatMap((part, i) => (i === 0 ? [part] : [<span key={`sep${i}`}> / </span>, part]))}
+          </div>
+          <span className="home-lead-button">Read more</span>
+        </div>
+        {leadImage && (
+          <div className="home-lead-image">
+            <img src={leadImage.source_url} alt={leadImage.alt_text} />
           </div>
         )}
-      </div>
+      </Link>
 
       {moreLatest.length > 0 && (
         <div className="more-latest-band">
@@ -276,12 +278,6 @@ export default async function HomePage() {
               className="post-list-four-column"
             />
           </div>
-        </div>
-      )}
-
-      {mostReadItems.length > 0 && (
-        <div className="container most-read-mobile-slot">
-          <MostReadList items={mostReadItems} />
         </div>
       )}
 
@@ -504,6 +500,16 @@ export default async function HomePage() {
             </div>
             <HomeComments comments={comments} isLoggedIn={Boolean(sessionToken)} />
           </section>
+        </div>
+      )}
+
+      {/* Below the comments on every screen size — advertisers and current
+          content take priority further up the page. */}
+      {mostReadItems.length > 0 && (
+        <div className="most-read-band">
+          <div className="container">
+            <MostReadList items={mostReadItems} />
+          </div>
         </div>
       )}
 

@@ -6489,49 +6489,27 @@ a.card-category:hover {
   line-height: 1.1;
 }
 
-/* Lead + Most read: 2fr/1fr desktop */
-.home-top-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 2.5rem;
-  /* top/bottom only — a padding shorthand here would zero out the
-     left/right padding .container already sets on this same element
-     (same specificity, later in the file wins), pinning the lead story
-     to the screen edges with no side margin on mobile. */
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-}
-
-.home-lead-kicker {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #1a1a1a;
-}
-
+/* Lead story — a full-bleed band. Mobile: photo edge to edge on top,
+   whole and uncropped, text on grey underneath. Desktop (900px+): text on
+   the left half, photo filling the right half to the window's edge. */
 .home-lead {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
-  text-decoration: none;
+  background: #ececec;
   color: inherit;
+  text-decoration: none;
 }
 
 .home-lead-image {
-  aspect-ratio: 16 / 10;
+  order: -1;
   overflow: hidden;
-  background: #ece8e3;
-  border-radius: 4px;
+  background: #ddd8d0;
 }
 
 .home-lead-image img {
+  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   transition: transform 0.6s ease;
 }
 
@@ -6539,41 +6517,110 @@ a.card-category:hover {
   transform: scale(1.06);
 }
 
-.home-lead-meta {
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.home-lead-text {
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem 1.5rem 2.25rem;
+}
+
+.home-lead-kicker {
   color: #c2607a;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.6rem;
 }
 
 .home-lead h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
-  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
 }
 
 .home-lead p {
-  font-size: 1rem;
-  line-height: 1.55;
-  color: #555;
-  margin: 0;
-  max-width: 680px;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: #444;
+  margin: 0 0 0.9rem;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
-.home-lead-date {
-  display: block;
-  color: #999;
-  font-size: 0.8rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+.home-lead-meta {
+  color: #c2607a;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
 }
 
-@media (min-width: 760px) {
+.home-lead-button {
+  align-self: flex-start;
+  background: #c2607a;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.85rem 2.1rem;
+  border-radius: 999px;
+  transition: background-color 0.2s ease;
+}
+
+.home-lead:hover .home-lead-button {
+  background: #a94d66;
+}
+
+@media (min-width: 900px) {
+  .home-lead {
+    flex-direction: row;
+    min-height: 560px;
+  }
+
+  .home-lead-image,
+  .home-lead-text {
+    box-sizing: border-box;
+    flex: 0 0 50%;
+    min-width: 0;
+  }
+
+  .home-lead-image {
+    order: 0;
+    position: relative;
+  }
+
+  /* Fills the right half top to bottom — cropped to fit, unlike mobile. */
+  .home-lead-image img {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Text block centred within the left half (not lined up with the page
+     column) so it balances the full-bleed photo on wide screens; the
+     text itself stays left-aligned. Percentage padding resolves against
+     the whole band's width, hence 25% (half of the half) minus half of
+     the 560px max text width. */
+  .home-lead-text {
+    justify-content: center;
+    padding: 3rem max(2.5rem, calc(25% - 280px));
+  }
+
+  .home-lead-kicker {
+    font-size: 3rem;
+    margin-bottom: 0.9rem;
+  }
+
   .home-lead h1 {
-    font-size: 2.5rem;
+    font-size: 3rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .home-lead p {
+    font-size: 1.15rem;
+    -webkit-line-clamp: 2;
   }
 }
 
@@ -6666,36 +6713,42 @@ a.card-category:hover {
   cursor: pointer;
 }
 
-/* Most Read relocates below More Latest on both mobile AND tablet (see
-   the slot rule further down), which would otherwise leave .home-top-grid
-   with an empty second column at tablet width — collapses to one column
-   for the same 1023px range the slot-swap uses, not the narrower 759px
-   every other paired section in this redesign stacks at. */
-@media (max-width: 1023px) {
-  .home-top-grid {
-    grid-template-columns: 1fr;
-  }
+/* Most read sits below the comments on every screen size. Mobile: one
+   column, rows 6-10 behind the "See all" toggle. Desktop: all ten in two
+   columns of five inside a white rounded box on a light band. */
+.most-read-band {
+  background: #f7f5f2;
 }
 
-/* Most Read's two render slots (see app/page.tsx's own comment) — only
-   one shows at a time per breakpoint, matching the handoff's "Most read
-   moves below More Latest on mobile/tablet" requirement. */
-.most-read-mobile-slot {
+.most-read-extra {
   display: none;
 }
 
-@media (max-width: 1023px) {
-  .most-read-desktop-slot {
-    display: none;
+.most-read-expanded .most-read-extra {
+  display: block;
+}
+
+@media (min-width: 760px) {
+  .most-read {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.75rem 2rem 1.25rem;
   }
 
-  .most-read-mobile-slot {
+  .most-read-rows {
+    display: grid;
+    grid-template-rows: repeat(5, auto);
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    column-gap: 2.5rem;
+  }
+
+  .most-read-extra {
     display: block;
-    /* top/bottom only — see .home-top-grid's own note on why a padding
-       shorthand here would clobber .container's left/right padding. */
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem;
-    border-top: 1px solid #eee;
+  }
+
+  .most-read-toggle {
+    display: none;
   }
 }
 
