@@ -232,17 +232,20 @@ export default async function HomePage() {
       <SponsorStrip sponsors={DUMMY_SPONSORS} />
 
       {/* Full-bleed band, not inside .container — the photo runs to the
-          window's right edge on desktop and edge to edge on mobile. Only
-          the photo and Read more go to the article (the place/theme on
-          the date line link to their own sections); hovering either one
-          zooms the photo and darkens the button together. */}
+          window's right edge on desktop and edge to edge on mobile. The
+          headline, photo and Read more go to the article (the place/theme
+          on the date line link to their own sections); hovering any of
+          the three zooms the photo, turns the headline pink and darkens
+          the button together. */}
       <div className="home-lead">
         <div className="home-lead-text">
           <div className="home-lead-kicker">
             Latest
             <CategoryKeyIcon />
           </div>
-          <h1 dangerouslySetInnerHTML={{ __html: lead.title.rendered }} />
+          <h1>
+            <Link href={`/${lead.slug}`} dangerouslySetInnerHTML={{ __html: lead.title.rendered }} />
+          </h1>
           <p>{stripHtml(lead.excerpt.rendered)}</p>
           <div className="home-lead-meta">
             {[
