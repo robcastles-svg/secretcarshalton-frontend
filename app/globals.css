@@ -7074,6 +7074,17 @@ a.card-category:hover {
   position: relative;
 }
 
+.home-featured-pink-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Under the body text, inside the same pink-bordered box. */
+.directory-card-socials.home-featured-pink-socials {
+  margin: -0.4rem 1rem 1rem;
+}
+
 .home-featured-pink img {
   display: block;
   width: 100%;

@@ -5,6 +5,7 @@ import { HomeComments, type HomeCommentItem } from "@/app/_components/home/HomeC
 import { HomeFeaturedEvent } from "@/app/_components/home/HomeFeaturedEvent";
 import { MostReadList, type MostReadItem } from "@/app/_components/home/MostReadList";
 import { ReelsSlider } from "@/app/_components/home/ReelsSlider";
+import { listingSocials } from "@/app/_components/SocialIcons";
 import { SponsorStrip } from "@/app/_components/home/SponsorStrip";
 import { getSessionToken } from "@/lib/auth";
 import {
@@ -417,18 +418,32 @@ export default async function HomePage() {
                   const category = spotlightListing.sc_listing_category
                     ?.map((id) => listingCategoriesById.get(id))
                     .find(Boolean);
+                  const socials = listingSocials(spotlightListing.meta);
+                  // Socials sit outside the card's main link (a link can't
+                  // contain other links), in the same bordered box.
                   return (
-                    <Link href={`/directory/${spotlightListing.slug}`} className="home-featured-pink">
-                      {image && <img src={image.source_url} alt={image.alt_text} />}
-                      <span className="directory-badge">Featured</span>
-                      <div className="home-featured-pink-body">
-                        {category && <span className="home-featured-kicker">{category.name}</span>}
-                        <strong dangerouslySetInnerHTML={{ __html: spotlightListing.title.rendered }} />
-                        {spotlightListing.meta.sc_tagline && (
-                          <span className="home-featured-sub">{spotlightListing.meta.sc_tagline}</span>
-                        )}
-                      </div>
-                    </Link>
+                    <div className="home-featured-pink">
+                      <Link href={`/directory/${spotlightListing.slug}`} className="home-featured-pink-link">
+                        {image && <img src={image.source_url} alt={image.alt_text} />}
+                        <span className="directory-badge">Featured</span>
+                        <div className="home-featured-pink-body">
+                          {category && <span className="home-featured-kicker">{category.name}</span>}
+                          <strong dangerouslySetInnerHTML={{ __html: spotlightListing.title.rendered }} />
+                          {spotlightListing.meta.sc_tagline && (
+                            <span className="home-featured-sub">{spotlightListing.meta.sc_tagline}</span>
+                          )}
+                        </div>
+                      </Link>
+                      {socials.length > 0 && (
+                        <div className="directory-card-socials home-featured-pink-socials">
+                          {socials.map(({ key, url, Icon }) => (
+                            <a key={key} href={url} target="_blank" rel="noopener noreferrer" aria-label={key}>
+                              <Icon />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   );
                 })()}
 
