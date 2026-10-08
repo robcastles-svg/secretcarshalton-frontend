@@ -18,7 +18,7 @@ export function ClaimListingButton({
 
   if (!isLoggedIn) {
     return (
-      <Link href="/login" className="button-pill button-pill-secondary">
+      <Link href="/login" className="button-pill button-pill-secondary button-pill-wrap">
         Is this your business? Log in to claim it
       </Link>
     );
@@ -51,7 +51,7 @@ export function ClaimListingButton({
 
   return (
     <div>
-      <button type="button" className="button-pill button-pill-active" onClick={handleClick} disabled={submitting}>
+      <button type="button" className="button-pill button-pill-active button-pill-wrap" onClick={handleClick} disabled={submitting}>
         {submitting ? "Submitting…" : "Is this your business? Claim this listing"}
       </button>
       {error && <p className="auth-error">{error}</p>}
