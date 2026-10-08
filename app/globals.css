@@ -6759,6 +6759,28 @@ a.card-category:hover {
   padding: 2.25rem 0;
 }
 
+/* The section links sit under the cards, right-aligned — one line on
+   desktop, wrapping (still right-aligned) on narrow screens. */
+.more-latest-links-below {
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+}
+
+/* Homepage section headings (Events, Walks, Directory, Latest jobs) styled
+   to match the lead's pink "Latest" kicker. Doubled-up selector so it beats
+   .home-events-band h2's white. */
+.home-section-header h2.home-section-title {
+  color: #c2607a;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+@media (min-width: 900px) {
+  .home-section-header h2.home-section-title {
+    font-size: 2rem;
+  }
+}
+
 .more-latest-links {
   display: flex;
   flex-wrap: wrap;
@@ -6887,6 +6909,11 @@ a.card-category:hover {
 
 .coming-up-list .event-card-date-badge {
   background: rgba(255, 255, 255, 0.08);
+}
+
+.coming-up-list .event-card-date-badge-day,
+.coming-up-list .event-card-date-badge-month {
+  color: #fff;
 }
 
 .coming-up-list-title {

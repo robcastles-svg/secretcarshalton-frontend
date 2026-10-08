@@ -262,24 +262,18 @@ export default async function HomePage() {
       {moreLatest.length > 0 && (
         <div className="more-latest-band">
           <div className="container">
-            <div className="home-section-header">
-              <h2>
-                More latest
-                <CategoryKeyIcon />
-              </h2>
-              <div className="more-latest-links">
-                <Link href="/news">More News →</Link>
-                <Link href="/discover">More Discover →</Link>
-                <Link href="/walks">More Walks →</Link>
-                <Link href="/community">More Community →</Link>
-              </div>
-            </div>
             <ContentList
               items={moreLatest}
               categoriesById={categoriesById}
               tagsById={tagsById}
               className="post-list-three-column"
             />
+            <div className="more-latest-links more-latest-links-below">
+              <Link href="/news">More News →</Link>
+              <Link href="/discover">More Discover →</Link>
+              <Link href="/walks">More Walks →</Link>
+              <Link href="/community">More Community →</Link>
+            </div>
           </div>
         </div>
       )}
@@ -288,7 +282,7 @@ export default async function HomePage() {
         <div className="home-events-band">
           <div className="container">
             <div className="home-section-header">
-              <h2>
+              <h2 className="home-section-title">
                 Events
                 <CategoryKeyIcon />
               </h2>
@@ -354,7 +348,7 @@ export default async function HomePage() {
         <div className="container">
           <section className="home-section">
             <div className="home-section-header">
-              <h2>
+              <h2 className="home-section-title">
                 Walks
                 <CategoryKeyIcon />
               </h2>
@@ -389,7 +383,7 @@ export default async function HomePage() {
           <div className="container home-dir-jobs-grid">
             <div className="home-dir-jobs-col">
               <div className="home-section-header">
-                <h2>
+                <h2 className="home-section-title">
                   Directory
                   <CategoryKeyIcon />
                 </h2>
@@ -442,7 +436,7 @@ export default async function HomePage() {
 
             <div className="home-dir-jobs-col">
               <div className="home-section-header">
-                <h2>
+                <h2 className="home-section-title">
                   Latest jobs
                   <CategoryKeyIcon />
                 </h2>
