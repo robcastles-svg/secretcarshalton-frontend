@@ -6490,7 +6490,7 @@ a.card-category:hover {
 }
 
 /* Lead story — a full-bleed band. Mobile: photo edge to edge on top,
-   whole and uncropped, text on grey underneath. Desktop (900px+): text on
+   square-cropped, text on grey underneath. Desktop (900px+): text on
    the left half, photo filling the right half to the window's edge. */
 .home-lead {
   display: flex;
@@ -6505,10 +6505,13 @@ a.card-category:hover {
   background: #ddd8d0;
 }
 
+/* Mobile: a deep, square crop for impact (the desktop rule further down
+   switches to filling its half of the band instead). */
 .home-lead-image img {
   display: block;
   width: 100%;
-  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
   transition: transform 0.6s ease;
 }
 
@@ -6599,7 +6602,7 @@ a.card-category:hover {
 @media (min-width: 900px) {
   .home-lead {
     flex-direction: row;
-    min-height: 680px;
+    min-height: 560px;
   }
 
   .home-lead-image,
@@ -6614,12 +6617,12 @@ a.card-category:hover {
     position: relative;
   }
 
-  /* Fills the right half top to bottom — cropped to fit, unlike mobile. */
+  /* Fills the right half top to bottom. */
   .home-lead-image img {
     position: absolute;
     inset: 0;
     height: 100%;
-    object-fit: cover;
+    aspect-ratio: auto;
   }
 
   /* Text block centred within the left half (not lined up with the page
