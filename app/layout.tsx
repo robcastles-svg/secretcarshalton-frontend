@@ -5,7 +5,6 @@ import { Suspense } from "react";
 import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
 import { ABOUT_PAGE_SLUGS } from "./_components/AboutMiniNav";
 import { ActiveNavSectionProvider } from "./_components/ActiveNavSection";
-import { AdSlot } from "./_components/AdSlot";
 import { BackToTop } from "./_components/BackToTop";
 import { MemberBenefitsBar } from "./_components/MemberBenefitsBar";
 import { NewsletterForm } from "./newsletter/_components/NewsletterForm";
@@ -123,18 +122,15 @@ export default async function RootLayout({
           <MemberBenefitsBar />
         </Suspense>
         {/*
-         * Just the one top-of-page ad slot now — billboard, admin-managed
-         * via sc-ads. Used to be paired with a second "leaderboard" slot
-         * inside the header right below it, which was redundant stacking
-         * two banner ads back-to-back now that sidebar and in-post slots
-         * exist on content pages too.
+         * Fixed Lambert Heating banner in place of the admin-managed
+         * billboard AdSlot (sc-ads) for now — same full-width grey band,
+         * image capped at the old billboard's 1100px. To go back to the
+         * rotating slot, restore:
+         * <AdSlot placement="billboard" className="ad-slot ad-billboard" ... />
          */}
-        <AdSlot
-          placement="billboard"
-          className="ad-slot ad-billboard"
-          placeholderClassName="ad-slot-placeholder ad-billboard-placeholder"
-          placeholderText="Claim this banner space for your local business"
-        />
+        <div className="ad-slot ad-billboard">
+          <img src="/ads/lambert-heating.webp" alt="Lambert Heating & Renewables — based in Carshalton" width={728} height={90} />
+        </div>
 
         {/* One merged bar — date/weather on the left, utility links on the right — sits below the billboard and above the logo/nav row, matching the PDF wireframe. Stays the same regardless of login state now — only .member-benefits-bar above switches colour when logged in. */}
         <div className="utility-bar">
