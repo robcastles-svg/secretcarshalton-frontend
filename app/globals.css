@@ -3089,6 +3089,9 @@ a.card-category:hover {
   display: block;
   width: 100%;
   height: 100%;
+  /* Vertical page scrolling stays native; horizontal swipes go to the
+     slider's own touch handlers. */
+  touch-action: pan-y;
 }
 
 .directory-image-slider img {

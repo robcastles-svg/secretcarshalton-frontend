@@ -152,10 +152,15 @@ export default async function DirectoryListingPage({
   const socials = listingSocials(meta);
   const gallery = listing.sc_gallery_images ?? [];
   const listingTitle = stripHtml(listing.title.rendered);
-  const sliderImages = [
-    ...(image ? [{ url: image.source_url, alt: image.alt_text || listingTitle }] : []),
-    ...gallery.map((photo) => ({ url: photo.url, alt: photo.alt || listingTitle })),
-  ];
+  // The gallery (up to 3 photos) is the slider; its first photo is also
+  // the cover/featured image, so the featured image is only used on its
+  // own for older listings that never had a gallery.
+  const sliderImages =
+    gallery.length > 0
+      ? gallery.map((photo) => ({ url: photo.url, alt: photo.alt || listingTitle }))
+      : image
+        ? [{ url: image.source_url, alt: image.alt_text || listingTitle }]
+        : [];
   const addressParts = [
     meta.sc_address_street,
     meta.sc_address_town,

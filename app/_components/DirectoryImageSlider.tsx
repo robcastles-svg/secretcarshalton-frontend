@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 interface SlideImage {
   url: string;
@@ -10,6 +10,7 @@ interface SlideImage {
 /** Featured image + gallery photos as one slider at the top of a directory listing — a single photo just renders plain, no slider chrome for nothing to slide between. */
 export function DirectoryImageSlider({ images }: { images: SlideImage[] }) {
   const [index, setIndex] = useState(0);
+  const touchStartX = useRef<number | null>(null);
 
   if (images.length === 0) return null;
 
@@ -25,7 +26,19 @@ export function DirectoryImageSlider({ images }: { images: SlideImage[] }) {
 
   return (
     <div className="directory-image-slider">
-      <div className="directory-image-slider-viewport">
+      {/* Swipe left/right on touch screens, as well as the arrows. */}
+      <div
+        className="directory-image-slider-viewport"
+        onTouchStart={(e) => {
+          touchStartX.current = e.touches[0].clientX;
+        }}
+        onTouchEnd={(e) => {
+          if (touchStartX.current === null) return;
+          const dx = e.changedTouches[0].clientX - touchStartX.current;
+          touchStartX.current = null;
+          if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+        }}
+      >
         <img src={images[index].url} alt={images[index].alt} />
       </div>
       <button

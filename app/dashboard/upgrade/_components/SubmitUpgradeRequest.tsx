@@ -5,9 +5,8 @@ import { useState } from "react";
 import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
 import type { MyListing, WPDirectoryCategory } from "@/lib/wordpress";
 
-/** Mirrors SC_Directory_REST's PAID_CATEGORY_LIMIT/PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap. */
-const CATEGORY_LIMIT = 3;
-const PHOTO_LIMIT = 10;
+/** Mirrors SC_Directory_REST's PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap (counting photos the listing already has). One category per listing, so a single dropdown. */
+const PHOTO_LIMIT = 3;
 
 export function SubmitUpgradeRequest({
   listings,
@@ -19,19 +18,11 @@ export function SubmitUpgradeRequest({
   const router = useRouter();
   const [listingId, setListingId] = useState(listings[0]?.id ?? null);
   const [tier, setTier] = useState(FEATURED_DIRECTORY_TIERS[0].slug);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [photos, setPhotos] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
-
-  function toggleCategory(slug: string) {
-    setSelectedCategories((prev) => {
-      if (prev.includes(slug)) return prev.filter((s) => s !== slug);
-      if (prev.length >= CATEGORY_LIMIT) return prev;
-      return [...prev, slug];
-    });
-  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -40,7 +31,8 @@ export function SubmitUpgradeRequest({
     setError(null);
 
     const formData = new FormData(e.currentTarget);
-    selectedCategories.forEach((slug) => formData.append("categories", slug));
+    // Blank leaves the listing's current category as it is.
+    if (selectedCategory) formData.set("category", selectedCategory);
     photos.slice(0, PHOTO_LIMIT).forEach((file) => formData.append("photos[]", file));
 
     const res = await fetch(`/api/directory/${listingId}/request-upgrade`, {
@@ -118,22 +110,17 @@ export function SubmitUpgradeRequest({
         </div>
       </fieldset>
 
-      <fieldset className="directory-category-fieldset">
-        <legend>
-          Categories ({selectedCategories.length}/{CATEGORY_LIMIT})
-        </legend>
-        {categories.map((c) => (
-          <label key={c.id} className="directory-category-checkbox">
-            <input
-              type="checkbox"
-              checked={selectedCategories.includes(c.slug)}
-              onChange={() => toggleCategory(c.slug)}
-              disabled={!selectedCategories.includes(c.slug) && selectedCategories.length >= CATEGORY_LIMIT}
-            />
-            {c.name}
-          </label>
-        ))}
-      </fieldset>
+      <label>
+        Category
+        <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+          <option value="">Keep current category</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.slug}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <label>
         Short tagline
@@ -192,7 +179,7 @@ export function SubmitUpgradeRequest({
         <input type="url" name="youtube" placeholder="https://youtube.com/@…" />
       </label>
       <label>
-        Photos (up to {PHOTO_LIMIT})
+        Photos (up to {PHOTO_LIMIT} in total, including any your listing already has)
         <input
           type="file"
           accept="image/*"

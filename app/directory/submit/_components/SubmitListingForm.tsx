@@ -5,9 +5,8 @@ import { useState } from "react";
 import { FEATURED_DIRECTORY_TIERS, STANDARD_LISTING_PRICE } from "@/lib/pricing";
 import type { WPDirectoryCategory } from "@/lib/wordpress";
 
-/** Mirrors SC_Directory_REST's PAID_CATEGORY_LIMIT/PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap. */
-const CATEGORY_LIMIT = 3;
-const PHOTO_LIMIT = 10;
+/** Mirrors SC_Directory_REST's PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap. One category per listing, so that's just the single dropdown. */
+const PHOTO_LIMIT = 3;
 
 /**
  * Business/organisation directory listing form, used in two distinct
@@ -44,22 +43,14 @@ export function SubmitListingForm({
       ? FEATURED_DIRECTORY_TIERS.find((t) => t.slug === initialTier)?.slug ?? FEATURED_DIRECTORY_TIERS[0].slug
       : "standard"
   );
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [photos, setPhotos] = useState<File[]>([]);
+  const [photosTrimmed, setPhotosTrimmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [resultMessage, setResultMessage] = useState("");
 
   const isFeatured = mode === "featured";
-
-  function toggleCategory(slug: string) {
-    setSelectedCategories((prev) => {
-      if (prev.includes(slug)) return prev.filter((s) => s !== slug);
-      if (prev.length >= CATEGORY_LIMIT) return prev;
-      return [...prev, slug];
-    });
-  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -109,7 +100,7 @@ export function SubmitListingForm({
       ]) {
         upgradeData.set(field, formData.get(field) ?? "");
       }
-      selectedCategories.forEach((slug) => upgradeData.append("categories", slug));
+      upgradeData.set("category", (formData.get("category") as string) ?? "");
       photos.slice(0, PHOTO_LIMIT).forEach((file) => upgradeData.append("photos[]", file));
 
       const upgradeRes = await fetch(`/api/directory/${id}/request-upgrade`, {
@@ -173,23 +164,6 @@ export function SubmitListingForm({
 
       {isFeatured ? (
         <>
-          <fieldset className="directory-category-fieldset">
-            <legend>
-              Categories ({selectedCategories.length}/{CATEGORY_LIMIT})
-            </legend>
-            {categories.map((c) => (
-              <label key={c.id} className="directory-category-checkbox">
-                <input
-                  type="checkbox"
-                  checked={selectedCategories.includes(c.slug)}
-                  onChange={() => toggleCategory(c.slug)}
-                  disabled={!selectedCategories.includes(c.slug) && selectedCategories.length >= CATEGORY_LIMIT}
-                />
-                {c.name}
-              </label>
-            ))}
-          </fieldset>
-
           <label>
             Short tagline
             <input type="text" name="tagline" maxLength={140} placeholder="A one-line summary shown on listing cards" />
@@ -247,15 +221,24 @@ export function SubmitListingForm({
             <input type="url" name="youtube" placeholder="https://youtube.com/@…" />
           </label>
           <label>
-            Photos (up to {PHOTO_LIMIT})
+            Photos (up to {PHOTO_LIMIT} — the first is your cover image)
             <input
               type="file"
               accept="image/*"
               multiple
-              onChange={(e) => setPhotos(Array.from(e.target.files ?? []).slice(0, PHOTO_LIMIT))}
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                setPhotosTrimmed(files.length > PHOTO_LIMIT);
+                setPhotos(files.slice(0, PHOTO_LIMIT));
+              }}
             />
           </label>
-          {photos.length > 0 && <p className="auth-hint">{photos.length} photo(s) selected.</p>}
+          {photos.length > 0 && (
+            <p className="auth-hint">
+              {photos.length} photo(s) selected.
+              {photosTrimmed && ` Only the first ${PHOTO_LIMIT} will be used.`}
+            </p>
+          )}
         </>
       ) : null}
 
