@@ -11,6 +11,7 @@ import { MemberBenefitsBar } from "./_components/MemberBenefitsBar";
 import { NewsletterForm } from "./newsletter/_components/NewsletterForm";
 import { PrimaryNav } from "./_components/PrimaryNav";
 import { SiteDateWeather } from "./_components/SiteDateWeather";
+import { TileNav, type TileNavItem } from "./_components/TileNav";
 import { UtilityNav } from "./_components/UtilityNav";
 import { UtilityNavAuth } from "./_components/UtilityNavAuth";
 import "./globals.css";
@@ -61,6 +62,21 @@ const PRIMARY_NAV = [
   { label: "Community", href: "/community" },
   { label: "Directory", href: "/directory" },
   { label: "Jobs", href: "/jobs" },
+];
+
+/**
+ * Icon-tile bar under the header — same sections as PRIMARY_NAV, with
+ * Events shown as "What's on" per Rob's mockup. `section` must match the
+ * PRIMARY_NAV label so the post-page override lights the right tile.
+ */
+const TILE_NAV: TileNavItem[] = [
+  { label: "News", href: "/news", section: "News", icon: <TileIcon d={["M4 5h13v13a2 2 0 0 0 2 2H6a2 2 0 0 1-2-2z", "M17 9h3v9a2 2 0 0 1-2 2", "M7.5 9h6M7.5 12.5h6M7.5 16h3.5"]} /> },
+  { label: "Discover", href: "/discover", section: "Discover", icon: <TileIcon d={["M12 7c-1.6-1.6-4.2-2-8-2v13c3.8 0 6.4.4 8 2 1.6-1.6 4.2-2 8-2V5c-3.8 0-6.4.4-8 2z", "M12 7v13"]} /> },
+  { label: "Walks", href: "/walks", section: "Walks", icon: <TileIcon d={["M13 8.5 11 14l3.5 3 1 4", "M11 14l-2.5 7", "M8 11.5 12 9l3.5 2.5"]} circles={[[13, 4.5, 1.9]]} /> },
+  { label: "What\u2019s on", href: "/events", section: "Events", extraActivePrefixes: ["/whats-on"], icon: <TileIcon d={["M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z", "M4 10h16M8 3v4M16 3v4", "m12 12.4.9 1.8 2 .3-1.4 1.4.3 2-1.8-.95-1.8.95.3-2-1.4-1.4 2-.3z"]} /> },
+  { label: "Community", href: "/community", section: "Community", icon: <TileIcon d={["M3.5 19c0-3 2.4-5 5.5-5s5.5 2 5.5 5", "M16.5 14c2.8 0 4.5 1.8 4.5 4.5"]} circles={[[9, 8, 3], [17, 9, 2.4]]} /> },
+  { label: "Directory", href: "/directory", section: "Directory", icon: <TileIcon d={["M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"]} circles={[[12, 11, 2.2]]} /> },
+  { label: "Jobs", href: "/jobs", section: "Jobs", icon: <TileIcon d={["M5 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z", "M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 13h18"]} /> },
 ];
 
 const UTILITY_NAV = [
@@ -162,6 +178,8 @@ export default async function RootLayout({
             </nav>
           </div>
         </header>
+
+        <TileNav items={TILE_NAV} />
 
         {children}
 
@@ -301,6 +319,19 @@ export default async function RootLayout({
         </ActiveNavSectionProvider>
       </body>
     </html>
+  );
+}
+
+function TileIcon({ d, circles = [] }: { d: string[]; circles?: Array<[number, number, number]> }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      {circles.map(([cx, cy, r]) => (
+        <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={r} />
+      ))}
+      {d.map((path) => (
+        <path key={path} d={path} />
+      ))}
+    </svg>
   );
 }
 

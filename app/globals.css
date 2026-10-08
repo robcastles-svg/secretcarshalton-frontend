@@ -7249,3 +7249,97 @@ a.card-category:hover {
     width: 42vw;
   }
 }
+
+/* Icon-tile section bar under the header (Rob's mockup). Full width,
+   7 equal tiles on desktop; 4 + 3 on two rows below 760px. Active tile
+   stays in the hover colour so you can see which section you're in. */
+.tile-nav {
+  width: 100%;
+  padding: 10px 16px;
+}
+
+.tile-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.tile-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 112px;
+  padding: 0 8px;
+  background: #f0d3da;
+  color: #111;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tile-nav a:hover,
+.tile-nav a:focus-visible,
+.tile-nav a.active {
+  background: #c2607a;
+  color: #fff;
+}
+
+.tile-nav a:focus-visible {
+  outline: 3px solid #111;
+  outline-offset: 2px;
+}
+
+.tile-nav svg {
+  width: 36px;
+  height: 36px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+@media (max-width: 1100px) {
+  .tile-nav a {
+    font-size: 13px;
+    letter-spacing: 0.08em;
+  }
+}
+
+@media (max-width: 760px) {
+  .tile-nav ul {
+    grid-template-columns: repeat(12, 1fr);
+    gap: 8px;
+  }
+
+  .tile-nav li {
+    grid-column: span 4;
+  }
+
+  .tile-nav li:nth-child(-n + 4) {
+    grid-column: span 3;
+  }
+
+  .tile-nav a {
+    height: 88px;
+    gap: 10px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  .tile-nav svg {
+    width: 28px;
+    height: 28px;
+  }
+}
