@@ -4898,6 +4898,17 @@ a.card-category:hover {
   color: #c2607a;
 }
 
+/* Listing page only (cards don't show socials) — bigger, easier targets. */
+.directory-card-socials.directory-detail-socials {
+  gap: 1.1rem;
+  margin: 1.5rem 0;
+}
+
+.directory-detail-socials svg {
+  width: 28px;
+  height: 28px;
+}
+
 /* Masonry layout for the directory's category grids on desktop — cards of
    very different heights (a long description vs. none, social icons vs.
    not) left tall gaps under short cards in the plain grid. CSS columns
@@ -7072,17 +7083,6 @@ a.card-category:hover {
   color: inherit;
   background: #fff;
   position: relative;
-}
-
-.home-featured-pink-link {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
-
-/* Under the body text, inside the same pink-bordered box. */
-.directory-card-socials.home-featured-pink-socials {
-  margin: -0.4rem 1rem 1rem;
 }
 
 .home-featured-pink img {

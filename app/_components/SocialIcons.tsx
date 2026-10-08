@@ -1,4 +1,4 @@
-/** Shared icon set for listing/business social links — used by DirectoryListingCard (category-page cards) and the listing detail page. */
+/** Icon set for listing/business social links — shown on the listing detail page only (cards deliberately don't show them). */
 
 export function FacebookIcon() {
   return (
@@ -51,7 +51,7 @@ export interface ListingSocials {
   sc_youtube?: string;
 }
 
-/** Builds the {key,url,Icon} list DirectoryListingCard and the listing detail page both render as an icon row, already filtered to only the socials a listing actually has. */
+/** Builds the {key,url,Icon} list the listing detail page renders as an icon row, already filtered to only the socials a listing actually has. */
 export function listingSocials(meta: ListingSocials) {
   return [
     { key: "facebook", url: meta.sc_facebook, Icon: FacebookIcon },
