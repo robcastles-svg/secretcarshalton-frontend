@@ -138,12 +138,12 @@ export default async function HomePage() {
   // Stories), otherwise the section itself for News/Walks posts. Left off
   // entirely when none applies, as is the theme (the first tag).
   const leadPlace =
-    leadCategories.find((c) => storiesParent && c.parent === storiesParent.id)?.name ??
-    leadCategories.find((c) => c.id === newsCategory?.id)?.name ??
+    leadCategories.find((c) => storiesParent && c.parent === storiesParent.id) ??
+    leadCategories.find((c) => c.id === newsCategory?.id) ??
     (walksCategory && leadCategories.some((c) => c.id === walksCategory.id || c.parent === walksCategory.id)
-      ? walksCategory.name
+      ? walksCategory
       : undefined);
-  const leadTheme = lead.tags?.map((id) => tagsById.get(id)).find(Boolean)?.name;
+  const leadTheme = lead.tags?.map((id) => tagsById.get(id)).find(Boolean);
 
   // More latest: the 3 newest posts from any category, excluding the lead.
   const moreLatest = recentPosts.filter((p) => p.id !== lead.id).slice(0, 3);
@@ -232,10 +232,11 @@ export default async function HomePage() {
       <SponsorStrip sponsors={DUMMY_SPONSORS} />
 
       {/* Full-bleed band, not inside .container — the photo runs to the
-          window's right edge on desktop and edge to edge on mobile. The
-          whole band is one link, so hovering anywhere (button included)
+          window's right edge on desktop and edge to edge on mobile. Only
+          the photo and Read more go to the article (the place/theme on
+          the date line link to their own sections); hovering either one
           zooms the photo and darkens the button together. */}
-      <Link href={`/${lead.slug}`} className="home-lead">
+      <div className="home-lead">
         <div className="home-lead-text">
           <div className="home-lead-kicker">
             Latest
@@ -248,20 +249,30 @@ export default async function HomePage() {
               <time key="date" dateTime={lead.date}>
                 {formatDayMonth(lead.date)}
               </time>,
-              leadPlace && <span key="place">{leadPlace}</span>,
-              leadTheme && <span key="theme">{leadTheme}</span>,
+              leadPlace && (
+                <Link key="place" href={categoryHref(leadPlace, categoriesById)}>
+                  {leadPlace.name}
+                </Link>
+              ),
+              leadTheme && (
+                <Link key="theme" href={`/themes/${leadTheme.slug}`}>
+                  {leadTheme.name}
+                </Link>
+              ),
             ]
               .filter(Boolean)
               .flatMap((part, i) => (i === 0 ? [part] : [<span key={`sep${i}`}> / </span>, part]))}
           </div>
-          <span className="home-lead-button">Read more →</span>
+          <Link href={`/${lead.slug}`} className="home-lead-button">
+            Read more →
+          </Link>
         </div>
         {leadImage && (
-          <div className="home-lead-image">
+          <Link href={`/${lead.slug}`} className="home-lead-image" tabIndex={-1} aria-hidden="true">
             <img src={leadImage.source_url} alt={leadImage.alt_text} />
-          </div>
+          </Link>
         )}
-      </Link>
+      </div>
 
       {moreLatest.length > 0 && (
         <div className="more-latest-band">

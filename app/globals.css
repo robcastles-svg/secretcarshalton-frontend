@@ -6496,11 +6496,10 @@ a.card-category:hover {
   display: flex;
   flex-direction: column;
   background: #ececec;
-  color: inherit;
-  text-decoration: none;
 }
 
 .home-lead-image {
+  display: block;
   order: -1;
   overflow: hidden;
   background: #ddd8d0;
@@ -6513,7 +6512,7 @@ a.card-category:hover {
   transition: transform 0.6s ease;
 }
 
-.home-lead:hover .home-lead-image img {
+.home-lead:has(.home-lead-image:hover, .home-lead-button:hover) .home-lead-image img {
   transform: scale(1.06);
 }
 
@@ -6559,6 +6558,15 @@ a.card-category:hover {
   margin-bottom: 1.5rem;
 }
 
+.home-lead-meta a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.home-lead-meta a:hover {
+  text-decoration: underline;
+}
+
 .home-lead-button {
   align-self: flex-start;
   background: #c2607a;
@@ -6567,17 +6575,18 @@ a.card-category:hover {
   font-weight: 700;
   padding: 0.85rem 2.1rem;
   border-radius: 999px;
+  text-decoration: none;
   transition: background-color 0.2s ease;
 }
 
-.home-lead:hover .home-lead-button {
+.home-lead:has(.home-lead-image:hover, .home-lead-button:hover) .home-lead-button {
   background: #a94d66;
 }
 
 @media (min-width: 900px) {
   .home-lead {
     flex-direction: row;
-    min-height: 560px;
+    min-height: 680px;
   }
 
   .home-lead-image,
