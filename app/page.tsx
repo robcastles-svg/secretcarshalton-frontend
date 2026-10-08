@@ -219,8 +219,6 @@ export default async function HomePage() {
 
   return (
     <main>
-      <SponsorStrip sponsors={DUMMY_SPONSORS} />
-
       <div className="container home-top-grid">
         <Link href={`/${lead.slug}`} className="home-lead">
           {leadImage && (
@@ -253,6 +251,10 @@ export default async function HomePage() {
           </div>
         )}
       </div>
+
+      {/* Sits between the lead story and More Latest (moved down from
+          directly under the nav, which now has the section tile bar). */}
+      <SponsorStrip sponsors={DUMMY_SPONSORS} />
 
       {moreLatest.length > 0 && (
         <div className="more-latest-band">

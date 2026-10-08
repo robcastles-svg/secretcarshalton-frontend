@@ -15,7 +15,7 @@ const AUTO_SCROLL_PX_PER_SEC = 35;
 const RESUME_DELAY_MS = 1200;
 
 /**
- * Auto-scrolling strip of premium-member logos, directly under the nav.
+ * Auto-scrolling strip of premium-member logos, on the homepage between the lead story and More Latest.
  * A real horizontally-scrollable element (overflow-x: auto, see
  * .sponsor-strip-track) that a finger or trackpad can drag/swipe — the
  * auto-scroll itself is driven by JS incrementing scrollLeft each frame
