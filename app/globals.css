@@ -6524,8 +6524,10 @@ a.card-category:hover {
 }
 
 .home-lead-kicker {
+  display: flex;
+  align-items: center;
   color: #c2607a;
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   line-height: 1;
   margin-bottom: 0.6rem;
@@ -6533,14 +6535,14 @@ a.card-category:hover {
 
 .home-lead h1 {
   font-size: 2rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.08;
   letter-spacing: -0.02em;
   margin: 0 0 1rem;
 }
 
 .home-lead p {
-  font-size: 1.02rem;
+  font-size: 1rem;
   line-height: 1.6;
   color: #444;
   margin: 0 0 0.9rem;
@@ -6609,7 +6611,7 @@ a.card-category:hover {
   }
 
   .home-lead-kicker {
-    font-size: 3rem;
+    font-size: 2rem;
     margin-bottom: 0.9rem;
   }
 
@@ -6619,7 +6621,6 @@ a.card-category:hover {
   }
 
   .home-lead p {
-    font-size: 1.15rem;
     -webkit-line-clamp: 2;
   }
 }
@@ -6775,24 +6776,17 @@ a.card-category:hover {
   text-decoration: underline;
 }
 
-.post-list-four-column {
-  grid-template-columns: repeat(2, 1fr);
-}
-
-@media (min-width: 1024px) {
-  .post-list.post-list-four-column {
-    grid-template-columns: repeat(4, 1fr);
+/* Homepage More latest: 3 cards (see moreLatest in app/page.tsx) —
+   3 across from tablet up, 1 column on mobile. */
+@media (min-width: 760px) {
+  .post-list.post-list-three-column {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-/* Mobile only (tablet keeps the 2x2 of all 4): 1 column of 3 cards. */
 @media (max-width: 759px) {
-  .post-list.post-list-four-column {
+  .post-list.post-list-three-column {
     grid-template-columns: 1fr;
-  }
-
-  .post-list.post-list-four-column li:nth-child(4) {
-    display: none;
   }
 }
 

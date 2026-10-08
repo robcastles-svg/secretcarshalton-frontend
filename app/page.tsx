@@ -145,8 +145,8 @@ export default async function HomePage() {
       : undefined);
   const leadTheme = lead.tags?.map((id) => tagsById.get(id)).find(Boolean)?.name;
 
-  // More latest: the 4 newest posts from any category, excluding the lead.
-  const moreLatest = recentPosts.filter((p) => p.id !== lead.id).slice(0, 4);
+  // More latest: the 3 newest posts from any category, excluding the lead.
+  const moreLatest = recentPosts.filter((p) => p.id !== lead.id).slice(0, 3);
 
   // Most read this week — sc-post-views gives post_id/slug/title/views,
   // no image or excerpt, so the 60px thumbnails and 2-line intros are a
@@ -233,7 +233,10 @@ export default async function HomePage() {
           zooms the photo and darkens the button together. */}
       <Link href={`/${lead.slug}`} className="home-lead">
         <div className="home-lead-text">
-          <div className="home-lead-kicker">Latest</div>
+          <div className="home-lead-kicker">
+            Latest
+            <CategoryKeyIcon />
+          </div>
           <h1 dangerouslySetInnerHTML={{ __html: lead.title.rendered }} />
           <p>{stripHtml(lead.excerpt.rendered)}</p>
           <div className="home-lead-meta">
@@ -275,7 +278,7 @@ export default async function HomePage() {
               items={moreLatest}
               categoriesById={categoriesById}
               tagsById={tagsById}
-              className="post-list-four-column"
+              className="post-list-three-column"
             />
           </div>
         </div>
