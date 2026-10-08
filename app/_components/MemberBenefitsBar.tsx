@@ -18,7 +18,7 @@ export async function MemberBenefitsBar() {
   return (
     <div className={`member-benefits-bar${sessionToken ? " member-benefits-bar-loggedin" : ""}`}>
       <Link href={sessionToken ? "/dashboard" : "/register"} className="container member-benefits-inner">
-        {sessionToken ? "Member dashboard" : "Member benefits"}
+        {sessionToken ? "Member dashboard" : "Become a member"}
       </Link>
     </div>
   );
