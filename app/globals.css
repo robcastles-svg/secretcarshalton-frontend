@@ -6631,6 +6631,7 @@ a.card-category:hover {
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  text-align: center;
   padding-bottom: 0.6rem;
 }
 
@@ -6773,6 +6774,12 @@ a.card-category:hover {
   color: #c2607a;
   font-size: 1.5rem;
   line-height: 1;
+}
+
+/* Key sits a little closer to the word than the site-wide 0.4em. */
+.home-lead-kicker .category-key-icon,
+.home-section-title .category-key-icon {
+  margin-left: 0.25em;
 }
 
 @media (min-width: 900px) {
@@ -7187,6 +7194,13 @@ a.card-category:hover {
 .home-comment-byline {
   font-size: 0.85rem;
   color: #777;
+}
+
+.home-comment-date {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: #999;
 }
 
 .home-comment-author {

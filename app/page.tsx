@@ -220,6 +220,10 @@ export default async function HomePage() {
       authorSlug: profile?.slug,
       articleSlug: c.postSlug,
       articleTitle: stripHtml(c.postTitle),
+      // Formatted here on the server so the client component can't render
+      // a different day from the server's in another timezone.
+      date: c.date,
+      dateLabel: new Date(c.date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
     };
   });
 
@@ -250,7 +254,7 @@ export default async function HomePage() {
               .filter(Boolean)
               .flatMap((part, i) => (i === 0 ? [part] : [<span key={`sep${i}`}> / </span>, part]))}
           </div>
-          <span className="home-lead-button">Read more</span>
+          <span className="home-lead-button">Read more →</span>
         </div>
         {leadImage && (
           <div className="home-lead-image">
