@@ -12,6 +12,8 @@ export interface HomeCommentItem {
   authorSlug?: string;
   articleSlug: string;
   articleTitle: string;
+  date: string;
+  dateLabel: string;
 }
 
 /**
@@ -52,6 +54,9 @@ export function HomeComments({ comments, isLoggedIn }: { comments: HomeCommentIt
                 {" "}
                 on <Link href={`/${c.articleSlug}`}>{c.articleTitle}</Link>
               </span>
+              <time className="home-comment-date" dateTime={c.date}>
+                {c.dateLabel}
+              </time>
             </div>
           </li>
         ))}

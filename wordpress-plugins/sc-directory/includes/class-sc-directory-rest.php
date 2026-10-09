@@ -16,11 +16,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class SC_Directory_REST {
 
-	/** Plan-gated limits — mirrors the old Sabai paid-plan add-on caps, minus the multi-location/leads add-ons Rob doesn't want rebuilt. */
+	/**
+	 * Every listing gets one category and up to three photos, free or
+	 * paid (Rob, 2026-10) — Featured buys placement, not a bigger
+	 * profile. Kept as separate free/paid constants so the two can
+	 * diverge again without touching every caller.
+	 */
 	const FREE_CATEGORY_LIMIT = 1;
-	const PAID_CATEGORY_LIMIT = 3;
+	const PAID_CATEGORY_LIMIT = 1;
 	const FREE_PHOTO_LIMIT    = 3;
-	const PAID_PHOTO_LIMIT    = 10;
+	const PAID_PHOTO_LIMIT    = 3;
 
 	public static function register_routes() {
 		register_rest_route(
@@ -641,6 +646,17 @@ class SC_Directory_REST {
 
 		$gallery = array_values( array_diff( array_map( 'intval', $gallery ), array( $attachment_id ) ) );
 		update_post_meta( $post_id, 'sc_gallery', $gallery );
+
+		// The cover image is always the first gallery photo — removing it
+		// promotes the next one, rather than leaving the listing showing a
+		// deleted photo (or nothing) on cards.
+		if ( (int) get_post_thumbnail_id( $post_id ) === $attachment_id ) {
+			if ( $gallery ) {
+				set_post_thumbnail( $post_id, $gallery[0] );
+			} else {
+				delete_post_thumbnail( $post_id );
+			}
+		}
 		wp_delete_attachment( $attachment_id, true );
 
 		return array( 'gallery' => $gallery );

@@ -4,9 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { WPDirectoryCategory, WPListingGalleryImage } from "@/lib/wordpress";
 
-/** Mirrors SC_Directory_REST's FREE_CATEGORY_LIMIT/PAID_CATEGORY_LIMIT/FREE_PHOTO_LIMIT/PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap. */
-const CATEGORY_LIMIT: Record<string, number> = { free: 1, paid: 3 };
-const PHOTO_LIMIT: Record<string, number> = { free: 3, paid: 10 };
+/** Mirrors SC_Directory_REST's PHOTO_LIMIT — advisory only, the server enforces the real cap. Every listing has one category (a single dropdown) and up to 3 photos, whatever its plan. */
+const PHOTO_LIMIT = 3;
 
 export interface EditListingInitial {
   title: string;
@@ -53,7 +52,7 @@ export function EditListingForm({
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(initial.categories);
+  const [selectedCategory, setSelectedCategory] = useState(initial.categories[0] ?? "");
   const [currentGallery, setCurrentGallery] = useState(gallery);
   const [newPhotos, setNewPhotos] = useState<File[]>([]);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -63,8 +62,7 @@ export function EditListingForm({
   const [renewError, setRenewError] = useState<string | null>(null);
   const [claimExpiresAt, setClaimExpiresAt] = useState(initial.claimExpiresAt);
 
-  const categoryLimit = CATEGORY_LIMIT[initial.plan] ?? CATEGORY_LIMIT.free;
-  const photoLimit = PHOTO_LIMIT[initial.plan] ?? PHOTO_LIMIT.free;
+  const photoLimit = PHOTO_LIMIT;
 
   // router.refresh() (used after a photo upload) re-runs the server
   // component and passes a new `gallery` prop, but doesn't remount this
@@ -74,21 +72,13 @@ export function EditListingForm({
     setCurrentGallery(gallery);
   }, [gallery]);
 
-  function toggleCategory(slug: string) {
-    setSelectedCategories((prev) => {
-      if (prev.includes(slug)) return prev.filter((s) => s !== slug);
-      if (prev.length >= categoryLimit) return prev;
-      return [...prev, slug];
-    });
-  }
-
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
 
     const form = new FormData(e.currentTarget);
-    const data: Record<string, string | string[]> = { categories: selectedCategories };
+    const data: Record<string, string | string[]> = { categories: selectedCategory ? [selectedCategory] : [] };
     for (const key of [
       "title",
       "description",
@@ -186,23 +176,17 @@ export function EditListingForm({
           Business/organisation name
           <input type="text" name="title" defaultValue={initial.title} required />
         </label>
-        <fieldset className="directory-category-fieldset">
-          <legend>
-            Categories ({selectedCategories.length}/{categoryLimit}
-            {categoryLimit === CATEGORY_LIMIT.free && ' — upgrade for more'})
-          </legend>
-          {categories.map((c) => (
-            <label key={c.id} className="directory-category-checkbox">
-              <input
-                type="checkbox"
-                checked={selectedCategories.includes(c.slug)}
-                onChange={() => toggleCategory(c.slug)}
-                disabled={!selectedCategories.includes(c.slug) && selectedCategories.length >= categoryLimit}
-              />
-              {c.name}
-            </label>
-          ))}
-        </fieldset>
+        <label>
+          Category
+          <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+            <option value="">Choose a category…</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.slug}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </label>
         <label>
           Short tagline
           <input type="text" name="tagline" maxLength={140} defaultValue={initial.tagline} placeholder="A one-line summary shown on listing cards" />
@@ -271,6 +255,10 @@ export function EditListingForm({
 
       <div className="directory-gallery-manager">
         <h2>Photos</h2>
+        <p className="auth-hint">
+          Up to {photoLimit} photos, shown as a slider on your listing — the first is your cover image. To swap
+          one, remove it and add the new photo.
+        </p>
         {currentGallery.length > 0 && (
           <ul className="directory-gallery-grid">
             {currentGallery.map((photo) => (
@@ -304,8 +292,7 @@ export function EditListingForm({
           </div>
         ) : (
           <p className="auth-hint">
-            You&apos;ve reached this listing&apos;s photo limit ({photoLimit}
-            {initial.plan === "free" && " — upgrade for more"}).
+            You&apos;ve reached the {photoLimit}-photo limit — remove one to add another.
           </p>
         )}
         {photoError && <p className="auth-error">{photoError}</p>}

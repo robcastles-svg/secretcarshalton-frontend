@@ -30,12 +30,8 @@ import {
 
 export const revalidate = 3600;
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+function formatDayMonth(iso: string) {
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
 }
 
 // Mirrors app/community/page.tsx's own stand-in — the real "Community"
@@ -137,10 +133,20 @@ export default async function HomePage() {
   }
 
   const leadImage = getFeaturedImage(lead);
-  const leadCategory = lead.categories?.map((id) => categoriesById.get(id)).find(Boolean);
+  const leadCategories = (lead.categories ?? []).map((id) => categoriesById.get(id)).filter((c) => c !== undefined);
+  // "Place" on the lead's date line: a Discover story's area (a child of
+  // Stories), otherwise the section itself for News/Walks posts. Left off
+  // entirely when none applies, as is the theme (the first tag).
+  const leadPlace =
+    leadCategories.find((c) => storiesParent && c.parent === storiesParent.id) ??
+    leadCategories.find((c) => c.id === newsCategory?.id) ??
+    (walksCategory && leadCategories.some((c) => c.id === walksCategory.id || c.parent === walksCategory.id)
+      ? walksCategory
+      : undefined);
+  const leadTheme = lead.tags?.map((id) => tagsById.get(id)).find(Boolean);
 
-  // More latest: the 4 newest posts from any category, excluding the lead.
-  const moreLatest = recentPosts.filter((p) => p.id !== lead.id).slice(0, 4);
+  // More latest: the 3 newest posts from any category, excluding the lead.
+  const moreLatest = recentPosts.filter((p) => p.id !== lead.id).slice(0, 3);
 
   // Most read this week — sc-post-views gives post_id/slug/title/views,
   // no image or excerpt, so the 60px thumbnails and 2-line intros are a
@@ -214,6 +220,10 @@ export default async function HomePage() {
       authorSlug: profile?.slug,
       articleSlug: c.postSlug,
       articleTitle: stripHtml(c.postTitle),
+      // Formatted here on the server so the client component can't render
+      // a different day from the server's in another timezone.
+      date: c.date,
+      dateLabel: new Date(c.date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
     };
   });
 
@@ -221,67 +231,68 @@ export default async function HomePage() {
     <main>
       <SponsorStrip sponsors={DUMMY_SPONSORS} />
 
-      <div className="container home-top-grid">
-        <Link href={`/${lead.slug}`} className="home-lead">
-          {leadImage && (
-            <div className="home-lead-image">
-              <img src={leadImage.source_url} alt={leadImage.alt_text} />
-            </div>
-          )}
+      {/* Full-bleed band, not inside .container — the photo runs to the
+          window's right edge on desktop and edge to edge on mobile. The
+          headline, photo and Read more go to the article (the place/theme
+          on the date line link to their own sections); hovering any of
+          the three zooms the photo, turns the headline pink and darkens
+          the button together. */}
+      <div className="home-lead">
+        <div className="home-lead-text">
           <div className="home-lead-kicker">
-            <span>Latest</span>
+            Latest
             <CategoryKeyIcon />
           </div>
-          {leadCategory && <div className="home-lead-meta">{leadCategory.name}</div>}
-          <h1 dangerouslySetInnerHTML={{ __html: lead.title.rendered }} />
+          <h1>
+            <Link href={`/${lead.slug}`} dangerouslySetInnerHTML={{ __html: lead.title.rendered }} />
+          </h1>
           <p>{stripHtml(lead.excerpt.rendered)}</p>
-          <time className="home-lead-date" dateTime={lead.date}>
-            {formatDate(lead.date)}
-          </time>
-        </Link>
-
-        {/* Rendered twice — here (desktop sidebar) and again below More
-            Latest (mobile/tablet) — rather than one instance reordered
-            with CSS, since "move past an entire other section" isn't
-            something a single flex/grid `order` can do once More Latest
-            is a separate full-width band in between. Each copy keeps its
-            own expand/collapse state; CSS shows only one at a time per
-            breakpoint, see .most-read-desktop-slot/.most-read-mobile-slot. */}
-        {mostReadItems.length > 0 && (
-          <div className="most-read-desktop-slot">
-            <MostReadList items={mostReadItems} />
+          <div className="home-lead-meta">
+            {[
+              <time key="date" dateTime={lead.date}>
+                {formatDayMonth(lead.date)}
+              </time>,
+              leadPlace && (
+                <Link key="place" href={categoryHref(leadPlace, categoriesById)}>
+                  {leadPlace.name}
+                </Link>
+              ),
+              leadTheme && (
+                <Link key="theme" href={`/themes/${leadTheme.slug}`}>
+                  {leadTheme.name}
+                </Link>
+              ),
+            ]
+              .filter(Boolean)
+              .flatMap((part, i) => (i === 0 ? [part] : [<span key={`sep${i}`}> / </span>, part]))}
           </div>
+          <Link href={`/${lead.slug}`} className="home-lead-button">
+            Read more →
+          </Link>
+        </div>
+        {leadImage && (
+          <Link href={`/${lead.slug}`} className="home-lead-image" tabIndex={-1} aria-hidden="true">
+            <img src={leadImage.source_url} alt={leadImage.alt_text} />
+          </Link>
         )}
       </div>
 
       {moreLatest.length > 0 && (
         <div className="more-latest-band">
           <div className="container">
-            <div className="home-section-header">
-              <h2>
-                More latest
-                <CategoryKeyIcon />
-              </h2>
-              <div className="more-latest-links">
-                <Link href="/news">More News →</Link>
-                <Link href="/discover">More Discover →</Link>
-                <Link href="/walks">More Walks →</Link>
-                <Link href="/community">More Community →</Link>
-              </div>
-            </div>
             <ContentList
               items={moreLatest}
               categoriesById={categoriesById}
               tagsById={tagsById}
-              className="post-list-four-column"
+              className="post-list-three-column"
             />
+            <div className="more-latest-links more-latest-links-below">
+              <Link href="/news">More News →</Link>
+              <Link href="/discover">More Discover →</Link>
+              <Link href="/walks">More Walks →</Link>
+              <Link href="/community">More Community →</Link>
+            </div>
           </div>
-        </div>
-      )}
-
-      {mostReadItems.length > 0 && (
-        <div className="container most-read-mobile-slot">
-          <MostReadList items={mostReadItems} />
         </div>
       )}
 
@@ -289,7 +300,7 @@ export default async function HomePage() {
         <div className="home-events-band">
           <div className="container">
             <div className="home-section-header">
-              <h2>
+              <h2 className="home-section-title">
                 Events
                 <CategoryKeyIcon />
               </h2>
@@ -355,7 +366,7 @@ export default async function HomePage() {
         <div className="container">
           <section className="home-section">
             <div className="home-section-header">
-              <h2>
+              <h2 className="home-section-title">
                 Walks
                 <CategoryKeyIcon />
               </h2>
@@ -390,7 +401,7 @@ export default async function HomePage() {
           <div className="container home-dir-jobs-grid">
             <div className="home-dir-jobs-col">
               <div className="home-section-header">
-                <h2>
+                <h2 className="home-section-title">
                   Directory
                   <CategoryKeyIcon />
                 </h2>
@@ -443,7 +454,7 @@ export default async function HomePage() {
 
             <div className="home-dir-jobs-col">
               <div className="home-section-header">
-                <h2>
+                <h2 className="home-section-title">
                   Latest jobs
                   <CategoryKeyIcon />
                 </h2>
@@ -504,6 +515,16 @@ export default async function HomePage() {
             </div>
             <HomeComments comments={comments} isLoggedIn={Boolean(sessionToken)} />
           </section>
+        </div>
+      )}
+
+      {/* Below the comments on every screen size — advertisers and current
+          content take priority further up the page. */}
+      {mostReadItems.length > 0 && (
+        <div className="most-read-band">
+          <div className="container">
+            <MostReadList items={mostReadItems} />
+          </div>
         </div>
       )}
 

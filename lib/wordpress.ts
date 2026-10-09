@@ -300,7 +300,7 @@ async function attachCommentCounts(posts: WPContentItem[]): Promise<WPContentIte
 
 export async function getPosts(perPage = 12) {
   const posts = await wpFetch<WPContentItem[]>(
-    `/posts?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,_links&_embed=wp:featuredmedia`
+    `/posts?per_page=${perPage}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,_links&_embed=wp:featuredmedia`
   );
   return attachCommentCounts(posts);
 }

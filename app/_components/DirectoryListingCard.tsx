@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { BookmarkButton } from "@/app/_components/BookmarkButton";
-import { listingSocials } from "@/app/_components/SocialIcons";
 import { getFeaturedImage, stripHtml, type WPDirectoryCategory, type WPListing } from "@/lib/wordpress";
 
 /** The <li> card used both on /directory itself and the homepage's directory section — same markup, one place to keep them in sync. */
@@ -14,7 +13,6 @@ export function DirectoryListingCard({
 }) {
   const image = getFeaturedImage(listing);
   const verified = listing.meta.sc_claimed || listing.meta.sc_verified;
-  const socials = listingSocials(listing.meta);
   const excerpt = listing.meta.sc_tagline || stripHtml(listing.content.rendered).slice(0, 120);
   const reviewCount = listing.sc_review_stats?.count ?? 0;
 
@@ -59,15 +57,6 @@ export function DirectoryListingCard({
         </Link>
       ))}
       <p>{excerpt}</p>
-      {socials.length > 0 && (
-        <div className="directory-card-socials">
-          {socials.map(({ key, url, Icon }) => (
-            <a key={key} href={url} target="_blank" rel="noopener noreferrer" aria-label={key}>
-              <Icon />
-            </a>
-          ))}
-        </div>
-      )}
       <div className="card-meta-row">
         <div className="card-actions">
           {reviewCount > 0 && (
