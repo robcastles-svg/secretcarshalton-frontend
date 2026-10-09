@@ -60,55 +60,59 @@ export default async function JobsPage() {
   const areaJobs = [...featuredMemberJobs, ...apiJobs];
 
   return (
-    <main className="container">
-      <div className="page-header-row">
-        <div>
-          <h1>
-            Jobs Board
-            <CategoryKeyIcon />
-          </h1>
-          <p>Local vacancies from around Carshalton, Sutton and the surrounding area.</p>
+    <>
+      <div className="section-hero">
+        <div className="container page-header-row">
+          <div>
+            <h1>
+              Jobs Board
+              <CategoryKeyIcon />
+            </h1>
+            <p>Local vacancies from around Carshalton, Sutton and the surrounding area.</p>
+          </div>
+          <Link href="/jobs/manager" className="button-pill">
+            Add a job
+          </Link>
         </div>
-        <Link href="/jobs/manager" className="button-pill">
-          Add a job
-        </Link>
       </div>
 
-      {memberJobs.length > 0 && (
+      <main className="container">
+        {memberJobs.length > 0 && (
+          <section className="home-section">
+            <div className="home-section-header">
+              <h2>Posted locally</h2>
+            </div>
+            <ul className="job-list">
+              {memberJobs.map((job) => (
+                <JobRow key={job.id} job={job} />
+              ))}
+            </ul>
+          </section>
+        )}
+
         <section className="home-section">
           <div className="home-section-header">
-            <h2>Posted locally</h2>
+            <h2>From around the area</h2>
           </div>
-          <ul className="job-list">
-            {memberJobs.map((job) => (
-              <JobRow key={job.id} job={job} />
-            ))}
-          </ul>
-        </section>
-      )}
-
-      <section className="home-section">
-        <div className="home-section-header">
-          <h2>From around the area</h2>
-        </div>
-        <p className="job-external-disclaimer">
-          These listings are pulled in automatically from external job sites (via the Reed API), posted in the
-          last 7 days — Secret Carshalton doesn&apos;t manage or vet them. Click a job to read the details here,
-          then apply on the original site.
-        </p>
-
-        {areaJobs.length === 0 ? (
-          <p className="directory-empty">
-            No jobs posted in the last 7 days — check back soon, this board updates automatically every day.
+          <p className="job-external-disclaimer">
+            These listings are pulled in automatically from external job sites (via the Reed API), posted in the
+            last 7 days — Secret Carshalton doesn&apos;t manage or vet them. Click a job to read the details here,
+            then apply on the original site.
           </p>
-        ) : (
-          <ul className="job-list">
-            {areaJobs.map((job) => (
-              <JobRow key={job.id} job={job} />
-            ))}
-          </ul>
-        )}
-      </section>
-    </main>
+
+          {areaJobs.length === 0 ? (
+            <p className="directory-empty">
+              No jobs posted in the last 7 days — check back soon, this board updates automatically every day.
+            </p>
+          ) : (
+            <ul className="job-list">
+              {areaJobs.map((job) => (
+                <JobRow key={job.id} job={job} />
+              ))}
+            </ul>
+          )}
+        </section>
+      </main>
+    </>
   );
 }
