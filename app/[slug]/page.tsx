@@ -296,6 +296,13 @@ export default async function ContentPage({
       getAd("sidebar", 3),
     ]);
 
+  // The first active sidebar ad leads above the comments; the rest
+  // follow them (deduped by id, as SidebarAds itself does).
+  const leadAd = [sidebarAd1, sidebarAd2, sidebarAd3].find((ad) => ad !== null) ?? null;
+  const restAds = [sidebarAd1, sidebarAd2, sidebarAd3].filter(
+    (ad): ad is NonNullable<typeof ad> => ad !== null && ad.id !== leadAd?.id
+  );
+
   // The viewer's own session (cookies()) isn't fetched here — see
   // CommentSectionAsync's docblock for why that has to be isolated behind
   // its own <Suspense> boundary rather than read directly in this page.
@@ -452,16 +459,23 @@ export default async function ContentPage({
             </div>
           )}
 
-          {comments.length > 0 && (
-            <div className="sidebar-block">
-              <h3>Latest comments</h3>
-              <Suspense fallback={<HomeComments comments={comments} isLoggedIn={false} stacked />}>
-                <HomeCommentsAsync comments={comments} stacked />
-              </Suspense>
-            </div>
-          )}
+          {/* On desktop the first ad sits above Latest comments so it isn't
+              lost below them; on mobile (aside stacked under the article)
+              CSS puts the comments back first, ahead of all three ads. */}
+          <div className="sidebar-comments-and-ads">
+            {leadAd && <SidebarAds ads={[leadAd]} />}
 
-          <SidebarAds ads={[sidebarAd1, sidebarAd2, sidebarAd3]} />
+            {comments.length > 0 && (
+              <div className="sidebar-block sidebar-comments">
+                <h3>Latest comments</h3>
+                <Suspense fallback={<HomeComments comments={comments} isLoggedIn={false} stacked />}>
+                  <HomeCommentsAsync comments={comments} stacked />
+                </Suspense>
+              </div>
+            )}
+
+            {(!leadAd || restAds.length > 0) && <SidebarAds ads={restAds} />}
+          </div>
 
           {allTags.length > 0 && (
             <div className="sidebar-block">

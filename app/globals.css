@@ -3043,6 +3043,21 @@ a.card-category:hover {
   gap: 2rem;
 }
 
+/* Post sidebar: lead ad, Latest comments, remaining ads — in that order
+   on desktop. Below 861px (aside stacked under the article) the comments
+   move back ahead of all the ads. */
+.sidebar-comments-and-ads {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (max-width: 860px) {
+  .sidebar-comments-and-ads .sidebar-comments {
+    order: -1;
+  }
+}
+
 /* A thin, light vertical rule to the left of the sidebar, differentiating
    it from the main content column — site-wide, any page using
    .post-sidebar inside .post-layout (Discover, Stories, Walks, Themes,
