@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  allowedDevOrigins: ["127.0.0.1"],
   images: {
     // Foundation for a future next/image conversion — not switched over
     // yet since it needs visual QA this sandbox can't do (no browser, no

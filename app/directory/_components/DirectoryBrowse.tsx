@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
+import { MasonryGrid } from "@/app/_components/MasonryGrid";
 import { Pagination } from "@/app/_components/Pagination";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { DirectoryControls } from "./DirectoryControls";
@@ -90,29 +91,31 @@ export async function DirectoryBrowse({
     .filter((l) => matchesQuery(l, q))
     .filter((l) => !groupsCategory || !l.sc_listing_category?.includes(groupsCategory.id));
 
-  // Featured listings get their own row above the rest, back to a plain
-  // row-based grid rather than merged into .directory-list's masonry —
-  // tried merging them in (sorted first into one shared masonry list) so
-  // they'd sit nearer the rest of the page, but CSS multi-column masonry
-  // fills one column fully top-to-bottom before starting the next, so
-  // "sorted first" only ever guaranteed the top of *column 1* — with real
-  // data (3+ featured, or regular listings of uneven height) they stop
-  // landing "across the top" at all, which is what Rob actually wants.
-  // No extra margin below this row — the masonry grid picks up directly
-  // after, same gap as between any other pair of cards, so it still
-  // reads as nearer than a large separated block.
+  // Featured and regular listings used to render as two separate grids —
+  // a plain row above a CSS-columns masonry below — because CSS
+  // column-count fills one column fully before starting the next, so
+  // sorting featured first into one shared masonry list just piled every
+  // featured card into column 1 before column 2 got anything. MasonryGrid
+  // (true shortest-column placement, like the legacy Sabai directory's
+  // own JS masonry) doesn't have that failure mode, so featured and
+  // regular now feed into one combined list and one grid — featured
+  // still sorted first so they're seen early, but shortest-column
+  // placement naturally spreads them across both columns instead of
+  // stacking them in the left one.
   const featuredListings = sortListings(filteredListings.filter((l) => l.meta.sc_featured), sort);
   const regularListings = sortListings(filteredListings.filter((l) => !l.meta.sc_featured), sort);
 
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
-  // An even page size, not the shared PAGE_SIZE (9) every other section
-  // uses — .directory-list's masonry is CSS column-count, which fills
-  // one column completely before starting the next rather than true
-  // shortest-column placement, so an odd item count on a full page
-  // reliably left one column visibly longer than the other. This can't
-  // fix a partial final page (a category total that isn't itself even),
-  // but it does mean every *full* page balances evenly.
+  // 8, not the shared PAGE_SIZE (10) every other section uses — no longer
+  // load-bearing for column balance now that MasonryGrid does true
+  // shortest-column placement (odd counts balance fine), just the count
+  // Rob's settled on for this page specifically.
   const { items: pageListings, page, totalPages } = paginate(regularListings, parsePageParam(rawPage), 8);
+  // Featured listings aren't paginated — the full set shows on every page
+  // (a paid promotion that only appeared on page 1 wouldn't be worth much)
+  // — concatenated ahead of this page's regular listings into the one
+  // list MasonryGrid packs.
+  const combinedListings = [...featuredListings, ...pageListings];
 
   const buildPageHref = (p: number) => {
     const params = new URLSearchParams();
@@ -181,9 +184,9 @@ export async function DirectoryBrowse({
             </p>
           ) : (
             <>
-              {featuredListings.length > 0 && (
-                <ul className="post-list post-list-two-column directory-featured-list">
-                  {featuredListings.map((listing) => (
+              {combinedListings.length > 0 && (
+                <MasonryGrid>
+                  {combinedListings.map((listing) => (
                     <DirectoryListingCard
                       key={listing.id}
                       listing={listing}
@@ -194,23 +197,7 @@ export async function DirectoryBrowse({
                       }
                     />
                   ))}
-                </ul>
-              )}
-
-              {pageListings.length > 0 && (
-                <ul className="post-list directory-list">
-                  {pageListings.map((listing) => (
-                    <DirectoryListingCard
-                      key={listing.id}
-                      listing={listing}
-                      categoriesList={
-                        listing.sc_listing_category
-                          ?.map((id) => categoriesById.get(id))
-                          .filter((c): c is (typeof categories)[number] => Boolean(c))
-                      }
-                    />
-                  ))}
-                </ul>
+                </MasonryGrid>
               )}
 
               <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />

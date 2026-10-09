@@ -1,23 +1,31 @@
+import { forwardRef } from "react";
 import Link from "next/link";
 import { BookmarkButton } from "@/app/_components/BookmarkButton";
 import { getFeaturedImage, stripHtml, type WPDirectoryCategory, type WPListing } from "@/lib/wordpress";
 
-/** The <li> card used both on /directory itself and the homepage's directory section — same markup, one place to keep them in sync. */
-export function DirectoryListingCard({
-  listing,
-  categoriesList,
-}: {
-  listing: WPListing;
-  /** Only passed on /directory's category pages — the homepage's 3-latest grid doesn't show it. All matched categories, not just one — a listing can belong to more than one. */
-  categoriesList?: WPDirectoryCategory[];
-}) {
+/**
+ * The <li> card used both on /directory itself and the homepage's directory
+ * section — same markup, one place to keep them in sync. forwardRef + the
+ * optional style prop exist for MasonryGrid, which needs a direct ref to
+ * the rendered <li> to measure it and position it absolutely — nothing
+ * else here passes either, so it's a no-op for every other caller.
+ */
+export const DirectoryListingCard = forwardRef<
+  HTMLLIElement,
+  {
+    listing: WPListing;
+    /** Only passed on /directory's category pages — the homepage's 3-latest grid doesn't show it. All matched categories, not just one — a listing can belong to more than one. */
+    categoriesList?: WPDirectoryCategory[];
+    style?: React.CSSProperties;
+  }
+>(function DirectoryListingCard({ listing, categoriesList, style }, ref) {
   const image = getFeaturedImage(listing);
   const verified = listing.meta.sc_claimed || listing.meta.sc_verified;
   const excerpt = listing.meta.sc_tagline || stripHtml(listing.content.rendered).slice(0, 120);
   const reviewCount = listing.sc_review_stats?.count ?? 0;
 
   return (
-    <li className={listing.meta.sc_featured ? "directory-card-featured" : undefined}>
+    <li ref={ref} style={style} className={listing.meta.sc_featured ? "directory-card-featured" : undefined}>
       {/*
        * Image and title as two separate links (both to the same listing),
        * not one wrapping both — matches PostListCard's own pattern (see
@@ -76,4 +84,4 @@ export function DirectoryListingCard({
       </div>
     </li>
   );
-}
+});

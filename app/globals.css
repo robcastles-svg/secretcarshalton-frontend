@@ -4913,45 +4913,20 @@ a.card-category:hover {
   height: 28px;
 }
 
-/* Masonry layout for the directory's category grids on desktop — cards of
-   very different heights (a long description vs. none, social icons vs.
-   not) left tall gaps under short cards in the plain grid. CSS columns
-   isn't true masonry (items flow down each column before wrapping to the
-   next, not strictly by shortest-column), but it's the simplest approach
-   that needs no JS and packs the same way visually. Desktop only — a
-   single mobile column has nothing to pack.
-   column-fill: balance (the spec default, but set explicitly since it's
-   load-bearing here) asks the browser to equalise total column height
-   rather than just filling column 1 first — the best a CSS-only masonry
-   can do for an odd item count; DirectoryBrowse's own 8-per-page (even,
-   not the shared 9) keeps every *full* page genuinely even besides. */
-@media (min-width: 861px) {
-  .directory-list {
-    display: block;
-    column-count: 2;
-    column-gap: 2rem;
-    column-fill: balance;
-  }
+/* .directory-list's actual masonry positioning is now JS (MasonryGrid,
+   true shortest-column placement) rather than CSS column-count — see
+   that component's own docblock for why. No CSS layout rule needed here
+   any more; MasonryGrid sets position/top/left/width inline per card
+   once it's measured them, and falls back to plain document flow (this
+   class contributes no styling of its own below the breakpoint, or
+   before that first measurement pass) rather than a second layout
+   system to keep in sync with the JS one. */
 
-  .directory-list li {
-    display: inline-block;
-    width: 100%;
-    break-inside: avoid;
-    margin-bottom: 2rem;
-  }
-}
-
-/* .directory-featured-list — a plain, non-masonry row for featured cards,
-   above .directory-list's own masonry grid (used both by DirectoryBrowse's
-   category pages and /community/groups' featured-group row). Deliberately
-   NOT merged into the masonry grid below: .directory-list's column-count
-   layout fills one column top-to-bottom before starting the next, so
-   featured-first sorting into that *same* masonry list only ever
-   guarantees the top of column 1, not across the top of the page — tried
-   that, Rob confirmed featured cards ended up stuck in the left column
-   with real data. This plain grid is the only way to actually guarantee
-   "featured along the top." No extra margin below it — the masonry grid
-   picks up directly after, same gap as between any other pair of cards. */
+/* .directory-featured-list — a plain, non-masonry row for featured cards.
+   DirectoryBrowse itself doesn't use this any more (its featured and
+   regular listings now feed into one MasonryGrid together, see that
+   file), but /community/groups' own featured-group row still does — a
+   simple, un-paginated list with no masonry needed. */
 
 @media (max-width: 720px) {
   /* The image is the first thing in the card with nothing above it, so
