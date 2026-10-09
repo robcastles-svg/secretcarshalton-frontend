@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
-import { HomeComments, type HomeCommentItem } from "@/app/_components/home/HomeComments";
+import { HomeComments } from "@/app/_components/home/HomeComments";
+import { getLatestCommentItems } from "@/app/_components/home/latestComments";
 import { HomeFeaturedEvent } from "@/app/_components/home/HomeFeaturedEvent";
 import { MostReadList, type MostReadItem } from "@/app/_components/home/MostReadList";
 import { ReelsSlider } from "@/app/_components/home/ReelsSlider";
@@ -16,9 +17,7 @@ import {
   getFeaturedImage,
   getFeaturedImagesForPosts,
   getJobListings,
-  getLatestComments,
   getLatestPostsInCategories,
-  getMembersByIds,
   getPosts,
   getTags,
   getTopPostsThisWeek,
@@ -85,7 +84,7 @@ export default async function HomePage() {
     directoryListings,
     jobListings,
     topThisWeek,
-    rawComments,
+    comments,
     events,
     sessionToken,
   ] = await Promise.all([
@@ -99,7 +98,7 @@ export default async function HomePage() {
     getDirectoryListings(30).catch(() => []),
     getJobListings(30).catch(() => []),
     getTopPostsThisWeek(10).catch(() => []),
-    getLatestComments(3).catch(() => []),
+    getLatestCommentItems(3),
     getUpcomingScEvents(20).catch(() => []),
     getSessionToken(),
   ]);
@@ -203,29 +202,6 @@ export default async function HomePage() {
   // it's already a plain list either way.
   const featuredJob = jobListings.find((j) => j.meta.featured) ?? null;
   const latestJobs = jobListings.filter((j) => j.id !== featuredJob?.id).slice(0, 3);
-
-  // Comments: resolve each commenter's public profile (for the member-bio
-  // link) the same way CommentSectionAsync does, via a batch id lookup.
-  const commenterProfiles = await getMembersByIds(rawComments.map((c) => c.author ?? 0)).catch(
-    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
-  );
-  const comments: HomeCommentItem[] = rawComments.map((c) => {
-    const profile = c.author ? commenterProfiles.get(c.author) : undefined;
-    const postPath = c.link ? new URL(c.link).pathname : `/${c.postSlug}`;
-    return {
-      id: c.id,
-      text: stripHtml(c.content.rendered),
-      commentLink: postPath,
-      authorName: profile?.name ?? c.author_name,
-      authorSlug: profile?.slug,
-      articleSlug: c.postSlug,
-      articleTitle: stripHtml(c.postTitle),
-      // Formatted here on the server so the client component can't render
-      // a different day from the server's in another timezone.
-      date: c.date,
-      dateLabel: new Date(c.date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
-    };
-  });
 
   return (
     <main>

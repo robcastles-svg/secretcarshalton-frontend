@@ -7,6 +7,9 @@ import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
 import { AdSlot } from "@/app/_components/AdSlot";
 import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSectionAsync } from "@/app/_components/CommentSectionAsync";
+import { HomeComments } from "@/app/_components/home/HomeComments";
+import { HomeCommentsAsync } from "@/app/_components/home/HomeCommentsAsync";
+import { getLatestCommentItems } from "@/app/_components/home/latestComments";
 import { ContentList } from "@/app/_components/ContentList";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { SidebarAds } from "@/app/_components/SidebarAds";
@@ -277,7 +280,8 @@ export default async function ContentPage({
     await Promise.all([
       getCategories().catch(() => []),
       getTags().catch(() => []),
-      getCommentsForPost(post.id, 3).catch(() => []),
+      // Site-wide, not this post's — its own comments are already below.
+      getLatestCommentItems(3),
       getCommentsForPost(post.id, 50).catch(() => []),
       getPostViewCount(post.id),
       // +1: the current post is filtered out below, so ask for one extra
@@ -450,15 +454,10 @@ export default async function ContentPage({
 
           {comments.length > 0 && (
             <div className="sidebar-block">
-              <h3>Recent comments</h3>
-              <ul className="sidebar-comment-list">
-                {comments.map((c) => (
-                  <li key={c.id}>
-                    <strong>{c.author_name}</strong>
-                    <p>{stripHtml(c.content.rendered)}</p>
-                  </li>
-                ))}
-              </ul>
+              <h3>Latest comments</h3>
+              <Suspense fallback={<HomeComments comments={comments} isLoggedIn={false} stacked />}>
+                <HomeCommentsAsync comments={comments} stacked />
+              </Suspense>
             </div>
           )}
 

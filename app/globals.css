@@ -3187,19 +3187,6 @@ a.card-category:hover {
   border-top: 1px solid #eee;
 }
 
-.sidebar-comment-list {
-  list-style: none;
-  padding: 0;
-  display: grid;
-  gap: 0.75rem;
-}
-
-.sidebar-comment-list p {
-  margin: 0.2rem 0 0;
-  color: #555;
-  font-size: 0.9rem;
-}
-
 .sidebar-ad {
   display: block;
   background: #fdf1f4;
@@ -7294,6 +7281,28 @@ a.card-category:hover {
     border-top: none;
     padding-top: 0;
   }
+}
+
+/* Same comments, one column — the post sidebar's "Latest comments".
+   Mirrors the mobile layout above at every width. */
+.home-comments-stacked {
+  grid-template-columns: 1fr;
+  margin-top: 0;
+}
+
+.home-comments-stacked li {
+  border-left: none;
+  padding: 1.25rem 0;
+  border-top: 1px solid #eee;
+}
+
+.home-comments-stacked li:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.home-comments-stacked li:last-child {
+  padding-bottom: 0;
 }
 
 /* Reels & photos */
