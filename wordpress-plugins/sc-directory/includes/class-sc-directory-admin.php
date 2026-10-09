@@ -34,6 +34,22 @@ class SC_Directory_Admin {
 		);
 	}
 
+	/**
+	 * The classic post-edit form doesn't set enctype="multipart/form-data"
+	 * by default — core has no reason to, since the Featured Image box
+	 * uploads via its own AJAX media frame, not a form submission. Without
+	 * this, the browser submits the logo field as plain
+	 * application/x-www-form-urlencoded, which can't carry file content at
+	 * all, so it silently never reaches $_FILES. Scoped to this post type
+	 * rather than added globally since it's only our own meta box that
+	 * needs it.
+	 */
+	public static function add_multipart_enctype( $post ) {
+		if ( $post && SC_Directory_CPT::POST_TYPE === $post->post_type ) {
+			echo ' enctype="multipart/form-data"';
+		}
+	}
+
 	public static function render_details_meta_box( $post ) {
 		wp_nonce_field( 'sc_directory_save_details', 'sc_directory_details_nonce' );
 		$tagline        = get_post_meta( $post->ID, 'sc_tagline', true );
