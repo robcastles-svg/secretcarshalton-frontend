@@ -238,6 +238,77 @@ export function CommentSection({
     setSubmitting(false);
   }
 
+  // Replies nest under the comment they answer, oldest first so a
+  // conversation reads top to bottom; top-level comments stay newest
+  // first. A reply whose parent isn't in this thread (unapproved or
+  // beyond the fetch limit) shows at the top level rather than vanishing.
+  const threadIds = new Set(thread.map((c) => c.id));
+  const repliesByParent = new Map<number, WPComment[]>();
+  const topLevel: WPComment[] = [];
+  for (const c of thread) {
+    if (c.parent && threadIds.has(c.parent)) {
+      repliesByParent.set(c.parent, [...(repliesByParent.get(c.parent) ?? []), c]);
+    } else {
+      topLevel.push(c);
+    }
+  }
+  repliesByParent.forEach((replies) => replies.sort((a, b) => a.date.localeCompare(b.date)));
+
+  function renderComment(c: WPComment) {
+    const replies = repliesByParent.get(c.id) ?? [];
+    const profile = c.author ? commenterProfiles?.get(c.author) : undefined;
+    const isOwn = Boolean(currentUserId && c.author === currentUserId);
+    const canEdit = isOwn && withinEditWindow(c.date);
+
+    if (editingId === c.id) {
+      return (
+        <EditCommentForm
+          key={c.id}
+          comment={c}
+          isReview={isReview}
+          noun={noun}
+          onCancel={() => setEditingId(null)}
+          onSaved={(pendingMessage) => {
+            setEditingId(null);
+            setThread((prev) => prev.filter((item) => item.id !== c.id));
+            setPendingNotice(pendingMessage);
+          }}
+        />
+      );
+    }
+
+    return (
+      <li key={c.id}>
+        {profile ? (
+          <Link href={`/members/${profile.slug}`} className="comment-author-link">
+            <img src={profile.avatar} alt="" className="comment-author-icon" loading="lazy" />
+            <strong>{profile.name}</strong>
+          </Link>
+        ) : (
+          <strong>{c.author_name}</strong>
+        )}
+        <time dateTime={c.date}>{formatDate(c.date)}</time>
+        {isReview && typeof c.rating === "number" && <StarRatingDisplay rating={c.rating} />}
+        <div dangerouslySetInnerHTML={{ __html: c.content.rendered }} />
+        <div className="comment-actions-row">
+          <CommentVoteButton
+            commentId={c.id}
+            initialCount={c.vote_count ?? 0}
+            initialVoted={votedSet.has(c.id)}
+            isLoggedIn={isLoggedIn}
+            onRequireLogin={() => setShowLoginModal(true)}
+          />
+          {canEdit && (
+            <button type="button" className="comment-edit-link" onClick={() => setEditingId(c.id)}>
+              Edit
+            </button>
+          )}
+        </div>
+        {replies.length > 0 && <ul className="comment-replies">{replies.map(renderComment)}</ul>}
+      </li>
+    );
+  }
+
   return (
     <div className="comment-section" id="comments">
       <div className="comment-section-header">
@@ -323,62 +394,7 @@ export function CommentSection({
         {thread.length} {nounPlural.toUpperCase()}
       </div>
 
-      {thread.length > 0 && (
-        <ul className="comment-thread">
-          {thread.map((c) => {
-            const profile = c.author ? commenterProfiles?.get(c.author) : undefined;
-            const isOwn = Boolean(currentUserId && c.author === currentUserId);
-            const canEdit = isOwn && withinEditWindow(c.date);
-
-            if (editingId === c.id) {
-              return (
-                <EditCommentForm
-                  key={c.id}
-                  comment={c}
-                  isReview={isReview}
-                  noun={noun}
-                  onCancel={() => setEditingId(null)}
-                  onSaved={(pendingMessage) => {
-                    setEditingId(null);
-                    setThread((prev) => prev.filter((item) => item.id !== c.id));
-                    setPendingNotice(pendingMessage);
-                  }}
-                />
-              );
-            }
-
-            return (
-              <li key={c.id}>
-                {profile ? (
-                  <Link href={`/members/${profile.slug}`} className="comment-author-link">
-                    <img src={profile.avatar} alt="" className="comment-author-icon" loading="lazy" />
-                    <strong>{profile.name}</strong>
-                  </Link>
-                ) : (
-                  <strong>{c.author_name}</strong>
-                )}
-                <time dateTime={c.date}>{formatDate(c.date)}</time>
-                {isReview && typeof c.rating === "number" && <StarRatingDisplay rating={c.rating} />}
-                <div dangerouslySetInnerHTML={{ __html: c.content.rendered }} />
-                <div className="comment-actions-row">
-                  <CommentVoteButton
-                    commentId={c.id}
-                    initialCount={c.vote_count ?? 0}
-                    initialVoted={votedSet.has(c.id)}
-                    isLoggedIn={isLoggedIn}
-                    onRequireLogin={() => setShowLoginModal(true)}
-                  />
-                  {canEdit && (
-                    <button type="button" className="comment-edit-link" onClick={() => setEditingId(c.id)}>
-                      Edit
-                    </button>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {topLevel.length > 0 && <ul className="comment-thread">{topLevel.map(renderComment)}</ul>}
     </div>
   );
 }

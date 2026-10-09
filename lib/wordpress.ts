@@ -547,6 +547,9 @@ export interface WPComment {
   // Optional: getLatestComments doesn't request this field (it doesn't
   // need it), so it's only reliably present via getCommentsForPost.
   author?: number;
+  // The comment this one replies to (0 = top level). Only requested by
+  // getCommentsForPost, which CommentSection nests replies with.
+  parent?: number;
   author_name: string;
   content: WPRendered;
   date: string;
@@ -578,7 +581,7 @@ export interface WPComment {
  */
 export async function getCommentsForPost(postId: number, count: number): Promise<WPComment[]> {
   const comments = await scDirectoryFetch<WPComment[]>(
-    `/comments?post=${postId}&per_page=${count}&orderby=date&order=desc&_fields=id,post,author,author_name,content,date,rating,vote_count`
+    `/comments?post=${postId}&per_page=${count}&orderby=date&order=desc&_fields=id,post,parent,author,author_name,content,date,rating,vote_count`
   );
   return comments;
 }
