@@ -166,6 +166,20 @@ class SC_Membership_REST {
 
 		register_rest_route(
 			'sc-membership/v1',
+			'/comments/(?P<id>\d+)/delete',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'delete_comment' ),
+				// delete_comment() does the real (own-comment) check — same
+				// division of labour as /comments/{id}/edit above.
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
 			'/my-comments',
 			array(
 				'methods'             => 'GET',
@@ -727,8 +741,21 @@ class SC_Membership_REST {
 		);
 	}
 
-	/** A week to edit your own comment/review after posting — see update_comment(). */
-	const COMMENT_EDIT_WINDOW = WEEK_IN_SECONDS;
+	/**
+	 * Replies on posts and events are open to any logged-in member; on a
+	 * directory listing only its owner (post_author) — or staff — can
+	 * reply to the reviews, so a review thread stays reviewer + business.
+	 */
+	public static function can_reply_on( $post ) {
+		if ( ! $post ) {
+			return false;
+		}
+		if ( 'sc_listing' !== $post->post_type ) {
+			return true;
+		}
+		$user_id = get_current_user_id();
+		return (int) $post->post_author === $user_id || user_can( $user_id, 'edit_others_posts' );
+	}
 
 	/** 1-5 or null — anything else (0, out of range, non-numeric) is treated as "no rating given". */
 	private static function sanitize_rating( $raw ) {
@@ -777,8 +804,16 @@ class SC_Membership_REST {
 			return new WP_Error( 'empty_comment', 'Comment cannot be empty.', array( 'status' => 400 ) );
 		}
 
-		if ( $parent && ! get_comment( $parent ) ) {
-			return new WP_Error( 'invalid_parent', 'That comment no longer exists.', array( 'status' => 400 ) );
+		if ( $parent ) {
+			$parent_comment = get_comment( $parent );
+			if ( ! $parent_comment || (int) $parent_comment->comment_post_ID !== $post_id ) {
+				return new WP_Error( 'invalid_parent', 'That comment no longer exists.', array( 'status' => 400 ) );
+			}
+			if ( ! self::can_reply_on( get_post( $post_id ) ) ) {
+				return new WP_Error( 'reply_not_allowed', 'Only the listing owner can reply to reviews.', array( 'status' => 403 ) );
+			}
+			// A reply is a reply, not a second review — no star rating.
+			$rating = null;
 		}
 
 		$user = wp_get_current_user();
@@ -850,8 +885,7 @@ class SC_Membership_REST {
 	}
 
 	/**
-	 * Lets a member edit their own comment/review within a week of posting
-	 * — after that the edit window's closed and this just 403s. Editing
+	 * Lets a member edit their own comment/review, any time. Editing
 	 * puts it back into the moderation queue (same as a brand new comment:
 	 * force_pending applies here too) since the content someone's about to
 	 * see has changed, and re-notifies the moderator the same way a fresh
@@ -870,11 +904,6 @@ class SC_Membership_REST {
 
 		if ( (int) $comment->user_id !== get_current_user_id() ) {
 			return new WP_Error( 'not_owner', 'You can only edit your own comments.', array( 'status' => 403 ) );
-		}
-
-		$posted_at = strtotime( $comment->comment_date_gmt . ' UTC' );
-		if ( ! $posted_at || ( time() - $posted_at ) > self::COMMENT_EDIT_WINDOW ) {
-			return new WP_Error( 'edit_window_closed', 'Comments can only be edited within a week of posting.', array( 'status' => 403 ) );
 		}
 
 		if ( '' === $content ) {
@@ -906,6 +935,30 @@ class SC_Membership_REST {
 			'content' => array( 'rendered' => apply_filters( 'comment_text', $comment->comment_content, $comment ) ),
 			'rating'  => $rating,
 		);
+	}
+
+	/**
+	 * Lets a member delete their own comment/review. Trashed rather than
+	 * permanently deleted, so it's recoverable from wp-admin's Comments >
+	 * Trash if it was a mistake. Replies to it stay put — the frontend
+	 * shows a reply whose parent is gone at the top level.
+	 */
+	public static function delete_comment( WP_REST_Request $request ) {
+		$comment_id = (int) $request->get_param( 'id' );
+		$comment    = get_comment( $comment_id );
+		if ( ! $comment ) {
+			return new WP_Error( 'not_found', 'That comment no longer exists.', array( 'status' => 404 ) );
+		}
+
+		if ( (int) $comment->user_id !== get_current_user_id() ) {
+			return new WP_Error( 'not_owner', 'You can only delete your own comments.', array( 'status' => 403 ) );
+		}
+
+		if ( ! wp_trash_comment( $comment_id ) ) {
+			return new WP_Error( 'delete_failed', 'Could not delete that comment — please try again.', array( 'status' => 500 ) );
+		}
+
+		return array( 'deleted' => true, 'id' => $comment_id );
 	}
 
 	/**

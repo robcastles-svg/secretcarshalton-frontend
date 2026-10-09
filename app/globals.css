@@ -3646,6 +3646,15 @@ a.card-category:hover {
   text-decoration: underline;
 }
 
+.comment-delete-link {
+  color: #888;
+}
+
+.comment-reply-form {
+  margin-top: 1rem;
+  max-width: 100%;
+}
+
 .comment-editing {
   border-bottom: 1px solid #eee;
   padding-bottom: 1.5rem;

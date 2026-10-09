@@ -28,6 +28,15 @@ class SC_Membership_Hooks {
 		 */
 		add_action( 'transition_comment_status', array( __CLASS__, 'on_comment_status_transition' ), 10, 3 );
 
+		/*
+		 * Reply emails: transition_comment_status covers a reply approved
+		 * from the moderation queue; comment_post covers one approved the
+		 * moment it's written (a reply posted from wp-admin, which skips
+		 * moderation). maybe_notify_reply() only ever sends once per reply.
+		 */
+		add_action( 'transition_comment_status', array( __CLASS__, 'on_reply_status_transition' ), 10, 3 );
+		add_action( 'comment_post', array( __CLASS__, 'on_reply_posted' ), 10, 2 );
+
 		add_action( 'sc_events_rsvp', array( __CLASS__, 'on_event_rsvp' ), 10, 2 );
 		add_action( 'sc_events_event_claimed', array( __CLASS__, 'on_event_claimed' ), 10, 2 );
 		add_action( 'sc_events_event_submitted', array( __CLASS__, 'on_event_submitted' ), 10, 2 );
@@ -44,6 +53,60 @@ class SC_Membership_Hooks {
 		if ( 'approved' === $new_status && 'approved' !== $old_status && (int) $comment->user_id > 0 ) {
 			sc_membership_award_points( (int) $comment->user_id, 2, 'Left a comment', 'comment' );
 		}
+	}
+
+	public static function on_reply_status_transition( $new_status, $old_status, $comment ) {
+		if ( 'approved' === $new_status && 'approved' !== $old_status ) {
+			self::maybe_notify_reply( $comment );
+		}
+	}
+
+	public static function on_reply_posted( $comment_id, $approved ) {
+		if ( 1 === (int) $approved ) {
+			self::maybe_notify_reply( get_comment( $comment_id ) );
+		}
+	}
+
+	/**
+	 * Emails a member when a reply to their comment goes public. Members
+	 * only (the parent comment has a real user_id) — guest/legacy comments
+	 * never opted in to anything — and never for replying to yourself.
+	 * sc_reply_notified marks the reply so a later unapprove/re-approve
+	 * doesn't send it twice.
+	 */
+	private static function maybe_notify_reply( $reply ) {
+		if ( ! $reply || ! (int) $reply->comment_parent || get_comment_meta( $reply->comment_ID, 'sc_reply_notified', true ) ) {
+			return;
+		}
+
+		$parent = get_comment( $reply->comment_parent );
+		if ( ! $parent || ! (int) $parent->user_id || (int) $parent->user_id === (int) $reply->user_id ) {
+			return;
+		}
+
+		$recipient = get_userdata( (int) $parent->user_id );
+		$post      = get_post( $reply->comment_post_ID );
+		if ( ! $recipient || ! $recipient->user_email || ! $post ) {
+			return;
+		}
+
+		update_comment_meta( $reply->comment_ID, 'sc_reply_notified', 1 );
+
+		$paths = array(
+			'sc_event'   => '/events/',
+			'sc_listing' => '/directory/',
+		);
+		$path  = isset( $paths[ $post->post_type ] ) ? $paths[ $post->post_type ] : '/';
+		$link  = SC_Membership_Auth::FRONTEND_URL . $path . $post->post_name . '#comments';
+		$title = wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES );
+		$who   = $reply->comment_author ? $reply->comment_author : 'Someone';
+		$text  = wp_strip_all_tags( $reply->comment_content );
+
+		wp_mail(
+			$recipient->user_email,
+			"{$who} replied to your comment on \"{$title}\"",
+			"Hi {$recipient->display_name},\n\n{$who} replied to your comment on \"{$title}\":\n\n\"{$text}\"\n\nSee the conversation:\n{$link}\n\n— Secret Carshalton"
+		);
 	}
 
 	public static function on_event_rsvp( $user_id, $event_id ) {

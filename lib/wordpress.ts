@@ -2478,7 +2478,7 @@ export async function submitComment(
   }
 }
 
-/** Editing puts the comment/review back into moderation — see SC_Membership_REST::update_comment's own docblock for why. Only the owner, within a week of posting; the REST route enforces both, this is just the transport. */
+/** Editing puts the comment/review back into moderation — see SC_Membership_REST::update_comment's own docblock for why. Only the owner; the REST route enforces that, this is just the transport. */
 export async function editComment(
   token: string,
   commentId: number,
@@ -2490,6 +2490,24 @@ export async function editComment(
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ content, rating }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Trashes the member's own comment (recoverable from wp-admin) — the REST route enforces ownership, this is just the transport. */
+export async function deleteComment(
+  token: string,
+  commentId: number
+): Promise<{ deleted: true; id: number } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/comments/${commentId}/delete`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });

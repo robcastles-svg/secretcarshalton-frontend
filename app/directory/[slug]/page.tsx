@@ -281,6 +281,7 @@ export default async function DirectoryListingPage({
             currentUserId={profile?.id}
             votedCommentIds={votedCommentIds}
             kind="review"
+            canReply={canEdit}
           />
         </div>
       </div>

@@ -5,18 +5,12 @@ import { useState } from "react";
 import type { WPComment } from "@/lib/wordpress";
 import { LoginModal } from "@/app/_components/LoginModal";
 
-const EDIT_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
-
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
-}
-
-function withinEditWindow(iso: string) {
-  return Date.now() - new Date(iso).getTime() <= EDIT_WINDOW_MS;
 }
 
 /**
@@ -161,6 +155,7 @@ export function CommentSection({
   currentUserId,
   votedCommentIds,
   kind = "comment",
+  canReply,
 }: {
   postId: number;
   comments: WPComment[];
@@ -181,6 +176,11 @@ export function CommentSection({
   // Directory listings get "review" wording + a star rating; posts and
   // events stay plain "comment", no rating.
   kind?: "comment" | "review";
+  // Whether this viewer may reply. Defaults to any logged-in member;
+  // directory listings pass owner-or-staff only (the plugin enforces the
+  // same rule). On comment threads a guest still sees Reply, which opens
+  // the login pop-up; on review threads it's hidden from non-owners.
+  canReply?: boolean;
 }) {
   const isReview = kind === "review";
   const noun = isReview ? "review" : "comment";
@@ -196,6 +196,25 @@ export function CommentSection({
   const [guestPrompt, setGuestPrompt] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [replyingToId, setReplyingToId] = useState<number | null>(null);
+  const [replyNotice, setReplyNotice] = useState<{ parentId: number; message: string } | null>(null);
+  const viewerCanReply = canReply ?? isLoggedIn;
+  const showReplyButton = viewerCanReply || (!isReview && !isLoggedIn);
+
+  async function handleDelete(commentId: number) {
+    if (!window.confirm(`Delete your ${noun}? This can't be undone.`)) return;
+    const res = await fetch("/api/comments/delete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ commentId }),
+    });
+    if (res.ok) {
+      setThread((prev) => prev.filter((item) => item.id !== commentId));
+    } else {
+      const body = await res.json().catch(() => ({}));
+      window.alert(body.error || "Something went wrong — please try again.");
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -258,14 +277,14 @@ export function CommentSection({
     const replies = repliesByParent.get(c.id) ?? [];
     const profile = c.author ? commenterProfiles?.get(c.author) : undefined;
     const isOwn = Boolean(currentUserId && c.author === currentUserId);
-    const canEdit = isOwn && withinEditWindow(c.date);
 
     if (editingId === c.id) {
       return (
         <EditCommentForm
           key={c.id}
           comment={c}
-          isReview={isReview}
+          // A reply on a review thread is plain text — no star rating.
+          isReview={isReview && !c.parent}
           noun={noun}
           onCancel={() => setEditingId(null)}
           onSaved={(pendingMessage) => {
@@ -298,12 +317,43 @@ export function CommentSection({
             isLoggedIn={isLoggedIn}
             onRequireLogin={() => setShowLoginModal(true)}
           />
-          {canEdit && (
-            <button type="button" className="comment-edit-link" onClick={() => setEditingId(c.id)}>
-              Edit
+          {showReplyButton && (
+            <button
+              type="button"
+              className="comment-edit-link"
+              onClick={() => (viewerCanReply ? setReplyingToId(c.id) : setShowLoginModal(true))}
+            >
+              Reply
             </button>
           )}
+          {isOwn && (
+            <>
+              <button type="button" className="comment-edit-link" onClick={() => setEditingId(c.id)}>
+                Edit
+              </button>
+              <button type="button" className="comment-edit-link comment-delete-link" onClick={() => handleDelete(c.id)}>
+                Delete
+              </button>
+            </>
+          )}
         </div>
+        {replyingToId === c.id && (
+          <ReplyForm
+            postId={postId}
+            parentId={c.id}
+            parentAuthor={profile?.name ?? c.author_name}
+            onCancel={() => setReplyingToId(null)}
+            onPosted={(reply) => {
+              setReplyingToId(null);
+              if (reply) {
+                setThread((prev) => [...prev, reply]);
+              } else {
+                setReplyNotice({ parentId: c.id, message: "Thanks — your reply is awaiting moderation." });
+              }
+            }}
+          />
+        )}
+        {replyNotice?.parentId === c.id && <p className="comment-pending-notice">{replyNotice.message}</p>}
         {replies.length > 0 && <ul className="comment-replies">{replies.map(renderComment)}</ul>}
       </li>
     );
@@ -396,6 +446,79 @@ export function CommentSection({
 
       {topLevel.length > 0 && <ul className="comment-thread">{topLevel.map(renderComment)}</ul>}
     </div>
+  );
+}
+
+function ReplyForm({
+  postId,
+  parentId,
+  parentAuthor,
+  onCancel,
+  onPosted,
+}: {
+  postId: number;
+  parentId: number;
+  parentAuthor: string;
+  onCancel: () => void;
+  // The new reply when it went straight up, null when it's awaiting moderation.
+  onPosted: (reply: WPComment | null) => void;
+}) {
+  const [text, setText] = useState("");
+  const [posting, setPosting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!text.trim()) return;
+    setPosting(true);
+    setError(null);
+
+    const res = await fetch("/api/comments/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ postId, content: text.trim(), parent: parentId }),
+    });
+    const body = await res.json().catch(() => ({}));
+
+    if (res.ok) {
+      onPosted(
+        body.status === "approved"
+          ? {
+              id: body.id,
+              post: postId,
+              parent: parentId,
+              author_name: body.author_name,
+              content: body.content,
+              date: body.date,
+            }
+          : null
+      );
+    } else {
+      setError(body.error || "Something went wrong — please try again.");
+      setPosting(false);
+    }
+  }
+
+  return (
+    <form className="comment-form comment-reply-form" onSubmit={handleSubmit}>
+      <textarea
+        rows={3}
+        placeholder={`Reply to ${parentAuthor}…`}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        autoFocus
+        required
+      />
+      {error && <p className="auth-error">{error}</p>}
+      <div className="comment-edit-actions">
+        <button type="submit" className="button-pill button-pill-active" disabled={posting}>
+          {posting ? "Posting…" : "Post reply"}
+        </button>
+        <button type="button" className="comment-edit-cancel" onClick={onCancel} disabled={posting}>
+          Cancel
+        </button>
+      </div>
+    </form>
   );
 }
 
