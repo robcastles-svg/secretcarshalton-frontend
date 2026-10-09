@@ -4,16 +4,33 @@ import { revalidatePath } from "next/cache";
 /**
  * Every WordPress-backed page here caches its fetch()es for up to an hour
  * (see lib/wordpress.ts's REVALIDATE_SECONDS) — good for not hammering
- * staging on every request, bad when Rob wants a change to show up right
- * now instead of within the hour. This forces Next's Data Cache to refetch
- * on the next request to the given path, without waiting out the window.
- * No auth: this only ever triggers a re-fetch of already-public data, so
- * the worst case of someone spamming it is a bit of extra load on
- * staging, not a real vulnerability.
+ * WordPress on every request, bad when Rob wants a change to show up right
+ * now. This forces Next's cache to refetch on the next request instead of
+ * waiting out the window.
+ *
+ * Called automatically by the sc-revalidate WordPress plugin whenever
+ * content is published/updated/deleted there, with { all: true } — a whole
+ * site refresh, since one post can appear on many pages (homepage, its
+ * section, themes, search…) and working out exactly which is fragile.
+ * { path: "/x" } still refreshes a single page for manual use.
+ *
+ * When REVALIDATE_SECRET is set, requests must send it in the
+ * x-revalidate-secret header (the plugin's settings page holds the same
+ * value); without it, the route stays open as before.
  */
 export async function POST(request: NextRequest) {
-  const { path } = await request.json().catch(() => ({ path: "/" }));
-  const target = typeof path === "string" && path.startsWith("/") ? path : "/";
+  const secret = process.env.REVALIDATE_SECRET;
+  if (secret && request.headers.get("x-revalidate-secret") !== secret) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json().catch(() => ({}));
+  if (body?.all === true) {
+    revalidatePath("/", "layout");
+    return NextResponse.json({ revalidated: true, all: true });
+  }
+
+  const target = typeof body?.path === "string" && body.path.startsWith("/") ? body.path : "/";
   revalidatePath(target);
   return NextResponse.json({ revalidated: true, path: target });
 }
