@@ -35,6 +35,23 @@ confirmed yet), that would be a straightforward upgrade to step 2 later.
 | `sc-ads` | live on staging | Admin-manageable ad slots (billboard/leaderboard/sidebar/in-article) — a plain labelled form (image, link, alt text, placement, active toggle, date range), no code editing needed to change a creative. Replaces the hardcoded Billboard/Leaderboard image URLs that were in `app/layout.tsx`.
 | `sc-revalidate` | live on staging | Tells the frontend to refresh its hourly-cached pages the moment content changes (publish/update/unpublish/delete, approved comments, term edits) — calls `/api/revalidate` with `{ all: true }` once per request, non-blocking. Settings → Site refresh holds the frontend URL and the shared secret (Vercel env `REVALIDATE_SECRET`). Blog posts are read from the **live** WordPress, so it needs installing there too before new posts refresh instantly. |
 
+## Directory listings: legacy vs new plans (Rob, 2026-10)
+
+- **Listings from before the new pricing are grandfathered.** They stay on
+  the yearly subscription they originally signed up to (paid by hand via
+  PayPal on the old site) — nothing should expire, charge or remove them
+  for not being on a new plan.
+- **Non-Featured listings display as Standard** (headline, category,
+  address, website). Their photos, description, socials etc. stay saved
+  on the listing and reappear if it goes Featured again — see
+  `app/directory/[slug]/page.tsx`.
+- `sc_plan` records whether a listing is paid; `sc_featured_tier` is only
+  set for the new packages, so a legacy paid Featured listing has
+  `sc_plan = paid` with an empty tier (e.g. Lambert Heating & Renewables).
+  Carshalton Camera Club is Featured for free on purpose (positioning).
+- **New listings** use the new plans on `/advertise` / `lib/pricing.ts`
+  (Standard £2.50/year, Featured packages).
+
 ## Frontend wiring (Next.js side)
 
 - `/login`, `/register`, `/dashboard` — call `app/api/auth/*` routes, which
