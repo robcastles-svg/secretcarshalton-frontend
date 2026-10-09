@@ -22,13 +22,13 @@ export async function CommentSectionAsync({
 }: {
   postId: number;
   comments: WPComment[];
-  commenterProfiles?: Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>;
+  commenterProfiles?: Map<number, { slug: string; name: string; avatar: string; joinedAt: string; tier?: string }>;
   kind?: "comment" | "review";
 }) {
   const sessionToken = await getSessionToken();
-  const [profile, votedCommentIds] = await Promise.all([
+  const [profile, votes] = await Promise.all([
     sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
-    sessionToken ? getVotedCommentIds(sessionToken, comments.map((c) => c.id)) : Promise.resolve([]),
+    sessionToken ? getVotedCommentIds(sessionToken, comments.map((c) => c.id)) : Promise.resolve(null),
   ]);
 
   return (
@@ -38,7 +38,8 @@ export async function CommentSectionAsync({
       isLoggedIn={Boolean(sessionToken)}
       commenterProfiles={commenterProfiles}
       currentUserId={profile?.id}
-      votedCommentIds={votedCommentIds}
+      votedCommentIds={votes?.up}
+      downvotedCommentIds={votes?.down}
       kind={kind}
     />
   );

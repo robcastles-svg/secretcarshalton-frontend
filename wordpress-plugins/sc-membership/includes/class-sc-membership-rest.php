@@ -75,6 +75,20 @@ class SC_Membership_REST {
 			)
 		);
 
+		/** Downvote count — same as vote_count above, for value -1. Always 0 on directory reviews (downvoting is off there). */
+		register_rest_field(
+			'comment',
+			'downvote_count',
+			array(
+				'get_callback' => function ( $comment ) {
+					return SC_Membership_DB::comment_vote_count( $comment['id'], -1 );
+				},
+				'schema'       => array(
+					'type' => 'integer',
+				),
+			)
+		);
+
 		register_rest_route(
 			'sc-membership/v1',
 			'/me',
@@ -515,6 +529,8 @@ class SC_Membership_REST {
 				'name'      => self::clean_display_name( $user->data->display_name ),
 				'avatar'    => get_avatar_url( $user->ID, array( 'size' => 48 ) ),
 				'joined_at' => $member->joined_at,
+				// For the member badge shown next to their name on comments.
+				'tier'      => $member->tier,
 			);
 		}
 		return $result;
@@ -970,15 +986,24 @@ class SC_Membership_REST {
 	 */
 	public static function toggle_comment_vote( WP_REST_Request $request ) {
 		$comment_id = (int) $request->get_param( 'id' );
-		if ( ! get_comment( $comment_id ) ) {
+		$comment    = get_comment( $comment_id );
+		if ( ! $comment ) {
 			return new WP_Error( 'comment_not_found', 'That comment no longer exists.', array( 'status' => 404 ) );
 		}
 
-		$voted = SC_Membership_DB::toggle_comment_vote( get_current_user_id(), $comment_id );
+		// 'up' unless told otherwise, so older callers keep upvoting.
+		$value = 'down' === $request->get_param( 'direction' ) ? -1 : 1;
+		if ( -1 === $value && 'sc_listing' === get_post_type( $comment->comment_post_ID ) ) {
+			return new WP_Error( 'downvote_not_allowed', 'Reviews can only be upvoted.', array( 'status' => 400 ) );
+		}
+
+		$vote = SC_Membership_DB::toggle_comment_vote( get_current_user_id(), $comment_id, $value );
 
 		return array(
-			'voted' => $voted,
-			'count' => SC_Membership_DB::comment_vote_count( $comment_id ),
+			'voted'      => 1 === $vote,
+			'downvoted'  => -1 === $vote,
+			'count'      => SC_Membership_DB::comment_vote_count( $comment_id ),
+			'down_count' => SC_Membership_DB::comment_vote_count( $comment_id, -1 ),
 		);
 	}
 
@@ -990,7 +1015,15 @@ class SC_Membership_REST {
 	 */
 	public static function get_my_comment_votes( WP_REST_Request $request ) {
 		$ids = array_filter( array_map( 'intval', explode( ',', (string) $request->get_param( 'ids' ) ) ) );
-		return array_values( SC_Membership_DB::voted_comment_ids( get_current_user_id(), $ids ) );
+		$up  = array_values( SC_Membership_DB::voted_comment_ids( get_current_user_id(), $ids ) );
+		// Plain array of upvoted ids for older callers; {up, down} when asked.
+		if ( ! $request->get_param( 'with_down' ) ) {
+			return $up;
+		}
+		return array(
+			'up'   => $up,
+			'down' => array_values( SC_Membership_DB::voted_comment_ids( get_current_user_id(), $ids, -1 ) ),
+		);
 	}
 
 	/** post/listing only — the two content types cards render bookmark buttons on. */

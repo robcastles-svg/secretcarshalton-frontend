@@ -564,6 +564,7 @@ export interface WPComment {
   // 'vote_count', ...). Whether *this viewer* has already voted isn't part
   // of this (cached) object at all — see getVotedCommentIds.
   vote_count?: number;
+  downvote_count?: number;
 }
 
 /**
@@ -597,7 +598,7 @@ export async function getCommentsForPost(postId: number, count: number): Promise
  */
 export async function getMembersByIds(
   ids: number[]
-): Promise<Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>> {
+): Promise<Map<number, { slug: string; name: string; avatar: string; joinedAt: string; tier?: string }>> {
   const realIds = Array.from(new Set(ids.filter((id) => id > 0)));
   if (realIds.length === 0) return new Map();
   try {
@@ -607,9 +608,11 @@ export async function getMembersByIds(
       3
     );
     if (!res.ok) return new Map();
-    const members: Array<{ id: number; slug: string; name: string; avatar: string; joined_at: string }> =
+    const members: Array<{ id: number; slug: string; name: string; avatar: string; joined_at: string; tier?: string }> =
       await res.json();
-    return new Map(members.map((m) => [m.id, { slug: m.slug, name: m.name, avatar: m.avatar, joinedAt: m.joined_at }]));
+    return new Map(
+      members.map((m) => [m.id, { slug: m.slug, name: m.name, avatar: m.avatar, joinedAt: m.joined_at, tier: m.tier }])
+    );
   } catch {
     return new Map();
   }
@@ -2520,12 +2523,14 @@ export async function deleteComment(
 /** Not ownership-gated like editComment — any logged-in member can upvote any comment, on their own content or anyone else's. */
 export async function toggleCommentVote(
   token: string,
-  commentId: number
-): Promise<{ voted: boolean; count: number } | MemberAuthError> {
+  commentId: number,
+  direction: "up" | "down" = "up"
+): Promise<{ voted: boolean; downvoted: boolean; count: number; down_count: number } | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/comments/${commentId}/vote`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ direction }),
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });
@@ -2546,19 +2551,38 @@ export async function toggleCommentVote(
  * visitor's vote state leaking into another's cached page. See
  * SC_Membership_REST::get_my_comment_votes's docblock.
  */
-export async function getVotedCommentIds(token: string, commentIds: number[]): Promise<number[]> {
-  if (commentIds.length === 0) return [];
+export async function getVotedCommentIds(
+  token: string,
+  commentIds: number[]
+): Promise<{ up: number[]; down: number[] }> {
+  const none = { up: [], down: [] };
+  if (commentIds.length === 0) return none;
   try {
-    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/comments/voted?ids=${commentIds.join(",")}`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!res.ok) return [];
+    const res = await fetch(
+      `${WP_STAGING_ROOT}/sc-membership/v1/comments/voted?with_down=1&ids=${commentIds.join(",")}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+        signal: AbortSignal.timeout(15_000),
+      }
+    );
+    if (!res.ok) return none;
     return res.json();
   } catch {
-    return [];
+    return none;
   }
+}
+
+/** Which badge shows next to a member's name — keyed by sc-membership tier slug. */
+export const MEMBER_BADGES: Record<string, { src: string; label: string }> = {
+  newcomer: { src: "/badges/member-level1.png", label: "Member" },
+  regular: { src: "/badges/member-advanced.png", label: "Member — Advanced" },
+  local_legend: { src: "/badges/member-expert.png", label: "Member — Expert" },
+  carshalton_champion: { src: "/badges/member-premium.png", label: "Member — Premium" },
+};
+
+export function memberBadge(tier?: string) {
+  return MEMBER_BADGES[tier ?? ""] ?? MEMBER_BADGES.newcomer;
 }
 
 export interface BookmarkState {

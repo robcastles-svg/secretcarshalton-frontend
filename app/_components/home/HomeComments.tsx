@@ -10,6 +10,8 @@ export interface HomeCommentItem {
   commentLink: string;
   authorName: string;
   authorSlug?: string;
+  // Member badge (by tier) shown after a member's name — members only.
+  authorBadge?: { src: string; label: string };
   articleSlug: string;
   articleTitle: string;
   date: string;
@@ -58,6 +60,15 @@ export function HomeComments({
                 )
               ) : (
                 <span className="home-comment-author">{c.authorName}</span>
+              )}
+              {c.authorBadge && (
+                <img
+                  src={c.authorBadge.src}
+                  alt={c.authorBadge.label}
+                  title={c.authorBadge.label}
+                  className="home-comment-badge"
+                  loading="lazy"
+                />
               )}
               <span>
                 {" "}

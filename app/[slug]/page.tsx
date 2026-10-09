@@ -307,7 +307,7 @@ export default async function ContentPage({
   // CommentSectionAsync's docblock for why that has to be isolated behind
   // its own <Suspense> boundary rather than read directly in this page.
   const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
-    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
+    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string; tier?: string }>()
   );
 
   // Mirrors the live site's real in-article ad positions (groups 5 and 7

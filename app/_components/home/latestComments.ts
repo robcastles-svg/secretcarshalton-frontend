@@ -1,5 +1,5 @@
 import type { HomeCommentItem } from "@/app/_components/home/HomeComments";
-import { getLatestComments, getMembersByIds, stripHtml } from "@/lib/wordpress";
+import { getLatestComments, getMembersByIds, memberBadge, stripHtml } from "@/lib/wordpress";
 
 /**
  * The latest comments from across the site, shaped for HomeComments —
@@ -10,7 +10,7 @@ import { getLatestComments, getMembersByIds, stripHtml } from "@/lib/wordpress";
 export async function getLatestCommentItems(count: number): Promise<HomeCommentItem[]> {
   const rawComments = await getLatestComments(count).catch(() => []);
   const commenterProfiles = await getMembersByIds(rawComments.map((c) => c.author ?? 0)).catch(
-    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
+    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string; tier?: string }>()
   );
   return rawComments.map((c) => {
     const profile = c.author ? commenterProfiles.get(c.author) : undefined;
@@ -21,6 +21,7 @@ export async function getLatestCommentItems(count: number): Promise<HomeCommentI
       commentLink: postPath,
       authorName: profile?.name ?? c.author_name,
       authorSlug: profile?.slug,
+      authorBadge: profile ? memberBadge(profile.tier) : undefined,
       articleSlug: c.postSlug,
       articleTitle: stripHtml(c.postTitle),
       // Formatted here on the server so the client component can't render

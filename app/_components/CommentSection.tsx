@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import type { WPComment } from "@/lib/wordpress";
+import { memberBadge, type WPComment } from "@/lib/wordpress";
 import { LoginModal } from "@/app/_components/LoginModal";
 
 function formatDate(iso: string) {
@@ -32,6 +32,24 @@ interface CommenterProfile {
   slug: string;
   name: string;
   avatar: string;
+  tier?: string;
+}
+
+/**
+ * A member's name, linked to their public profile, with their member
+ * badge (by tier) beside it — the badge doubles as their icon unless
+ * they've set a real profile photo, in which case the photo leads.
+ */
+function CommenterName({ profile }: { profile: CommenterProfile }) {
+  const badge = memberBadge(profile.tier);
+  const hasPhoto = !profile.avatar.endsWith("/default-avatar.png");
+  return (
+    <Link href={`/members/${profile.slug}`} className="comment-author-link">
+      {hasPhoto && <img src={profile.avatar} alt="" className="comment-author-icon" loading="lazy" />}
+      <strong>{profile.name}</strong>
+      <img src={badge.src} alt={badge.label} title={badge.label} className="comment-member-badge" loading="lazy" />
+    </Link>
+  );
 }
 
 function StarRatingInput({ value, onChange }: { value: number; onChange: (value: number) => void }) {
@@ -67,31 +85,38 @@ function StarRatingDisplay({ rating }: { rating: number }) {
 }
 
 /**
- * Upvoting isn't restricted to your own content, and any logged-in
+ * Up/down voting isn't restricted to your own content, and any logged-in
  * member can vote on any comment — a guest gets prompted to log in
  * instead (via onRequireLogin, the same LoginModal every other guarded
- * action here uses). Optimistic: toggles immediately, then reconciles
- * with (or reverts to) the server's own count/voted state rather than
- * trusting the optimistic guess once the request actually returns.
+ * action here uses). One vote per member: voting the same way again
+ * removes it, voting the other way switches it. Directory reviews are
+ * upvote-only (allowDown false; the plugin enforces it too). Optimistic:
+ * updates immediately, then reconciles with (or reverts to) the server's
+ * own counts once the request returns.
  */
-function CommentVoteButton({
+function CommentVoteButtons({
   commentId,
-  initialCount,
-  initialVoted,
+  initialUp,
+  initialDown,
+  initialVote,
+  allowDown,
   isLoggedIn,
   onRequireLogin,
 }: {
   commentId: number;
-  initialCount: number;
-  initialVoted: boolean;
+  initialUp: number;
+  initialDown: number;
+  initialVote: "up" | "down" | null;
+  allowDown: boolean;
   isLoggedIn: boolean;
   onRequireLogin: () => void;
 }) {
-  const [count, setCount] = useState(initialCount);
-  const [voted, setVoted] = useState(initialVoted);
+  const [up, setUp] = useState(initialUp);
+  const [down, setDown] = useState(initialDown);
+  const [vote, setVote] = useState(initialVote);
   const [pending, setPending] = useState(false);
 
-  async function handleClick() {
+  async function cast(direction: "up" | "down") {
     if (pending) return;
     if (!isLoggedIn) {
       onRequireLogin();
@@ -99,51 +124,78 @@ function CommentVoteButton({
     }
 
     setPending(true);
-    const prevVoted = voted;
-    const prevCount = count;
-    const nextVoted = !prevVoted;
-    setVoted(nextVoted);
-    setCount(prevCount + (nextVoted ? 1 : -1));
+    const prev = { up, down, vote };
+    const next = vote === direction ? null : direction;
+    setVote(next);
+    setUp(up + (next === "up" ? 1 : 0) - (vote === "up" ? 1 : 0));
+    setDown(down + (next === "down" ? 1 : 0) - (vote === "down" ? 1 : 0));
 
     const res = await fetch("/api/comments/vote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ commentId }),
+      body: JSON.stringify({ commentId, direction }),
     });
 
     if (res.ok) {
       const body = await res.json();
-      setVoted(body.voted);
-      setCount(body.count);
+      setVote(body.voted ? "up" : body.downvoted ? "down" : null);
+      setUp(body.count);
+      setDown(body.down_count ?? 0);
     } else {
-      setVoted(prevVoted);
-      setCount(prevCount);
+      setVote(prev.vote);
+      setUp(prev.up);
+      setDown(prev.down);
     }
     setPending(false);
   }
 
   return (
-    <button
-      type="button"
-      className={`comment-vote-button${voted ? " comment-vote-button-active" : ""}`}
-      onClick={handleClick}
-      disabled={pending}
-      aria-pressed={voted}
-      aria-label={voted ? "Remove your upvote" : "Upvote this comment"}
-    >
-      <svg
-        width="14"
-        height="14"
-        viewBox="0 0 24 24"
-        fill={voted ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth="2"
-        aria-hidden="true"
+    <>
+      <button
+        type="button"
+        className={`comment-vote-button${vote === "up" ? " comment-vote-button-active" : ""}`}
+        onClick={() => cast("up")}
+        disabled={pending}
+        aria-pressed={vote === "up"}
+        aria-label={vote === "up" ? "Remove your upvote" : "Upvote this comment"}
       >
-        <path d="M12 4l8 8h-5v8h-6v-8H4l8-8Z" strokeLinejoin="round" />
-      </svg>
-      {count > 0 ? count : "Upvote"}
-    </button>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill={vote === "up" ? "currentColor" : "none"}
+          stroke="currentColor"
+          strokeWidth="2"
+          aria-hidden="true"
+        >
+          <path d="M12 4l8 8h-5v8h-6v-8H4l8-8Z" strokeLinejoin="round" />
+        </svg>
+        {up > 0 ? up : "Upvote"}
+      </button>
+      {allowDown && (
+        <button
+          type="button"
+          className={`comment-vote-button comment-downvote-button${vote === "down" ? " comment-vote-button-active" : ""}`}
+          onClick={() => cast("down")}
+          disabled={pending}
+          aria-pressed={vote === "down"}
+          aria-label={vote === "down" ? "Remove your downvote" : "Downvote this comment"}
+        >
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill={vote === "down" ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <path d="M12 20l-8-8h5V4h6v8h5l-8 8Z" strokeLinejoin="round" />
+          </svg>
+          {down > 0 && down}
+        </button>
+      )}
+    </>
   );
 }
 
@@ -154,6 +206,7 @@ export function CommentSection({
   commenterProfiles,
   currentUserId,
   votedCommentIds,
+  downvotedCommentIds,
   kind = "comment",
   canReply,
 }: {
@@ -173,6 +226,7 @@ export function CommentSection({
   // than a field on each WPComment. Empty/undefined for guests, who
   // can't have voted on anything.
   votedCommentIds?: number[];
+  downvotedCommentIds?: number[];
   // Directory listings get "review" wording + a star rating; posts and
   // events stay plain "comment", no rating.
   kind?: "comment" | "review";
@@ -188,6 +242,7 @@ export function CommentSection({
 
   const [thread, setThread] = useState(comments);
   const votedSet = new Set(votedCommentIds);
+  const downvotedSet = new Set(downvotedCommentIds);
   const [text, setText] = useState("");
   const [rating, setRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -299,10 +354,7 @@ export function CommentSection({
     return (
       <li key={c.id}>
         {profile ? (
-          <Link href={`/members/${profile.slug}`} className="comment-author-link">
-            <img src={profile.avatar} alt="" className="comment-author-icon" loading="lazy" />
-            <strong>{profile.name}</strong>
-          </Link>
+          <CommenterName profile={profile} />
         ) : (
           <strong>{c.author_name}</strong>
         )}
@@ -310,10 +362,12 @@ export function CommentSection({
         {isReview && typeof c.rating === "number" && <StarRatingDisplay rating={c.rating} />}
         <div dangerouslySetInnerHTML={{ __html: c.content.rendered }} />
         <div className="comment-actions-row">
-          <CommentVoteButton
+          <CommentVoteButtons
             commentId={c.id}
-            initialCount={c.vote_count ?? 0}
-            initialVoted={votedSet.has(c.id)}
+            initialUp={c.vote_count ?? 0}
+            initialDown={c.downvote_count ?? 0}
+            initialVote={votedSet.has(c.id) ? "up" : downvotedSet.has(c.id) ? "down" : null}
+            allowDown={!isReview}
             isLoggedIn={isLoggedIn}
             onRequireLogin={() => setShowLoginModal(true)}
           />

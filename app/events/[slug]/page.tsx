@@ -217,14 +217,14 @@ export default async function EventPage({
     getScEventTags().catch(() => []),
   ]);
 
-  const [profile, rsvpStatus, votedCommentIds] = await Promise.all([
+  const [profile, rsvpStatus, votes] = await Promise.all([
     sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
     sessionToken ? getEventRsvpStatus(sessionToken, event.id) : Promise.resolve(null),
-    sessionToken ? getVotedCommentIds(sessionToken, fullThread.map((c) => c.id)) : Promise.resolve([]),
+    sessionToken ? getVotedCommentIds(sessionToken, fullThread.map((c) => c.id)) : Promise.resolve(null),
   ]);
 
   const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
-    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
+    () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string; tier?: string }>()
   );
 
   const isOwner = Boolean(profile && profile.id === event.author);
@@ -424,7 +424,8 @@ export default async function EventPage({
           isLoggedIn={Boolean(sessionToken)}
           commenterProfiles={commenterProfileMap}
           currentUserId={profile?.id}
-          votedCommentIds={votedCommentIds}
+          votedCommentIds={votes?.up}
+          downvotedCommentIds={votes?.down}
         />
       </div>
 

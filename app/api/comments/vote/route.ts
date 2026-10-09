@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "A valid commentId is required." }, { status: 400 });
   }
 
-  const result = await toggleCommentVote(token, commentId);
+  const result = await toggleCommentVote(token, commentId, data.direction === "down" ? "down" : "up");
   if ("voted" in result) {
     return NextResponse.json(result);
   }

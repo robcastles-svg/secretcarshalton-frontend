@@ -85,6 +85,7 @@ class SC_Membership_DB {
 			id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 			user_id BIGINT UNSIGNED NOT NULL,
 			comment_id BIGINT UNSIGNED NOT NULL,
+			value TINYINT NOT NULL DEFAULT 1,
 			created_at DATETIME NOT NULL,
 			PRIMARY KEY  (id),
 			UNIQUE KEY user_comment (user_id, comment_id),
@@ -162,14 +163,20 @@ class SC_Membership_DB {
 		return true;
 	}
 
-	/** Total upvote count for one comment — a public aggregate, same "no privacy concern" bar as bookmark_count/post view counts. */
-	public static function comment_vote_count( $comment_id ) {
+	/**
+	 * Upvote (value 1) or downvote (value -1) count for one comment — a
+	 * public aggregate, same "no privacy concern" bar as
+	 * bookmark_count/post view counts. Rows from before downvotes existed
+	 * got value 1 from the column default, so they stay upvotes.
+	 */
+	public static function comment_vote_count( $comment_id, $value = 1 ) {
 		global $wpdb;
 		$table = self::comment_votes_table();
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(*) FROM {$table} WHERE comment_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				$comment_id
+				"SELECT COUNT(*) FROM {$table} WHERE comment_id = %d AND value = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$comment_id,
+				$value
 			)
 		);
 	}
@@ -193,7 +200,7 @@ class SC_Membership_DB {
 	 * comment. $comment_ids is assumed already sanitised to ints by the
 	 * caller (see SC_Membership_REST::get_my_comment_votes).
 	 */
-	public static function voted_comment_ids( $user_id, $comment_ids ) {
+	public static function voted_comment_ids( $user_id, $comment_ids, $value = 1 ) {
 		global $wpdb;
 		if ( empty( $comment_ids ) ) {
 			return array();
@@ -201,24 +208,48 @@ class SC_Membership_DB {
 		$table        = self::comment_votes_table();
 		$placeholders = implode( ', ', array_fill( 0, count( $comment_ids ), '%d' ) );
 		$query        = $wpdb->prepare(
-			"SELECT comment_id FROM {$table} WHERE user_id = %d AND comment_id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			array_merge( array( $user_id ), $comment_ids )
+			"SELECT comment_id FROM {$table} WHERE user_id = %d AND value = %d AND comment_id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			array_merge( array( $user_id, $value ), $comment_ids )
 		);
 		return array_map( 'intval', $wpdb->get_col( $query ) );
 	}
 
-	/** Adds or removes the vote and returns the new state (true = now voted). */
-	public static function toggle_comment_vote( $user_id, $comment_id ) {
+	/**
+	 * One vote per member per comment, up (1) or down (-1). Voting the
+	 * same way again removes the vote; voting the other way switches it.
+	 * Returns the member's vote afterwards: 1, -1 or 0 (none).
+	 */
+	public static function toggle_comment_vote( $user_id, $comment_id, $value = 1 ) {
 		global $wpdb;
 		$table = self::comment_votes_table();
+		$value = -1 === (int) $value ? -1 : 1;
 
-		if ( self::has_voted_comment( $user_id, $comment_id ) ) {
+		$current = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT value FROM {$table} WHERE user_id = %d AND comment_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$user_id,
+				$comment_id
+			)
+		);
+
+		if ( null !== $current && (int) $current === $value ) {
 			$wpdb->delete(
 				$table,
 				array( 'user_id' => $user_id, 'comment_id' => $comment_id ),
 				array( '%d', '%d' )
 			);
-			return false;
+			return 0;
+		}
+
+		if ( null !== $current ) {
+			$wpdb->update(
+				$table,
+				array( 'value' => $value ),
+				array( 'user_id' => $user_id, 'comment_id' => $comment_id ),
+				array( '%d' ),
+				array( '%d', '%d' )
+			);
+			return $value;
 		}
 
 		$wpdb->insert(
@@ -226,11 +257,12 @@ class SC_Membership_DB {
 			array(
 				'user_id'    => $user_id,
 				'comment_id' => $comment_id,
+				'value'      => $value,
 				'created_at' => current_time( 'mysql' ),
 			),
-			array( '%d', '%d', '%s' )
+			array( '%d', '%d', '%d', '%s' )
 		);
-		return true;
+		return $value;
 	}
 
 	/**

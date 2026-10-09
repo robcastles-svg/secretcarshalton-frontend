@@ -138,11 +138,11 @@ export default async function DirectoryListingPage({
   ]);
   const canEdit = Boolean(profile && (profile.id === listing.author || profile.is_editor));
 
-  const [profileMap, votedCommentIds] = await Promise.all([
+  const [profileMap, votes] = await Promise.all([
     getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
-      () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string }>()
+      () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string; tier?: string }>()
     ),
-    sessionToken ? getVotedCommentIds(sessionToken, fullThread.map((c) => c.id)) : Promise.resolve([]),
+    sessionToken ? getVotedCommentIds(sessionToken, fullThread.map((c) => c.id)) : Promise.resolve(null),
   ]);
 
   const image = getFeaturedImage(listing);
@@ -279,7 +279,7 @@ export default async function DirectoryListingPage({
             isLoggedIn={Boolean(sessionToken)}
             commenterProfiles={profileMap}
             currentUserId={profile?.id}
-            votedCommentIds={votedCommentIds}
+            votedCommentIds={votes?.up}
             kind="review"
             canReply={canEdit}
           />

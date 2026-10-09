@@ -3534,6 +3534,12 @@ a.card-category:hover {
   text-decoration: underline;
 }
 
+.comment-member-badge {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
 .comment-author-icon {
   width: 28px;
   height: 28px;
@@ -7261,6 +7267,13 @@ a.card-category:hover {
   font-weight: 700;
   color: #1a1a1a;
   text-decoration: none;
+}
+
+.home-comment-badge {
+  width: 18px;
+  height: 18px;
+  margin-left: 0.3rem;
+  vertical-align: -4px;
 }
 
 .home-comment-author-button {
