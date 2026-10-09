@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Directory
  * Description: Business directory. Replaces Sabai Directory with a REST-first implementation on the same categories/claim/plan model, hooked into sc-membership for claim points and upgrade approval.
- * Version: 0.9.1
+ * Version: 0.9.2
  * Author: Secret Carshalton
  * Text Domain: sc-directory
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_DIRECTORY_VERSION', '0.9.1' );
+define( 'SC_DIRECTORY_VERSION', '0.9.2' );
 define( 'SC_DIRECTORY_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_DIRECTORY_DIR . 'includes/class-sc-directory-cpt.php';
@@ -52,6 +52,8 @@ add_action( 'init', array( 'SC_Directory_Meta', 'register' ) );
 add_action( 'rest_api_init', array( 'SC_Directory_REST', 'register_routes' ) );
 add_action( 'plugins_loaded', array( 'SC_Directory_Hooks', 'init' ) );
 add_action( 'admin_menu', array( 'SC_Directory_Admin', 'register_menu' ) );
+add_action( 'add_meta_boxes', array( 'SC_Directory_Admin', 'register_meta_box' ) );
+add_action( 'save_post_' . SC_Directory_CPT::POST_TYPE, array( 'SC_Directory_Admin', 'save_details_meta_box' ) );
 add_action( 'admin_post_sc_directory_review_claim', array( 'SC_Directory_Admin', 'handle_review_claim' ) );
 add_action( 'admin_post_sc_directory_review_promotion', array( 'SC_Directory_Admin', 'handle_review_promotion' ) );
 add_action( 'admin_post_sc_directory_backfill_owners', array( 'SC_Directory_Admin', 'handle_backfill_owners' ) );

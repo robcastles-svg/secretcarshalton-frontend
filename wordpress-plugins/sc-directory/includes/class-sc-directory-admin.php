@@ -12,6 +12,71 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class SC_Directory_Admin {
 
+	/**
+	 * Tagline and Featured both have exactly one normal way to get set —
+	 * the member-submitted /dashboard/upgrade request (see
+	 * SC_Directory_REST::request_upgrade and ::on_upgrade_reviewed) — but
+	 * most of the 118 listings migrated from the old Sabai Directory never
+	 * went through that flow at all, and neither field had a wp-admin UI
+	 * of its own (just the generic, easy-to-miss Custom Fields panel the
+	 * 'custom-fields' post-type support adds). Rob manually promoting an
+	 * imported listing to Featured, or filling in the tagline Sabai's data
+	 * never had, had no reliable way to do either. This box is that way.
+	 */
+	public static function register_meta_box() {
+		add_meta_box(
+			'sc_directory_details',
+			'Directory Listing Details',
+			array( __CLASS__, 'render_details_meta_box' ),
+			SC_Directory_CPT::POST_TYPE,
+			'side',
+			'high'
+		);
+	}
+
+	public static function render_details_meta_box( $post ) {
+		wp_nonce_field( 'sc_directory_save_details', 'sc_directory_details_nonce' );
+		$tagline  = get_post_meta( $post->ID, 'sc_tagline', true );
+		$featured = (bool) get_post_meta( $post->ID, 'sc_featured', true );
+		?>
+		<p>
+			<label for="sc_directory_tagline"><strong>Tagline</strong></label><br />
+			<input
+				type="text"
+				id="sc_directory_tagline"
+				name="sc_directory_tagline"
+				value="<?php echo esc_attr( $tagline ); ?>"
+				maxlength="140"
+				style="width:100%"
+				placeholder="A one-line summary shown on listing cards"
+			/>
+		</p>
+		<p>
+			<label>
+				<input type="checkbox" name="sc_directory_featured" value="1" <?php checked( $featured ); ?> />
+				Featured — always shown at the top of the Directory
+			</label>
+		</p>
+		<?php
+	}
+
+	public static function save_details_meta_box( $post_id ) {
+		if ( ! isset( $_POST['sc_directory_details_nonce'] )
+			|| ! wp_verify_nonce( $_POST['sc_directory_details_nonce'], 'sc_directory_save_details' )
+		) {
+			return;
+		}
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		update_post_meta( $post_id, 'sc_tagline', sanitize_text_field( (string) ( $_POST['sc_directory_tagline'] ?? '' ) ) );
+		update_post_meta( $post_id, 'sc_featured', isset( $_POST['sc_directory_featured'] ) );
+	}
+
 	public static function register_menu() {
 		add_submenu_page(
 			'edit.php?post_type=' . SC_Directory_CPT::POST_TYPE,
