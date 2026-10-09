@@ -1,5 +1,13 @@
-/** Shared card-grid page size — News, Directory, Discover, People, Walks, Themes, Stories. Events is month-filtered instead, not paginated by count. */
-export const PAGE_SIZE = 9;
+/**
+ * Shared card-grid page size — News, Directory, Discover, People, Walks,
+ * Themes, Stories, Community, Search. Events is month-filtered instead,
+ * not paginated by count. 10, not 9: these grids are two columns wide on
+ * desktop (.post-list-two-column), and 9 left a single dangling card on
+ * its own in the last row — 10 fills every row evenly. News is the one
+ * single-column exception; this number isn't load-bearing there, just
+ * how many show per page.
+ */
+export const PAGE_SIZE = 10;
 
 export function parsePageParam(raw?: string): number {
   const n = Number(raw);

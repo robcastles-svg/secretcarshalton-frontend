@@ -42,7 +42,12 @@ export default async function CommunityPage({
   const posts = communityCategory ? await getPostsByCategory(communityCategory.id).catch(() => []) : [];
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
   const tagsById = new Map(allTags.map((t) => [t.id, t]));
-  const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage));
+  // ContentList adds the featured listing as an extra card on top of
+  // whatever's in pagePosts (see its own docblock) — one fewer post keeps
+  // the total at 10, an even number of cards for the two-column grid,
+  // same reasoning as /stories/[area] and /themes/[slug].
+  const pageSize = featuredListing ? 9 : 10;
+  const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage), pageSize);
 
   // The top ad slot (both the mobile banner and the first sidebar card)
   // promotes a featured group instead of a blue ad on this page specifically
