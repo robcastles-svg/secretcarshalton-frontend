@@ -25,12 +25,21 @@ export interface HomeCommentItem {
  * navigating. A comment with no public profile (guest/staff — no
  * authorSlug) renders the name as plain text either way.
  */
-export function HomeComments({ comments, isLoggedIn }: { comments: HomeCommentItem[]; isLoggedIn: boolean }) {
+export function HomeComments({
+  comments,
+  isLoggedIn,
+  stacked,
+}: {
+  comments: HomeCommentItem[];
+  isLoggedIn: boolean;
+  /** One column (the post sidebar) instead of the homepage's three across. */
+  stacked?: boolean;
+}) {
   const [showLogin, setShowLogin] = useState(false);
 
   return (
     <>
-      <ul className="home-comments-grid">
+      <ul className={stacked ? "home-comments-grid home-comments-stacked" : "home-comments-grid"}>
         {comments.map((c) => (
           <li key={c.id}>
             <Link href={c.commentLink} className="home-comment-text">
