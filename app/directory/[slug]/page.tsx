@@ -19,7 +19,6 @@ import {
   getMemberMe,
   getMembersByIds,
   getPostViewCount,
-  getVotedCommentIds,
   GROUPS_CATEGORY_SLUG,
   stripHtml,
 } from "@/lib/wordpress";
@@ -78,9 +77,12 @@ export async function generateMetadata({
   if (!listing) return {};
 
   const title = `${stripHtml(listing.title.rendered)} — Directory — Secret Carshalton`;
-  const description =
-    listing.meta.sc_tagline || stripHtml(listing.content.rendered).slice(0, 160) || undefined;
-  const image = getFeaturedImage(listing) ?? listing.sc_gallery_images?.[0];
+  // Standard listings share headline-only, same as their page (see isFeatured below).
+  const isFeatured = Boolean(listing.meta.sc_featured);
+  const description = isFeatured
+    ? listing.meta.sc_tagline || stripHtml(listing.content.rendered).slice(0, 160) || undefined
+    : undefined;
+  const image = isFeatured ? (getFeaturedImage(listing) ?? listing.sc_gallery_images?.[0]) : undefined;
   const socialImage = image ? ("source_url" in image ? image.source_url : image.url) : undefined;
 
   return {
@@ -138,16 +140,21 @@ export default async function DirectoryListingPage({
   ]);
   const canEdit = Boolean(profile && (profile.id === listing.author || profile.is_editor));
 
-  const [profileMap, votes] = await Promise.all([
+  const [profileMap] = await Promise.all([
     getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
       () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string; tier?: string }>()
     ),
-    sessionToken ? getVotedCommentIds(sessionToken, fullThread.map((c) => c.id)) : Promise.resolve(null),
   ]);
 
   const image = getFeaturedImage(listing);
   const { meta } = listing;
   const verified = meta.sc_claimed || meta.sc_verified;
+  // Standard (any non-Featured listing) shows headline, address, website
+  // and category only. Photos, description, tagline, socials, phone,
+  // email and the map are Featured extras — still saved on the listing
+  // (a lapsed or older listing keeps them), just not shown, so turning
+  // Featured back on restores them without re-entering anything.
+  const isFeatured = Boolean(meta.sc_featured);
   const matchedCategories = categories.filter((c) => listing.sc_listing_category?.includes(c.id));
   const socials = listingSocials(meta);
   const gallery = listing.sc_gallery_images ?? [];
@@ -178,9 +185,9 @@ export default async function DirectoryListingPage({
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
     name: listing.title.rendered,
-    image: image ? image.source_url : undefined,
+    image: isFeatured && image ? image.source_url : undefined,
     url: meta.sc_website || undefined,
-    telephone: meta.sc_phone || undefined,
+    telephone: (isFeatured && meta.sc_phone) || undefined,
     address: addressParts.length
       ? {
           "@type": "PostalAddress",
@@ -208,7 +215,7 @@ export default async function DirectoryListingPage({
       />
       <PostViewTracker postId={listing.id} slug={listing.slug} title={stripHtml(listing.title.rendered)} />
       <div className="post-body directory-listing-card">
-        <DirectoryImageSlider images={sliderImages} />
+        {isFeatured && <DirectoryImageSlider images={sliderImages} />}
         <div className="directory-listing-card-body">
           <div className="page-header-row">
             <h1>
@@ -233,7 +240,7 @@ export default async function DirectoryListingPage({
               </Link>
             )}
           </div>
-          {meta.sc_tagline && <p className="directory-tagline">{meta.sc_tagline}</p>}
+          {isFeatured && meta.sc_tagline && <p className="directory-tagline">{meta.sc_tagline}</p>}
           {(matchedCategories.length > 0 || meta.sc_featured) && (
             <div className="directory-badges">
               {matchedCategories.map((category) => (
@@ -261,9 +268,11 @@ export default async function DirectoryListingPage({
               <CommentCountLink count={fullThread.length} kind="review" />
             </p>
           )}
-          <div className="post-content" dangerouslySetInnerHTML={{ __html: listing.content.rendered }} />
+          {isFeatured && (
+            <div className="post-content" dangerouslySetInnerHTML={{ __html: listing.content.rendered }} />
+          )}
 
-          {socials.length > 0 && (
+          {isFeatured && socials.length > 0 && (
             <div className="directory-card-socials directory-detail-socials">
               {socials.map(({ key, url, Icon }) => (
                 <a key={key} href={url} target="_blank" rel="noopener noreferrer" aria-label={key}>
@@ -279,7 +288,7 @@ export default async function DirectoryListingPage({
             isLoggedIn={Boolean(sessionToken)}
             commenterProfiles={profileMap}
             currentUserId={profile?.id}
-            votedCommentIds={votes?.up}
+            showVotes={false}
             kind="review"
             canReply={canEdit}
           />
@@ -289,8 +298,8 @@ export default async function DirectoryListingPage({
         <div className="sidebar-block">
           <h2>Details</h2>
           {addressParts.length > 0 && <p>{addressParts.join(", ")}</p>}
-          {meta.sc_phone && <p>{meta.sc_phone}</p>}
-          {meta.sc_email && (
+          {isFeatured && meta.sc_phone && <p>{meta.sc_phone}</p>}
+          {isFeatured && meta.sc_email && (
             <p>
               <a href={`mailto:${meta.sc_email}`}>{meta.sc_email}</a>
             </p>
@@ -305,7 +314,7 @@ export default async function DirectoryListingPage({
           </p>
         </div>
 
-        {(mapQuery || (meta.sc_lat && meta.sc_lng)) && (
+        {isFeatured && (mapQuery || (meta.sc_lat && meta.sc_lng)) && (
           <div className="sidebar-block event-map">
             <StyledMap query={mapQuery} lat={mapLat} lng={mapLng} />
           </div>

@@ -19,9 +19,13 @@ export const DirectoryListingCard = forwardRef<
     style?: React.CSSProperties;
   }
 >(function DirectoryListingCard({ listing, categoriesList, style }, ref) {
-  const image = getFeaturedImage(listing);
+  // Standard (non-Featured) cards are headline-only — the photo and
+  // description stay saved on the listing but are Featured extras, same
+  // rule as the listing page itself (app/directory/[slug]/page.tsx).
+  const isFeatured = Boolean(listing.meta.sc_featured);
+  const image = isFeatured ? getFeaturedImage(listing) : null;
   const verified = listing.meta.sc_claimed || listing.meta.sc_verified;
-  const excerpt = listing.meta.sc_tagline || stripHtml(listing.content.rendered).slice(0, 120);
+  const excerpt = isFeatured ? listing.meta.sc_tagline || stripHtml(listing.content.rendered).slice(0, 120) : "";
   const reviewCount = listing.sc_review_stats?.count ?? 0;
 
   return (
@@ -64,7 +68,7 @@ export const DirectoryListingCard = forwardRef<
           {category.name}
         </Link>
       ))}
-      <p>{excerpt}</p>
+      {excerpt && <p>{excerpt}</p>}
       <div className="card-meta-row">
         <div className="card-actions">
           {reviewCount > 0 && (

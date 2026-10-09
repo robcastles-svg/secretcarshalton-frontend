@@ -209,6 +209,7 @@ export function CommentSection({
   downvotedCommentIds,
   kind = "comment",
   canReply,
+  showVotes = true,
 }: {
   postId: number;
   comments: WPComment[];
@@ -235,6 +236,9 @@ export function CommentSection({
   // same rule). On comment threads a guest still sees Reply, which opens
   // the login pop-up; on review threads it's hidden from non-owners.
   canReply?: boolean;
+  // Up/down votes — on for article comments only; events and directory
+  // listings turn them off (Rob: confusing there).
+  showVotes?: boolean;
 }) {
   const isReview = kind === "review";
   const noun = isReview ? "review" : "comment";
@@ -353,24 +357,22 @@ export function CommentSection({
 
     return (
       <li key={c.id}>
-        {profile ? (
-          <CommenterName profile={profile} />
-        ) : (
-          <strong>{c.author_name}</strong>
-        )}
+        {profile ? <CommenterName profile={profile} /> : <strong>{c.author_name}</strong>}
         <time dateTime={c.date}>{formatDate(c.date)}</time>
         {isReview && typeof c.rating === "number" && <StarRatingDisplay rating={c.rating} />}
         <div dangerouslySetInnerHTML={{ __html: c.content.rendered }} />
         <div className="comment-actions-row">
-          <CommentVoteButtons
-            commentId={c.id}
-            initialUp={c.vote_count ?? 0}
-            initialDown={c.downvote_count ?? 0}
-            initialVote={votedSet.has(c.id) ? "up" : downvotedSet.has(c.id) ? "down" : null}
-            allowDown={!isReview}
-            isLoggedIn={isLoggedIn}
-            onRequireLogin={() => setShowLoginModal(true)}
-          />
+          {showVotes && (
+            <CommentVoteButtons
+              commentId={c.id}
+              initialUp={c.vote_count ?? 0}
+              initialDown={c.downvote_count ?? 0}
+              initialVote={votedSet.has(c.id) ? "up" : downvotedSet.has(c.id) ? "down" : null}
+              allowDown={!isReview}
+              isLoggedIn={isLoggedIn}
+              onRequireLogin={() => setShowLoginModal(true)}
+            />
+          )}
           {showReplyButton && (
             <button
               type="button"
@@ -385,7 +387,11 @@ export function CommentSection({
               <button type="button" className="comment-edit-link" onClick={() => setEditingId(c.id)}>
                 Edit
               </button>
-              <button type="button" className="comment-edit-link comment-delete-link" onClick={() => handleDelete(c.id)}>
+              <button
+                type="button"
+                className="comment-edit-link comment-delete-link"
+                onClick={() => handleDelete(c.id)}
+              >
                 Delete
               </button>
             </>

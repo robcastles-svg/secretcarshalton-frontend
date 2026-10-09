@@ -15,7 +15,6 @@ import {
   getRecentScEventSlugs,
   getScEventBySlug,
   getScEventTags,
-  getVotedCommentIds,
   parseEventDate,
   slugifyVenue,
   stripHtml,
@@ -217,10 +216,9 @@ export default async function EventPage({
     getScEventTags().catch(() => []),
   ]);
 
-  const [profile, rsvpStatus, votes] = await Promise.all([
+  const [profile, rsvpStatus] = await Promise.all([
     sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
     sessionToken ? getEventRsvpStatus(sessionToken, event.id) : Promise.resolve(null),
-    sessionToken ? getVotedCommentIds(sessionToken, fullThread.map((c) => c.id)) : Promise.resolve(null),
   ]);
 
   const commenterProfileMap = await getMembersByIds(fullThread.map((c) => c.author ?? 0)).catch(
@@ -424,8 +422,7 @@ export default async function EventPage({
           isLoggedIn={Boolean(sessionToken)}
           commenterProfiles={commenterProfileMap}
           currentUserId={profile?.id}
-          votedCommentIds={votes?.up}
-          downvotedCommentIds={votes?.down}
+          showVotes={false}
         />
       </div>
 
