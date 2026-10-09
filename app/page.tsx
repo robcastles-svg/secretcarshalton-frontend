@@ -95,7 +95,7 @@ export default async function HomePage() {
     getCategoryBySlug("stories").catch(() => null),
     getCategoryBySlug("walks").catch(() => null),
     getDirectoryCategories().catch(() => []),
-    getDirectoryListings(30).catch(() => []),
+    getDirectoryListings().catch(() => []),
     getJobListings(30).catch(() => []),
     getTopPostsThisWeek(10).catch(() => []),
     getLatestCommentItems(3),

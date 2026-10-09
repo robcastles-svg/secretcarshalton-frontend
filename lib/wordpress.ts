@@ -1147,10 +1147,34 @@ async function scDirectoryFetch<T>(path: string): Promise<T> {
   return res.json();
 }
 
-export function getDirectoryListings(perPage = 100) {
-  return scDirectoryFetch<WPListing[]>(
-    `/sc-listings?per_page=${perPage}&_fields=${DIRECTORY_LISTING_FIELDS}&_embed=wp:featuredmedia`
-  );
+/**
+ * WP's REST controller caps per_page at 100 (same ceiling getScEvents'
+ * own docblock documents), so perPage above that paginates internally
+ * rather than 400ing. The directory crossed 100 published listings
+ * without this — getDirectoryListings()'s old flat per_page=100 silently
+ * dropped everything past the 100 newest, which is exactly why a listing
+ * like Jo Sharpe Artist (older, already marked Featured) never showed up
+ * on /directory's "All" view or the homepage's featured rotation pool:
+ * both read from this function and had no idea 20+ listings existed
+ * beyond what they asked for.
+ */
+async function fetchAllSCListings(path: string, perPage: number): Promise<WPListing[]> {
+  const listings: WPListing[] = [];
+  let page = 1;
+  while (listings.length < perPage) {
+    const batchSize = Math.min(100, perPage - listings.length);
+    const batch = await scDirectoryFetch<WPListing[]>(
+      `${path}&per_page=${batchSize}&page=${page}&_fields=${DIRECTORY_LISTING_FIELDS}&_embed=wp:featuredmedia`
+    );
+    listings.push(...batch);
+    if (batch.length < batchSize) break;
+    page++;
+  }
+  return listings;
+}
+
+export function getDirectoryListings(perPage = 300) {
+  return fetchAllSCListings(`/sc-listings?`, perPage);
 }
 
 export async function getDirectoryListingBySlug(slug: string): Promise<WPListing | null> {
@@ -1160,10 +1184,8 @@ export async function getDirectoryListingBySlug(slug: string): Promise<WPListing
   return listings[0] ?? null;
 }
 
-export function getDirectoryListingsByCategory(categoryId: number, perPage = 100) {
-  return scDirectoryFetch<WPListing[]>(
-    `/sc-listings?sc_listing_category=${categoryId}&per_page=${perPage}&_fields=${DIRECTORY_LISTING_FIELDS}&_embed=wp:featuredmedia`
-  );
+export function getDirectoryListingsByCategory(categoryId: number, perPage = 300) {
+  return fetchAllSCListings(`/sc-listings?sc_listing_category=${categoryId}&`, perPage);
 }
 
 export interface WPDirectoryCategory {
