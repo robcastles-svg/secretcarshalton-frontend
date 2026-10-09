@@ -4,7 +4,7 @@ import { getJobListings, type WPJobListing } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
-export const metadata = { title: "Jobs Board — Secret Carshalton" };
+export const metadata = { title: "The Sutton Jobs Board — Secret Carshalton" };
 
 const RECENT_WINDOW_DAYS = 7;
 
@@ -65,7 +65,7 @@ export default async function JobsPage() {
         <div className="container page-header-row">
           <div>
             <h1>
-              Jobs Board
+              The Sutton Jobs Board
               <CategoryKeyIcon />
             </h1>
             <p>Local vacancies from around Carshalton, Sutton and the surrounding area.</p>

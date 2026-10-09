@@ -25,7 +25,7 @@ export async function generateMetadata({
   const job = await getJobListingBySlug(slug).catch(() => null);
   if (!job) return {};
   return {
-    title: `${stripHtml(job.title.rendered)} — Jobs Board — Secret Carshalton`,
+    title: `${stripHtml(job.title.rendered)} — The Sutton Jobs Board — Secret Carshalton`,
     description: stripHtml(job.content.rendered).slice(0, 160),
   };
 }
@@ -43,7 +43,7 @@ export default async function JobDetailPage({
   return (
     <main className="container job-detail">
       <p className="job-detail-back">
-        <Link href="/jobs">&larr; Back to Jobs Board</Link>
+        <Link href="/jobs">&larr; Back to The Sutton Jobs Board</Link>
       </p>
 
       <h1 dangerouslySetInnerHTML={{ __html: job.title.rendered }} />
