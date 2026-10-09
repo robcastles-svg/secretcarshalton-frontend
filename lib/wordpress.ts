@@ -564,7 +564,10 @@ export interface WPComment {
 }
 
 /**
- * Real (non-admin) comments on a single post, newest first. Reads from
+ * Every comment on a single post, newest first — admin ("Secret
+ * Carshalton") replies included, since they're part of the conversation
+ * in the thread itself; only the site-wide lists (getLatestComments)
+ * hide them so they don't take over the homepage/sidebar. Reads from
  * staging (scDirectoryFetch), not the live site — sc-events/sc-listings
  * only exist on staging, so a post there has no matching ID on live at
  * all (comments would always read back empty); staging also carries a
@@ -575,9 +578,9 @@ export interface WPComment {
  */
 export async function getCommentsForPost(postId: number, count: number): Promise<WPComment[]> {
   const comments = await scDirectoryFetch<WPComment[]>(
-    `/comments?post=${postId}&per_page=${count * 2}&orderby=date&order=desc&_fields=id,post,author,author_name,content,date,rating,vote_count`
+    `/comments?post=${postId}&per_page=${count}&orderby=date&order=desc&_fields=id,post,author,author_name,content,date,rating,vote_count`
   );
-  return comments.filter((c) => c.author_name !== "Secret Carshalton").slice(0, count);
+  return comments;
 }
 
 /**
