@@ -27,6 +27,15 @@ class SC_Directory_Meta {
 		'sc_phone'            => 'string',
 		'sc_email'            => 'string',
 		'sc_tagline'          => 'string', // Short one-line teaser shown under the title/on cards, separate from the full description.
+		/**
+		 * Attachment ID of a square/white-background logo for the
+		 * homepage's Featured-member strip (SponsorStrip) — deliberately
+		 * separate from sc_gallery (the listing-page photo slider), which
+		 * holds real in-context photos, not a brand mark meant to sit in a
+		 * small white tile next to other brands. Resolved to a URL by the
+		 * sc_logo_image REST field below rather than exposing the raw ID.
+		 */
+		'sc_logo'             => 'integer',
 		'sc_facebook'         => 'string',
 		'sc_instagram'        => 'string',
 		'sc_twitter'          => 'string',

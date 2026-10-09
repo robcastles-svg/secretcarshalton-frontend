@@ -6,7 +6,7 @@ import { getLatestCommentItems } from "@/app/_components/home/latestComments";
 import { HomeFeaturedEvent } from "@/app/_components/home/HomeFeaturedEvent";
 import { MostReadList, type MostReadItem } from "@/app/_components/home/MostReadList";
 import { ReelsSlider } from "@/app/_components/home/ReelsSlider";
-import { SponsorStrip } from "@/app/_components/home/SponsorStrip";
+import { SponsorStrip, type Sponsor } from "@/app/_components/home/SponsorStrip";
 import { getSessionToken } from "@/lib/auth";
 import {
   categoryHref,
@@ -52,11 +52,11 @@ const WALK_TIME_CHIPS = [
   { slug: "40-minutes-by-car", label: "40+" },
 ];
 
-// Placeholder tiles so the sponsor strip itself is visible per the design
-// handoff — swap for real premium-member logo uploads once that form field
-// exists (see SponsorStrip's own docblock). No logoUrl, so each tile falls
-// back to showing its name as text.
-const DUMMY_SPONSORS = Array.from({ length: 8 }, (_, i) => ({
+// Fallback only for the (now unlikely) case of zero Featured listings —
+// real logos now come from Featured listings' sc_logo_image, see
+// `sponsors` below. No logoUrl, so each tile falls back to showing its
+// name as text.
+const DUMMY_SPONSORS: Sponsor[] = Array.from({ length: 8 }, (_, i) => ({
   id: i + 1,
   name: "Your logo here",
   href: "/directory/featured",
@@ -197,6 +197,22 @@ export default async function HomePage() {
   const latestListings = eligibleListings.filter((l) => l.id !== spotlightListing?.id).slice(0, 3);
   const listingCategoriesById = new Map(directoryCategories.map((c) => [c.id, c]));
 
+  // Real Featured-listing logos for the sponsor strip, clicking through to
+  // each listing's own /directory page — falls back to the placeholder
+  // tiles (see DUMMY_SPONSORS) only if there's no Featured listing at all,
+  // so the strip is never just empty. A Featured listing without its own
+  // logo uploaded yet still gets a tile (SponsorStrip's own text fallback),
+  // rather than being left out of its own homepage strip.
+  const sponsors: Sponsor[] =
+    featuredListings.length > 0
+      ? featuredListings.map((l) => ({
+          id: l.id,
+          name: stripHtml(l.title.rendered),
+          logoUrl: l.sc_logo_image?.url,
+          href: `/directory/${l.slug}`,
+        }))
+      : DUMMY_SPONSORS;
+
   // Jobs: an optional featured job — when none is set the slot just
   // doesn't render (see JSX below), the list doesn't need to "move up",
   // it's already a plain list either way.
@@ -205,7 +221,7 @@ export default async function HomePage() {
 
   return (
     <main>
-      <SponsorStrip sponsors={DUMMY_SPONSORS} />
+      <SponsorStrip sponsors={sponsors} />
 
       {/* Full-bleed band, not inside .container — the photo runs to the
           window's right edge on desktop and edge to edge on mobile. The

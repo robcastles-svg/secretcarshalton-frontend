@@ -191,6 +191,33 @@ class SC_Directory_REST {
 		);
 
 		/**
+		 * sc_logo (registered in SC_Directory_Meta) only stores an
+		 * attachment ID — same resolve-to-URL-here reasoning as
+		 * sc_gallery_images above, 'medium' rather than 'large' since this
+		 * only ever renders at 34px tall in the homepage's sponsor strip.
+		 */
+		register_rest_field(
+			SC_Directory_CPT::POST_TYPE,
+			'sc_logo_image',
+			array(
+				'get_callback' => function ( $post ) {
+					$attachment_id = (int) get_post_meta( $post['id'], 'sc_logo', true );
+					if ( ! $attachment_id ) {
+						return null;
+					}
+					$src = wp_get_attachment_image_src( $attachment_id, 'medium' );
+					if ( ! $src ) {
+						return null;
+					}
+					return array( 'id' => $attachment_id, 'url' => $src[0] );
+				},
+				'schema'       => array(
+					'type' => array( 'object', 'null' ),
+				),
+			)
+		);
+
+		/**
 		 * Star ratings are stored as comment meta (sc_rating) by
 		 * sc-membership's review-submission handler — see
 		 * SC_Membership_REST's 'rating' comment field. Rolling that up
@@ -247,6 +274,16 @@ class SC_Directory_REST {
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( __CLASS__, 'upload_photos' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_listing' ),
+			)
+		);
+
+		register_rest_route(
+			'sc-directory/v1',
+			'/(?P<id>\d+)/logo',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'upload_logo' ),
 				'permission_callback' => array( __CLASS__, 'check_owns_listing' ),
 			)
 		);
@@ -616,6 +653,63 @@ class SC_Directory_REST {
 		return count( $uploaded );
 	}
 
+	/**
+	 * Sideloads one uploaded file ($_FILES-shaped array: name/type/tmp_name/
+	 * error/size) as a media attachment parented to $post_id. Shared by the
+	 * REST logo upload below and SC_Directory_Admin's own logo field in the
+	 * wp-admin listing editor, so there's one place that knows how to turn
+	 * a raw file array into an attachment ID rather than two copies of the
+	 * require_once/$_FILES dance save_uploaded_photos above already has.
+	 * Returns the attachment ID, or null if there was no file or the
+	 * upload failed.
+	 */
+	public static function sideload_single_image( array $file, $post_id ) {
+		if ( ! empty( $file['error'] ) || empty( $file['tmp_name'] ) ) {
+			return null;
+		}
+
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+
+		$_FILES['sc_directory_single_image'] = $file;
+		$attachment_id                       = media_handle_upload( 'sc_directory_single_image', $post_id );
+		unset( $_FILES['sc_directory_single_image'] );
+
+		return is_wp_error( $attachment_id ) ? null : $attachment_id;
+	}
+
+	/**
+	 * The homepage sponsor-strip logo — a single image, replacing whatever
+	 * was there before (unlike the gallery, there's only ever one). The old
+	 * attachment is left in the media library rather than deleted, same
+	 * "don't bother cleaning up" choice save_uploaded_photos makes.
+	 */
+	private static function save_uploaded_logo( WP_REST_Request $request, $post_id ) {
+		$files = $request->get_file_params();
+		if ( empty( $files['logo'] ) ) {
+			return null;
+		}
+
+		$attachment_id = self::sideload_single_image( $files['logo'], $post_id );
+		if ( $attachment_id ) {
+			update_post_meta( $post_id, 'sc_logo', $attachment_id );
+		}
+		return $attachment_id;
+	}
+
+	/** Uploading/replacing the logo on an existing listing — the edit page's logo field. */
+	public static function upload_logo( WP_REST_Request $request ) {
+		$post_id       = (int) $request->get_param( 'id' );
+		$attachment_id = self::save_uploaded_logo( $request, $post_id );
+		if ( ! $attachment_id ) {
+			return new WP_Error( 'upload_failed', 'No logo was uploaded — check the file and try again.', array( 'status' => 400 ) );
+		}
+
+		$src = wp_get_attachment_image_src( $attachment_id, 'medium' );
+		return array( 'logo' => array( 'id' => $attachment_id, 'url' => $src ? $src[0] : '' ) );
+	}
+
 	/** Adding photos to an existing listing after submission — the edit page's gallery manager. */
 	public static function upload_photos( WP_REST_Request $request ) {
 		$post_id = (int) $request->get_param( 'id' );
@@ -824,6 +918,7 @@ class SC_Directory_REST {
 		}
 
 		self::save_uploaded_photos( $request, $listing_id, self::PAID_PHOTO_LIMIT );
+		self::save_uploaded_logo( $request, $listing_id );
 
 		/**
 		 * Lands in the same approval queue sc-membership already exposes

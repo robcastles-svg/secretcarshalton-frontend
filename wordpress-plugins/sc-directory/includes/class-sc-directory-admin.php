@@ -36,8 +36,10 @@ class SC_Directory_Admin {
 
 	public static function render_details_meta_box( $post ) {
 		wp_nonce_field( 'sc_directory_save_details', 'sc_directory_details_nonce' );
-		$tagline  = get_post_meta( $post->ID, 'sc_tagline', true );
-		$featured = (bool) get_post_meta( $post->ID, 'sc_featured', true );
+		$tagline        = get_post_meta( $post->ID, 'sc_tagline', true );
+		$featured       = (bool) get_post_meta( $post->ID, 'sc_featured', true );
+		$logo_id        = (int) get_post_meta( $post->ID, 'sc_logo', true );
+		$logo_src       = $logo_id ? wp_get_attachment_image_src( $logo_id, 'medium' ) : false;
 		?>
 		<p>
 			<label for="sc_directory_tagline"><strong>Tagline</strong></label><br />
@@ -57,6 +59,18 @@ class SC_Directory_Admin {
 				Featured — always shown at the top of the Directory
 			</label>
 		</p>
+		<p>
+			<label for="sc_directory_logo"><strong>Homepage logo</strong></label><br />
+			<?php if ( $logo_src ) : ?>
+				<img src="<?php echo esc_url( $logo_src[0] ); ?>" alt="" style="max-width:100%;max-height:60px;background:#fff;border:1px solid #ddd;padding:4px;margin:4px 0;display:block" />
+			<?php endif; ?>
+			<input type="file" id="sc_directory_logo" name="sc_directory_logo" accept="image/*" />
+			<br />
+			<span style="color:#666;font-size:12px">
+				Use a white or transparent background — shown in a small white tile in the homepage's Featured strip.
+				Featured listings only.
+			</span>
+		</p>
 		<?php
 	}
 
@@ -75,6 +89,13 @@ class SC_Directory_Admin {
 
 		update_post_meta( $post_id, 'sc_tagline', sanitize_text_field( (string) ( $_POST['sc_directory_tagline'] ?? '' ) ) );
 		update_post_meta( $post_id, 'sc_featured', isset( $_POST['sc_directory_featured'] ) );
+
+		if ( ! empty( $_FILES['sc_directory_logo']['tmp_name'] ) ) {
+			$attachment_id = SC_Directory_REST::sideload_single_image( $_FILES['sc_directory_logo'], $post_id );
+			if ( $attachment_id ) {
+				update_post_meta( $post_id, 'sc_logo', $attachment_id );
+			}
+		}
 	}
 
 	public static function register_menu() {

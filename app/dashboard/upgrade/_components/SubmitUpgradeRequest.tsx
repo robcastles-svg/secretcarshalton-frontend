@@ -127,6 +127,14 @@ export function SubmitUpgradeRequest({
         <input type="text" name="tagline" maxLength={140} placeholder="A one-line summary shown on listing cards" />
       </label>
       <label>
+        Logo for the homepage
+        <input type="file" name="logo" accept="image/*" />
+      </label>
+      <p className="auth-hint">
+        Use a white or transparent background — it sits in a small white tile alongside other Featured
+        listings on the homepage.
+      </p>
+      <label>
         Description
         <textarea name="description" rows={4} />
       </label>

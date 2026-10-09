@@ -49,6 +49,7 @@ export default async function EditListingPage({
         listingSlug={listing.slug}
         categories={categories}
         gallery={listing.sc_gallery_images ?? []}
+        logo={listing.sc_logo_image ?? null}
         initial={{
           title: stripHtml(listing.title.rendered),
           description: htmlToPlainText(listing.content.rendered),
@@ -70,6 +71,7 @@ export default async function EditListingPage({
           plan: listing.meta.sc_plan || "free",
           claimed: Boolean(listing.meta.sc_claimed),
           claimExpiresAt: listing.meta.sc_claim_expires_at ?? "",
+          featured: Boolean(listing.meta.sc_featured),
         }}
       />
     </main>

@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 export interface Sponsor {
   id: number;
   name: string;
-  /** Omitted for the placeholder tiles shown before real logo uploads exist — see the dummy array in app/page.tsx. */
+  /** Omitted for a Featured listing that hasn't uploaded a logo yet (or the dummy placeholder tiles — see app/page.tsx) — falls back to a text tile. */
   logoUrl?: string;
   href: string;
 }
@@ -27,11 +27,13 @@ const RESUME_DELAY_MS = 1200;
  * the track's width once it's scrolled past the first copy) has no
  * visible seam, whichever way — auto or manual — it got there.
  *
- * Feeding it from real logo uploads needs the Featured-tier sign-up/edit
- * form to grow a logo-upload field first (separate follow-up) — until
- * then app/page.tsx passes a dummy placeholder array so the slider
- * itself is visible per the design handoff, with a text tile standing
- * in for each logo.
+ * Fed from Featured listings' sc_logo_image (uploaded via the
+ * Featured-tier sign-up form or the listing's own edit page — see
+ * SC_Directory_REST's logo upload route) — app/page.tsx maps each
+ * Featured listing to a Sponsor there. Falls back to a dummy placeholder
+ * array only if there are no Featured listings at all, so the slider
+ * itself is never empty; a Featured listing without its own logo yet
+ * still gets a tile here, just with its name as text instead of an image.
  */
 export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
   const trackRef = useRef<HTMLUListElement>(null);

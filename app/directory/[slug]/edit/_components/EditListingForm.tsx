@@ -4,6 +4,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { WPDirectoryCategory, WPListingGalleryImage } from "@/lib/wordpress";
 
+export interface EditListingLogo {
+  id: number;
+  url: string;
+}
+
 /** Mirrors SC_Directory_REST's PHOTO_LIMIT — advisory only, the server enforces the real cap. Every listing has one category (a single dropdown) and up to 3 photos, whatever its plan. */
 const PHOTO_LIMIT = 3;
 
@@ -28,6 +33,7 @@ export interface EditListingInitial {
   plan: string;
   claimed: boolean;
   claimExpiresAt: string;
+  featured: boolean;
 }
 
 function formatExpiry(iso: string): string {
@@ -42,12 +48,14 @@ export function EditListingForm({
   categories,
   initial,
   gallery,
+  logo,
 }: {
   listingId: number;
   listingSlug: string;
   categories: WPDirectoryCategory[];
   initial: EditListingInitial;
   gallery: WPListingGalleryImage[];
+  logo: EditListingLogo | null;
 }) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -61,6 +69,10 @@ export function EditListingForm({
   const [renewing, setRenewing] = useState(false);
   const [renewError, setRenewError] = useState<string | null>(null);
   const [claimExpiresAt, setClaimExpiresAt] = useState(initial.claimExpiresAt);
+  const [currentLogo, setCurrentLogo] = useState(logo);
+  const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const photoLimit = PHOTO_LIMIT;
 
@@ -154,6 +166,25 @@ export function EditListingForm({
       setPhotoError(body.error || "Could not remove that photo.");
     }
     setRemovingPhotoId(null);
+  }
+
+  async function handleUploadLogo() {
+    if (!newLogoFile) return;
+    setUploadingLogo(true);
+    setLogoError(null);
+
+    const logoData = new FormData();
+    logoData.append("logo", newLogoFile);
+
+    const res = await fetch(`/api/directory/${listingId}/logo`, { method: "POST", body: logoData });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setCurrentLogo(body.logo);
+      setNewLogoFile(null);
+    } else {
+      setLogoError(body.error || "Could not upload the logo.");
+    }
+    setUploadingLogo(false);
   }
 
   async function handleRenewClaim() {
@@ -297,6 +328,36 @@ export function EditListingForm({
         )}
         {photoError && <p className="auth-error">{photoError}</p>}
       </div>
+
+      {initial.featured && (
+        <div className="directory-gallery-manager">
+          <h2>Homepage logo</h2>
+          <p className="auth-hint">
+            Shown in the Featured strip at the top of the homepage. Use a white or transparent background — it
+            sits in a small white tile alongside other Featured listings.
+          </p>
+          {currentLogo && (
+            <img
+              src={currentLogo.url}
+              alt={`${initial.title} logo`}
+              loading="lazy"
+              style={{ maxWidth: 160, maxHeight: 80, background: "#fff", border: "1px solid #ddd", padding: 4 }}
+            />
+          )}
+          <div className="directory-gallery-add">
+            <input type="file" accept="image/*" onChange={(e) => setNewLogoFile(e.target.files?.[0] ?? null)} />
+            <button
+              type="button"
+              className="button-pill button-pill-secondary"
+              onClick={handleUploadLogo}
+              disabled={uploadingLogo || !newLogoFile}
+            >
+              {uploadingLogo ? "Uploading…" : currentLogo ? "Replace logo" : "Upload logo"}
+            </button>
+          </div>
+          {logoError && <p className="auth-error">{logoError}</p>}
+        </div>
+      )}
 
       {initial.claimed && (
         <div className="directory-claim-expiry">

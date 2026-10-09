@@ -1115,6 +1115,8 @@ export interface WPListing {
   sc_group_promo_pending?: boolean;
   /** Resolved from the sc_gallery attachment-ID meta server-side — see SC_Directory_REST's sc_gallery_images REST field. */
   sc_gallery_images?: WPListingGalleryImage[];
+  /** Resolved from the sc_logo attachment-ID meta server-side — the homepage SponsorStrip's logo, Featured listings only. Null/absent when none has been uploaded. */
+  sc_logo_image?: { id: number; url: string } | null;
   /** Rolled up from approved review comments (sc_rating meta) server-side — see SC_Directory_REST's sc_review_stats REST field. Powers the Most Reviews / Highest Rated directory sort. */
   sc_review_stats?: { count: number; average: number | null };
   /** True if sc_featured and still under this month's 150-impression grid allowance — see SC_Directory_REST::is_grid_eligible. */
@@ -1125,7 +1127,7 @@ export interface WPListing {
 }
 
 const DIRECTORY_LISTING_FIELDS =
-  "id,slug,link,date,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_claim_pending,sc_review_stats,sc_featured_grid_eligible,_links";
+  "id,slug,link,date,title,content,author,sc_listing_category,meta,sc_gallery_images,sc_logo_image,sc_claim_pending,sc_review_stats,sc_featured_grid_eligible,_links";
 
 /**
  * Staging (see WP_STAGING_ROOT) turned out to be far less reliably
@@ -1251,6 +1253,30 @@ export async function updateDirectoryListing(
       return { code: body.code ?? "update_failed", message: body.message ?? "Could not update the listing." };
     }
     return { id: body.id, status: body.status };
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Uploading/replacing a listing's homepage SponsorStrip logo — multipart, same shape as uploadListingPhotos. */
+export async function uploadListingLogo(
+  token: string,
+  listingId: number,
+  formData: FormData
+): Promise<{ logo: { id: number; url: string } } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/${listingId}/logo`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) {
+      return { code: body.code ?? "upload_failed", message: body.message ?? "Could not upload the logo." };
+    }
+    return body;
   } catch {
     return NETWORK_ERROR;
   }
