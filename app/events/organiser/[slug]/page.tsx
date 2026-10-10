@@ -15,9 +15,9 @@ import { getAd, getScEventsByOrganizer, stripHtml } from "@/lib/wordpress";
 import { CopyButton } from "../../_components/CopyButton";
 import { EventCard } from "../../_components/EventCard";
 import { GlobeIcon, MailIcon, PhoneIcon, PinIcon, SOCIAL_ICONS } from "../../_components/EvIcons";
-import { BackToEvent } from "./_components/BackToEvent";
+import { BackToEvent } from "../../_components/BackToEvent";
 import { OrganizerClaim } from "./_components/OrganizerClaim";
-import { PastEventsList } from "./_components/PastEventsList";
+import { PastEventsList } from "../../_components/PastEventsList";
 
 export const revalidate = 3600;
 

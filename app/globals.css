@@ -8014,3 +8014,26 @@ a.card-category:hover {
 .evf-admin-featured input { accent-color: var(--evx-accent); width: 18px; height: 18px; margin: 2px 0 0; flex: 0 0 auto; }
 .evf-admin-featured b { display: block; font-size: 14px; color: var(--evx-ink); }
 .evf-admin-featured small { display: block; font-size: 12px; color: var(--evx-ink-soft); line-height: 1.4; }
+
+/* ==========================================================================
+   Venue page (/events/venue/[venue]) — events list "black page" style.
+   Mobile order: header, venue card, events, ads. Desktop: events left,
+   venue card then ads in the right-hand column.
+   ========================================================================== */
+.evv-head .evx-eyebrow { margin: 0 0 6px; }
+.evv-layout { margin-top: 4px; }
+.evv-side { display: contents; }
+.evv-venue { order: 1; }
+.evv-main { order: 2; }
+.evv-ads { order: 3; min-width: 0; }
+.evl .evx-count { background: #2b282d; color: #b9b1b6; }
+.evl .evx-past-list li { border-top-color: var(--evx-panel-line); }
+.evl .evx-past-list time { color: #9d959a; }
+.evl .evx-past-list a { color: var(--evx-on-dark); }
+.evl .evx-past-list a:hover { color: var(--evx-accent-dark); }
+.evv-past .evx-past-list { background: var(--evx-charcoal); border-radius: 14px; padding: 6px 16px; }
+@media (min-width: 880px) {
+  .evv-side { display: flex; flex-direction: column; gap: 16px; }
+  .evv-venue, .evv-main, .evv-ads { order: 0; }
+}
+.evv-past .evx-past-more { justify-self: start; }

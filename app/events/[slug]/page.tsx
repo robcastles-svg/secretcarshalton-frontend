@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommentSection } from "@/app/_components/CommentSection";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
-import { StyledMap } from "@/app/_components/StyledMap";
 import { getSessionToken } from "@/lib/auth";
 import {
   displayOccurrence,
@@ -18,7 +17,6 @@ import {
   isRepeating,
   relativeDayLabel,
   upcomingOccurrences,
-  venueQuery,
   venueShort,
   dateParts,
   type Booking,
@@ -44,7 +42,6 @@ import {
   CalendarIcon,
   ChevronIcon,
   ClockIcon,
-  DirectionsIcon,
   ExternalIcon,
   MailIcon,
   PhoneIcon,
@@ -56,6 +53,7 @@ import {
 import { ClaimEventButton } from "./_components/ClaimEventButton";
 import { EventDetailImage } from "./_components/EventDetailImage";
 import { RsvpButton } from "./_components/RsvpButton";
+import { VenueCard } from "../_components/VenueCard";
 import { ShareEventRow } from "./_components/ShareEventRow";
 
 export const revalidate = 3600;
@@ -313,11 +311,13 @@ export default async function EventPage({
   const booking = getBooking(event);
   const time = shown ? formatTimeRange(shown) : null;
   const venue = venueShort(event);
-  const mapQuery = venueQuery(event);
   const topic = allTags.find((t) => event.sc_event_tag?.includes(t.id)) ?? null;
   const org = event.sc_event_organizer_profile ?? null;
   const organizerHref = org ? `/events/organiser/${org.slug}?from=${encodeURIComponent(event.slug)}` : null;
-  const venueHref = event.meta.sc_venue_name ? `/events/venue/${slugifyVenue(event.meta.sc_venue_name)}` : null;
+  // ?from= lets the venue page offer "Back to event", the same as the organiser link.
+  const venueHref = event.meta.sc_venue_name
+    ? `/events/venue/${slugifyVenue(event.meta.sc_venue_name)}?from=${encodeURIComponent(event.slug)}`
+    : null;
   const shownParts = shown ? dateParts(shown.start) : null;
   // "Thu 22 Oct, 7:30 pm" (or "Next: …" for repeating events) — the sticky bar's second line.
   const whenLabel = shown && shownParts
@@ -514,32 +514,7 @@ export default async function EventPage({
             )
           )}
 
-          {mapQuery && (
-            <section className="evx-card-dk evx-venue">
-              <p className="evx-eyebrow">Venue</p>
-              {event.meta.sc_venue_name && <h3>{event.meta.sc_venue_name}</h3>}
-              {event.meta.sc_venue_address && <p className="evx-addr">{event.meta.sc_venue_address}</p>}
-              <div className="evx-map">
-                <StyledMap query={mapQuery} />
-              </div>
-              <div className="evx-venue-actions">
-                <a
-                  className="evx-btn-dark"
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapQuery)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <DirectionsIcon />
-                  Directions
-                </a>
-                {venueHref && (
-                  <Link className="evx-text-link" href={venueHref}>
-                    All events here →
-                  </Link>
-                )}
-              </div>
-            </section>
-          )}
+          <VenueCard name={event.meta.sc_venue_name} address={event.meta.sc_venue_address} allEventsHref={venueHref} />
         </aside>
       </div>
 

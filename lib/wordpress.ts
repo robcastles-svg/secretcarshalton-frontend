@@ -1764,12 +1764,16 @@ function isUpcoming(event: WPScEvent, now = Date.now()): boolean {
   return start !== null && start.getTime() >= now;
 }
 
-/** "All upcoming events at this venue" — past events at the same venue aren't useful to surface here. */
+/**
+ * Every event at this venue, past and upcoming — the venue page splits
+ * them into "Coming up" and "Past events" itself (using the repeat-aware
+ * helpers in lib/event-view), the same way the organiser page does. It
+ * used to return upcoming only, which made a venue with nothing coming up
+ * a 404 rather than a page listing what's been on there.
+ */
 export async function getScEventsByVenue(venueSlug: string): Promise<WPScEvent[]> {
   const events = await getScEvents(300);
-  return events.filter(
-    (e) => e.meta.sc_venue_name && slugifyVenue(e.meta.sc_venue_name) === venueSlug && isUpcoming(e)
-  );
+  return events.filter((e) => e.meta.sc_venue_name && slugifyVenue(e.meta.sc_venue_name) === venueSlug);
 }
 
 /**
