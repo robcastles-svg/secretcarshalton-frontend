@@ -10,6 +10,7 @@ import {
   GROUPS_CATEGORY_SLUG,
 } from "@/lib/wordpress";
 import { AREAS, HIDDEN_TOPICS, addMonths, currentMonth, listHref } from "@/lib/event-list";
+import { getOccurrences } from "@/lib/event-view";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.secretcarshalton.com";
 
@@ -117,6 +118,16 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   const listPaths = [
     listHref({ when: "weekend" }),
     ...Array.from({ length: 6 }, (_, n) => listHref({ when: addMonths(currentMonth(), n) })),
+    // Past months that had events stay up for search.
+    ...[
+      ...new Set(
+        events.flatMap((e) =>
+          getOccurrences(e).map((o) => `${o.start.getFullYear()}-${String(o.start.getMonth() + 1).padStart(2, "0")}`)
+        )
+      ),
+    ]
+      .filter((m) => m < currentMonth())
+      .map((m) => listHref({ when: m })),
     listHref({ when: "all", topic: "free" }),
     ...eventTags.filter((t) => !HIDDEN_TOPICS.has(t.slug)).map((t) => listHref({ when: "all", topic: t.slug })),
     ...AREAS.map((a) => listHref({ area: a.slug, when: "all" })),

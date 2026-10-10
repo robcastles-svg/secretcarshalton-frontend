@@ -66,11 +66,15 @@ function hasTopic(event: WPScEvent, topic: string, tagsById: Map<number, WPScEve
   return (event.sc_event_tag ?? []).some((id) => tagsById.get(id)?.slug === topic);
 }
 
-/** Every date of every event falling in [from, to), not yet over. */
-function occurrencesBetween(events: WPScEvent[], from: Date, to: Date, now: number): Item[] {
+/**
+ * Every date of every event falling in [from, to), not yet over — or,
+ * with includePast, every date full stop (past month pages stay up for
+ * search, listing what was on).
+ */
+function occurrencesBetween(events: WPScEvent[], from: Date, to: Date, now: number, includePast = false): Item[] {
   const items: Item[] = [];
   for (const event of events) {
-    for (const occurrence of upcomingOccurrences(event, now)) {
+    for (const occurrence of includePast ? getOccurrences(event) : upcomingOccurrences(event, now)) {
       if (occurrence.start >= from && occurrence.start < to) items.push({ event, occurrence });
     }
   }
@@ -132,7 +136,12 @@ export function listTitle(filter: ListFilter, tags: WPScEventTag[], now = Date.n
     intro = `${weekendLabel(now)}.`;
   } else if (filter.when !== "all") {
     title = area ? `${area.title}, ${monthLabel(filter.when)}` : `What's on in ${monthLabel(filter.when)}`;
-    intro = area ? area.intro : `Events in and around Carshalton and Sutton in ${monthLabel(filter.when)}.`;
+    intro =
+      filter.when < currentMonth(now)
+        ? `Events that took place in and around Carshalton and Sutton in ${monthLabel(filter.when)}.`
+        : area
+        ? area.intro
+        : `Events in and around Carshalton and Sutton in ${monthLabel(filter.when)}.`;
   } else {
     title = area ? area.title : "Events";
     intro = area ? area.intro : "";
@@ -216,8 +225,9 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
     items = occurrencesBetween(topicEvents, from, to, now);
   } else if (filter.when !== "all") {
     const { from, to } = monthRange(filter.when);
-    // Month pages list every date in the month — a repeating event appears on each.
-    items = occurrencesBetween(topicEvents, from, to, now);
+    // Month pages list every date in the month — a repeating event appears
+    // on each. Past months keep their (finished) events listed, for search.
+    items = occurrencesBetween(topicEvents, from, to, now, filter.when < currentMonth(now));
   } else {
     items = nextOccurrences(topicEvents, now);
   }
@@ -228,7 +238,7 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
       ? nextOccurrences(areaEvents, now)
       : filter.when === "weekend"
       ? occurrencesBetween(areaEvents, weekendRange(now).from, weekendRange(now).to, now)
-      : occurrencesBetween(areaEvents, monthRange(filter.when).from, monthRange(filter.when).to, now);
+      : occurrencesBetween(areaEvents, monthRange(filter.when).from, monthRange(filter.when).to, now, filter.when < currentMonth(now));
   const counted = new Set<number>();
   const counts = new Map<string, number>();
   for (const { event } of whenItems) {
@@ -329,7 +339,15 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
   if (filter.when !== "all" && filter.when !== "weekend" && !filter.topic) {
     const prev = addMonths(filter.when, -1);
     const next = addMonths(filter.when, 1);
-    const showPrev = prev >= currentMonth(now);
+    // Back as far as the earliest month with an event, so every past month page can be found.
+    const firstMonth = allEvents
+      .map((e) => getOccurrences(e)[0]?.start)
+      .filter((d): d is Date => Boolean(d))
+      .reduce<string | null>((min, d) => {
+        const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        return !min || m < min ? m : min;
+      }, null);
+    const showPrev = Boolean(firstMonth && prev >= firstMonth);
     const showNext = next <= addMonths(currentMonth(now), 12);
     monthNav = (
       <nav className="evl-month-nav" aria-label="Other months">
