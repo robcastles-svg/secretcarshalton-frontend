@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ChevronIcon } from "../../../_components/EvIcons";
+import { ChevronIcon } from "./EvIcons";
 
 /**
- * "Back to event" when the visitor came from an event page (which links
- * here with ?from=<event-slug>), otherwise "Back to events". Read on the
- * client so the organiser page itself stays statically cached.
+ * "Back to event" when the visitor came from an event page (which links to
+ * the organiser and venue pages with ?from=<event-slug>), otherwise "Back
+ * to events". Read on the client so those pages stay statically cached.
+ * Shared by the organiser and venue pages.
  */
 export function BackToEvent() {
   const from = useSearchParams().get("from");
