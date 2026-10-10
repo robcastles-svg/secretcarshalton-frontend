@@ -7698,3 +7698,123 @@ a.card-category:hover {
   .evx-sticky { display: none; }
   .evx-grid-2 { grid-template-columns: 1fr 1fr; }
 }
+
+/* ==========================================================================
+   Events redesign — list pages (main, area, weekend, month, category).
+   "Black page" style from the mockup. Builds on the .evx tokens above.
+   ========================================================================== */
+.evx.evl { background: #000; padding-bottom: 0; }
+.evl-areabar { background: #000; }
+.evl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.evl-sub-head { max-width: 1180px; margin: 0 auto; padding: 14px 16px 0; }
+.evl-head { max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; justify-content: space-between; padding: 18px 16px 4px; }
+.evx .evl-head h1 { margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -.015em; line-height: 1.1; text-wrap: balance; color: var(--evx-accent-dark); text-transform: uppercase; }
+.evx .evl-head h1.evl-big { font-size: 44px; display: flex; align-items: center; gap: .25em; }
+.evl-key { width: .85em; height: .85em; color: #fff; flex: 0 0 auto; }
+.evl-intro { margin: 6px 0 0; color: var(--evx-on-dark-soft); font-size: 15px; max-width: 60ch; }
+.evx .evl-btn-submit { display: inline-flex; align-items: center; gap: 8px; background: var(--evx-accent); color: #fff; border-radius: 999px; padding: 10px 18px; font-weight: 700; font-size: 14px; text-decoration: none; white-space: nowrap; }
+.evx .evl-btn-submit:hover { filter: brightness(1.08); }
+.evl-share { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--evx-on-dark-soft); }
+.evl-share .evx-share { margin-left: 0; }
+.evl .evx-icon-btn { background: var(--evx-panel); color: var(--evx-on-dark); border: 1px solid var(--evx-panel-line); }
+.evl .evx-icon-btn:hover { background: #3c373e; }
+
+/* filter bar: month pills + one category dropdown */
+.evl-fbar { max-width: 1180px; margin: 16px auto 0; padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+.evl-frow { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; align-items: center; min-width: 0; }
+.evl-frow::-webkit-scrollbar { display: none; }
+.evx .evl-chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 7px 14px; font-size: 14px; font-weight: 500; white-space: nowrap; border: 1px solid var(--evx-panel-line); background: transparent; color: var(--evx-on-dark); text-decoration: none; }
+.evl-chip svg { width: 15px; height: 15px; color: var(--evx-accent-dark); }
+.evx .evl-chip:hover { border-color: var(--evx-on-dark-soft); }
+.evx .evl-chip-on { background: var(--evx-on-dark); color: var(--evx-ink); border-color: var(--evx-on-dark); }
+.evl-chip-on svg { color: var(--evx-accent); }
+.evl-cat { position: relative; display: inline-flex; align-items: center; align-self: flex-start; background: #252226; border: 1px solid #3a363c; border-radius: 999px; color: var(--evx-on-dark); }
+.evl-cat-on { background: var(--evx-accent); border-color: var(--evx-accent); }
+.evl-cat select { appearance: none; -webkit-appearance: none; background: transparent; border: 0; color: inherit; font: inherit; font-size: 14px; font-weight: 500; padding: 8px 38px 8px 16px; cursor: pointer; color-scheme: dark; }
+.evl-cat select:focus-visible { outline: 2px solid var(--evx-accent-dark); outline-offset: 2px; border-radius: 999px; }
+.evl-cat select option { background: #1f1d21; color: #fff; }
+.evl-cat svg { position: absolute; right: 14px; width: 14px; height: 14px; transform: rotate(90deg); pointer-events: none; color: #b9b1b6; }
+.evl-cat-on svg { color: #fff; }
+
+/* featured slider — fixed height so the page never jumps */
+.evl-rot { max-width: 1180px; margin: 16px auto 0; padding: 0 16px; }
+.evl-rot-track { position: relative; border-radius: 16px; overflow: hidden; background: var(--evx-charcoal); color: #fff; touch-action: pan-y; }
+.evx .evl-slide { display: none; grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: 440px; overflow: hidden; text-decoration: none; color: #fff; user-select: none; }
+.evx .evl-slide-on { display: grid; animation: evl-fadein .45s ease; }
+@keyframes evl-fadein { from { opacity: .35; } to { opacity: 1; } }
+.evl-s-img { aspect-ratio: 16 / 9; position: relative; overflow: hidden; background: #111; }
+.evl-s-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.evl-slide-date-img { display: none; }
+.evl-s-body { padding: 18px 18px 20px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.evl-promo-pill { display: inline-flex; align-items: center; background: var(--evx-accent); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; border-radius: 999px; padding: 3px 10px; width: max-content; }
+.evl-s-top { display: flex; gap: 16px; align-items: flex-start; }
+.evl-s-top > div { min-width: 0; display: grid; gap: 6px; }
+.evl-slide .evx-date { background: #2b282d; border-color: #3a363c; }
+.evl-s-cat { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--evx-accent-dark); }
+.evx .evl-s-body h2 { margin: 0; font-size: 22px; line-height: 1.15; font-weight: 900; letter-spacing: .01em; text-transform: uppercase; color: var(--evx-accent-dark); text-wrap: balance; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.evl-s-place { font-size: 15px; color: #b9b1b6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.evl-cd { display: flex; gap: 6px; }
+.evl-cd-t { flex: 0 0 auto; min-width: 50px; background: #141315; border: 1px solid #343136; border-radius: 8px; padding: 5px 6px 4px; text-align: center; }
+.evl-cd-t b { display: block; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.evl-cd-t span { display: block; font-size: 10px; color: #9d959a; letter-spacing: .08em; text-transform: uppercase; margin-top: 2px; }
+.evl-cd-sec b { color: var(--evx-accent-dark); }
+.evl-rot-ctl { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; }
+.evx .evl-arrow { width: 34px; height: 34px; border-radius: 50%; border: 1px solid #3a363c; background: var(--evx-charcoal); color: var(--evx-on-dark); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.evx .evl-arrow:hover { border-color: var(--evx-on-dark-soft); }
+.evl-arrow svg { width: 16px; height: 16px; }
+.evl-arrow-prev svg { transform: rotate(180deg); }
+.evl-dots { display: flex; gap: 6px; align-items: center; }
+.evx .evl-dots button { width: 8px; height: 8px; border-radius: 999px; border: 0; background: #5a525c; padding: 0; transition: width .2s; cursor: pointer; }
+.evx .evl-dots button[aria-current="true"] { width: 22px; background: var(--evx-on-dark); }
+.evl-rot-sell { text-align: center; font-size: 13px; color: var(--evx-on-dark-soft); margin: 8px 0 0; }
+.evx .evl-rot-sell a { color: var(--evx-accent-dark); font-weight: 500; text-decoration: none; }
+
+/* list + sidebar ads */
+.evl-layout { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 16px 16px 24px; }
+.evl-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.evl-side { min-width: 0; }
+.evl-group { display: grid; gap: 12px; }
+.evx .evl-group > h2 { margin: 10px 0 0; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--evx-on-dark-soft); display: flex; gap: 12px; align-items: center; }
+.evl-group > h2::after { content: ""; flex: 1; border-top: 1px solid var(--evx-panel-line); }
+.evl-load-more { align-self: center; }
+.evl-empty { background: var(--evx-charcoal); border-radius: 14px; padding: 22px; display: grid; gap: 10px; justify-items: start; }
+.evx .evl-empty h2 { margin: 0; font-size: 18px; color: #fff; }
+.evl-empty p { margin: 0; color: var(--evx-on-dark-soft); font-size: 14px; }
+.evl-month-nav { display: flex; justify-content: space-between; gap: 12px; }
+.evx-card-dark .evx-date { background: #2b282d; border-color: #3a363c; }
+
+/* latest events added — sideways scroll */
+.evl-latest { max-width: 1180px; margin: 8px auto 0; padding: 0 16px 28px; }
+.evx .evl-latest h2 { margin: 0 0 12px; font-size: 22px; font-weight: 900; color: #fff; }
+.evl-hscroll { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; }
+.evx .evl-mini { flex: 0 0 220px; scroll-snap-align: start; background: var(--evx-charcoal); color: #fff; border-radius: 12px; overflow: hidden; text-decoration: none; min-width: 0; }
+.evl-mini-img { aspect-ratio: 16 / 10; }
+.evl-mini:hover .evx-card-img img { transform: scale(1.06); filter: brightness(.78); }
+.evl-mini-t { padding: 10px 12px 12px; display: grid; gap: 4px; }
+.evl-mini-d { font-size: 12px; font-weight: 700; color: #b9b1b6; }
+.evx .evl-mini h3 { margin: 0; font-size: 13px; line-height: 1.3; color: var(--evx-accent-dark); text-transform: uppercase; }
+
+@media (prefers-reduced-motion: reduce) {
+  .evx .evl-slide-on { animation: none; }
+  .evx .evl-dots button { transition: none; }
+}
+
+@media (min-width: 880px) {
+  .evl-sub-head { padding: 20px 32px 0; }
+  .evl-head { padding: 26px 32px 4px; }
+  .evx .evl-head h1 { font-size: 42px; }
+  .evx .evl-head h1.evl-big { font-size: 60px; }
+  .evl-fbar { margin-top: 20px; padding: 0 32px; flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .evl-frow { flex: 1 1 auto; flex-wrap: wrap; overflow: visible; }
+  .evl-cat { flex: 0 0 auto; }
+  .evl-rot { margin-top: 20px; padding: 0 32px; }
+  .evx .evl-slide { grid-template-columns: minmax(0, .8fr) 1.2fr; grid-template-rows: none; height: 300px; }
+  .evl-s-img { aspect-ratio: auto; height: 100%; }
+  .evl-slide-date-img { display: block; position: absolute; left: 14px; top: 14px; background: rgba(20, 19, 21, .92) !important; }
+  .evl-s-top > .evx-date { display: none; }
+  .evl-s-body { padding: 22px 28px; gap: 10px; align-content: center; }
+  .evx .evl-s-body h2 { font-size: 24px; }
+  .evl-cd-t b { font-size: 19px; }
+  .evl-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; padding: 16px 32px 32px; align-items: start; }
+  .evl-latest { padding: 0 32px 32px; }
+}
