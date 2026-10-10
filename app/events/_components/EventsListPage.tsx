@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import {
   HIDDEN_TOPICS,
@@ -170,20 +171,6 @@ export async function listMetadata(filter: ListFilter): Promise<Metadata> {
   };
 }
 
-function KeyIcon() {
-  return (
-    <svg className="evl-key" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <g transform="translate(64 0) scale(-1 1)">
-        <circle cx="15" cy="15" r="10" />
-        <circle cx="15" cy="15" r="4" />
-        <path d="M8 8l-3-3M22 8l3-3M8 22l-3 3" />
-        <path d="M22.5 22.5L56 56" />
-        <path d="M27 23l-4 4M31 27l-4 4" />
-        <path d="M47 47l6-6 3 3M52 52l5-5" />
-      </g>
-    </svg>
-  );
-}
 
 function Grid({ items }: { items: Item[] }) {
   return (
@@ -403,7 +390,7 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
         <div>
           <h1 className={isHome ? "evl-big" : undefined}>
             {title}
-            {isHome && <KeyIcon />}
+            {isHome && <CategoryKeyIcon />}
           </h1>
           {intro && <p className="evl-intro">{intro}</p>}
         </div>

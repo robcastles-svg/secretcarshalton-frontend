@@ -12,6 +12,7 @@ import {
   type WPScEvent,
 } from "@/lib/wordpress";
 import { HIDDEN_TOPICS } from "@/lib/event-list";
+import { ChevronIcon } from "../_components/EvIcons";
 import { EventForm } from "../_components/EventForm";
 import { LiveEventsPanel, type LiveEventRow } from "./_components/LiveEventsPanel";
 
@@ -66,6 +67,12 @@ async function AddYourEventPage({ token }: { token: string }) {
 
   return (
     <main className="evx evf-page">
+      <div className="evx-crumb">
+        <Link href="/events" className="evx-back">
+          <ChevronIcon />
+          View all events
+        </Link>
+      </div>
       <EventForm
         mode="create"
         areas={areas}

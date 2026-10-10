@@ -55,8 +55,6 @@ export function LiveEventsPanel({ events }: { events: LiveEventRow[] }) {
     }
   }
 
-  if (events.length === 0) return null;
-
   return (
     <details className="evf-live">
       <summary>
@@ -66,6 +64,11 @@ export function LiveEventsPanel({ events }: { events: LiveEventRow[] }) {
       </summary>
       <div className="evf-live-list">
         {message && <div className={`evf-msg evf-msg-${message.kind}`}>{message.text}</div>}
+        {rows.length === 0 && (
+          <p className="evf-live-empty">
+            You don&apos;t have any upcoming events at the moment. Events you add will appear here, ready to edit.
+          </p>
+        )}
         {rows.map((e) => (
           <div className="evf-my-row" key={e.id}>
             {e.thumbnail ? <img src={e.thumbnail} alt="" /> : <span className="evf-my-noimg" aria-hidden="true" />}
@@ -114,6 +117,9 @@ export function LiveEventsPanel({ events }: { events: LiveEventRow[] }) {
             )}
           </div>
         ))}
+        <Link className="evf-live-all" href="/dashboard">
+          See all your events, including past ones, on your dashboard →
+        </Link>
       </div>
     </details>
   );
