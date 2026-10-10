@@ -16,6 +16,7 @@ import { CopyButton } from "../../_components/CopyButton";
 import { EventCard } from "../../_components/EventCard";
 import { GlobeIcon, MailIcon, PhoneIcon, PinIcon, SOCIAL_ICONS } from "../../_components/EvIcons";
 import { BackToEvent } from "./_components/BackToEvent";
+import { OrganizerClaim } from "./_components/OrganizerClaim";
 import { PastEventsList } from "./_components/PastEventsList";
 
 export const revalidate = 3600;
@@ -203,10 +204,9 @@ export default async function EventsByOrganizerPage({
 
           <section className="evx-card-dk evx-o-claim">
             <p className="evx-eyebrow">Is this your group?</p>
-            <p>Keep these details up to date and manage your events.</p>
-            <Link className="evx-btn-dark" href="/contact">
-              Update these details
-            </Link>
+            <Suspense fallback={<p>Keep these details up to date, add a logo and manage your events.</p>}>
+              <OrganizerClaim organizerId={organizer.id} slug={organizer.slug} claimPending={Boolean(organizer.claim_pending)} />
+            </Suspense>
           </section>
 
           <div className="evx-o-ads">

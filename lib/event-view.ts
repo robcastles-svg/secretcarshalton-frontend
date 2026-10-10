@@ -91,7 +91,7 @@ export interface Occurrence {
  */
 export function getOccurrences(event: WPScEvent): Occurrence[] {
   const first = parseEventDate(event.meta.sc_start);
-  const firstEnd = parseEventDate(event.meta.sc_end);
+  const firstEnd = parseEventDate(event.meta.sc_end, true);
   const durationMs =
     first && firstEnd && firstEnd.getTime() > first.getTime() ? firstEnd.getTime() - first.getTime() : null;
 

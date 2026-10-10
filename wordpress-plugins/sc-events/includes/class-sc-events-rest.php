@@ -97,6 +97,18 @@ class SC_Events_REST {
 
 		register_rest_route(
 			'sc-events/v1',
+			'/organizers/(?P<id>\d+)/claim',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'claim_organizer' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-events/v1',
 			'/mine/organizers',
 			array(
 				'methods'             => 'GET',
@@ -278,7 +290,41 @@ class SC_Events_REST {
 			'x'         => get_term_meta( $id, 'sc_organizer_x', true ),
 			'tiktok'    => get_term_meta( $id, 'sc_organizer_tiktok', true ),
 			'socials'   => get_term_meta( $id, 'sc_organizer_socials', true ),
+			// "Is this your group?" on the organiser page (see claim_organizer).
+			'claim_pending' => (bool) get_term_meta( $id, 'sc_organizer_claim_requested_by', true ),
+			'managed'       => (bool) get_term_meta( $id, 'sc_organizer_owner', true ),
 		);
+	}
+
+	/**
+	 * "Is this your group? Update these details" on the organiser page:
+	 * records who's asking (and what they said about how they're
+	 * connected) on the organiser itself, and emails Rob. Nothing changes
+	 * until Rob approves it on Events → Claim Requests (SC_Events_Admin),
+	 * which makes the member the organiser's manager — the same
+	 * review-first model event claims use.
+	 */
+	public static function claim_organizer( WP_REST_Request $request ) {
+		$term_id = (int) $request->get_param( 'id' );
+		$term    = get_term( $term_id, SC_Events_CPT::ORGANIZER_TAXONOMY );
+		if ( ! $term || is_wp_error( $term ) ) {
+			return new WP_Error( 'not_found', 'Organiser not found.', array( 'status' => 404 ) );
+		}
+		$user_id = get_current_user_id();
+		if ( (int) get_term_meta( $term_id, 'sc_organizer_owner', true ) === $user_id ) {
+			return new WP_Error( 'already_yours', 'You already manage this organiser.', array( 'status' => 409 ) );
+		}
+		if ( get_term_meta( $term_id, 'sc_organizer_claim_requested_by', true ) ) {
+			return new WP_Error( 'already_requested', 'A request to manage this organiser is already waiting for review.', array( 'status' => 409 ) );
+		}
+		$message = mb_substr( sanitize_textarea_field( (string) $request->get_param( 'message' ) ), 0, 500 );
+
+		update_term_meta( $term_id, 'sc_organizer_claim_requested_by', $user_id );
+		update_term_meta( $term_id, 'sc_organizer_claim_requested_at', current_time( 'mysql' ) );
+		update_term_meta( $term_id, 'sc_organizer_claim_message', $message );
+
+		do_action( 'sc_events_organizer_claim_requested', $user_id, $term_id );
+		return array( 'status' => 'pending' );
 	}
 
 	/**

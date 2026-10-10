@@ -13,6 +13,26 @@ class SC_Events_Hooks {
 	public static function init() {
 		add_action( 'sc_events_event_claim_requested', array( __CLASS__, 'on_claim_requested' ), 10, 2 );
 		add_action( 'sc_events_event_submitted', array( __CLASS__, 'on_event_submitted' ), 10, 2 );
+		add_action( 'sc_events_organizer_claim_requested', array( __CLASS__, 'on_organizer_claim_requested' ), 10, 2 );
+	}
+
+	/** Same heads-up as an event claim: who's asking, what they said, and a link to approve or reject. */
+	public static function on_organizer_claim_requested( $user_id, $term_id ) {
+		$term = get_term( $term_id, SC_Events_CPT::ORGANIZER_TAXONOMY );
+		$user = get_userdata( $user_id );
+		if ( ! $term || is_wp_error( $term ) || ! $user ) {
+			return;
+		}
+		$message    = (string) get_term_meta( $term_id, 'sc_organizer_claim_message', true );
+		$review_url = admin_url( 'edit.php?post_type=' . SC_Events_CPT::POST_TYPE . '&page=sc-events-claims' );
+
+		wp_mail(
+			get_option( 'admin_email' ),
+			'New organiser claim — ' . $term->name,
+			"{$user->display_name} ({$user->user_email}) wants to manage the organiser \"{$term->name}\"." .
+			( $message ? "\n\nThey said: {$message}" : '' ) .
+			"\n\nReview it here:\n{$review_url}"
+		);
 	}
 
 	/**

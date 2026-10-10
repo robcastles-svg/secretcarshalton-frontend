@@ -117,6 +117,7 @@ export function EventForm({
   topics,
   venues,
   organizers,
+  allOrganizers = [],
   memberName,
   initial,
   sideExtra,
@@ -130,6 +131,12 @@ export function EventForm({
   venues: WPEventVenue[];
   /** Organisers this member manages (plus the event's own, when editing). */
   organizers: WPEventOrganizerProfile[];
+  /**
+   * Every organiser on the site, as the old form listed them — so a member
+   * can pick a group that already exists instead of creating a duplicate.
+   * Only the ones in `organizers` (which they manage) can be edited.
+   */
+  allOrganizers?: WPEventOrganizerProfile[];
   memberName: string;
   initial?: EventFormInitial;
   /** Extra card under Submit in the right-hand column (the edit page's "Feature this event"). */
@@ -211,7 +218,13 @@ export function EventForm({
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ id: number; slug: string; dates: number; imageError?: string } | null>(null);
 
-  const selectedOrg = organizers.find((o) => String(o.id) === orgChoice) ?? null;
+  const managedIds = new Set(organizers.map((o) => o.id));
+  const otherOrganizers = [...new Map(allOrganizers.filter((o) => !managedIds.has(o.id)).map((o) => [o.id, o])).values()].sort(
+    (a, b) => a.name.localeCompare(b.name, "en-GB")
+  );
+  const selectedOrg =
+    organizers.find((o) => String(o.id) === orgChoice) ?? otherOrganizers.find((o) => String(o.id) === orgChoice) ?? null;
+  const canEditOrg = Boolean(selectedOrg && managedIds.has(selectedOrg.id));
   const showOrgFields = orgChoice === NEW_ORG || orgChoice === SELF_ORG || (Boolean(selectedOrg) && editingOrg);
 
   const fullRule: RepeatRule = { ...rule, start: date };
@@ -847,6 +860,15 @@ export function EventForm({
                     ))}
                   </optgroup>
                 )}
+                {otherOrganizers.length > 0 && (
+                  <optgroup label={organizers.length > 0 ? "All other organisers" : "Organisers"}>
+                    {otherOrganizers.map((o) => (
+                      <option key={o.id} value={String(o.id)}>
+                        {o.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
                 <option value={SELF_ORG}>I&apos;m organising this myself</option>
                 <option value={NEW_ORG}>+ Add a new organiser</option>
               </select>
@@ -861,9 +883,11 @@ export function EventForm({
                   <b>{selectedOrg.name}</b>
                   {[selectedOrg.email, selectedOrg.phone, selectedOrg.url].filter(Boolean).join(" · ") || "No contact details yet"}
                 </span>
-                <button type="button" className="evx-btn evx-btn-sm" onClick={startEditingOrg}>
-                  Edit details
-                </button>
+                {canEditOrg && (
+                  <button type="button" className="evx-btn evx-btn-sm" onClick={startEditingOrg}>
+                    Edit details
+                  </button>
+                )}
               </div>
             )}
             {showOrgFields && (

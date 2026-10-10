@@ -247,11 +247,15 @@ class SC_Events_Meta {
 		return array_slice( $dates, 0, self::MAX_REPEAT_DATES );
 	}
 
-	/** "2026-1-5T9:30" → "2026-01-05T09:30:00"; anything else → ''. */
+	/**
+	 * "2026-1-5T9:30" → "2026-01-05T09:30:00"; a date with no time (how
+	 * EventON stored all-day events) → midnight; anything else → ''.
+	 */
 	public static function normalise_datetime( $raw ) {
-		if ( ! preg_match( '/^(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{2})/', trim( (string) $raw ), $m ) ) {
+		if ( ! preg_match( '/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T(\d{1,2}):(\d{2}))?/', trim( (string) $raw ), $m ) ) {
 			return '';
 		}
+		$m = array_pad( $m, 6, '0' );
 		list( , $y, $mo, $d, $h, $mi ) = array_map( 'intval', $m );
 		if ( ! checkdate( $mo, $d, $y ) || $h > 23 || $mi > 59 ) {
 			return '';

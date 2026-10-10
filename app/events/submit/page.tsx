@@ -3,6 +3,7 @@ import { getSessionToken } from "@/lib/auth";
 import { getOccurrences, upcomingOccurrences, dateParts } from "@/lib/event-view";
 import { EVENT_UPGRADE_PRICE } from "@/lib/pricing";
 import {
+  getEventOrganizers,
   getEventVenues,
   getMemberMe,
   getMyEvents,
@@ -32,12 +33,13 @@ export default async function EventsSubmitPage() {
 }
 
 async function AddYourEventPage({ token }: { token: string }) {
-  const [profile, areas, tags, venues, organizers, mine] = await Promise.all([
+  const [profile, areas, tags, venues, organizers, allOrganizers, mine] = await Promise.all([
     getMemberMe(token),
     getScEventCategories().catch(() => []),
     getScEventTags().catch(() => []),
     getEventVenues().catch(() => []),
     getMyOrganizers(token),
+    getEventOrganizers().catch(() => []),
     getMyEvents(token),
   ]);
 
@@ -79,6 +81,7 @@ async function AddYourEventPage({ token }: { token: string }) {
         topics={tags.filter((t) => !HIDDEN_TOPICS.has(t.slug))}
         venues={venues}
         organizers={organizers}
+        allOrganizers={allOrganizers}
         memberName={profile?.display_name ?? ""}
         header={
           <>

@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
 import { HIDDEN_TOPICS } from "@/lib/event-list";
 import {
+  getEventOrganizers,
   getEventVenues,
   getFeaturedImage,
   getMemberMe,
@@ -40,13 +41,14 @@ export default async function EditEventPage({
   const token = await getSessionToken();
   if (!token) redirect("/login");
 
-  const [event, profile, areas, tags, venues, organizers] = await Promise.all([
+  const [event, profile, areas, tags, venues, organizers, allOrganizers] = await Promise.all([
     getScEventBySlug(slug).catch(() => null),
     getMemberMe(token),
     getScEventCategories().catch(() => []),
     getScEventTags().catch(() => []),
     getEventVenues().catch(() => []),
     getMyOrganizers(token),
+    getEventOrganizers().catch(() => []),
   ]);
 
   if (!event) notFound();
@@ -138,7 +140,8 @@ export default async function EditEventPage({
         areas={areas}
         topics={tags.filter((t) => !HIDDEN_TOPICS.has(t.slug))}
         venues={venues}
-        organizers={organizerOptions}
+        organizers={organizers}
+        allOrganizers={organizerOptions.concat(allOrganizers)}
         memberName={profile.display_name}
         initial={initial}
         sideExtra={featureCard}
