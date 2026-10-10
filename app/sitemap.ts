@@ -6,8 +6,11 @@ import {
   getDirectoryCategories,
   getDirectoryListings,
   getScEvents,
+  getScEventTags,
   GROUPS_CATEGORY_SLUG,
 } from "@/lib/wordpress";
+import { AREAS, HIDDEN_TOPICS, addMonths, currentMonth, listHref } from "@/lib/event-list";
+import { getOccurrences } from "@/lib/event-view";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.secretcarshalton.com";
 
@@ -50,13 +53,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 }
 
 async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
-  const [pageSlugs, posts, categories, events, listings, directoryCategories] = await Promise.all([
+  const [pageSlugs, posts, categories, events, listings, directoryCategories, eventTags] = await Promise.all([
     getAllPageSlugs().catch(() => []),
     getAllPostSlugs(),
     getCategories().catch(() => []),
     getScEvents(300).catch(() => []),
     getDirectoryListings().catch(() => []),
     getDirectoryCategories().catch(() => []),
+    getScEventTags().catch(() => []),
   ]);
 
   const entries: MetadataRoute.Sitemap = [...FALLBACK_SITEMAP];
@@ -108,6 +112,30 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push({ url: `${SITE_URL}/events/${event.slug}`, changeFrequency: "weekly", priority: 0.5 });
   }
 
+  // Events list pages: weekend, the next six months, each category (Free
+  // included) and the three area pages. Topic + month combinations are
+  // query-string filters, deliberately not listed.
+  const listPaths = [
+    listHref({ when: "weekend" }),
+    ...Array.from({ length: 6 }, (_, n) => listHref({ when: addMonths(currentMonth(), n) })),
+    // Past months that had events stay up for search.
+    ...[
+      ...new Set(
+        events.flatMap((e) =>
+          getOccurrences(e).map((o) => `${o.start.getFullYear()}-${String(o.start.getMonth() + 1).padStart(2, "0")}`)
+        )
+      ),
+    ]
+      .filter((m) => m < currentMonth())
+      .map((m) => listHref({ when: m })),
+    listHref({ when: "all", topic: "free" }),
+    ...eventTags.filter((t) => !HIDDEN_TOPICS.has(t.slug)).map((t) => listHref({ when: "all", topic: t.slug })),
+    ...AREAS.map((a) => listHref({ area: a.slug, when: "all" })),
+  ];
+  for (const path of listPaths) {
+    entries.push({ url: `${SITE_URL}${path}`, changeFrequency: "daily", priority: 0.7 });
+  }
+
   for (const listing of listings) {
     entries.push({ url: `${SITE_URL}/directory/${listing.slug}`, changeFrequency: "monthly", priority: 0.5 });
   }
@@ -120,5 +148,8 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push({ url: `${SITE_URL}/directory/${category.slug}`, changeFrequency: "weekly", priority: 0.6 });
   }
 
-  return entries;
+  // A WordPress page can share an address with a list page (the old
+  // What's On area pages) — list each address once.
+  const seen = new Set<string>();
+  return entries.filter((e) => (seen.has(e.url) ? false : (seen.add(e.url), true)));
 }

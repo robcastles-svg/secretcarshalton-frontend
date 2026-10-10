@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { StarIcon } from "../../_components/EvIcons";
 
 /**
  * Deliberately not a real RSVP/ticketing action — events on this site are
@@ -29,8 +30,10 @@ export function RsvpButton({
 
   if (!isLoggedIn) {
     return (
-      <Link href="/login" className="button-pill button-pill-secondary rsvp-button">
-        Log in to say you&apos;re interested
+      <Link href="/login" className="evx-btn">
+        <StarIcon />
+        I&apos;m interested
+        <span className="evx-pts">+5</span>
       </Link>
     );
   }
@@ -50,22 +53,20 @@ export function RsvpButton({
   }
 
   return (
-    <div className="rsvp-button-wrap">
+    <>
       <button
         type="button"
-        className={`button-pill button-pill-active rsvp-button${going ? " rsvp-button-going" : ""}`}
+        className="evx-btn"
+        aria-pressed={going}
         onClick={handleClick}
         disabled={submitting}
+        title={count > 0 ? `${count} ${count === 1 ? "person" : "people"} interested` : undefined}
       >
-        {going ? "✓ Interested" : "I'm interested"}
+        <StarIcon />
+        {going ? "Interested" : "I'm interested"}
+        <span className="evx-pts">+5</span>
       </button>
-      {!going && <span className="rsvp-points-hint">Earn 5 points</span>}
-      {count > 0 && (
-        <span className="rsvp-count">
-          {count} {count === 1 ? "person" : "people"} interested
-        </span>
-      )}
       {error && <p className="auth-error">{error}</p>}
-    </div>
+    </>
   );
 }
