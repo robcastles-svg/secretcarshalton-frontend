@@ -115,14 +115,34 @@ class SC_Events_Meta {
 	/** Most dates a repeating event may hold — matches the add-event form's "ends after N dates (max 52)". */
 	const MAX_REPEAT_DATES = 52;
 
+	/**
+	 * Featuring and claim fields: only administrators may write these
+	 * through WordPress's own REST/custom-fields routes — an event's owner
+	 * (who can edit their own post if their role allows) must never be able
+	 * to switch Featured on without paying. The PayPal capture and the
+	 * claim/request routes set them in PHP, which doesn't go through this
+	 * check, so paying still works.
+	 */
+	const ADMIN_ONLY = array(
+		'sc_event_featured',
+		'sc_event_featured_status',
+		'sc_event_featured_requested_at',
+		'sc_event_featured_amount_paid',
+		'sc_event_featured_until',
+		'sc_event_featured_payment',
+		'sc_event_claim_requested_by',
+		'sc_event_claim_requested_at',
+	);
+
 	public static function register() {
 		foreach ( self::FIELDS as $key => $type ) {
-			$args = array(
+			$admin_only = in_array( $key, self::ADMIN_ONLY, true );
+			$args       = array(
 				'type'          => $type,
 				'single'        => true,
 				'show_in_rest'  => true,
-				'auth_callback' => function ( $allowed, $meta_key, $post_id ) {
-					return current_user_can( 'edit_post', $post_id );
+				'auth_callback' => function ( $allowed, $meta_key, $post_id ) use ( $admin_only ) {
+					return $admin_only ? current_user_can( 'manage_options' ) : current_user_can( 'edit_post', $post_id );
 				},
 			);
 
@@ -247,11 +267,15 @@ class SC_Events_Meta {
 		return array_slice( $dates, 0, self::MAX_REPEAT_DATES );
 	}
 
-	/** "2026-1-5T9:30" → "2026-01-05T09:30:00"; anything else → ''. */
+	/**
+	 * "2026-1-5T9:30" → "2026-01-05T09:30:00"; a date with no time (how
+	 * EventON stored all-day events) → midnight; anything else → ''.
+	 */
 	public static function normalise_datetime( $raw ) {
-		if ( ! preg_match( '/^(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{2})/', trim( (string) $raw ), $m ) ) {
+		if ( ! preg_match( '/^(\d{4})-(\d{1,2})-(\d{1,2})(?:T(\d{1,2}):(\d{2}))?/', trim( (string) $raw ), $m ) ) {
 			return '';
 		}
+		$m = array_pad( $m, 6, '0' );
 		list( , $y, $mo, $d, $h, $mi ) = array_map( 'intval', $m );
 		if ( ! checkdate( $mo, $d, $y ) || $h > 23 || $mi > 59 ) {
 			return '';

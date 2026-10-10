@@ -213,12 +213,19 @@ export function htmlToPlainText(html: string): string {
  * month/day, offset like "+0:00"), so `new Date()` rejects them outright.
  * Read the Y-M-D-H-Min digits directly instead of relying on Date parsing.
  */
-export function parseEventDate(raw?: string): Date | null {
+export function parseEventDate(raw?: string, endOfDay = false): Date | null {
   if (!raw) return null;
-  const match = /^(\d{4})-(\d{1,2})-(\d{1,2})T(\d{1,2}):(\d{2})/.exec(raw);
+  // A date with no time ("2026-9-12") is how EventON stored all-day
+  // events — 32 of the migrated ones. Those used to fail to parse and
+  // silently vanish from every list; they're now midnight (or 23:59 when
+  // it's an end date), which the display code already treats as all-day.
+  const match = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:T(\d{1,2}):(\d{2}))?/.exec(raw);
   if (!match) return null;
-  const [, year, month, day, hour, minute] = match.map(Number);
-  return new Date(year, month - 1, day, hour, minute);
+  const [year, month, day] = [match[1], match[2], match[3]].map(Number);
+  if (match[4] === undefined) {
+    return endOfDay ? new Date(year, month - 1, day, 23, 59) : new Date(year, month - 1, day);
+  }
+  return new Date(year, month - 1, day, Number(match[4]), Number(match[5]));
 }
 
 /**
@@ -1456,6 +1463,9 @@ export interface WPEventOrganizerProfile {
   url: string;
   /** Legacy comma-separated socials, kept for migration — prefer the per-network fields below. */
   socials: string;
+  /** sc-events 0.16+: a "manage this organiser" request is waiting for review / someone already manages it. */
+  claim_pending?: boolean;
+  managed?: boolean;
   /** sc-events 0.13+ — absent on older plugin versions. `about` is the organiser term's description. */
   about?: string;
   email?: string;
@@ -2092,6 +2102,8 @@ export interface MemberProfile {
   display_name: string;
   is_returning: boolean;
   is_editor: boolean;
+  /** sc-membership 0.23.1+: Administrator (manage_options). */
+  is_admin?: boolean;
   email_verified: boolean;
   points: number;
   tier: { slug: string; label: string };
@@ -2480,6 +2492,28 @@ export async function captureEventFeatureOrder(
     });
     const body = await res.json();
     if (!res.ok) return { code: body.code ?? "capture_failed", message: body.message ?? "Payment didn't go through." };
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** "Is this your group?" — asks to manage an organiser; Rob approves it in wp-admin. SC_Events_REST::claim_organizer. */
+export async function claimOrganizer(
+  token: string,
+  organizerId: number,
+  message: string
+): Promise<{ status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/organizers/${organizerId}/claim`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ message }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) return { code: body.code ?? "claim_failed", message: body.message ?? "Could not send the request." };
     return body;
   } catch {
     return NETWORK_ERROR;

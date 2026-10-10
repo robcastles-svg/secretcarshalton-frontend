@@ -91,7 +91,7 @@ export interface Occurrence {
  */
 export function getOccurrences(event: WPScEvent): Occurrence[] {
   const first = parseEventDate(event.meta.sc_start);
-  const firstEnd = parseEventDate(event.meta.sc_end);
+  const firstEnd = parseEventDate(event.meta.sc_end, true);
   const durationMs =
     first && firstEnd && firstEnd.getTime() > first.getTime() ? firstEnd.getTime() - first.getTime() : null;
 
@@ -131,13 +131,15 @@ export function isFinished(event: WPScEvent, now = Date.now()): boolean {
 }
 
 /**
- * Featured right now: the featured flag is on, the event is a single
- * (non-repeating) event, and it hasn't finished. Paid featuring lasts
+ * Featured right now: the featured flag is on and the event hasn't
+ * finished. Paid featuring lasts
  * until the event's date, so the badge and slider spot drop off by
  * themselves once it's over, whatever the stored flag still says.
  */
 export function isFeaturedNow(event: WPScEvent, now = Date.now()): boolean {
-  if (!event.meta.sc_event_featured || isRepeating(event) || isFinished(event, now)) return false;
+  // (Repeating events can only be featured by hand by an admin — paying is
+  // for single events — so they're allowed here.)
+  if (!event.meta.sc_event_featured || isFinished(event, now)) return false;
   const until = event.meta.sc_event_featured_until;
   if (until && /^\d{4}-\d{2}-\d{2}$/.test(until)) {
     const [y, m, d] = until.split("-").map(Number);

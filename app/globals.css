@@ -8002,3 +8002,15 @@ a.card-category:hover {
 @media (prefers-reduced-motion: reduce) { .home-featured-rotator-dots button { transition: none; } }
 .evf-paypal { min-height: 48px; }
 .evx .evf-feature-card h3 { margin: 0; font-size: 16px; color: var(--evx-ink); }
+
+/* Organiser page: "Is this your group?" request */
+.evx-claim-form { display: grid; gap: 8px; }
+.evx-claim-form label { font-size: 14px; font-weight: 700; color: var(--evx-on-dark); }
+.evx-claim-form textarea { width: 100%; border-radius: 10px; border: 1px solid #5a525c; background: #1f1c20; color: var(--evx-on-dark); padding: 10px 12px; font: inherit; font-size: 14px; resize: vertical; }
+.evx-claim-form .evx-btn-dark { justify-self: start; cursor: pointer; font-family: inherit; }
+.evx-claim-error { margin: 0; font-size: 13px; color: #ffb3c1; }
+.evx-claim-sent { margin: 0; font-size: 14px; color: #8fd6b1; }
+.evf-admin-featured { display: flex; gap: 10px; align-items: flex-start; border: 1.5px dashed var(--evx-accent-ink); border-radius: 12px; padding: 12px; background: #fff6f8; cursor: pointer; }
+.evf-admin-featured input { accent-color: var(--evx-accent); width: 18px; height: 18px; margin: 2px 0 0; flex: 0 0 auto; }
+.evf-admin-featured b { display: block; font-size: 14px; color: var(--evx-ink); }
+.evf-admin-featured small { display: block; font-size: 12px; color: var(--evx-ink-soft); line-height: 1.4; }

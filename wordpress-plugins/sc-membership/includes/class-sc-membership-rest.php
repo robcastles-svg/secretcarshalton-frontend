@@ -628,6 +628,10 @@ class SC_Membership_REST {
 			// REST controller, which enforces this same capability
 			// server-side regardless of what the frontend shows.
 			'is_editor'                => user_can( $user_id, 'edit_others_posts' ),
+			// Administrators only — gates admin-only frontend controls such as
+			// featuring an event without payment (sc-events enforces the same
+			// manage_options check server-side).
+			'is_admin'                 => user_can( $user_id, 'manage_options' ),
 			'email_verified'           => SC_Membership_Auth::is_verified( $user_id ),
 			'points'                   => (int) $member->points,
 			'tier'                     => array(
