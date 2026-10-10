@@ -793,6 +793,22 @@ class SC_Events_REST {
 		self::set_taxonomies_from_request( $post_id, $request );
 		self::update_meta_from_request( $post_id, $request );
 
+		// Editors/admins can feature an event by hand from the edit page,
+		// paid or not (the frontend's "Featured" tick). Ignored for anyone
+		// else. A hand-featured event stays featured until it's over.
+		if ( null !== $request->get_param( 'featured' ) && current_user_can( 'edit_others_posts' ) ) {
+			$on = rest_sanitize_boolean( $request->get_param( 'featured' ) );
+			update_post_meta( $post_id, 'sc_event_featured', $on );
+			if ( $on ) {
+				update_post_meta( $post_id, 'sc_event_featured_status', 'approved' );
+				if ( 'paid' !== get_post_meta( $post_id, 'sc_event_featured_payment', true ) ) {
+					update_post_meta( $post_id, 'sc_event_featured_until', '' );
+				}
+			} elseif ( 'paid' !== get_post_meta( $post_id, 'sc_event_featured_payment', true ) ) {
+				update_post_meta( $post_id, 'sc_event_featured_status', '' );
+			}
+		}
+
 		return array( 'status' => get_post_status( $post_id ), 'id' => $post_id );
 	}
 

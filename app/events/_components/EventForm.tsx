@@ -121,6 +121,7 @@ export function EventForm({
   memberName,
   initial,
   sideExtra,
+  adminFeatured,
 }: {
   mode: "create" | "edit";
   eventId?: number;
@@ -141,6 +142,12 @@ export function EventForm({
   initial?: EventFormInitial;
   /** Extra card under Submit in the right-hand column (the edit page's "Feature this event"). */
   sideExtra?: ReactNode;
+  /**
+   * Editors/admins only: the event's current featured state, which shows a
+   * "Featured" tick box to feature it by hand, paid or not. Leave undefined
+   * for everyone else (the server ignores the field for them anyway).
+   */
+  adminFeatured?: boolean;
 }) {
   const router = useRouter();
 
@@ -212,6 +219,9 @@ export function EventForm({
   const [linkKind, setLinkKind] = useState(initial?.booking_link_kind || (initial?.event_url ? "website" : "tickets"));
   const [bookingEmail, setBookingEmail] = useState(initial?.booking_email ?? "");
   const [bookingPhone, setBookingPhone] = useState(initial?.booking_phone ?? "");
+
+  // ---- Admin: feature by hand
+  const [featuredTick, setFeaturedTick] = useState(Boolean(adminFeatured));
 
   // ---- Submit
   const [submitting, setSubmitting] = useState(false);
@@ -355,6 +365,7 @@ export function EventForm({
       repeat_dates: repeats ? liveDates.map(at) : [],
       repeat_pattern: repeats ? patternText(fullRule) : "",
     };
+    if (adminFeatured !== undefined) data.featured = featuredTick;
 
     // Organiser — see SC_Events_REST::set_organizer_from_request: an
     // organizer_id attaches (or, with organizer_edit, also updates) that
@@ -1156,6 +1167,15 @@ export function EventForm({
           <p className="evf-note">Updates as you type.</p>
         </section>
         <section className="evf-submit">
+          {adminFeatured !== undefined && (
+            <label className="evf-admin-featured">
+              <input type="checkbox" checked={featuredTick} onChange={(e) => setFeaturedTick(e.target.checked)} />
+              <span>
+                <b>Featured</b>
+                <small>Admin only — puts it in the featured slider and homepage highlight until the event is over, paid or not.</small>
+              </span>
+            </label>
+          )}
           <p>{mode === "create" ? "Your event goes live straight away." : "Changes show on the site straight away."}</p>
           {error && <Msg kind="err">{error}</Msg>}
           <button type="submit" className="evx-btn-primary" disabled={submitting}>
