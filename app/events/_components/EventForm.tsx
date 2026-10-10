@@ -143,7 +143,7 @@ export function EventForm({
   /** Extra card under Submit in the right-hand column (the edit page's "Feature this event"). */
   sideExtra?: ReactNode;
   /**
-   * Editors/admins only: the event's current featured state, which shows a
+   * Administrators only: the event's current featured state, which shows a
    * "Featured" tick box to feature it by hand, paid or not. Leave undefined
    * for everyone else (the server ignores the field for them anyway).
    */

@@ -2102,6 +2102,8 @@ export interface MemberProfile {
   display_name: string;
   is_returning: boolean;
   is_editor: boolean;
+  /** sc-membership 0.23.1+: Administrator (manage_options). */
+  is_admin?: boolean;
   email_verified: boolean;
   points: number;
   tier: { slug: string; label: string };

@@ -145,7 +145,7 @@ export default async function EditEventPage({
         memberName={profile.display_name}
         initial={initial}
         sideExtra={featureCard}
-        adminFeatured={profile.is_editor ? Boolean(event.meta.sc_event_featured) : undefined}
+        adminFeatured={profile.is_admin ? Boolean(event.meta.sc_event_featured) : undefined}
         header={
           <section className="evf-intro">
             <h1>Edit your event</h1>

@@ -15,6 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 class SC_Events_Metabox {
 
 	public static function register() {
+		// Administrators only: featuring without paying is an admin decision.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
 		add_meta_box(
 			'sc_event_featured_box',
 			'Featured',
@@ -83,7 +87,7 @@ class SC_Events_Metabox {
 		if ( ! isset( $_POST['sc_event_featured_nonce'] ) || ! wp_verify_nonce( $_POST['sc_event_featured_nonce'], 'sc_event_featured_save_' . $post_id ) ) {
 			return;
 		}
-		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) || ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
 

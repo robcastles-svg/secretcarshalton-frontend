@@ -793,10 +793,11 @@ class SC_Events_REST {
 		self::set_taxonomies_from_request( $post_id, $request );
 		self::update_meta_from_request( $post_id, $request );
 
-		// Editors/admins can feature an event by hand from the edit page,
+		// Administrators can feature an event by hand from the edit page,
 		// paid or not (the frontend's "Featured" tick). Ignored for anyone
-		// else. A hand-featured event stays featured until it's over.
-		if ( null !== $request->get_param( 'featured' ) && current_user_can( 'edit_others_posts' ) ) {
+		// else — members can only feature by paying (SC_Events_Featured).
+		// A hand-featured event stays featured until it's over.
+		if ( null !== $request->get_param( 'featured' ) && current_user_can( 'manage_options' ) ) {
 			$on = rest_sanitize_boolean( $request->get_param( 'featured' ) );
 			update_post_meta( $post_id, 'sc_event_featured', $on );
 			if ( $on ) {
