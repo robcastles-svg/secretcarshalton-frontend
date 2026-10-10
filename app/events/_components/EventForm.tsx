@@ -25,7 +25,7 @@ const NEW_VENUE = "__new__";
 const NEW_ORGANIZER = "__new__";
 
 /**
- * Shared by /events/submit (create, always lands as 'pending') and
+ * Shared by /events/submit (create, goes live straight away) and
  * /events/[slug]/edit (update, owner-only) — same fields either way, just
  * a different endpoint and a different "what happens after" story. Edit
  * pre-fills from the existing event; submit starts blank.
@@ -168,7 +168,7 @@ export function EventForm({
   }
 
   if (done && mode === "create") {
-    return <p>Thanks — your event has been submitted and is awaiting review.</p>;
+    return <p>Thanks — your event is live. You can edit it any time from your dashboard.</p>;
   }
 
   return (

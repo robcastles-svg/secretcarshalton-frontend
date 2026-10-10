@@ -34,8 +34,8 @@ export default async function EventsSubmitPage() {
             <span className="adv-eyebrow adv-eyebrow-gold">Events</span>
             <h1 className="adv-hero-title">Add events for free.</h1>
             <p className="adv-hero-subtitle">
-              Reach hundreds of people looking to see what&apos;s on, reviewed before it goes live, and yours to
-              manage from your dashboard any time. Optional — promote it to the top of the list for{" "}
+              Reach hundreds of people looking to see what&apos;s on. Your event goes live as soon as you add it, and
+              it&apos;s yours to manage from your dashboard any time. Optional — promote it to the top of the list for{" "}
               {EVENT_UPGRADE_PRICE}, any time after it&apos;s live.
             </p>
             <div className="adv-hero-ctas">
@@ -63,10 +63,10 @@ export default async function EventsSubmitPage() {
           <div className="adv-how-step">
             <span className="adv-how-number">2</span>
             <div>
-              <p className="adv-how-title">Reviewed, not instant</p>
+              <p className="adv-how-title">Live straight away</p>
               <p className="adv-how-text">
-                We check events before they go live — usually within a day or two. Newly-added events get shared on
-                our Facebook and Instagram stories.
+                Your event appears on the site as soon as you add it, and you can edit it any time. Newly-added events
+                get shared on our Facebook and Instagram stories.
               </p>
             </div>
           </div>

@@ -339,15 +339,6 @@ export default async function EventPage({
           <ChevronIcon />
           Back to events
         </Link>
-        <span>
-          <Link href="/events">Events</Link>
-          {topic && (
-            <>
-              {" › "}
-              <Link href={`/events?tag=${topic.slug}`}>{topic.name}</Link>
-            </>
-          )}
-        </span>
       </div>
 
       <div className="evx-layout">

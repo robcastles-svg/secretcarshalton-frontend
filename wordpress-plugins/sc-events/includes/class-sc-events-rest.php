@@ -465,7 +465,12 @@ class SC_Events_REST {
 		return array( 'status' => 'pending' );
 	}
 
-	/** Same pending-for-review model as sc-directory's submit_listing. */
+	/**
+	 * Events go live the moment they're submitted (Rob's decision,
+	 * 2026-10 — events redesign). Rob gets an email for every one (see
+	 * SC_Events_Hooks::on_event_submitted) and removes anything unsuitable
+	 * after the fact, rather than events sitting in a review queue.
+	 */
 	public static function submit_event( WP_REST_Request $request ) {
 		$title = sanitize_text_field( (string) $request->get_param( 'title' ) );
 		if ( ! $title ) {
@@ -487,15 +492,14 @@ class SC_Events_REST {
 		$post_id = wp_insert_post(
 			array(
 				'post_type'      => SC_Events_CPT::POST_TYPE,
-				'post_status'    => 'pending',
+				'post_status'    => 'publish',
 				'post_title'     => $title,
 				'post_content'   => wp_kses_post( (string) $request->get_param( 'description' ) ),
 				'post_author'    => $user_id,
-				// Explicit, not left to get_default_comment_status(): a
-				// pending event's comment box should be open for review
-				// discussion the moment it's submitted, regardless of
-				// what the site's global default-comment-status option
-				// happens to be set to.
+				// Explicit, not left to get_default_comment_status(): the
+				// event's comment box should be open the moment it's
+				// live, regardless of what the site's global
+				// default-comment-status option happens to be set to.
 				'comment_status' => 'open',
 			),
 			true
@@ -510,7 +514,7 @@ class SC_Events_REST {
 
 		do_action( 'sc_events_event_submitted', $user_id, $post_id );
 
-		return array( 'status' => 'pending', 'id' => $post_id );
+		return array( 'status' => get_post_status( $post_id ), 'id' => $post_id, 'slug' => get_post_field( 'post_name', $post_id ) );
 	}
 
 	/**

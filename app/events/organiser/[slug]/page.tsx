@@ -97,9 +97,6 @@ export default async function EventsByOrganizerPage({
         >
           <BackToEvent />
         </Suspense>
-        <span>
-          <Link href="/events">Events</Link> › Organisers › {organizer.name}
-        </span>
       </div>
 
       <div className="evx-layout">
