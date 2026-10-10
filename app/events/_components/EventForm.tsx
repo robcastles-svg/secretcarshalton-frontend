@@ -22,6 +22,7 @@ import { looksLikeEmail } from "@/lib/event-view";
 import { EVENT_UPGRADE_PRICE } from "@/lib/pricing";
 import type { WPEventOrganizerProfile, WPEventVenue, WPScEventCategory, WPScEventTag } from "@/lib/wordpress";
 import { ClockIcon, PinIcon, RepeatIcon } from "./EvIcons";
+import { FeatureEventPay } from "./FeatureEventPay";
 
 /** "£5 per event" → "£5" */
 const FEATURE_PRICE = EVENT_UPGRADE_PRICE.split(" ")[0];
@@ -118,6 +119,7 @@ export function EventForm({
   organizers,
   memberName,
   initial,
+  sideExtra,
 }: {
   mode: "create" | "edit";
   eventId?: number;
@@ -130,6 +132,8 @@ export function EventForm({
   organizers: WPEventOrganizerProfile[];
   memberName: string;
   initial?: EventFormInitial;
+  /** Extra card under Submit in the right-hand column (the edit page's "Feature this event"). */
+  sideExtra?: ReactNode;
 }) {
   const router = useRouter();
 
@@ -205,7 +209,7 @@ export function EventForm({
   // ---- Submit
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<{ slug: string; dates: number; imageError?: string } | null>(null);
+  const [done, setDone] = useState<{ id: number; slug: string; dates: number; imageError?: string } | null>(null);
 
   const selectedOrg = organizers.find((o) => String(o.id) === orgChoice) ?? null;
   const showOrgFields = orgChoice === NEW_ORG || orgChoice === SELF_ORG || (Boolean(selectedOrg) && editingOrg);
@@ -395,7 +399,7 @@ export function EventForm({
       return;
     }
     setSubmitting(false);
-    setDone({ slug, dates: repeats ? liveDates.length : 1, imageError: uploadError });
+    setDone({ id, slug, dates: repeats ? liveDates.length : 1, imageError: uploadError });
   }
 
   // ---- Preview card, as it will look in the events list
@@ -1134,6 +1138,7 @@ export function EventForm({
             {submitting ? "Saving…" : mode === "create" ? "Submit event" : "Save changes"}
           </button>
         </section>
+        {sideExtra}
       </aside>
 
       {done && (
@@ -1162,10 +1167,7 @@ export function EventForm({
                   <div className="evf-cost">
                     {FEATURE_PRICE} <span>one-off payment</span>
                   </div>
-                  {/* Until PayPal is wired up (Stage 5), this hands over to the existing feature-request page. */}
-                  <Link className="evf-btn-pp" href={`/events/${done.slug}/feature`}>
-                    Pay {FEATURE_PRICE} with PayPal
-                  </Link>
+                  <FeatureEventPay eventId={done.id} />
                   <button type="button" className="evx-btn" onClick={() => router.push(`/events/${done.slug}`)}>
                     No thanks
                   </button>

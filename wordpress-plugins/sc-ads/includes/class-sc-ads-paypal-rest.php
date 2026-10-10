@@ -209,7 +209,16 @@ class SC_Ads_PayPal_REST {
 		}
 
 		$resource  = $event['resource'] ?? array();
-		$ad_id     = absint( $resource['custom_id'] ?? 0 );
+		$custom_id = (string) ( $resource['custom_id'] ?? '' );
+		// Payments started by other plugins through this same PayPal setup
+		// (e.g. sc-events' "event-123" for featuring an event) carry their
+		// own custom_id prefix — hand those on rather than ignoring them,
+		// so one webhook covers every kind of payment on the site.
+		if ( '' !== $custom_id && ! ctype_digit( $custom_id ) ) {
+			do_action( 'sc_ads_paypal_capture_completed', $custom_id, $resource );
+			return array( 'ok' => true );
+		}
+		$ad_id = absint( $custom_id );
 		if ( ! $ad_id || SC_Ads_CPT::POST_TYPE !== get_post_type( $ad_id ) ) {
 			return array( 'ok' => true, 'ignored' => true );
 		}

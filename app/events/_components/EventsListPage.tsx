@@ -25,7 +25,7 @@ import {
   dateParts,
   formatTimeRange,
   getOccurrences,
-  isRepeating,
+  isFeaturedNow,
   ukInstant,
   upcomingOccurrences,
   venueShort,
@@ -256,7 +256,7 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
   let slides: Slide[] = [];
   if (isHome || isAreaHome) {
     const featured = (list: WPScEvent[]) =>
-      nextOccurrences(list.filter((e) => e.meta.sc_event_featured && !isRepeating(e)), now);
+      nextOccurrences(list.filter((e) => isFeaturedNow(e, now)), now);
     let picks = featured(areaEvents);
     if (picks.length === 0 && area) picks = featured(allEvents);
     slides = picks.map(({ event, occurrence }) => {

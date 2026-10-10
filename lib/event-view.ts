@@ -130,6 +130,22 @@ export function isFinished(event: WPScEvent, now = Date.now()): boolean {
   return getOccurrences(event).length > 0 && upcomingOccurrences(event, now).length === 0;
 }
 
+/**
+ * Featured right now: the featured flag is on, the event is a single
+ * (non-repeating) event, and it hasn't finished. Paid featuring lasts
+ * until the event's date, so the badge and slider spot drop off by
+ * themselves once it's over, whatever the stored flag still says.
+ */
+export function isFeaturedNow(event: WPScEvent, now = Date.now()): boolean {
+  if (!event.meta.sc_event_featured || isRepeating(event) || isFinished(event, now)) return false;
+  const until = event.meta.sc_event_featured_until;
+  if (until && /^\d{4}-\d{2}-\d{2}$/.test(until)) {
+    const [y, m, d] = until.split("-").map(Number);
+    if (ukInstant(new Date(y, m - 1, d, 23, 59)) < now) return false;
+  }
+  return true;
+}
+
 export interface DateParts {
   weekday: string;
   day: number;

@@ -4,6 +4,8 @@ import { ContentList } from "@/app/_components/ContentList";
 import { HomeComments } from "@/app/_components/home/HomeComments";
 import { getLatestCommentItems } from "@/app/_components/home/latestComments";
 import { HomeFeaturedEvent } from "@/app/_components/home/HomeFeaturedEvent";
+import { HomeFeaturedRotator } from "@/app/_components/home/HomeFeaturedRotator";
+import { isFeaturedNow } from "@/lib/event-view";
 import { MostReadList, type MostReadItem } from "@/app/_components/home/MostReadList";
 import { ReelsSlider } from "@/app/_components/home/ReelsSlider";
 import { SponsorStrip, type Sponsor } from "@/app/_components/home/SponsorStrip";
@@ -176,9 +178,14 @@ export default async function HomePage() {
 
   // Events: a paid-upgrade "featured" event takes the hero slot over
   // whatever's chronologically soonest, same rule /events itself uses.
-  const featuredEvent = events.find((e) => e.meta.sc_event_featured) ?? events[0] ?? null;
+  // Every currently-featured event rotates in the highlight (see
+  // isFeaturedNow — paid featuring ends on the event's date); with none,
+  // the soonest event fills the spot, without a Featured badge.
+  const featuredEvents = events.filter((e) => isFeaturedNow(e));
+  const highlightEvents = featuredEvents.length > 0 ? featuredEvents : events.slice(0, 1);
+  const featuredEvent = highlightEvents[0] ?? null;
   const featuredEventStart = featuredEvent ? parseEventDate(featuredEvent.meta.sc_start) : null;
-  const comingUpEvents = events.filter((e) => e.id !== featuredEvent?.id).slice(0, 4);
+  const comingUpEvents = events.filter((e) => !highlightEvents.some((h) => h.id === e.id)).slice(0, 4);
 
   // Directory: Groups to join lives on /community now, not the Directory
   // (see GROUPS_CATEGORY_SLUG's own docblock) — excluded here same as
@@ -302,13 +309,19 @@ export default async function HomePage() {
               </div>
             </div>
             <div className="home-events-grid">
-              <HomeFeaturedEvent
-                title={featuredEvent.title.rendered}
-                slug={featuredEvent.slug}
-                startDate={featuredEventStart}
-                venueName={featuredEvent.meta.sc_venue_name}
-                image={getFeaturedImage(featuredEvent)}
-                imageAlt={stripHtml(featuredEvent.title.rendered)}
+              <HomeFeaturedRotator
+                cards={highlightEvents.map((event) => (
+                  <HomeFeaturedEvent
+                    key={event.id}
+                    title={event.title.rendered}
+                    slug={event.slug}
+                    startDate={parseEventDate(event.meta.sc_start) ?? featuredEventStart}
+                    venueName={event.meta.sc_venue_name}
+                    image={getFeaturedImage(event)}
+                    imageAlt={stripHtml(event.title.rendered)}
+                    featured={featuredEvents.length > 0}
+                  />
+                ))}
               />
               {comingUpEvents.length > 0 && (
                 <div className="coming-up-list">

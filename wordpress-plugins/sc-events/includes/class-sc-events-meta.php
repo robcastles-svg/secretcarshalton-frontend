@@ -53,6 +53,14 @@ class SC_Events_Meta {
 		'sc_event_featured_requested_at'   => 'string',
 		'sc_event_featured_amount_paid'    => 'string',
 		/**
+		 * Paid featuring (Stage 5, see SC_Events_Featured): the Y-m-d date
+		 * featuring ends (the event's date) and 'paid' once PayPal has
+		 * taken the payment. Set only by SC_Events_Featured, never by
+		 * submit/update.
+		 */
+		'sc_event_featured_until'          => 'string',
+		'sc_event_featured_payment'        => 'string',
+		/**
 		 * Mirrors sc-directory's sc_claim_requested_by/at exactly — claiming
 		 * an event used to instantly reassign post_author with no review,
 		 * the same hole sc-directory had and fixed; this is that same fix

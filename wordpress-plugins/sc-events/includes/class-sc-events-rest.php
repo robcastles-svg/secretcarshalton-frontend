@@ -411,7 +411,7 @@ class SC_Events_REST {
 					'status'        => $post->post_status,
 					'slug'          => $post->post_name,
 					'start'         => get_post_meta( $post->ID, 'sc_start', true ),
-					'featured'      => (bool) get_post_meta( $post->ID, 'sc_event_featured', true ),
+					'featured'      => SC_Events_Featured::is_featured_now( $post->ID ),
 					'featuredStatus' => get_post_meta( $post->ID, 'sc_event_featured_status', true ),
 					// "Your live events" on the add-event page (events redesign, Stage 4).
 					'thumbnail'     => (string) get_the_post_thumbnail_url( $post, 'medium' ),

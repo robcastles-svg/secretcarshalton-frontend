@@ -15,6 +15,9 @@ import {
 } from "@/lib/wordpress";
 import { ChevronIcon } from "../../_components/EvIcons";
 import { EventForm, type EventFormInitial } from "../../_components/EventForm";
+import { FeatureEventPay } from "../../_components/FeatureEventPay";
+import { dateParts, displayOccurrence, isFeaturedNow, isFinished, isRepeating } from "@/lib/event-view";
+import { EVENT_UPGRADE_PRICE } from "@/lib/pricing";
 
 export const metadata = { title: "Edit event — Secret Carshalton" };
 
@@ -93,6 +96,33 @@ export default async function EditEventPage({
     image: getFeaturedImage(event)?.source_url ?? "",
   };
 
+  // "Feature this event" in the side column: single, upcoming events only.
+  const featurePrice = EVENT_UPGRADE_PRICE.split(" ")[0];
+  const shownDate = displayOccurrence(event);
+  const featureCard = isFeaturedNow(event) ? (
+    <section className="evf-submit">
+      <span className="evf-tag-featured">
+        Featured until {shownDate ? dateParts(shownDate.start).label : "event date"}
+      </span>
+    </section>
+  ) : isRepeating(event) ? (
+    <section className="evf-submit">
+      <p>Featuring is for single events.</p>
+    </section>
+  ) : !isFinished(event) ? (
+    <section className="evf-submit evf-feature-card">
+      <h3>Get more people to see it</h3>
+      <p>
+        Featured events go to the top of the events list and into the rotating highlight on the homepage, until the
+        event date.
+      </p>
+      <div className="evf-cost">
+        {featurePrice} <span>one-off payment</span>
+      </div>
+      <FeatureEventPay eventId={event.id} />
+    </section>
+  ) : null;
+
   return (
     <main className="evx evf-page">
       <div className="evx-crumb">
@@ -111,6 +141,7 @@ export default async function EditEventPage({
         organizers={organizerOptions}
         memberName={profile.display_name}
         initial={initial}
+        sideExtra={featureCard}
         header={
           <section className="evf-intro">
             <h1>Edit your event</h1>

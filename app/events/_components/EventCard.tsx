@@ -3,6 +3,7 @@ import { getFeaturedImage, stripHtml, type WPScEvent } from "@/lib/wordpress";
 import {
   formatTimeRange,
   getOccurrences,
+  isFeaturedNow,
   repeatFlag,
   venueShort,
   type Occurrence,
@@ -39,7 +40,7 @@ export function EventCard({
   const later = flag
     ? getOccurrences(event).filter((o) => o.start.getTime() > occurrence.start.getTime()).length
     : 0;
-  const featured = Boolean(event.meta.sc_event_featured);
+  const featured = isFeaturedNow(event);
 
   return (
     <Link

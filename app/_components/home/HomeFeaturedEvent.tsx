@@ -44,6 +44,7 @@ export function HomeFeaturedEvent({
   venueName,
   image,
   imageAlt,
+  featured = true,
 }: {
   title: string;
   slug: string;
@@ -51,6 +52,8 @@ export function HomeFeaturedEvent({
   venueName?: string;
   image: WPFeaturedMedia | null;
   imageAlt: string;
+  /** Only a paid/featured event gets the Featured badge — the fallback (soonest event) doesn't. */
+  featured?: boolean;
 }) {
   return (
     <Link href={`/events/${slug}`} className="event-countdown home-featured-event">
@@ -68,7 +71,7 @@ export function HomeFeaturedEvent({
           </span>
         </div>
         <div className="event-countdown-body">
-          <span className="event-countdown-featured-badge">Featured</span>
+          {featured && <span className="event-countdown-featured-badge">Featured</span>}
           <span className="event-countdown-title" dangerouslySetInnerHTML={{ __html: title }} />
           <span className="home-featured-event-daytime">{formatDayTime(startDate)}</span>
           {venueName && <span className="event-countdown-venue">{venueName}</span>}

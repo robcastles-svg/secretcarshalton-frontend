@@ -23,7 +23,22 @@ declare global {
  * amount actually charged is always decided server-side from the ad's own
  * stored placement/days, never by anything this component sends.
  */
-export function PayPalPayButton({ adId, onPaid }: { adId: number; onPaid: () => void }) {
+export function PayPalPayButton({
+  adId,
+  onPaid,
+  endpoints,
+}: {
+  adId: number;
+  onPaid: () => void;
+  /**
+   * Where to create and capture the order. Defaults to the text-ad routes;
+   * featuring an event passes its own (/api/events/{id}/feature/…), which
+   * go through the same sc-ads PayPal setup on the WordPress side.
+   */
+  endpoints?: { createOrder: string; capture: string };
+}) {
+  const createUrl = endpoints?.createOrder ?? "/api/ads/paypal/create-order";
+  const captureUrl = endpoints?.capture ?? "/api/ads/paypal/capture-order";
   const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -57,7 +72,7 @@ export function PayPalPayButton({ adId, onPaid }: { adId: number; onPaid: () => 
         setReady(true);
         window.paypal.Buttons({
           createOrder: async () => {
-            const res = await fetch("/api/ads/paypal/create-order", {
+            const res = await fetch(createUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ adId }),
@@ -70,7 +85,7 @@ export function PayPalPayButton({ adId, onPaid }: { adId: number; onPaid: () => 
             return body.orderId;
           },
           onApprove: async (data) => {
-            const res = await fetch("/api/ads/paypal/capture-order", {
+            const res = await fetch(captureUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ adId, orderId: data.orderID }),

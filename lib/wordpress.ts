@@ -1413,6 +1413,9 @@ export interface WPScEventMeta {
   sc_event_url: string;
   /** The "Coming up next" hero slot's paid-upgrade flag — admin-set only, see SC_Events_Meta. */
   sc_event_featured: boolean;
+  /** sc-events 0.15+: "YYYY-MM-DD" paid featuring ends (the event's date). Use isFeaturedNow() rather than reading these directly. */
+  sc_event_featured_until?: string;
+  sc_event_featured_payment?: string;
   /**
    * Price and booking (sc-events 0.13+). Optional because events from
    * before then — and any environment still on an older plugin — don't
@@ -2435,6 +2438,48 @@ export async function uploadEventImages(
     });
     const body = await res.json();
     if (!res.ok) return { code: body.code ?? "upload_failed", message: body.message ?? "Could not upload the image." };
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Starts a PayPal order to feature one of the member's events — SC_Events_Featured::create_order (price set server-side). */
+export async function createEventFeatureOrder(
+  token: string,
+  eventId: number
+): Promise<{ orderId: string; amount: number } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}/feature/create-order`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) return { code: body.code ?? "create_failed", message: body.message ?? "Could not start payment." };
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Captures the approved PayPal order and features the event until its date — SC_Events_Featured::capture. */
+export async function captureEventFeatureOrder(
+  token: string,
+  eventId: number,
+  orderId: string
+): Promise<{ status: string; until: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}/feature/capture`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) return { code: body.code ?? "capture_failed", message: body.message ?? "Payment didn't go through." };
     return body;
   } catch {
     return NETWORK_ERROR;
