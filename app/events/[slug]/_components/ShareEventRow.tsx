@@ -36,17 +36,21 @@ function CopyIcon() {
   );
 }
 
+/** Same fallback as app/layout.tsx's metadataBase, so shared links match the page's canonical/og:url. */
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.secretcarshalton.com";
+
 /**
  * Matches EventON's "Share this event" row — Facebook/X/email are plain
  * links (no JS needed), copy-link is the one bit of real interactivity,
- * hence this being a client component. `path` rather than a full URL
- * because the page itself doesn't know (or need to know) its own public
- * origin — window.location.origin is always correct for wherever this is
- * actually being viewed (preview deploy, production, etc).
+ * hence this being a client component. The URL is always built from the
+ * site URL, never window.location: the server-rendered HTML has no window,
+ * so the old fallback shipped domain-less share links ("/events/…") until
+ * hydration, which is what crawlers and no-JS visitors saw. Same value on
+ * server and client also means no hydration mismatch.
  */
 export function ShareEventRow({ path, title }: { path: string; title: string }) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? window.location.origin + path : path;
+  const url = SITE_URL.replace(/\/$/, "") + path;
 
   async function handleCopy() {
     try {

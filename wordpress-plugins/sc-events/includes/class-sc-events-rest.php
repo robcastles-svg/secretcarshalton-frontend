@@ -218,20 +218,83 @@ class SC_Events_REST {
 					if ( empty( $terms ) || is_wp_error( $terms ) ) {
 						return null;
 					}
-					$term = $terms[0];
-					return array(
-						'id'      => $term->term_id,
-						'name'    => $term->name,
-						'slug'    => $term->slug,
-						'address' => get_term_meta( $term->term_id, 'sc_organizer_address', true ),
-						'phone'   => get_term_meta( $term->term_id, 'sc_organizer_phone', true ),
-						'url'     => get_term_meta( $term->term_id, 'sc_organizer_url', true ),
-						'socials' => get_term_meta( $term->term_id, 'sc_organizer_socials', true ),
-					);
+					return self::organizer_profile( $terms[0] );
 				},
 				'schema'       => array( 'type' => 'object' ),
 			)
 		);
+	}
+
+	/**
+	 * Everything public about an organiser, in one shape — used by the
+	 * sc_event_organizer_profile field. 'socials' is the legacy
+	 * comma-separated list (kept for migration); the per-network fields
+	 * replace it.
+	 */
+	public static function organizer_profile( WP_Term $term ) {
+		$id = $term->term_id;
+		return array(
+			'id'        => $id,
+			'name'      => $term->name,
+			'slug'      => $term->slug,
+			'about'     => $term->description,
+			'email'     => get_term_meta( $id, 'sc_organizer_email', true ),
+			'address'   => get_term_meta( $id, 'sc_organizer_address', true ),
+			'phone'     => get_term_meta( $id, 'sc_organizer_phone', true ),
+			'url'       => get_term_meta( $id, 'sc_organizer_url', true ),
+			'logo'      => (int) get_term_meta( $id, 'sc_organizer_logo', true ),
+			'logo_url'  => SC_Events_Organizer_Meta::logo_url( $id ),
+			'facebook'  => get_term_meta( $id, 'sc_organizer_facebook', true ),
+			'instagram' => get_term_meta( $id, 'sc_organizer_instagram', true ),
+			'x'         => get_term_meta( $id, 'sc_organizer_x', true ),
+			'tiktok'    => get_term_meta( $id, 'sc_organizer_tiktok', true ),
+			'socials'   => get_term_meta( $id, 'sc_organizer_socials', true ),
+		);
+	}
+
+	/**
+	 * Rejects the whole request, with a message a member can act on,
+	 * when a website/link field holds an email address or an email field
+	 * holds something that isn't one. Run before anything is written, so
+	 * a bad submit doesn't leave a half-saved event behind. Only checks
+	 * params actually present, same as the rest of the update path.
+	 */
+	private static function validate_request( WP_REST_Request $request ) {
+		$url_params = array(
+			'event_url'           => 'The event link',
+			'organizer_url'       => "The organiser's website",
+			'organizer_facebook'  => 'The Facebook link',
+			'organizer_instagram' => 'The Instagram link',
+			'organizer_x'         => 'The X link',
+			'organizer_tiktok'    => 'The TikTok link',
+		);
+		foreach ( $url_params as $param => $label ) {
+			if ( SC_Events_Meta::looks_like_email( $request->get_param( $param ) ) ) {
+				return new WP_Error(
+					'email_in_url',
+					$label . ' looks like an email address or @handle rather than a web address. Please put the full web address (starting https://) there, and any email address in the email box instead.',
+					array( 'status' => 400, 'param' => $param )
+				);
+			}
+		}
+
+		$email_params = array(
+			'booking_email'   => 'The booking email',
+			'organizer_email' => "The organiser's email",
+		);
+		foreach ( $email_params as $param => $label ) {
+			$value = trim( (string) $request->get_param( $param ) );
+			if ( '' !== $value && ! is_email( $value ) ) {
+				return new WP_Error( 'invalid_email', $label . " doesn't look like a valid email address.", array( 'status' => 400, 'param' => $param ) );
+			}
+		}
+
+		$repeat = $request->get_param( 'repeat_dates' );
+		if ( is_array( $repeat ) && count( $repeat ) > SC_Events_Meta::MAX_REPEAT_DATES ) {
+			return new WP_Error( 'too_many_dates', 'A repeating event can have at most ' . SC_Events_Meta::MAX_REPEAT_DATES . ' dates.', array( 'status' => 400, 'param' => 'repeat_dates' ) );
+		}
+
+		return true;
 	}
 
 	/**
@@ -414,6 +477,11 @@ class SC_Events_REST {
 			return new WP_Error( 'missing_start', 'A start date/time is required.', array( 'status' => 400 ) );
 		}
 
+		$valid = self::validate_request( $request );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
+
 		$user_id = get_current_user_id();
 
 		$post_id = wp_insert_post(
@@ -456,6 +524,11 @@ class SC_Events_REST {
 	public static function update_event( WP_REST_Request $request ) {
 		$post_id = (int) $request->get_param( 'id' );
 		$update  = array( 'ID' => $post_id );
+
+		$valid = self::validate_request( $request );
+		if ( is_wp_error( $valid ) ) {
+			return $valid;
+		}
 
 		if ( null !== $request->get_param( 'title' ) ) {
 			$title = sanitize_text_field( (string) $request->get_param( 'title' ) );
@@ -507,23 +580,58 @@ class SC_Events_REST {
 	/** Shared by submit_event and update_event — only touches params actually present in the request. */
 	private static function update_meta_from_request( $post_id, WP_REST_Request $request ) {
 		$fields = array(
-			'start'         => 'sc_start',
-			'end'           => 'sc_end',
-			'venue_name'    => 'sc_venue_name',
-			'venue_address' => 'sc_venue_address',
-			'organizer'     => 'sc_organizer',
-			'event_url'     => 'sc_event_url',
+			'start'             => 'sc_start',
+			'end'               => 'sc_end',
+			'venue_name'        => 'sc_venue_name',
+			'venue_address'     => 'sc_venue_address',
+			'organizer'         => 'sc_organizer',
+			'event_url'         => 'sc_event_url',
+			'price_type'        => 'sc_price_type',
+			'price_amount'      => 'sc_price_amount',
+			'price_concession'  => 'sc_price_concession',
+			'booking_type'      => 'sc_booking_type',
+			'booking_link_kind' => 'sc_booking_link_kind',
+			'booking_email'     => 'sc_booking_email',
+			'booking_phone'     => 'sc_booking_phone',
+			'repeat_pattern'    => 'sc_repeat_pattern',
 		);
 		foreach ( $fields as $param => $meta_key ) {
 			if ( null === $request->get_param( $param ) ) {
 				continue;
 			}
-			$value = (string) $request->get_param( $param );
-			update_post_meta( $post_id, $meta_key, 'event_url' === $param ? esc_url_raw( $value ) : sanitize_text_field( $value ) );
+			// update_post_meta runs the sanitize_callback each field was
+			// registered with (see SC_Events_Meta::register) — enums,
+			// price amount, email-not-a-URL — so no per-field cleaning here.
+			update_post_meta( $post_id, $meta_key, (string) $request->get_param( $param ) );
 		}
+
+		if ( null !== $request->get_param( 'price_from' ) ) {
+			update_post_meta( $post_id, 'sc_price_from', rest_sanitize_boolean( $request->get_param( 'price_from' ) ) );
+		}
+
+		self::set_repeat_dates_from_request( $post_id, $request );
 
 		self::set_listing_from_request( $post_id, $request );
 		self::set_organizer_from_request( $post_id, $request );
+	}
+
+	/**
+	 * A repeating event is one post with many dates (see SC_Events_Meta).
+	 * Whenever a non-empty list is saved, sc_start is moved to its first
+	 * date so the two can never disagree. An empty list turns repeating
+	 * off and leaves sc_start alone.
+	 */
+	private static function set_repeat_dates_from_request( $post_id, WP_REST_Request $request ) {
+		if ( null === $request->get_param( 'repeat_dates' ) ) {
+			return;
+		}
+		$dates = SC_Events_Meta::sanitize_repeat_dates( $request->get_param( 'repeat_dates' ) );
+		update_post_meta( $post_id, 'sc_repeat_dates', $dates );
+		if ( ! empty( $dates ) ) {
+			update_post_meta( $post_id, 'sc_start', $dates[0] );
+		} else {
+			update_post_meta( $post_id, 'sc_repeat_pattern', '' );
+		}
 	}
 
 	/**
@@ -583,25 +691,46 @@ class SC_Events_REST {
 			return;
 		}
 
-		$inserted = wp_insert_term( $name, SC_Events_CPT::ORGANIZER_TAXONOMY );
+		$about    = $request->get_param( 'organizer_about' );
+		$inserted = wp_insert_term(
+			$name,
+			SC_Events_CPT::ORGANIZER_TAXONOMY,
+			array( 'description' => null === $about ? '' : sanitize_textarea_field( (string) $about ) )
+		);
 		if ( is_wp_error( $inserted ) ) {
 			return;
 		}
 		$term_id = is_array( $inserted ) ? $inserted['term_id'] : $inserted;
 
 		$fields = array(
-			'organizer_address' => 'sc_organizer_address',
-			'organizer_phone'   => 'sc_organizer_phone',
-			'organizer_url'     => 'sc_organizer_url',
-			'organizer_socials' => 'sc_organizer_socials',
+			'organizer_address'   => 'sc_organizer_address',
+			'organizer_phone'     => 'sc_organizer_phone',
+			'organizer_url'       => 'sc_organizer_url',
+			'organizer_socials'   => 'sc_organizer_socials',
+			'organizer_email'     => 'sc_organizer_email',
+			'organizer_facebook'  => 'sc_organizer_facebook',
+			'organizer_instagram' => 'sc_organizer_instagram',
+			'organizer_x'         => 'sc_organizer_x',
+			'organizer_tiktok'    => 'sc_organizer_tiktok',
 		);
 		foreach ( $fields as $param => $meta_key ) {
 			$value = $request->get_param( $param );
 			if ( null === $value || '' === trim( (string) $value ) ) {
 				continue;
 			}
-			$value = 'sc_organizer_url' === $meta_key ? esc_url_raw( (string) $value ) : sanitize_text_field( (string) $value );
+			$value = call_user_func( SC_Events_Organizer_Meta::sanitizer_for( $meta_key ), (string) $value );
 			update_term_meta( $term_id, $meta_key, $value );
+		}
+
+		// Only an image the submitter uploaded themselves — otherwise any
+		// attachment ID on the site could be borrowed as someone's logo.
+		$logo_id = (int) $request->get_param( 'organizer_logo' );
+		if ( $logo_id ) {
+			$logo = get_post( $logo_id );
+			if ( $logo && 'attachment' === $logo->post_type && wp_attachment_is_image( $logo_id )
+				&& ( (int) $logo->post_author === get_current_user_id() || current_user_can( 'manage_options' ) ) ) {
+				update_term_meta( $term_id, 'sc_organizer_logo', $logo_id );
+			}
 		}
 
 		wp_set_object_terms( $post_id, array( $term_id ), SC_Events_CPT::ORGANIZER_TAXONOMY );

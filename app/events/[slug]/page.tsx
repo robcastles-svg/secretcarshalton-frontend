@@ -31,9 +31,22 @@ function formatTime(date: Date): string {
   return date.toLocaleString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true });
 }
 
-/** YYYYMMDDTHHMMSSZ, the format Google Calendar's own template URL wants, always in UTC regardless of the site's displayed local time. */
+/**
+ * YYYYMMDDTHHMMSS with no trailing "Z" — a "floating" time that Google
+ * Calendar reads in the zone given by the URL's ctz param (Europe/London,
+ * see buildGoogleCalendarUrl). Stored event times are UK wall-clock times,
+ * and parseEventDate builds the Date from those same digits via the local
+ * Date constructor, so reading the local getters back gives the original
+ * wall-clock time on any server timezone. The old version went through
+ * toISOString(), which treated UK times as UTC and put every summer (BST)
+ * event an hour late in people's calendars.
+ */
 function toGCalDateTime(date: Date): string {
-  return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}` +
+    `T${pad(date.getHours())}${pad(date.getMinutes())}00`
+  );
 }
 
 /** No end time on record for plenty of events — defaults to a 1 hour slot rather than leaving the calendar entry zero-length. */
@@ -43,6 +56,7 @@ function buildGoogleCalendarUrl(title: string, start: Date, end: Date | null, lo
     action: "TEMPLATE",
     text: title,
     dates: `${toGCalDateTime(start)}/${toGCalDateTime(endDate)}`,
+    ctz: "Europe/London",
     details,
     location,
   });

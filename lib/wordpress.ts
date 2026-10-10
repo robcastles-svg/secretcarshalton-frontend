@@ -1413,7 +1413,35 @@ export interface WPScEventMeta {
   sc_event_url: string;
   /** The "Coming up next" hero slot's paid-upgrade flag — admin-set only, see SC_Events_Meta. */
   sc_event_featured: boolean;
+  /**
+   * Price and booking (sc-events 0.13+). Optional because events from
+   * before then — and any environment still on an older plugin — don't
+   * have them; "" / missing price type means unknown. Amount is a plain
+   * decimal string in pounds ("7", "7.50"). For booking type "link" the
+   * link itself is sc_event_url. Blank booking email/phone means "use the
+   * organiser's".
+   */
+  sc_price_type?: ScEventPriceType | "";
+  sc_price_amount?: string;
+  sc_price_from?: boolean;
+  sc_price_concession?: string;
+  sc_booking_type?: ScEventBookingType | "";
+  sc_booking_link_kind?: ScEventBookingLinkKind | "";
+  sc_booking_email?: string;
+  sc_booking_phone?: string;
+  /**
+   * A repeating event is one post with many dates: every start date-time
+   * (same local-UK format as sc_start, sorted, sc_start is the first).
+   * Empty for one-off events. sc_repeat_pattern is display text only,
+   * e.g. "Monthly, last Sunday".
+   */
+  sc_repeat_dates?: string[];
+  sc_repeat_pattern?: string;
 }
+
+export type ScEventPriceType = "free" | "paid" | "unknown";
+export type ScEventBookingType = "link" | "contact" | "none";
+export type ScEventBookingLinkKind = "tickets" | "website";
 
 /** A reusable organiser profile — see WPEventOrganizer's docblock for where this data actually lives. */
 export interface WPEventOrganizerProfile {
@@ -1423,7 +1451,17 @@ export interface WPEventOrganizerProfile {
   address: string;
   phone: string;
   url: string;
+  /** Legacy comma-separated socials, kept for migration — prefer the per-network fields below. */
   socials: string;
+  /** sc-events 0.13+ — absent on older plugin versions. `about` is the organiser term's description. */
+  about?: string;
+  email?: string;
+  logo?: number;
+  logo_url?: string;
+  facebook?: string;
+  instagram?: string;
+  x?: string;
+  tiktok?: string;
 }
 
 export interface WPScEvent {
@@ -1610,6 +1648,14 @@ export interface WPEventOrganizer {
   phone: string;
   url: string;
   socials: string;
+  about: string;
+  email: string;
+  /** Media attachment ID, 0 when none. */
+  logo: number;
+  facebook: string;
+  instagram: string;
+  x: string;
+  tiktok: string;
 }
 
 export async function getEventOrganizers(): Promise<WPEventOrganizer[]> {
@@ -1618,11 +1664,18 @@ export async function getEventOrganizers(): Promise<WPEventOrganizer[]> {
       id: number;
       name: string;
       slug: string;
+      description?: string;
       meta?: {
         sc_organizer_address?: string;
         sc_organizer_phone?: string;
         sc_organizer_url?: string;
         sc_organizer_socials?: string;
+        sc_organizer_email?: string;
+        sc_organizer_logo?: number;
+        sc_organizer_facebook?: string;
+        sc_organizer_instagram?: string;
+        sc_organizer_x?: string;
+        sc_organizer_tiktok?: string;
       };
     }>
   >(`/sc_event_organizer?per_page=100&orderby=name&order=asc`);
@@ -1635,6 +1688,13 @@ export async function getEventOrganizers(): Promise<WPEventOrganizer[]> {
     phone: t.meta?.sc_organizer_phone ?? "",
     url: t.meta?.sc_organizer_url ?? "",
     socials: t.meta?.sc_organizer_socials ?? "",
+    about: t.description ?? "",
+    email: t.meta?.sc_organizer_email ?? "",
+    logo: t.meta?.sc_organizer_logo ?? 0,
+    facebook: t.meta?.sc_organizer_facebook ?? "",
+    instagram: t.meta?.sc_organizer_instagram ?? "",
+    x: t.meta?.sc_organizer_x ?? "",
+    tiktok: t.meta?.sc_organizer_tiktok ?? "",
   }));
 }
 
