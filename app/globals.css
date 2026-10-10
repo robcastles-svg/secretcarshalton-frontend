@@ -7868,6 +7868,16 @@ a.card-category:hover {
 .evf-choice > input { margin: 3px 0 0; accent-color: var(--evx-accent); flex: 0 0 auto; }
 .evf-choice b { display: block; font-size: 14px; }
 .evf-choice small { display: block; color: var(--evx-ink-soft); font-size: 13px; line-height: 1.4; }
+.evf-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.evf-fieldset legend { padding: 0; margin-bottom: 6px; }
+.evf-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.evf-tag { position: relative; cursor: pointer; }
+.evf-tag input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.evf-tag span { display: inline-flex; align-items: center; border: 1.5px solid var(--evx-line); background: #fff; border-radius: 999px; padding: 7px 14px; font-size: 14px; font-weight: 500; }
+.evf-tag:hover span { border-color: var(--evx-ink-soft); }
+.evf-tag input:checked + span { background: var(--evx-accent); border-color: var(--evx-accent); color: #fff; }
+.evf-tag input:checked + span::before { content: "✓"; margin-right: 6px; font-weight: 700; }
+.evf-tag input:focus-visible + span { outline: 2px solid var(--evx-accent-ink); outline-offset: 2px; }
 .evf-check { display: flex; gap: 8px; align-items: center; font-size: 14px; cursor: pointer; }
 .evf-check input { accent-color: var(--evx-accent); width: 16px; height: 16px; }
 .evf-sub { border: 1.5px solid var(--evx-line); background: var(--evx-paper-2); border-radius: 12px; padding: 16px; display: grid; gap: 14px; }

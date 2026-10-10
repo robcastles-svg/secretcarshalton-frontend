@@ -42,8 +42,9 @@ export interface EventFormInitial {
   organizer: string;
   organizer_id: string;
   area: string;
-  topic: string;
-  /** Other topic tags already on the event, kept as they are. */
+  /** Category (topic tag) slugs — as many as the member likes. */
+  topics: string[];
+  /** Tags not offered as categories (e.g. the old "Free Entry"), kept as they are. */
   otherTags: string[];
   price_type: string;
   price_amount: string;
@@ -135,7 +136,7 @@ export function EventForm({
   // ---- The event
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
-  const [topic, setTopic] = useState(initial?.topic ?? "");
+  const [chosenTopics, setChosenTopics] = useState<string[]>(initial?.topics ?? []);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState<string>(initial?.image ?? "");
   const [imageMeta, setImageMeta] = useState<{ name: string; w: number; h: number; size: number } | null>(null);
@@ -324,7 +325,7 @@ export function EventForm({
       venue_name: venueName,
       venue_address: venueAddress,
       category: area,
-      tags: [topic, ...(initial?.otherTags ?? [])].filter(Boolean),
+      tags: [...chosenTopics, ...(initial?.otherTags ?? [])],
       price_type: priceType,
       price_amount: priceType === "paid" ? priceAmount : "",
       price_from: priceType === "paid" && priceFrom,
@@ -517,21 +518,27 @@ export function EventForm({
               </span>
             </div>
             {topics.length > 0 && (
-              <div className="evf-row">
-                <div className="evf-field">
-                  <label className="evf-lab" htmlFor="ev-topic">
-                    Category
-                  </label>
-                  <select id="ev-topic" value={topic} onChange={(e) => setTopic(e.target.value)}>
-                    <option value="">Select a category…</option>
-                    {topics.map((t) => (
-                      <option key={t.id} value={t.slug}>
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
+              <fieldset className="evf-field evf-fieldset">
+                <legend className="evf-lab">
+                  Categories <span className="evf-opt">(tick as many as you like)</span>
+                </legend>
+                <div className="evf-tags">
+                  {topics.map((t) => (
+                    <label key={t.id} className="evf-tag">
+                      <input
+                        type="checkbox"
+                        checked={chosenTopics.includes(t.slug)}
+                        onChange={(e) =>
+                          setChosenTopics((cur) =>
+                            e.target.checked ? [...cur, t.slug] : cur.filter((x) => x !== t.slug)
+                          )
+                        }
+                      />
+                      <span>{t.name}</span>
+                    </label>
+                  ))}
                 </div>
-              </div>
+              </fieldset>
             )}
           </div>
         </section>

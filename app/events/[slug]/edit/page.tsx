@@ -59,8 +59,6 @@ export default async function EditEventPage({
   const m = event.meta;
   const area = areas.find((c) => event.sc_event_category?.includes(c.id));
   const eventTags = tags.filter((t) => event.sc_event_tag?.includes(t.id));
-  const visibleTags = eventTags.filter((t) => !HIDDEN_TOPICS.has(t.slug));
-  const primary = visibleTags[0];
   const [date, startTime] = splitDateTime(m.sc_start);
   const [, endTime] = splitDateTime(m.sc_end);
 
@@ -81,8 +79,8 @@ export default async function EditEventPage({
     organizer: m.sc_organizer ?? "",
     organizer_id: own ? String(own.id) : "",
     area: area?.slug ?? "",
-    topic: primary?.slug ?? "",
-    otherTags: eventTags.filter((t) => t.slug !== primary?.slug).map((t) => t.slug),
+    topics: eventTags.filter((t) => !HIDDEN_TOPICS.has(t.slug)).map((t) => t.slug),
+    otherTags: eventTags.filter((t) => HIDDEN_TOPICS.has(t.slug)).map((t) => t.slug),
     price_type: m.sc_price_type ?? "",
     price_amount: m.sc_price_amount ?? "",
     price_from: Boolean(m.sc_price_from),

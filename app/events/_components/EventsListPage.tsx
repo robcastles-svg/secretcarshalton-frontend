@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import {
@@ -47,6 +47,7 @@ import { ChevronIcon, CalendarIcon, StarIcon } from "./EvIcons";
 import { EventCard } from "./EventCard";
 import { FeaturedSlider, type Slide } from "./FeaturedSlider";
 import { LoadMoreGroups } from "./LoadMoreGroups";
+import { SubmitEventButton } from "./SubmitEventButton";
 
 interface Item {
   event: WPScEvent;
@@ -395,9 +396,15 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
           {intro && <p className="evl-intro">{intro}</p>}
         </div>
         {isHome ? (
-          <Link className="evl-btn-submit" href="/events/submit">
-            Submit an event
-          </Link>
+          <Suspense
+            fallback={
+              <Link className="evl-btn-submit" href="/events/submit">
+                Submit an event
+              </Link>
+            }
+          >
+            <SubmitEventButton />
+          </Suspense>
         ) : (
           <div className="evl-share">
             <span>Share</span>
