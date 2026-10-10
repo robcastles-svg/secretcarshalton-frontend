@@ -1,11 +1,30 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { StyledMap } from "@/app/_components/StyledMap";
 import { getSessionToken } from "@/lib/auth";
+import {
+  displayOccurrence,
+  eventJsonLd,
+  formatTime,
+  formatTimeRange,
+  getBooking,
+  getOccurrences,
+  getPrice,
+  googleCalendarUrl,
+  isFinished,
+  isRepeating,
+  relativeDayLabel,
+  upcomingOccurrences,
+  venueQuery,
+  venueShort,
+  dateParts,
+  type Booking,
+  type Occurrence,
+  type PriceInfo,
+} from "@/lib/event-view";
 import {
   getCommentsForPost,
   getEventRsvpStatus,
@@ -15,175 +34,31 @@ import {
   getRecentScEventSlugs,
   getScEventBySlug,
   getScEventTags,
-  parseEventDate,
   slugifyVenue,
   stripHtml,
+  type WPScEvent,
 } from "@/lib/wordpress";
+import { CopyButton } from "../_components/CopyButton";
+import { DateTile } from "../_components/DateTile";
+import {
+  CalendarIcon,
+  ChevronIcon,
+  ClockIcon,
+  DirectionsIcon,
+  ExternalIcon,
+  MailIcon,
+  PhoneIcon,
+  PinIcon,
+  RepeatIcon,
+  TagIcon,
+  TicketIcon,
+} from "../_components/EvIcons";
 import { ClaimEventButton } from "./_components/ClaimEventButton";
 import { EventDetailImage } from "./_components/EventDetailImage";
-import { EventTimeLeft } from "./_components/EventTimeLeft";
 import { RsvpButton } from "./_components/RsvpButton";
 import { ShareEventRow } from "./_components/ShareEventRow";
 
 export const revalidate = 3600;
-
-function formatTime(date: Date): string {
-  return date.toLocaleString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true });
-}
-
-/**
- * YYYYMMDDTHHMMSS with no trailing "Z" — a "floating" time that Google
- * Calendar reads in the zone given by the URL's ctz param (Europe/London,
- * see buildGoogleCalendarUrl). Stored event times are UK wall-clock times,
- * and parseEventDate builds the Date from those same digits via the local
- * Date constructor, so reading the local getters back gives the original
- * wall-clock time on any server timezone. The old version went through
- * toISOString(), which treated UK times as UTC and put every summer (BST)
- * event an hour late in people's calendars.
- */
-function toGCalDateTime(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return (
-    `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}` +
-    `T${pad(date.getHours())}${pad(date.getMinutes())}00`
-  );
-}
-
-/** No end time on record for plenty of events — defaults to a 1 hour slot rather than leaving the calendar entry zero-length. */
-function buildGoogleCalendarUrl(title: string, start: Date, end: Date | null, location: string, details: string): string {
-  const endDate = end ?? new Date(start.getTime() + 60 * 60 * 1000);
-  const params = new URLSearchParams({
-    action: "TEMPLATE",
-    text: title,
-    dates: `${toGCalDateTime(start)}/${toGCalDateTime(endDate)}`,
-    ctz: "Europe/London",
-    details,
-    location,
-  });
-  return `https://calendar.google.com/calendar/render?${params.toString()}`;
-}
-
-function PinIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <path d="M12 22s7-7.58 7-12.5A7 7 0 0 0 5 9.5C5 14.42 12 22 12 22Z" />
-      <circle cx="12" cy="9.5" r="2.5" />
-    </svg>
-  );
-}
-
-function ClockIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3.5 2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-/**
- * One distinct glyph per subject tag (see SC_Events_CPT::default_tags for
- * the full 13) — matching EventON's own "Event Type" list, which shows an
- * icon per tag rather than the plain comma-joined text this page used to
- * render. EVENT_TYPE_ICON_PATHS falls back to a generic tag glyph for any
- * tag name it doesn't recognise, so a future addition to default_tags()
- * degrades gracefully instead of rendering nothing.
- */
-function EventTypeIcon({ name }: { name: string }) {
-  const common = { width: 16, height: 16, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, "aria-hidden": true } as const;
-  switch (name) {
-    case "Comedy":
-      return (
-        <svg {...common}>
-          <path d="M4 5h16v10H9l-4 4v-4H4V5Z" strokeLinejoin="round" />
-        </svg>
-      );
-    case "Dance":
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="5" r="2" />
-          <path d="M12 7v5M12 12l-4 5M12 12l4 5M9 9l3 1 3-1" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      );
-    case "Festival":
-      return (
-        <svg {...common}>
-          <polygon points="12 2 14.9 8.3 22 9 17 14.1 18.2 22 12 18.6 5.8 22 7 14.1 2 9 9.1 8.3" strokeLinejoin="round" />
-        </svg>
-      );
-    case "Fitness":
-      return (
-        <svg {...common}>
-          <path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10" strokeLinecap="round" />
-        </svg>
-      );
-    case "Free Entry":
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="9" />
-          <line x1="12" y1="11" x2="12" y2="16" strokeLinecap="round" />
-          <circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none" />
-        </svg>
-      );
-    case "Heritage":
-      return (
-        <svg {...common}>
-          <path d="M12 2 3 8h18L12 2Z" strokeLinejoin="round" />
-          <path d="M5 8v12M9 8v12M15 8v12M19 8v12M3 20h18" strokeLinecap="round" />
-        </svg>
-      );
-    case "Music":
-      return (
-        <svg {...common}>
-          <path d="M9 18V5l10-2v13" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="6.5" cy="18" r="2.5" />
-          <circle cx="16.5" cy="16" r="2.5" />
-        </svg>
-      );
-    case "Nature":
-      return (
-        <svg {...common}>
-          <path d="M5 20c0-8 5-14 14-16-1 9-6 15-14 16Z" strokeLinejoin="round" />
-        </svg>
-      );
-    case "Quiz":
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .9-1 1.7" strokeLinecap="round" />
-          <circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none" />
-        </svg>
-      );
-    case "Shopping":
-      return (
-        <svg {...common}>
-          <path d="M6 8h12l-1 12H7L6 8Z" strokeLinejoin="round" />
-          <path d="M9 8V6a3 3 0 0 1 6 0v2" strokeLinecap="round" />
-        </svg>
-      );
-    case "Suitable for kids":
-      return (
-        <svg {...common}>
-          <circle cx="12" cy="12" r="9" />
-          <circle cx="9" cy="10" r="0.8" fill="currentColor" stroke="none" />
-          <circle cx="15" cy="10" r="0.8" fill="currentColor" stroke="none" />
-          <path d="M8.5 14.5c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8" strokeLinecap="round" />
-        </svg>
-      );
-    case "Theatre":
-      return (
-        <svg {...common}>
-          <path d="M4 4c4 2 4 14 0 16M20 4c-4 2-4 14 0 16" strokeLinecap="round" />
-        </svg>
-      );
-    default:
-      return (
-        <svg {...common}>
-          <path d="M12 4v16M5 7l14 10M19 7 5 17" strokeLinecap="round" />
-        </svg>
-      );
-  }
-}
 
 export async function generateStaticParams() {
   const slugs = await getRecentScEventSlugs(50).catch(() => []);
@@ -214,6 +89,190 @@ export async function generateMetadata({
   };
 }
 
+/**
+ * The sidebar booking card (and, on mobile, its sticky bottom bar),
+ * driven by the Stage 1 price/booking fields — see getBooking for how
+ * older events without them are handled.
+ */
+function BookingCard({
+  event,
+  booking,
+  price,
+  next,
+  finished,
+  organizerHref,
+}: {
+  event: WPScEvent;
+  booking: Booking;
+  price: PriceInfo | null;
+  next: Occurrence | null;
+  finished: boolean;
+  organizerHref: string | null;
+}) {
+  if (finished) {
+    return (
+      <>
+        <p className="evx-eyebrow">Booking</p>
+        <p className="evx-booktext">This event has finished, so booking is closed.</p>
+        {organizerHref && (
+          <Link className="evx-btn-dark" href={organizerHref}>
+            More from this organiser
+          </Link>
+        )}
+      </>
+    );
+  }
+
+  const priceBlock = price && (
+    <div className="evx-price">
+      <b>{price.headline}</b>
+      {price.note && <span>{price.note}</span>}
+    </div>
+  );
+
+  if (booking.kind === "contact") {
+    return (
+      <>
+        <p className="evx-eyebrow">Booking</p>
+        {priceBlock}
+        {booking.email ? (
+          <a className="evx-btn-primary" href={`mailto:${booking.email}`}>
+            <MailIcon />
+            Email to book
+          </a>
+        ) : (
+          booking.phone && (
+            <a className="evx-btn-primary" href={`tel:${booking.phone.replace(/\s+/g, "")}`}>
+              <PhoneIcon />
+              Call to book
+            </a>
+          )
+        )}
+        <ul className="evx-contact">
+          {booking.email && (
+            <li>
+              <MailIcon />
+              <span className="evx-contact-v">{booking.email}</span>
+              <CopyButton value={booking.email} />
+            </li>
+          )}
+          {booking.phone && (
+            <li>
+              <PhoneIcon />
+              <span className="evx-contact-v">{booking.phone}</span>
+              <CopyButton value={booking.phone} />
+            </li>
+          )}
+        </ul>
+      </>
+    );
+  }
+
+  if (booking.kind === "link") {
+    return (
+      <>
+        <p className="evx-eyebrow">Tickets &amp; info</p>
+        {priceBlock ?? <p className="evx-booktext">Prices and tickets are on the organiser&apos;s website.</p>}
+        <a className="evx-btn-primary" href={booking.url} target="_blank" rel="noopener noreferrer">
+          {booking.linkKind === "tickets" ? "Get tickets" : "Visit website"}
+          <ExternalIcon />
+        </a>
+        <p className="evx-via">Opens {booking.domain}</p>
+      </>
+    );
+  }
+
+  const calendar = next && (
+    <a className="evx-btn-primary" href={googleCalendarUrl(event, next)} target="_blank" rel="noopener noreferrer">
+      <CalendarIcon />
+      Add to calendar
+    </a>
+  );
+
+  if (booking.kind === "none") {
+    return (
+      <>
+        <p className="evx-eyebrow">Booking</p>
+        {priceBlock}
+        <p className="evx-booktext">No booking needed, just turn up.</p>
+        {calendar}
+      </>
+    );
+  }
+
+  // Older events with nothing recorded about booking.
+  return (
+    <>
+      <p className="evx-eyebrow">Booking</p>
+      {priceBlock}
+      <p className="evx-booktext">
+        {organizerHref ? (
+          <>
+            For tickets and details, <Link href={organizerHref}>contact the organiser</Link>.
+          </>
+        ) : (
+          "Check with the organiser for tickets and details."
+        )}
+      </p>
+      {calendar}
+    </>
+  );
+}
+
+/** Mobile-only bar pinned to the bottom of the screen with the price and the main action. */
+function StickyBookBar({
+  event,
+  booking,
+  price,
+  next,
+  whenLabel,
+}: {
+  event: WPScEvent;
+  booking: Booking;
+  price: PriceInfo | null;
+  next: Occurrence | null;
+  whenLabel: string;
+}) {
+  if (booking.kind === "link") {
+    return (
+      <div className="evx-sticky">
+        <div className="evx-sticky-p">
+          <b>{price ? price.chip : whenLabel}</b>
+          <span>{price ? whenLabel : booking.domain}</span>
+        </div>
+        <a className="evx-btn-primary" href={booking.url} target="_blank" rel="noopener noreferrer">
+          {booking.linkKind === "tickets" ? "Get tickets" : "Visit website"}
+        </a>
+      </div>
+    );
+  }
+  if (booking.kind === "contact") {
+    return (
+      <div className="evx-sticky">
+        <div className="evx-sticky-p">
+          <b>{price ? price.chip : "Booking"}</b>
+          <span>{whenLabel}</span>
+        </div>
+        <a className="evx-btn-primary" href="#booking">
+          Book
+        </a>
+      </div>
+    );
+  }
+  if (!next) return null;
+  return (
+    <div className="evx-sticky">
+      <div className="evx-sticky-p">
+        <b>{booking.kind === "none" ? `${price ? price.chip : "No booking"} · just turn up` : price?.chip ?? whenLabel}</b>
+        <span>{whenLabel}</span>
+      </div>
+      <a className="evx-btn-primary" href={googleCalendarUrl(event, next)} target="_blank" rel="noopener noreferrer">
+        Add to calendar
+      </a>
+    </div>
+  );
+}
+
 export default async function EventPage({
   params,
 }: {
@@ -242,253 +301,266 @@ export default async function EventPage({
   const isOwner = Boolean(profile && profile.id === event.author);
   const canEdit = isOwner || Boolean(profile?.is_editor);
 
+  const title = stripHtml(event.title.rendered);
   const image = getFeaturedImage(event);
-  const startDate = parseEventDate(event.meta.sc_start);
-  const endDate = parseEventDate(event.meta.sc_end);
-  const eventTypes = allTags.filter((t) => event.sc_event_tag?.includes(t.id));
-
-  const addressParts = [event.meta.sc_venue_name, event.meta.sc_venue_address].filter(Boolean);
-  const mapQuery = addressParts.join(", ");
-
-  const eventSchema = {
-    "@context": "https://schema.org",
-    "@type": "Event",
-    name: stripHtml(event.title.rendered),
-    startDate: event.meta.sc_start || undefined,
-    endDate: event.meta.sc_end || undefined,
-    location: event.meta.sc_venue_name
-      ? {
-          "@type": "Place",
-          name: event.meta.sc_venue_name,
-          address: event.meta.sc_venue_address || undefined,
-        }
-      : undefined,
-    organizer: event.sc_event_organizer_profile
-      ? {
-          "@type": "Organization",
-          name: event.sc_event_organizer_profile.name,
-          url: event.sc_event_organizer_profile.url || undefined,
-        }
-      : event.meta.sc_organizer
-      ? { "@type": "Organization", name: event.meta.sc_organizer, url: event.meta.sc_event_url || undefined }
-      : undefined,
-    image: image ? [image.source_url] : undefined,
-  };
+  const now = Date.now();
+  const finished = isFinished(event, now);
+  const repeating = isRepeating(event);
+  const shown = displayOccurrence(event, now);
+  const upcoming = upcomingOccurrences(event, now);
+  const next = finished ? null : upcoming[0] ?? null;
+  const price = getPrice(event);
+  const booking = getBooking(event);
+  const time = shown ? formatTimeRange(shown) : null;
+  const venue = venueShort(event);
+  const mapQuery = venueQuery(event);
+  const topic = allTags.find((t) => event.sc_event_tag?.includes(t.id)) ?? null;
+  const org = event.sc_event_organizer_profile ?? null;
+  const organizerHref = org ? `/events/organiser/${org.slug}?from=${encodeURIComponent(event.slug)}` : null;
+  const venueHref = event.meta.sc_venue_name ? `/events/venue/${slugifyVenue(event.meta.sc_venue_name)}` : null;
+  const shownParts = shown ? dateParts(shown.start) : null;
+  // "Thu 22 Oct, 7:30 pm" (or "Next: …" for repeating events) — the sticky bar's second line.
+  const whenLabel = shown && shownParts
+    ? `${repeating && !finished ? "Next: " : ""}${shownParts.label.replace(/ \d{4}$/, "")}${time ? `, ${formatTime(shown.start)}` : ""}`
+    : "";
 
   return (
-    <article className="container post-layout">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(eventSchema) }}
-      />
-      <PostViewTracker postId={event.id} slug={event.slug} title={stripHtml(event.title.rendered)} />
-      <div className="post-body">
-        <div className="event-hero">
-          {startDate && (
-            <div className="event-date-tile">
-              <span className="event-date-year">{startDate.getFullYear()}</span>
-              <span className="event-date-weekday">
-                {startDate.toLocaleString("en-GB", { weekday: "short" }).toUpperCase()}
-              </span>
-              <span className="event-date-day">{startDate.getDate()}</span>
-              <span className="event-date-month">
-                {startDate.toLocaleString("en-GB", { month: "short" }).toUpperCase()}
-              </span>
-            </div>
+    <main className="evx evx-page-event">
+      {getOccurrences(event).length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJsonLd(event, image?.source_url ?? null, now)) }}
+        />
+      )}
+      <PostViewTracker postId={event.id} slug={event.slug} title={title} />
+
+      <div className="evx-crumb">
+        <Link href="/events" className="evx-back">
+          <ChevronIcon />
+          Back to events
+        </Link>
+        <span>
+          <Link href="/events">Events</Link>
+          {topic && (
+            <>
+              {" › "}
+              <Link href={`/events?tag=${topic.slug}`}>{topic.name}</Link>
+            </>
           )}
-          <div className="event-hero-body">
-            <div className="page-header-row">
-              <h1 dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
-              {canEdit && (
-                <Link href={`/events/${event.slug}/edit`} className="button-pill button-pill-active">
-                  Edit event
-                </Link>
-              )}
-            </div>
-            {event.meta.sc_venue_name && (
-              <p className="event-meta-row">
-                <PinIcon />
-                {event.meta.sc_venue_name}
-                {event.meta.sc_venue_address ? `, ${event.meta.sc_venue_address}` : ""}
-              </p>
-            )}
-            {startDate && (
-              <p className="event-meta-row">
-                <ClockIcon />
-                {formatTime(startDate)}
-                {endDate ? ` – ${formatTime(endDate)}` : ""}
-              </p>
-            )}
-            {fullThread.length > 0 && (
-              <div className="event-meta-row">
-                <CommentCountLink count={fullThread.length} />
+        </span>
+      </div>
+
+      <div className="evx-layout">
+        <div className="evx-main">
+          <article className="evx-seg evx-seg-head">
+            {finished && (
+              <div className="evx-ended">
+                <b>This event has finished.</b>
+                {org && organizerHref && (
+                  <Link href={organizerHref}>See what {org.name} have coming up →</Link>
+                )}
               </div>
             )}
-            {eventTypes.length > 0 && (
-              <div className="event-meta-row event-type-row">
-                <span className="event-meta-label">Event Type</span>
-                <ul className="event-type-list">
-                  {eventTypes.map((t) => (
-                    <li key={t.id}>
-                      <EventTypeIcon name={t.name} />
-                      {t.name}
+            <div className="evx-headrow">
+              {shown && <DateTile date={shown.start} withYear size="lg" />}
+              <div className="evx-headtxt">
+                {shown && <span className="evx-soon">{relativeDayLabel(shown, finished, repeating && !finished, now)}</span>}
+                <h1 className="evx-title" dangerouslySetInnerHTML={{ __html: event.title.rendered }} />
+                {canEdit && (
+                  <Link href={`/events/${event.slug}/edit`} className="evx-edit">
+                    Edit event
+                  </Link>
+                )}
+              </div>
+            </div>
+            <ul className="evx-facts">
+              {time && (
+                <li>
+                  <ClockIcon />
+                  {time}
+                </li>
+              )}
+              {venue && (
+                <li>
+                  <PinIcon />
+                  {venueHref ? <Link href={venueHref}>{venue}</Link> : venue}
+                </li>
+              )}
+              {price && (
+                <li className={price.kind === "free" ? "evx-fact-free" : undefined}>
+                  <TicketIcon />
+                  {price.chip}
+                </li>
+              )}
+              {repeating && event.meta.sc_repeat_pattern && (
+                <li className="evx-fact-rep">
+                  <RepeatIcon />
+                  {event.meta.sc_repeat_pattern}
+                </li>
+              )}
+              {topic && (
+                <li className="evx-fact-tag">
+                  <TagIcon />
+                  <Link href={`/events?tag=${topic.slug}`}>{topic.name}</Link>
+                </li>
+              )}
+            </ul>
+            {image && (
+              <div className="evx-hero">
+                <EventDetailImage image={image} alt={title} />
+              </div>
+            )}
+            <div className="evx-actions">
+              {next && booking.kind !== "none" && (
+                <a className="evx-btn" href={googleCalendarUrl(event, next)} target="_blank" rel="noopener noreferrer">
+                  <CalendarIcon />
+                  {repeating ? "Add next date" : "Add to calendar"}
+                </a>
+              )}
+              <RsvpButton
+                eventId={event.id}
+                isLoggedIn={Boolean(sessionToken)}
+                initialGoing={rsvpStatus?.going ?? false}
+                initialCount={rsvpStatus?.going_count ?? event.sc_event_rsvp_count ?? 0}
+              />
+              <ShareEventRow path={`/events/${event.slug}`} title={title} />
+            </div>
+          </article>
+
+          <article className="evx-seg evx-seg-body">
+            <div className="evx-desc" dangerouslySetInnerHTML={{ __html: event.content.rendered }} />
+
+            {repeating && upcoming.length > 0 && (
+              <div className="evx-more-dates">
+                <h2>More dates</h2>
+                <p className="evx-sub">
+                  {event.meta.sc_repeat_pattern ? `${event.meta.sc_repeat_pattern}. ` : ""}Same time and place each
+                  date.
+                </p>
+                <ul className="evx-date-list">
+                  {upcoming.map((o, i) => (
+                    <li key={o.start.getTime()} className={i === 0 ? "evx-date-next" : undefined}>
+                      <span className="evx-date-d">
+                        {dateParts(o.start).label}
+                        {i === 0 && <span className="evx-date-lbl"> Next</span>}
+                      </span>
+                      <a
+                        className="evx-btn evx-btn-sm"
+                        href={googleCalendarUrl(event, o)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Add ${dateParts(o.start).label} to calendar`}
+                      >
+                        <CalendarIcon />
+                        Add
+                      </a>
                     </li>
                   ))}
                 </ul>
               </div>
             )}
-            {event.sc_event_organizer_profile ? (
-              <p className="event-meta-row">
-                <span className="event-meta-label">Organised By</span>
-                <Link href={`/events/organiser/${event.sc_event_organizer_profile.slug}`}>
-                  {event.sc_event_organizer_profile.name}
-                </Link>
+
+            <p className="evx-fix">
+              Spotted something wrong, like a changed date or venue? <Link href="/contact">Suggest a correction</Link>
+            </p>
+            {/*
+             * "Hosted by [business]" (sc_event_listing_id) is due to move
+             * onto the organiser (brief, Stage 4) — kept here, low-key,
+             * until then so events that use it don't lose the link.
+             */}
+            {event.sc_event_company ? (
+              <p className="evx-fix">
+                Hosted by <Link href={`/directory/${event.sc_event_company.slug}`}>{event.sc_event_company.name}</Link>
               </p>
             ) : (
-              event.meta.sc_organizer && (
-                <p className="event-meta-row">
-                  {/*
-                   * No link here, even though sc_event_url is often set —
-                   * "Organised By" reads as site navigation, and sending
-                   * people straight off Secret Carshalton from it is the
-                   * exact thing Rob flagged. Once SC_Events_CPT::backfill_organizer_terms
-                   * runs (see its docblock), every event with a legacy name
-                   * gets a real sc_event_organizer_profile and lands in the
-                   * branch above instead — this is only the gap before
-                   * that backfill has run on a given environment.
-                   */}
-                  <span className="event-meta-label">Organised By</span>
-                  {event.meta.sc_organizer}
-                </p>
+              event.sc_event_author_is_staff && (
+                <div className="evx-claim">
+                  <ClaimEventButton
+                    eventId={event.id}
+                    isLoggedIn={Boolean(sessionToken)}
+                    initialPending={Boolean(event.sc_event_claim_pending)}
+                  />
+                </div>
               )
             )}
-            {startDate && startDate.getTime() > Date.now() && <EventTimeLeft targetMs={startDate.getTime()} />}
-          </div>
-        </div>
-        {image && <EventDetailImage image={image} alt={stripHtml(event.title.rendered)} />}
+          </article>
 
-        <div className="event-detail-actions">
-          {startDate && (
-            <a
-              href={buildGoogleCalendarUrl(
-                stripHtml(event.title.rendered),
-                startDate,
-                endDate,
-                mapQuery,
-                stripHtml(event.content.rendered).slice(0, 500)
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="button-pill button-pill-secondary"
-            >
-              Add to Google Calendar
-            </a>
-          )}
-          {event.meta.sc_venue_name && (
-            <Link
-              href={`/events/venue/${slugifyVenue(event.meta.sc_venue_name)}`}
-              className="button-pill button-pill-secondary button-pill-wrap"
-            >
-              See all events at {event.meta.sc_venue_name}
-            </Link>
-          )}
-          {/*
-           * No "Submitted by [member]" fallback — the public-facing
-           * credit for an event is either a real business (sc_event_company,
-           * linked to their directory listing) or the free-text Organiser
-           * name already shown in the hero above, never a private member's
-           * personal profile. Who actually submitted it is still visible to
-           * the member themselves (My events on the dashboard) and to admins.
-           */}
-          {event.sc_event_company ? (
-            <Link href={`/directory/${event.sc_event_company.slug}`} className="button-pill button-pill-secondary">
-              Hosted by {event.sc_event_company.name}
-            </Link>
+          <article className="evx-seg evx-seg-comments">
+            <CommentSection
+              postId={event.id}
+              comments={fullThread}
+              isLoggedIn={Boolean(sessionToken)}
+              commenterProfiles={commenterProfileMap}
+              currentUserId={profile?.id}
+              showVotes={false}
+            />
+          </article>
+        </div>
+
+        <aside className="evx-side">
+          <section className="evx-card-dk evx-book" id="booking">
+            <BookingCard
+              event={event}
+              booking={booking}
+              price={price}
+              next={next}
+              finished={finished}
+              organizerHref={organizerHref}
+            />
+          </section>
+
+          {org && organizerHref ? (
+            <section className="evx-card-dk evx-org">
+              <p className="evx-eyebrow">Organiser</p>
+              <Link className="evx-org-btn" href={organizerHref}>
+                <span>
+                  <span className="evx-org-name">{org.name}</span>
+                  <span className="evx-org-sub">Contact details and more events</span>
+                </span>
+                <ChevronIcon />
+              </Link>
+            </section>
           ) : (
-            event.sc_event_author_is_staff && (
-              <ClaimEventButton
-                eventId={event.id}
-                isLoggedIn={Boolean(sessionToken)}
-                initialPending={Boolean(event.sc_event_claim_pending)}
-              />
+            event.meta.sc_organizer && (
+              <section className="evx-card-dk evx-org">
+                <p className="evx-eyebrow">Organiser</p>
+                <p className="evx-org-plain">{event.meta.sc_organizer}</p>
+              </section>
             )
           )}
-        </div>
 
-        <div dangerouslySetInnerHTML={{ __html: event.content.rendered }} />
-
-        <p className="event-correction-link">
-          Spotted something wrong — date changed, venue moved? <Link href="/contact">Suggest a correction</Link>.
-        </p>
-
-        <RsvpButton
-          eventId={event.id}
-          isLoggedIn={Boolean(sessionToken)}
-          initialGoing={rsvpStatus?.going ?? false}
-          initialCount={rsvpStatus?.going_count ?? event.sc_event_rsvp_count ?? 0}
-        />
-
-        <ShareEventRow path={`/events/${event.slug}`} title={stripHtml(event.title.rendered)} />
-
-        <CommentSection
-          postId={event.id}
-          comments={fullThread}
-          isLoggedIn={Boolean(sessionToken)}
-          commenterProfiles={commenterProfileMap}
-          currentUserId={profile?.id}
-          showVotes={false}
-        />
+          {mapQuery && (
+            <section className="evx-card-dk evx-venue">
+              <p className="evx-eyebrow">Venue</p>
+              {event.meta.sc_venue_name && <h3>{event.meta.sc_venue_name}</h3>}
+              {event.meta.sc_venue_address && <p className="evx-addr">{event.meta.sc_venue_address}</p>}
+              <div className="evx-map">
+                <StyledMap query={mapQuery} />
+              </div>
+              <div className="evx-venue-actions">
+                <a
+                  className="evx-btn-dark"
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapQuery)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <DirectionsIcon />
+                  Directions
+                </a>
+                {venueHref && (
+                  <Link className="evx-text-link" href={venueHref}>
+                    All events here →
+                  </Link>
+                )}
+              </div>
+            </section>
+          )}
+        </aside>
       </div>
 
-      <aside className="post-sidebar">
-        {event.sc_event_organizer_profile && (
-          <div className="sidebar-block">
-            <h2>Organiser</h2>
-            <p>
-              <Link href={`/events/organiser/${event.sc_event_organizer_profile.slug}`}>
-                {event.sc_event_organizer_profile.name}
-              </Link>
-            </p>
-            {event.sc_event_organizer_profile.address && <p>{event.sc_event_organizer_profile.address}</p>}
-            {event.sc_event_organizer_profile.phone && <p>{event.sc_event_organizer_profile.phone}</p>}
-            {event.sc_event_organizer_profile.socials && <p>{event.sc_event_organizer_profile.socials}</p>}
-            {/*
-             * Goes to the organiser's own page, not profile.url directly —
-             * that field is free text an organiser typed in when they were
-             * created (see SC_Events_CPT::backfill_organizer_terms for the
-             * legacy events it was migrated from), so it isn't guaranteed
-             * to be a working link. The organiser page shows their real
-             * website too when it has one, plus every other event by them.
-             */}
-            <p>
-              <Link
-                href={`/events/organiser/${event.sc_event_organizer_profile.slug}`}
-                className="button-pill button-pill-secondary"
-              >
-                More info
-              </Link>
-            </p>
-          </div>
-        )}
-
-        {(event.meta.sc_event_url || addressParts.length > 0) && (
-          <div className="sidebar-block">
-            <h2>More info</h2>
-            {addressParts.length > 0 && <p>{addressParts.join(", ")}</p>}
-            {event.meta.sc_event_url && (
-              <a href={event.meta.sc_event_url} target="_blank" rel="noopener noreferrer" className="button-pill">
-                Tickets / more info
-              </a>
-            )}
-          </div>
-        )}
-
-        {mapQuery && (
-          <div className="sidebar-block event-map">
-            <StyledMap query={mapQuery} />
-          </div>
-        )}
-      </aside>
-    </article>
+      {!finished && (
+        <StickyBookBar event={event} booking={booking} price={price} next={next} whenLabel={whenLabel} />
+      )}
+    </main>
   );
 }
