@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Events
  * Description: Events. Replaces the EventON data layer with real REST-exposed start/end/venue fields, so the frontend no longer has to scrape schema.org JSON-LD out of rendered HTML to get a date. Hooked into sc-membership for RSVP points.
- * Version: 0.14.0
+ * Version: 0.15.0
  * Author: Secret Carshalton
  * Text Domain: sc-events
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_EVENTS_VERSION', '0.14.0' );
+define( 'SC_EVENTS_VERSION', '0.15.0' );
 define( 'SC_EVENTS_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_EVENTS_DIR . 'includes/class-sc-events-cpt.php';
@@ -21,6 +21,7 @@ require_once SC_EVENTS_DIR . 'includes/class-sc-events-rest.php';
 require_once SC_EVENTS_DIR . 'includes/class-sc-events-admin.php';
 require_once SC_EVENTS_DIR . 'includes/class-sc-events-hooks.php';
 require_once SC_EVENTS_DIR . 'includes/class-sc-events-metabox.php';
+require_once SC_EVENTS_DIR . 'includes/class-sc-events-featured.php';
 
 register_activation_hook( __FILE__, array( 'SC_Events_CPT', 'install' ) );
 
@@ -28,6 +29,7 @@ add_action( 'init', array( 'SC_Events_CPT', 'register' ) );
 add_action( 'init', array( 'SC_Events_Meta', 'register' ) );
 add_action( 'init', array( 'SC_Events_Organizer_Meta', 'register' ) );
 add_action( 'init', array( 'SC_Events_Hooks', 'init' ) );
+add_action( 'init', array( 'SC_Events_Featured', 'init' ) );
 add_action( 'admin_menu', array( 'SC_Events_Admin', 'register_menu' ) );
 add_action( 'admin_post_sc_events_review_claim', array( 'SC_Events_Admin', 'handle_review_claim' ) );
 add_action( 'add_meta_boxes', array( 'SC_Events_Metabox', 'register' ) );
@@ -56,3 +58,4 @@ add_action(
 );
 
 add_action( 'rest_api_init', array( 'SC_Events_REST', 'register_routes' ) );
+add_action( 'rest_api_init', array( 'SC_Events_Featured', 'register_routes' ) );

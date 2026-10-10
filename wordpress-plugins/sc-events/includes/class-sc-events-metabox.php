@@ -40,11 +40,18 @@ class SC_Events_Metabox {
 			</label>
 		</p>
 		<p class="description">
-			Takes the "Coming up next" hero slot on the homepage and Events page,
-			ahead of whichever event is chronologically soonest. Only one event
-			should be featured at a time — if another one already is, un-feature
-			it first.
+			Puts the event in the featured slider on the events pages and the
+			homepage, with a Featured badge, until the event's date. Members who
+			pay £5 through PayPal are featured automatically; tick this to feature
+			one by hand.
 		</p>
+		<?php
+		$until   = get_post_meta( $post->ID, 'sc_event_featured_until', true );
+		$payment = get_post_meta( $post->ID, 'sc_event_featured_payment', true );
+		if ( 'paid' === $payment ) :
+			?>
+			<p><strong>Paid</strong><?php echo $amount ? ' ' . esc_html( $amount ) : ''; ?><?php echo $until ? ' · featured until ' . esc_html( $until ) : ''; ?></p>
+		<?php endif; ?>
 		<?php if ( $req_status ) : ?>
 			<hr />
 			<p>

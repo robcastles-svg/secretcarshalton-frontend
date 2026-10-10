@@ -123,7 +123,12 @@ class SC_Ads_PayPal {
 	 * capture step and the webhook can both tie the order back to a post
 	 * without trusting anything the client sends at capture time.
 	 */
-	public static function create_order( $ad_id, $amount, $currency = 'GBP' ) {
+	/*
+	 * $ad_id is any reference the caller can recognise later (sc-events
+	 * passes "event-123" for featuring an event — see
+	 * SC_Events_Featured). $description defaults to the text-ad wording.
+	 */
+	public static function create_order( $ad_id, $amount, $currency = 'GBP', $description = null ) {
 		$token = self::get_access_token();
 		if ( is_wp_error( $token ) ) {
 			return $token;
@@ -138,7 +143,7 @@ class SC_Ads_PayPal {
 				'purchase_units' => array(
 					array(
 						'custom_id'   => (string) $ad_id,
-						'description' => 'Secret Carshalton text ad #' . $ad_id,
+						'description' => null !== $description ? $description : 'Secret Carshalton text ad #' . $ad_id,
 						'amount'      => array(
 							'currency_code' => $currency,
 							'value'         => number_format( (float) $amount, 2, '.', '' ),

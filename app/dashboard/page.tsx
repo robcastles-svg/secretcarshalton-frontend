@@ -15,7 +15,7 @@ import {
   parseEventDate,
   WP_ADMIN_URL,
 } from "@/lib/wordpress";
-import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
+import { EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
 import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { ExtendAdButton } from "./_components/ExtendAdButton";
@@ -600,15 +600,16 @@ export default async function DashboardPage() {
                 {(() => {
                   const featuredEvent = myEvents.find((e) => e.featured);
                   const pendingEvent = myEvents.find((e) => e.featuredStatus === "pending");
+                  const today = new Date().toISOString().slice(0, 10);
                   const eligibleEvents = myEvents.filter(
-                    (e) => e.status === "publish" && !e.featured && e.featuredStatus !== "pending"
+                    (e) => e.status === "publish" && !e.featured && !e.repeating && e.start.slice(0, 10) >= today
                   );
 
                   if (featuredEvent) {
                     return (
                       <p>
                         <Link href={`/events/${featuredEvent.slug}`}>{featuredEvent.title}</Link> is currently
-                        featured at the top of Events.
+                        featured until its date.
                       </p>
                     );
                   }
@@ -625,21 +626,22 @@ export default async function DashboardPage() {
                       <p className="dashboard-hint">
                         {myEvents.length === 0
                           ? "Submit an event first, then you can pay to feature it."
-                          : "None of your events are eligible right now — only a live event can be featured."}
+                          : "None of your events can be featured right now — only single, upcoming events can."}
                       </p>
                     );
                   }
                   return (
                     <>
                       <p className="dashboard-hint">
-                        Pay to take over the &quot;Coming up next&quot; spot at the top of Events.
+                        {EVENT_UPGRADE_PRICE.split(" ")[0]} puts your event in the featured slider on the events pages and the
+                        homepage until its date.
                       </p>
                       <ul className="dashboard-my-list">
                         {eligibleEvents.map((event) => (
                           <li key={event.id}>
                             <span>{event.title}</span>
                             <Link href={`/events/${event.slug}/feature`} className="dashboard-my-list-edit">
-                              Request featured
+                              Feature for {EVENT_UPGRADE_PRICE.split(" ")[0]}
                             </Link>
                           </li>
                         ))}

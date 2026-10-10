@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { EVENT_UPGRADE_PRICE } from "@/lib/pricing";
 import { CalendarIcon, ChevronIcon } from "../../_components/EvIcons";
+import { FeatureEventPay } from "../../_components/FeatureEventPay";
 
 /** "£5 per event" → "£5" */
 const FEATURE_PRICE = EVENT_UPGRADE_PRICE.split(" ")[0];
@@ -31,14 +32,15 @@ function EyeIcon() {
 /**
  * "Your live events" on the add-event page: a collapsible light-grey panel
  * listing the member's live events, each with views, Edit, Delete (with an
- * "Are you sure?" step) and the featuring state. Featuring goes through the
- * existing feature-request page until PayPal is wired in (Stage 5).
+ * "Are you sure?" step) and the featuring state. "Feature £5" opens a
+ * pop-up with the PayPal buttons (Stage 5).
  */
 export function LiveEventsPanel({ events }: { events: LiveEventRow[] }) {
   const [rows, setRows] = useState(events);
   const [confirming, setConfirming] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+  const [featuring, setFeaturing] = useState<LiveEventRow | null>(null);
 
   async function remove(id: number) {
     setBusy(true);
@@ -93,9 +95,9 @@ export function LiveEventsPanel({ events }: { events: LiveEventRow[] }) {
               ) : e.repeating ? (
                 <span className="evf-muted">Featuring is for single events</span>
               ) : (
-                <Link className="evx-btn evx-btn-sm evf-btn-feature" href={`/events/${e.slug}/feature`}>
+                <button type="button" className="evx-btn evx-btn-sm evf-btn-feature" onClick={() => setFeaturing(e)}>
                   Feature {FEATURE_PRICE}
-                </Link>
+                </button>
               )}
               <Link className="evx-btn evx-btn-sm" href={`/events/${e.slug}/edit`}>
                 Edit
@@ -121,6 +123,31 @@ export function LiveEventsPanel({ events }: { events: LiveEventRow[] }) {
           See all your events, including past ones, on your dashboard →
         </Link>
       </div>
+      {featuring && (
+        <div className="evf-modal-wrap" onClick={(ev) => ev.target === ev.currentTarget && setFeaturing(null)}>
+          <div className="evf-modal" role="dialog" aria-modal="true" aria-labelledby="evf-feature-title">
+            <h2 id="evf-feature-title">Feature your event</h2>
+            <p>{featuring.title}</p>
+            <div className="evf-upgrade">
+              <h3>Get more people to see it</h3>
+              <p>
+                Your event goes to the top of the events list and into the rotating highlight on the homepage, until the
+                event date.
+              </p>
+              <div className="evf-cost">
+                {FEATURE_PRICE} <span>one-off payment</span>
+              </div>
+              <FeatureEventPay
+                eventId={featuring.id}
+                onPaid={() => setRows((r) => r.map((x) => (x.id === featuring.id ? { ...x, featured: true } : x)))}
+              />
+              <button type="button" className="evx-btn" onClick={() => setFeaturing(null)}>
+                Not now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </details>
   );
 }

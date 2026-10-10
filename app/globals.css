@@ -7991,3 +7991,14 @@ a.card-category:hover {
   .evf-c2 { grid-template-columns: 1fr 1fr; }
   .evx .evf-side { position: sticky; top: 16px; }
 }
+
+/* Homepage featured-event highlight, rotating between featured events (events redesign, Stage 5). */
+.home-featured-rotator { display: flex; flex-direction: column; min-width: 0; }
+.home-featured-rotator-slide { display: contents; }
+.home-featured-rotator-slide[hidden] { display: none; }
+.home-featured-rotator-dots { display: flex; gap: 6px; justify-content: center; margin-top: 10px; }
+.home-featured-rotator-dots button { width: 8px; height: 8px; border-radius: 999px; border: 0; padding: 0; background: #5a525c; cursor: pointer; transition: width .2s; }
+.home-featured-rotator-dots button[aria-current="true"] { width: 22px; background: #f3eef1; }
+@media (prefers-reduced-motion: reduce) { .home-featured-rotator-dots button { transition: none; } }
+.evf-paypal { min-height: 48px; }
+.evx .evf-feature-card h3 { margin: 0; font-size: 16px; color: var(--evx-ink); }
