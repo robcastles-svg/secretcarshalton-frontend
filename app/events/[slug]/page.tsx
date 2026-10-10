@@ -455,24 +455,18 @@ export default async function EventPage({
               Spotted something wrong, like a changed date or venue? <Link href="/contact">Suggest a correction</Link>
             </p>
             {/*
-             * "Hosted by [business]" (sc_event_listing_id) is due to move
-             * onto the organiser (brief, Stage 4) — kept here, low-key,
-             * until then so events that use it don't lose the link.
+             * Events are run by organisations, not businesses (Rob, Stage 4),
+             * so the old "Hosted by [business]" link is no longer shown; the
+             * sc_event_listing_id data itself is left untouched.
              */}
-            {event.sc_event_company ? (
-              <p className="evx-fix">
-                Hosted by <Link href={`/directory/${event.sc_event_company.slug}`}>{event.sc_event_company.name}</Link>
-              </p>
-            ) : (
-              event.sc_event_author_is_staff && (
-                <div className="evx-claim">
-                  <ClaimEventButton
-                    eventId={event.id}
-                    isLoggedIn={Boolean(sessionToken)}
-                    initialPending={Boolean(event.sc_event_claim_pending)}
-                  />
-                </div>
-              )
+            {event.sc_event_author_is_staff && (
+              <div className="evx-claim">
+                <ClaimEventButton
+                  eventId={event.id}
+                  isLoggedIn={Boolean(sessionToken)}
+                  initialPending={Boolean(event.sc_event_claim_pending)}
+                />
+              </div>
             )}
           </article>
 

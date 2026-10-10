@@ -72,9 +72,38 @@ class SC_Events_REST {
 			'sc-events/v1',
 			'/(?P<id>\d+)',
 			array(
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( __CLASS__, 'update_event' ),
+					'permission_callback' => array( __CLASS__, 'check_owns_event' ),
+				),
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => array( __CLASS__, 'delete_event' ),
+					'permission_callback' => array( __CLASS__, 'check_owns_event' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			'sc-events/v1',
+			'/(?P<id>\d+)/images',
+			array(
 				'methods'             => 'POST',
-				'callback'            => array( __CLASS__, 'update_event' ),
+				'callback'            => array( __CLASS__, 'upload_images' ),
 				'permission_callback' => array( __CLASS__, 'check_owns_event' ),
+			)
+		);
+
+		register_rest_route(
+			'sc-events/v1',
+			'/mine/organizers',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_my_organizers' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
 			)
 		);
 
@@ -384,10 +413,173 @@ class SC_Events_REST {
 					'start'         => get_post_meta( $post->ID, 'sc_start', true ),
 					'featured'      => (bool) get_post_meta( $post->ID, 'sc_event_featured', true ),
 					'featuredStatus' => get_post_meta( $post->ID, 'sc_event_featured_status', true ),
+					// "Your live events" on the add-event page (events redesign, Stage 4).
+					'thumbnail'     => (string) get_the_post_thumbnail_url( $post, 'medium' ),
+					'repeating'     => count( (array) get_post_meta( $post->ID, 'sc_repeat_dates', true ) ) > 1,
+					'repeatDates'   => array_values( (array) get_post_meta( $post->ID, 'sc_repeat_dates', true ) ),
 				);
 			},
 			$posts
 		);
+	}
+
+	/**
+	 * Owner deletes their own event ("Your live events" → Delete → "Are you
+	 * sure?"). Moved to the bin rather than deleted outright, so Rob can
+	 * restore one from wp-admin if it was a mistake. check_owns_event is the
+	 * permission boundary (owner, or an admin).
+	 */
+	public static function delete_event( WP_REST_Request $request ) {
+		$post_id = (int) $request->get_param( 'id' );
+		$result  = wp_trash_post( $post_id );
+		if ( ! $result ) {
+			return new WP_Error( 'delete_failed', 'Sorry, that event could not be deleted. Please try again.', array( 'status' => 500 ) );
+		}
+		return array( 'status' => 'deleted', 'id' => $post_id );
+	}
+
+	const IMAGE_MAX_BYTES = 5242880; // 5MB
+	const IMAGE_TYPES     = array( 'image/jpeg', 'image/png', 'image/webp' );
+
+	/** Checks an uploaded file is a JPG/PNG/WebP image of at most 5MB; WP_Error with a plain-English message if not. */
+	private static function check_image_file( $file ) {
+		if ( empty( $file['tmp_name'] ) || ! empty( $file['error'] ) ) {
+			return new WP_Error( 'upload_failed', 'The image did not upload. Please try again.', array( 'status' => 400 ) );
+		}
+		if ( (int) $file['size'] > self::IMAGE_MAX_BYTES ) {
+			return new WP_Error( 'too_big', 'That image is over 5MB. Please choose a smaller one.', array( 'status' => 400 ) );
+		}
+		$check = wp_check_filetype_and_ext( $file['tmp_name'], $file['name'] );
+		$type  = $check['type'] ? $check['type'] : ( function_exists( 'mime_content_type' ) ? mime_content_type( $file['tmp_name'] ) : '' );
+		if ( ! in_array( $type, self::IMAGE_TYPES, true ) ) {
+			return new WP_Error( 'bad_type', 'Please use a JPG, PNG or WebP image.', array( 'status' => 400 ) );
+		}
+		return true;
+	}
+
+	private static function sideload( $file, $post_id ) {
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		$_FILES['sc_events_upload'] = $file;
+		$attachment_id              = media_handle_upload( 'sc_events_upload', $post_id );
+		unset( $_FILES['sc_events_upload'] );
+		return $attachment_id;
+	}
+
+	/**
+	 * The add/edit event form's uploads, sent straight after the event is
+	 * saved (multipart, so not part of the JSON submit):
+	 * - "image": the event's photo, set as its featured image;
+	 * - "logo": the event's organiser's logo — only if this member manages
+	 *   that organiser (see manages_organizer), so nobody can replace
+	 *   another group's logo.
+	 */
+	public static function upload_images( WP_REST_Request $request ) {
+		$post_id = (int) $request->get_param( 'id' );
+		$files   = $request->get_file_params();
+		$out     = array();
+
+		if ( ! empty( $files['image'] ) ) {
+			$ok = self::check_image_file( $files['image'] );
+			if ( is_wp_error( $ok ) ) {
+				return $ok;
+			}
+			$attachment_id = self::sideload( $files['image'], $post_id );
+			if ( is_wp_error( $attachment_id ) ) {
+				return new WP_Error( 'upload_failed', $attachment_id->get_error_message(), array( 'status' => 400 ) );
+			}
+			set_post_thumbnail( $post_id, $attachment_id );
+			$out['image'] = (string) wp_get_attachment_image_url( $attachment_id, 'large' );
+		}
+
+		if ( ! empty( $files['logo'] ) ) {
+			$terms = wp_get_post_terms( $post_id, SC_Events_CPT::ORGANIZER_TAXONOMY );
+			$term  = ( ! empty( $terms ) && ! is_wp_error( $terms ) ) ? $terms[0] : null;
+			if ( ! $term || ! self::manages_organizer( $term->term_id ) ) {
+				return new WP_Error( 'forbidden', 'You can only add a logo to an organiser you manage.', array( 'status' => 403 ) );
+			}
+			$ok = self::check_image_file( $files['logo'] );
+			if ( is_wp_error( $ok ) ) {
+				return $ok;
+			}
+			$attachment_id = self::sideload( $files['logo'], $post_id );
+			if ( is_wp_error( $attachment_id ) ) {
+				return new WP_Error( 'upload_failed', $attachment_id->get_error_message(), array( 'status' => 400 ) );
+			}
+			update_term_meta( $term->term_id, 'sc_organizer_logo', $attachment_id );
+			$out['logo'] = SC_Events_Organizer_Meta::logo_url( $term->term_id );
+		}
+
+		if ( empty( $out ) ) {
+			return new WP_Error( 'no_file', 'No image was received.', array( 'status' => 400 ) );
+		}
+		return $out;
+	}
+
+	/**
+	 * Organisers this member manages: ones they created (sc_organizer_owner)
+	 * plus any attached to events they own. Admins manage all of them.
+	 */
+	public static function manages_organizer( $term_id, $user_id = 0 ) {
+		$user_id = $user_id ? $user_id : get_current_user_id();
+		if ( user_can( $user_id, 'manage_options' ) ) {
+			return true;
+		}
+		if ( (int) get_term_meta( $term_id, 'sc_organizer_owner', true ) === $user_id ) {
+			return true;
+		}
+		return in_array( (int) $term_id, self::my_organizer_ids( $user_id ), true );
+	}
+
+	private static function my_organizer_ids( $user_id ) {
+		$event_ids = get_posts(
+			array(
+				'post_type'      => SC_Events_CPT::POST_TYPE,
+				'author'         => $user_id,
+				'post_status'    => array( 'publish', 'pending', 'draft' ),
+				'posts_per_page' => 200,
+				'fields'         => 'ids',
+			)
+		);
+		$ids = array();
+		if ( $event_ids ) {
+			$ids = wp_get_object_terms( $event_ids, SC_Events_CPT::ORGANIZER_TAXONOMY, array( 'fields' => 'ids' ) );
+			$ids = is_wp_error( $ids ) ? array() : array_map( 'intval', $ids );
+		}
+		$owned = get_terms(
+			array(
+				'taxonomy'   => SC_Events_CPT::ORGANIZER_TAXONOMY,
+				'hide_empty' => false,
+				'fields'     => 'ids',
+				'meta_key'   => 'sc_organizer_owner', // phpcs:ignore WordPress.DB.SlowDBQuery
+				'meta_value' => $user_id, // phpcs:ignore WordPress.DB.SlowDBQuery
+			)
+		);
+		if ( ! is_wp_error( $owned ) ) {
+			$ids = array_merge( $ids, array_map( 'intval', $owned ) );
+		}
+		return array_values( array_unique( $ids ) );
+	}
+
+	/** The add-event form's organiser picker: organisers this member manages, with their public details. */
+	public static function get_my_organizers( WP_REST_Request $request ) {
+		$ids = self::my_organizer_ids( get_current_user_id() );
+		if ( empty( $ids ) ) {
+			return array();
+		}
+		$terms = get_terms(
+			array(
+				'taxonomy'   => SC_Events_CPT::ORGANIZER_TAXONOMY,
+				'include'    => $ids,
+				'hide_empty' => false,
+				'orderby'    => 'name',
+			)
+		);
+		if ( is_wp_error( $terms ) ) {
+			return array();
+		}
+		return array_values( array_map( array( __CLASS__, 'organizer_profile' ), $terms ) );
 	}
 
 	/**
@@ -675,6 +867,10 @@ class SC_Events_REST {
 			$term = get_term( $organizer_id, SC_Events_CPT::ORGANIZER_TAXONOMY );
 			if ( $term && ! is_wp_error( $term ) ) {
 				wp_set_object_terms( $post_id, array( $organizer_id ), SC_Events_CPT::ORGANIZER_TAXONOMY );
+				// "Edit details" on the add-event form: only for an organiser this member manages.
+				if ( rest_sanitize_boolean( $request->get_param( 'organizer_edit' ) ) && self::manages_organizer( $organizer_id ) ) {
+					self::update_organizer_details( $organizer_id, $request );
+				}
 			}
 			return;
 		}
@@ -699,12 +895,14 @@ class SC_Events_REST {
 		$inserted = wp_insert_term(
 			$name,
 			SC_Events_CPT::ORGANIZER_TAXONOMY,
-			array( 'description' => null === $about ? '' : sanitize_textarea_field( (string) $about ) )
+			array( 'description' => null === $about ? '' : mb_substr( sanitize_textarea_field( (string) $about ), 0, 400 ) )
 		);
 		if ( is_wp_error( $inserted ) ) {
 			return;
 		}
 		$term_id = is_array( $inserted ) ? $inserted['term_id'] : $inserted;
+		// Whoever creates an organiser manages it — see manages_organizer.
+		update_term_meta( $term_id, 'sc_organizer_owner', get_current_user_id() );
 
 		$fields = array(
 			'organizer_address'   => 'sc_organizer_address',
@@ -738,6 +936,38 @@ class SC_Events_REST {
 		}
 
 		wp_set_object_terms( $post_id, array( $term_id ), SC_Events_CPT::ORGANIZER_TAXONOMY );
+	}
+
+	/** Overwrites an organiser's public details with whatever the form sent — blanks clear a field. */
+	private static function update_organizer_details( $term_id, WP_REST_Request $request ) {
+		$args = array();
+		$name = trim( (string) $request->get_param( 'organizer_name' ) );
+		if ( '' !== $name ) {
+			$args['name'] = sanitize_text_field( $name );
+		}
+		if ( null !== $request->get_param( 'organizer_about' ) ) {
+			$args['description'] = mb_substr( sanitize_textarea_field( (string) $request->get_param( 'organizer_about' ) ), 0, 400 );
+		}
+		if ( $args ) {
+			wp_update_term( $term_id, SC_Events_CPT::ORGANIZER_TAXONOMY, $args );
+		}
+		$fields = array(
+			'organizer_address'   => 'sc_organizer_address',
+			'organizer_phone'     => 'sc_organizer_phone',
+			'organizer_url'       => 'sc_organizer_url',
+			'organizer_email'     => 'sc_organizer_email',
+			'organizer_facebook'  => 'sc_organizer_facebook',
+			'organizer_instagram' => 'sc_organizer_instagram',
+			'organizer_x'         => 'sc_organizer_x',
+			'organizer_tiktok'    => 'sc_organizer_tiktok',
+		);
+		foreach ( $fields as $param => $meta_key ) {
+			$value = $request->get_param( $param );
+			if ( null === $value ) {
+				continue;
+			}
+			update_term_meta( $term_id, $meta_key, call_user_func( SC_Events_Organizer_Meta::sanitizer_for( $meta_key ), (string) $value ) );
+		}
 	}
 
 	/**

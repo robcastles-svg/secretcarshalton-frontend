@@ -1810,7 +1810,7 @@ export async function getScEventsByAuthor(authorId: number): Promise<WPScEvent[]
 export async function updateEvent(
   token: string,
   eventId: number,
-  data: Record<string, string | string[]>
+  data: Record<string, unknown>
 ): Promise<{ id: number; status: string } | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}`, {
@@ -2301,8 +2301,8 @@ export async function submitListing(
 
 export async function submitEvent(
   token: string,
-  data: Record<string, string | string[]>
-): Promise<{ status: string; id: number } | MemberAuthError> {
+  data: Record<string, unknown>
+): Promise<{ status: string; id: number; slug?: string } | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/submit`, {
       method: "POST",
@@ -2370,6 +2370,11 @@ export interface MyEvent {
   views: number;
   featured: boolean;
   featuredStatus: string;
+  /** sc-events 0.14+: medium-size featured image URL ("" when none). */
+  thumbnail?: string;
+  /** sc-events 0.14+: true for a repeating event (featuring is single events only). */
+  repeating?: boolean;
+  repeatDates?: string[];
 }
 
 /**
@@ -2392,6 +2397,60 @@ export async function getMyEvents(token: string): Promise<MyEvent[]> {
     return Promise.all(
       events.map(async (event) => ({ ...event, views: await getPostViewCount(event.id) }))
     );
+  } catch {
+    return [];
+  }
+}
+
+/** Owner deletes (bins) their own event — SC_Events_REST::delete_event. */
+export async function deleteEvent(token: string, eventId: number): Promise<{ id: number } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const body = await res.json();
+    if (!res.ok) return { code: body.code ?? "delete_failed", message: body.message ?? "Could not delete the event." };
+    return { id: body.id };
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** The event's photo and/or its organiser's logo — multipart, forwarded as-is. See SC_Events_REST::upload_images. */
+export async function uploadEventImages(
+  token: string,
+  eventId: number,
+  formData: FormData
+): Promise<{ image?: string; logo?: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/${eventId}/images`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+      cache: "no-store",
+      signal: AbortSignal.timeout(60_000),
+    });
+    const body = await res.json();
+    if (!res.ok) return { code: body.code ?? "upload_failed", message: body.message ?? "Could not upload the image." };
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Organisers this member manages (created, or attached to their events) — the add-event form's organiser picker. */
+export async function getMyOrganizers(token: string): Promise<WPEventOrganizerProfile[]> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-events/v1/mine/organizers`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) return [];
+    return res.json();
   } catch {
     return [];
   }
