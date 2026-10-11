@@ -12,6 +12,7 @@ import { HomeCommentsAsync } from "@/app/_components/home/HomeCommentsAsync";
 import { getLatestCommentItems } from "@/app/_components/home/latestComments";
 import { ContentList } from "@/app/_components/ContentList";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
+import { ShareRow } from "@/app/_components/ShareRow";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { WalkMapBuy } from "@/app/_components/WalkMapBuy";
 import { YopPollScripts } from "@/app/_components/YopPollScripts";
@@ -332,6 +333,7 @@ export default async function ContentPage({
   // Paid route maps (walks only) — see lib/walk-maps.ts.
   const walkMaps = extractWalkMaps(post.content.rendered);
   const contentChunks = splitContentIntoParagraphChunks(walkMaps.html);
+  const shareTitle = stripHtml(post.title.rendered);
   const inPost1After = contentChunks.length > 4 ? 3 : null;
   const inPost2After = contentChunks.length > 9 ? contentChunks.length - 3 : null;
 
@@ -429,6 +431,7 @@ export default async function ContentPage({
               </span>
             )}
             <CommentCountLink count={fullThread.length} />
+            <ShareRow path={`/${post.slug}`} title={shareTitle} label="Share this story" variant="share-row" />
           </div>
           <div className="post-content">
             {contentChunks.map((chunk, i) => (
@@ -447,6 +450,11 @@ export default async function ContentPage({
                 )}
               </Fragment>
             ))}
+          </div>
+
+          <div className="post-share-end">
+            <span>Share this story</span>
+            <ShareRow path={`/${post.slug}`} title={shareTitle} label="Share this story" variant="share-row" />
           </div>
 
           {stagingPostId && (

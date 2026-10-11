@@ -41,7 +41,7 @@ import {
   type WPScEvent,
   type WPScEventTag,
 } from "@/lib/wordpress";
-import { ShareEventRow } from "../[slug]/_components/ShareEventRow";
+import { ShareRow } from "@/app/_components/ShareRow";
 import { CategorySelect } from "./CategorySelect";
 import { ChevronIcon, CalendarIcon, StarIcon } from "./EvIcons";
 import { EventCard } from "./EventCard";
@@ -408,7 +408,7 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
         ) : (
           <div className="evl-share">
             <span>Share</span>
-            <ShareEventRow path={path} title={title} />
+            <ShareRow path={path} title={title} />
           </div>
         )}
       </div>
