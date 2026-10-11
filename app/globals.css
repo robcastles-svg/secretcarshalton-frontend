@@ -3775,6 +3775,16 @@ a.card-category:hover {
     row-gap: 0.3rem;
   }
 
+  .post-hero-overlay .container {
+    padding-bottom: 1rem;
+  }
+
+  /* Share icons sit straight after the views (and comments) count rather
+     than pushed to the right edge. */
+  .post-meta-row .share-row {
+    margin-left: 0.25rem;
+  }
+
   .post-meta-row .share-row-btn {
     width: 26px;
     height: 26px;
