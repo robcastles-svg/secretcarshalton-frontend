@@ -54,7 +54,7 @@ import { ClaimEventButton } from "./_components/ClaimEventButton";
 import { EventDetailImage } from "./_components/EventDetailImage";
 import { RsvpButton } from "./_components/RsvpButton";
 import { VenueCard } from "../_components/VenueCard";
-import { ShareEventRow } from "./_components/ShareEventRow";
+import { ShareRow } from "@/app/_components/ShareRow";
 
 export const revalidate = 3600;
 
@@ -414,7 +414,7 @@ export default async function EventPage({
                 initialGoing={rsvpStatus?.going ?? false}
                 initialCount={rsvpStatus?.going_count ?? event.sc_event_rsvp_count ?? 0}
               />
-              <ShareEventRow path={`/events/${event.slug}`} title={title} />
+              <ShareRow path={`/events/${event.slug}`} title={title} />
             </div>
           </article>
 

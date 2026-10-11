@@ -8116,3 +8116,52 @@ a.card-category:hover {
   height: 1px;
   overflow: hidden;
 }
+
+/* Article share icons (ShareRow variant="share-row") — same look as the events ones. */
+.share-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  position: relative;
+}
+.share-row-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0;
+  padding: 0;
+  background: #f3eff1;
+  color: #1f1b1e;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+.share-row-btn:hover {
+  background: #e6dfe3;
+}
+.share-row-btn svg {
+  width: 16px;
+  height: 16px;
+}
+.share-row-copied {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2f7d5b;
+  white-space: nowrap;
+}
+.post-share-end {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 2rem 0;
+  padding: 1rem 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  font-weight: 700;
+}

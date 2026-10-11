@@ -2,17 +2,32 @@
 
 import { useState } from "react";
 import { SITE_URL } from "@/lib/event-view";
-import { FacebookIcon, LinkIcon, MailIcon, XIcon } from "../../_components/EvIcons";
+import { FacebookIcon, LinkIcon, MailIcon, XIcon } from "@/app/events/_components/EvIcons";
 
 /**
- * The round share icons beside "Add to calendar" / "I'm interested".
+ * Round share icons (Facebook, X, email, copy link) — beside "Add to
+ * calendar" / "I'm interested" on events (the default evx classes), and
+ * on articles with the "share-row" classes.
  * The URL is always built from the site URL, never window.location: the
  * server-rendered HTML has no window, so the old fallback shipped
  * domain-less share links ("/events/…") until hydration — what crawlers
  * and no-JS visitors saw. Same value on server and client also means no
  * hydration mismatch.
  */
-export function ShareEventRow({ path, title }: { path: string; title: string }) {
+export function ShareRow({
+  path,
+  title,
+  label = "Share this event",
+  variant = "evx",
+}: {
+  path: string;
+  title: string;
+  label?: string;
+  /** "evx" inside the events design; "share-row" anywhere else. */
+  variant?: "evx" | "share-row";
+}) {
+  const box = variant === "evx" ? "evx-share" : "share-row";
+  const btn = variant === "evx" ? "evx-icon-btn" : "share-row-btn";
   const [copied, setCopied] = useState(false);
   const url = SITE_URL + path;
 
@@ -27,9 +42,9 @@ export function ShareEventRow({ path, title }: { path: string; title: string }) 
   }
 
   return (
-    <div className="evx-share" aria-label="Share this event">
+    <div className={box} aria-label={label}>
       <a
-        className="evx-icon-btn"
+        className={btn}
         href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`}
         target="_blank"
         rel="noopener noreferrer"
@@ -38,7 +53,7 @@ export function ShareEventRow({ path, title }: { path: string; title: string }) 
         <FacebookIcon />
       </a>
       <a
-        className="evx-icon-btn"
+        className={btn}
         href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`}
         target="_blank"
         rel="noopener noreferrer"
@@ -47,17 +62,17 @@ export function ShareEventRow({ path, title }: { path: string; title: string }) 
         <XIcon />
       </a>
       <a
-        className="evx-icon-btn"
+        className={btn}
         href={`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`}
         aria-label="Share by email"
       >
         <MailIcon />
       </a>
-      <button type="button" className="evx-icon-btn" onClick={handleCopy} aria-label={copied ? "Link copied" : "Copy link"}>
+      <button type="button" className={btn} onClick={handleCopy} aria-label={copied ? "Link copied" : "Copy link"}>
         <LinkIcon />
       </button>
       {copied && (
-        <span className="evx-share-copied" role="status">
+        <span className={`${box}-copied`} role="status">
           Link copied
         </span>
       )}
