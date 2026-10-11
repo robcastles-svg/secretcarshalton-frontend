@@ -1166,6 +1166,33 @@ async function scDirectoryFetch<T>(path: string): Promise<T> {
 }
 
 /**
+ * Articles are read from the live site (WP_BASE), but their comments,
+ * view counts and bookmarks are stored on staging, keyed by post ID. The
+ * two are separate databases sharing one ID counter, so they've drifted:
+ * an article published on live after staging was cloned can have the
+ * same ID as something unrelated on staging (live article 41434 is the
+ * Bendy Pilates directory listing on staging), and anything sent there
+ * under that ID lands on the wrong thing. Slugs are the stable link
+ * between the two, so this finds the article's staging copy by slug.
+ * Null means staging has no copy yet; callers must then not send
+ * anything to staging rather than fall back to the live ID. Once
+ * articles move to staging (WP_BASE repointed), this is a no-op lookup
+ * returning the same ID.
+ */
+export async function getStagingPostIdBySlug(slug: string): Promise<number | null> {
+  const posts = await scDirectoryFetch<{ id: number }[]>(
+    `/posts?slug=${encodeURIComponent(slug)}&_fields=id`
+  ).catch(() => []);
+  return posts[0]?.id ?? null;
+}
+
+/** getStagingPostIdBySlug for when only the live ID is known (bookmark buttons on article cards). */
+export async function getStagingPostIdForLivePost(livePostId: number): Promise<number | null> {
+  const post = await wpFetch<{ slug: string }>(`/posts/${livePostId}?_fields=slug`).catch(() => null);
+  return post?.slug ? getStagingPostIdBySlug(post.slug) : null;
+}
+
+/**
  * WP's REST controller caps per_page at 100 (same ceiling getScEvents'
  * own docblock documents), so perPage above that paginates internally
  * rather than 400ing. The directory crossed 100 published listings

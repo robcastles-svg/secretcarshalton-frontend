@@ -20,11 +20,16 @@ export function BookmarkButton({
   const [state, setState] = useState<BookmarkState | null>(null);
   const [showLogin, setShowLogin] = useState(false);
   const [pending, setPending] = useState(false);
+  // 404: an article with no staging copy yet, so nothing to bookmark (see /api/bookmarks/state).
+  const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     fetch(`/api/bookmarks/state?content_type=${contentType}&content_id=${contentId}`)
-      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        if (res.status === 404 && !cancelled) setUnavailable(true);
+        return res.ok ? res.json() : null;
+      })
       .then((data) => {
         if (!cancelled && data) setState(data);
       })
@@ -57,6 +62,8 @@ export function BookmarkButton({
       setPending(false);
     }
   }
+
+  if (unavailable) return null;
 
   const bookmarked = state?.bookmarked ?? false;
   const count = state?.count ?? 0;

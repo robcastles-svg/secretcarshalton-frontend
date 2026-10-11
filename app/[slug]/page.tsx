@@ -29,11 +29,13 @@ import {
   getPostsByCategory,
   getPostViewCount,
   getRecentPostSlugs,
+  getStagingPostIdBySlug,
   getTags,
   getTopPostsToday,
   navSectionForCategories,
   splitContentIntoParagraphChunks,
   stripHtml,
+  type WPComment,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -276,14 +278,20 @@ export default async function ContentPage({
     );
   }
 
+  // Comments and view counts live on staging, keyed by its own post ID —
+  // not post.id, which is the live site's and can belong to something
+  // else entirely on staging. See getStagingPostIdBySlug. Null (no staging
+  // copy yet) turns both off for this article rather than misfiling them.
+  const stagingPostId = await getStagingPostIdBySlug(post.slug);
+
   const [allCategories, allTags, comments, fullThread, viewCount, topToday, sidebarAd1, sidebarAd2, sidebarAd3] =
     await Promise.all([
       getCategories().catch(() => []),
       getTags().catch(() => []),
       // Site-wide, not this post's — its own comments are already below.
       getLatestCommentItems(3),
-      getCommentsForPost(post.id, 50).catch(() => []),
-      getPostViewCount(post.id),
+      stagingPostId ? getCommentsForPost(stagingPostId, 50).catch(() => []) : Promise.resolve<WPComment[]>([]),
+      stagingPostId ? getPostViewCount(stagingPostId) : Promise.resolve(0),
       // +1: the current post is filtered out below, so ask for one extra
       // to still land on 5 when it would otherwise have been in the list.
       getTopPostsToday(6),
@@ -323,7 +331,7 @@ export default async function ContentPage({
   const inPost1After = contentChunks.length > 4 ? 3 : null;
   const inPost2After = contentChunks.length > 9 ? contentChunks.length - 3 : null;
 
-  const topPostsToday = topToday.filter((p) => p.post_id !== post.id).slice(0, 5);
+  const topPostsToday = topToday.filter((p) => p.slug !== post.slug).slice(0, 5);
 
   const category = allCategories.find((c) => post.categories?.includes(c.id));
   const tag = allTags.find((t) => post.tags?.includes(t.id));
@@ -403,15 +411,19 @@ export default async function ContentPage({
 
       <div className="container post-layout">
         <div className="post-body">
-          <PostViewTracker postId={post.id} slug={post.slug} title={stripHtml(post.title.rendered)} />
+          {stagingPostId && (
+            <PostViewTracker postId={stagingPostId} slug={post.slug} title={stripHtml(post.title.rendered)} />
+          )}
           <div className="post-meta-row">
             <time dateTime={post.date}>Published: {formatDate(post.date)}</time>
             {post.modified && !sameCalendarDay(post.date, post.modified) && (
               <time dateTime={post.modified}>Updated: {formatDate(post.modified)}</time>
             )}
-            <span className="post-view-count">
-              <EyeIcon /> {viewCount.toLocaleString("en-GB")}
-            </span>
+            {stagingPostId && (
+              <span className="post-view-count">
+                <EyeIcon /> {viewCount.toLocaleString("en-GB")}
+              </span>
+            )}
             <CommentCountLink count={fullThread.length} />
           </div>
           <div className="post-content">
@@ -428,9 +440,11 @@ export default async function ContentPage({
             ))}
           </div>
 
-          <Suspense fallback={null}>
-            <CommentSectionAsync postId={post.id} comments={fullThread} commenterProfiles={commenterProfileMap} />
-          </Suspense>
+          {stagingPostId && (
+            <Suspense fallback={null}>
+              <CommentSectionAsync postId={stagingPostId} comments={fullThread} commenterProfiles={commenterProfileMap} />
+            </Suspense>
+          )}
 
           {relatedPosts.length > 0 && (
             <section className="related-stories">
