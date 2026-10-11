@@ -17,6 +17,7 @@ const ABOUT_PAGES = [
   { slug: "welcome-to-carshalton", label: "About Carshalton" },
   { slug: "latest-comments", label: "Latest comments" },
   { slug: "polls", label: "Live poll" },
+  { slug: "newsletter", label: "Newsletter" },
 ] as const;
 
 export const ABOUT_PAGE_SLUGS: readonly string[] = ABOUT_PAGES.map((p) => p.slug);
