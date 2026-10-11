@@ -8103,12 +8103,11 @@ a.card-category:hover {
 .walk-map-buy-price { color: #d6293e; white-space: nowrap; }
 .walk-map-buy-thanks { margin: 0 0 0.75rem; }
 .walk-map-buy-paypal { min-height: 48px; }
-/* The map's thumbnail as a small blurred teaser beside the name and price. */
+/* The map's thumbnail (already blurred by Rob) as a small teaser beside the name and price. */
 .walk-map-buy-has-preview { display: flex; gap: 1rem; align-items: flex-start; }
 .walk-map-buy-body { flex: 1; min-width: 0; }
 .walk-map-buy-preview { flex: 0 0 auto; width: 88px; height: 88px; border-radius: 8px; overflow: hidden; background: #f1eef0; }
-.walk-map-buy-preview img { width: 100%; height: 100%; object-fit: cover; display: block; filter: blur(3px); transform: scale(1.1); transition: filter .3s ease; }
-.walk-map-buy-preview-unlocked img { filter: none; transform: none; }
+.walk-map-buy-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* Job form: pay amount + per hour/year side by side. */
 .job-salary-field {

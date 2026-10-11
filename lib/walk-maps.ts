@@ -12,7 +12,7 @@ export interface WalkMap {
   productId: number;
   name: string;
   price: string;
-  /** The product's thumbnail (a small image of the map) from the block's modal, or "" — shown blurred as a teaser. */
+  /** The product's thumbnail (a small image of the map) from the block's modal, or "" — uploaded already blurred, shown as a teaser. */
   thumbnail: string;
 }
 

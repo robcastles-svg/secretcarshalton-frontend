@@ -9,7 +9,7 @@ import type { WalkMap } from "@/lib/walk-maps";
  * button. PayPal's script only loads once the reader asks to buy, so
  * walks don't pull it in on every visit. After payment the download
  * button appears straight away, as it did before. The map's thumbnail
- * shows small and blurred as a teaser, and sharpens once it's bought.
+ * (which Rob uploads already blurred) shows small beside it as a teaser.
  */
 export function WalkMapBuy({ map }: { map: WalkMap }) {
   const [buying, setBuying] = useState(false);
@@ -18,7 +18,7 @@ export function WalkMapBuy({ map }: { map: WalkMap }) {
   return (
     <div className={`walk-map-buy${map.thumbnail ? " walk-map-buy-has-preview" : ""}`}>
       {map.thumbnail && (
-        <div className={`walk-map-buy-preview${downloadUrl ? " walk-map-buy-preview-unlocked" : ""}`} aria-hidden="true">
+        <div className="walk-map-buy-preview" aria-hidden="true">
           <img src={map.thumbnail} alt="" loading="lazy" />
         </div>
       )}
