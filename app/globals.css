@@ -3588,6 +3588,15 @@ a.card-category:hover {
   color: #ddd;
 }
 
+/* On a directory card the stars sit inline in the review-count link,
+   ahead of the bubble, rather than as their own block. */
+.card-star-rating {
+  display: inline-block;
+  margin: 0 0.15rem 0 0;
+  font-size: 0.85rem;
+  letter-spacing: -0.05em;
+}
+
 .comment-actions-row {
   display: flex;
   align-items: center;

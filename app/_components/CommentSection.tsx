@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { StarRatingDisplay } from "@/app/_components/StarRatingDisplay";
 import { memberBadge, type WPComment } from "@/lib/wordpress";
 import { LoginModal } from "@/app/_components/LoginModal";
 
@@ -69,18 +70,6 @@ function StarRatingInput({ value, onChange }: { value: number; onChange: (value:
         </button>
       ))}
     </div>
-  );
-}
-
-function StarRatingDisplay({ rating }: { rating: number }) {
-  return (
-    <span className="star-rating-display" aria-label={`Rated ${rating} out of 5 stars`}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <span key={n} className={n <= rating ? "star-filled" : "star-empty"} aria-hidden="true">
-          ★
-        </span>
-      ))}
-    </span>
   );
 }
 

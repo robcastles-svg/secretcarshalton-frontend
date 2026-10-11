@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import Link from "next/link";
 import { BookmarkButton } from "@/app/_components/BookmarkButton";
+import { StarRatingDisplay } from "@/app/_components/StarRatingDisplay";
 import { getFeaturedImage, stripHtml, type WPDirectoryCategory, type WPListing } from "@/lib/wordpress";
 
 /**
@@ -27,6 +28,7 @@ export const DirectoryListingCard = forwardRef<
   const verified = listing.meta.sc_claimed || listing.meta.sc_verified;
   const excerpt = isFeatured ? listing.meta.sc_tagline || stripHtml(listing.content.rendered).slice(0, 120) : "";
   const reviewCount = listing.sc_review_stats?.count ?? 0;
+  const reviewAverage = listing.sc_review_stats?.average ?? null;
 
   return (
     <li ref={ref} style={style} className={listing.meta.sc_featured ? "directory-card-featured" : undefined}>
@@ -75,8 +77,9 @@ export const DirectoryListingCard = forwardRef<
             <Link
               href={`/directory/${listing.slug}#comments`}
               className="card-comment-count"
-              aria-label={`${reviewCount} review${reviewCount === 1 ? "" : "s"} — jump to reviews`}
+              aria-label={`${reviewCount} review${reviewCount === 1 ? "" : "s"}${reviewAverage !== null ? `, rated ${Number(reviewAverage.toFixed(1))} out of 5` : ""} — jump to reviews`}
             >
+              {reviewAverage !== null && <StarRatingDisplay rating={reviewAverage} className="card-star-rating" />}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M21 12a8 8 0 0 1-8 8H7l-4 3 1-5.2A8 8 0 1 1 21 12Z" strokeLinejoin="round" />
               </svg>
