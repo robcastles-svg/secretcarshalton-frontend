@@ -1,3 +1,5 @@
+import { legacyRedirects } from "./lib/legacy-redirects.mjs";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
@@ -12,6 +14,10 @@ const nextConfig = {
       { protocol: "https", hostname: "www.staging19.secretcarshalton.com" },
       { protocol: "https", hostname: "staging19.secretcarshalton.com" },
     ],
+  },
+  // Old WordPress addresses that changed — see lib/legacy-redirects.mjs.
+  async redirects() {
+    return legacyRedirects;
   },
 };
 
