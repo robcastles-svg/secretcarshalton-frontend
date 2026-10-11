@@ -21,6 +21,7 @@ import {
   getFeaturedImagesForPosts,
   getJobListings,
   getLatestPostsInCategories,
+  getMemberJobListings,
   getPosts,
   getTags,
   getTopPostsThisWeek,
@@ -76,6 +77,7 @@ export default async function HomePage() {
     directoryCategories,
     directoryListings,
     jobListings,
+    memberJobs,
     topThisWeek,
     comments,
     events,
@@ -91,6 +93,7 @@ export default async function HomePage() {
     getDirectoryCategories().catch(() => []),
     getDirectoryListings().catch(() => []),
     getJobListings(30).catch(() => []),
+    getMemberJobListings().catch(() => []),
     getTopPostsThisWeek(10).catch(() => []),
     getLatestCommentItems(3),
     getUpcomingScEvents(20).catch(() => []),
@@ -215,8 +218,10 @@ export default async function HomePage() {
 
   // Jobs: an optional featured job — when none is set the slot just
   // doesn't render (see JSX below), the list doesn't need to "move up",
-  // it's already a plain list either way.
-  const featuredJob = jobListings.find((j) => j.meta.featured) ?? null;
+  // it's already a plain list either way. Featured jobs are member jobs,
+  // looked up separately since the Reed sync soon pushes them out of the
+  // newest 30.
+  const featuredJob = memberJobs.find((j) => j.meta.featured) ?? null;
   const latestJobs = jobListings.filter((j) => j.id !== featuredJob?.id).slice(0, 3);
 
   return (

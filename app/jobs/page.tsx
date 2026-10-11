@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
-import { getJobListings, type WPJobListing } from "@/lib/wordpress";
+import { getJobListings, getMemberJobListings, type WPJobListing } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -42,7 +42,13 @@ function JobRow({ job }: { job: WPJobListing }) {
 }
 
 export default async function JobsPage() {
-  const allJobs = await getJobListings().catch(() => []);
+  const [allJobs, everyMemberJob] = await Promise.all([
+    getJobListings().catch(() => []),
+    getMemberJobListings().catch(() => null),
+  ]);
+  // Member jobs come from their own lookup (the Reed sync soon pushes them
+  // out of the newest 100); if that fails, fall back to the ones in it.
+  const memberJobs = everyMemberJob ?? allJobs.filter((j) => j.meta.source === "member");
 
   // Reed-synced ("api") and member-submitted ("member") listings are kept
   // in two separate sections rather than merged into one board — Rob's
@@ -53,7 +59,6 @@ export default async function JobsPage() {
   // external listings only.
   const cutoff = Date.now() - RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000;
   const apiJobs = allJobs.filter((j) => j.meta.source !== "member" && new Date(j.date).getTime() >= cutoff);
-  const memberJobs = allJobs.filter((j) => j.meta.source === "member");
   const localJobs = [...memberJobs.filter((j) => j.meta.featured), ...memberJobs.filter((j) => !j.meta.featured)];
 
   return (

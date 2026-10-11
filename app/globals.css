@@ -7194,6 +7194,18 @@ a.card-category:hover {
   margin: 0;
 }
 
+/* No photo (the featured job): nothing to float the badge over, so it
+   sits in the flow above the text instead of covering the kicker. */
+.home-featured-pink > .directory-badge:first-child {
+  position: static;
+  display: inline-block;
+  margin: 0.9rem 1rem 0;
+}
+
+.home-featured-pink > .directory-badge:first-child + .home-featured-pink-body {
+  padding-top: 0.5rem;
+}
+
 .home-featured-pink-body {
   padding: 0.9rem 1rem 1.1rem;
 }

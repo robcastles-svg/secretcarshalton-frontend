@@ -2009,6 +2009,20 @@ export function getJobListings(perPage = 100) {
   );
 }
 
+/**
+ * Every member-posted job (featured ones included), however far down the
+ * list they've been pushed: the Reed sync adds dozens of jobs a day, so
+ * a week-old member job is already past the newest 100. Reed jobs are
+ * stored with no author (0) and member jobs under the member, so leaving
+ * out author 0 narrows it to a handful in one request; source decides.
+ */
+export async function getMemberJobListings(): Promise<WPJobListing[]> {
+  const jobs = await scDirectoryFetch<WPJobListing[]>(
+    `/job-listings?author_exclude=0&per_page=100&orderby=date&order=desc&_fields=id,slug,link,date,title,content,meta,job_sector,job_location`
+  );
+  return jobs.filter((j) => j.meta.source === "member");
+}
+
 export function getJobLocations() {
   return scDirectoryFetch<WPJobTerm[]>(`/job_location?per_page=50`);
 }
