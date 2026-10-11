@@ -67,12 +67,43 @@ export function featuredTierLabel(slug: string | null | undefined): string {
 
 export const EVENT_UPGRADE_PRICE = "£5 per event";
 
-/** Slugs match job_rate_bracket in wordpress-plugins/sc-jobs. */
+/**
+ * Job posts are priced on the job's annual pay (Rob, 2026-10): an hourly
+ * rate is converted at HOURS_PER_YEAR (37.5 hours × 52 weeks), so part-time
+ * and hourly jobs are priced on the full-time equivalent. Slugs and
+ * cut-offs must match SC_Jobs_REST in wordpress-plugins/sc-jobs, which
+ * decides the band itself from the salary entered.
+ */
+export const HOURS_PER_YEAR = 1950;
+
 export const JOB_RATE_BRACKETS = [
-  { slug: "up_to_15", label: "Up to £15/hour", price: "£15" },
-  { slug: "15_to_20", label: "£15–£20/hour", price: "£20" },
-  { slug: "over_20", label: "Over £20/hour", price: "£40" },
+  { slug: "under_30k", label: "Under £30,000 a year", price: "£15" },
+  { slug: "30k_to_40k", label: "£30,000–£40,000 a year", price: "£20" },
+  { slug: "over_40k", label: "Over £40,000 a year", price: "£40" },
 ] as const;
+
+export type SalaryPeriod = "hour" | "year";
+
+export function annualSalary(amount: number, period: SalaryPeriod): number {
+  return period === "hour" ? amount * HOURS_PER_YEAR : amount;
+}
+
+/** Under £30k → first band; £30k up to and including £40k → second; over £40k → third. */
+export function jobRateBracket(annual: number) {
+  if (annual < 30000) return JOB_RATE_BRACKETS[0];
+  if (annual <= 40000) return JOB_RATE_BRACKETS[1];
+  return JOB_RATE_BRACKETS[2];
+}
+
+function pounds(n: number): string {
+  return `£${n.toLocaleString("en-GB", { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 })}`;
+}
+
+/** "£18 per hour (about £35,100 a year)" / "£30,000 a year (about £15.38 per hour)" — same wording SC_Jobs_REST saves. */
+export function formatJobSalary(amount: number, period: SalaryPeriod): string {
+  if (period === "hour") return `${pounds(amount)} per hour (about ${pounds(Math.round(amount * HOURS_PER_YEAR))} a year)`;
+  return `${pounds(amount)} a year (about ${pounds(Math.round((amount / HOURS_PER_YEAR) * 100) / 100)} per hour)`;
+}
 
 export const GROUP_PROMOTION_PRICE = "£10 for 30 days";
 

@@ -8071,3 +8071,18 @@ a.card-category:hover {
 .walk-map-buy-price { color: #d6293e; white-space: nowrap; }
 .walk-map-buy-thanks { margin: 0 0 0.75rem; }
 .walk-map-buy-paypal { min-height: 48px; }
+
+/* Job form: pay amount + per hour/year side by side. */
+.job-salary-field {
+  display: flex;
+  gap: 0.75rem;
+}
+.job-salary-field label {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.job-salary-field input,
+.job-salary-field select {
+  width: 100%;
+  box-sizing: border-box;
+}

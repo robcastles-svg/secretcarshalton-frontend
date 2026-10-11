@@ -53,8 +53,8 @@ class SC_Jobs_Metabox {
 			<tr>
 				<th><label for="featured">Featured</label></th>
 				<td>
-					<label><input type="checkbox" id="featured" name="featured" value="1" <?php checked( $featured, true ); ?> /> Pin this job into "From around the area" on the Jobs page, with a pink border and Featured badge</label>
-					<p class="description">Only meaningful for a member-submitted (local) job — pulls it out of the plain "Posted locally" list and promotes it alongside the external listings, regardless of how old it is.</p>
+					<label><input type="checkbox" id="featured" name="featured" value="1" <?php checked( $featured, true ); ?> /> Show this job first under "Posted locally" on the Jobs page, with a pink border and Featured badge</label>
+					<p class="description">Only meaningful for a member-submitted (local) job.</p>
 				</td>
 			</tr>
 		</table>
@@ -62,8 +62,14 @@ class SC_Jobs_Metabox {
 			<h4>Payment (self-serve submission)</h4>
 			<table class="form-table">
 				<tr>
-					<th>Rate bracket</th>
-					<td><?php echo esc_html( $rate_bracket ? $rate_bracket : '—' ); ?></td>
+					<th>Price band</th>
+					<td>
+						<?php
+						$band = SC_Jobs_REST::RATE_BRACKETS[ $rate_bracket ] ?? null;
+						echo esc_html( $band ? $band[0] . ' — ' . $band[1] : ( $rate_bracket ? $rate_bracket : '—' ) );
+						?>
+						<p class="description">Set from the pay the member entered (hourly pay × 1,950 hours a year).</p>
+					</td>
 				</tr>
 				<tr>
 					<th><label for="amount_paid">Amount paid</label></th>

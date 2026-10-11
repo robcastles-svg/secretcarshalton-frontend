@@ -48,16 +48,13 @@ export default async function JobsPage() {
   // in two separate sections rather than merged into one board — Rob's
   // call, since the external-sources disclaimer below only applies to one
   // of them and mixing the two would blur that distinction. A member job
-  // Rob has marked Featured (admin-only toggle) is the one exception: it
-  // also appears pinned at the top of "From around the area" — pink
-  // border + badge mark it as a local, vetted listing distinct from the
-  // auto-pulled external ones underneath, and it's exempt from the 7-day
-  // cutoff since it's a deliberate promotion, not a freshness signal.
+  // Rob has marked Featured (admin-only toggle) goes first under "Posted
+  // locally", with its pink border and badge; "From around the area" is
+  // external listings only.
   const cutoff = Date.now() - RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000;
   const apiJobs = allJobs.filter((j) => j.meta.source !== "member" && new Date(j.date).getTime() >= cutoff);
   const memberJobs = allJobs.filter((j) => j.meta.source === "member");
-  const featuredMemberJobs = memberJobs.filter((j) => j.meta.featured);
-  const areaJobs = [...featuredMemberJobs, ...apiJobs];
+  const localJobs = [...memberJobs.filter((j) => j.meta.featured), ...memberJobs.filter((j) => !j.meta.featured)];
 
   return (
     <>
@@ -77,13 +74,13 @@ export default async function JobsPage() {
       </div>
 
       <main className="container">
-        {memberJobs.length > 0 && (
+        {localJobs.length > 0 && (
           <section className="home-section">
             <div className="home-section-header">
               <h2>Posted locally</h2>
             </div>
             <ul className="job-list">
-              {memberJobs.map((job) => (
+              {localJobs.map((job) => (
                 <JobRow key={job.id} job={job} />
               ))}
             </ul>
@@ -100,13 +97,13 @@ export default async function JobsPage() {
             then apply on the original site.
           </p>
 
-          {areaJobs.length === 0 ? (
+          {apiJobs.length === 0 ? (
             <p className="directory-empty">
               No jobs posted in the last 7 days — check back soon, this board updates automatically every day.
             </p>
           ) : (
             <ul className="job-list">
-              {areaJobs.map((job) => (
+              {apiJobs.map((job) => (
                 <JobRow key={job.id} job={job} />
               ))}
             </ul>

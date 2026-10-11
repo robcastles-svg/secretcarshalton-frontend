@@ -22,9 +22,14 @@ class SC_Jobs_Meta {
 		'external_url'    => 'string',
 		'job_company'     => 'string',
 		'job_salary_text' => 'string',
+		/** What the member entered for pay: a number, and 'hour' or 'year'. job_salary_text is built from these (see SC_Jobs_REST::salary_text). */
+		'job_salary_amount' => 'number',
+		'job_salary_period' => 'string',
 		/**
-		 * Self-serve price bracket — '' | 'up_to_15' | '15_to_20' | 'over_20'
-		 * (£15/£20/£40 for 7 days, see /advertise's Job Post card). Only
+		 * Self-serve price bracket, set from the annual pay —
+		 * '' | 'under_30k' | '30k_to_40k' | 'over_40k' (£15/£20/£40 for 7
+		 * days; older submissions may hold the retired hourly brackets
+		 * 'up_to_15' | '15_to_20' | 'over_20'). Only
 		 * meaningful for 'member' source jobs; a synced 'api' job has no
 		 * bracket and keeps using job_salary_text for display only. Not
 		 * itself the price — amount_paid below still holds what was
