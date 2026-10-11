@@ -131,6 +131,40 @@ for it since before `sc-events` existed (5 points per RSVP).
   (`WP_ADMIN_URL` in `lib/wordpress.ts`, derived from `WP_STAGING_ROOT`)
   that'll follow automatically once that constant is repointed at
   go-live — but the DNS side still needs doing first.
+- [ ] **One CMS, not two.** Live (`www.secretcarshalton.com`) and staging
+  (`staging19`) are separate databases that don't sync. The frontend
+  reads articles, pages and the "latest comments" box from live, and
+  everything else (events, directory, jobs, members, article comments,
+  view counts, bookmarks, ads) from staging. They've drifted since
+  staging was cloned. The plan:
+  1. Bring staging up to date with live (next item).
+  2. SiteGround "Push to Live" to copy staging over the live install.
+     Confirm it pushes the whole database, not just files, and freeze
+     publishing on live between step 1 and the push, or it gets
+     overwritten.
+  3. Give that install a CMS hostname (e.g. `cms.secretcarshalton.com`).
+     Renaming the staging copy in SiteGround only changes its label, not
+     its URL. Repoint `WP_BASE` and `WP_STAGING_ROOT` in
+     `lib/wordpress.ts` at it, then switch `www` to Vercel. Staging19
+     goes back to being a test copy.
+- [ ] **Up-to-date articles and comments.** As of Oct 2026, live had 4
+  articles staging doesn't (tree measurement, Bongs on the High Street,
+  Islands in the Stream, History sleuth) and 6 newer comments. Staging
+  had 1 article live doesn't (abandoned pub), and 2 articles had been
+  edited differently on each site. Re-diff by slug right before the push;
+  `getStagingPostIdBySlug` in `lib/wordpress.ts` explains why articles
+  must be re-created on staging (new IDs) rather than copied with their
+  live IDs.
+- [ ] **Ownerships.** Directory listings were imported unclaimed (see the
+  sc-directory row above); assign real owners. Check event organiser
+  ownership too, now that most member-written events are linked to an
+  organiser.
+- [ ] **Directory listing start dates.** Check they're correct.
+- [ ] **Correct view counts.** Live articles 41344 and 41434 share IDs with
+  the Code Ninjas and Bendy Pilates listings on staging, so those two
+  listings' counts include article views and can't be cleanly split.
+  Decide how to correct them, and make sure the re-created articles
+  start with sensible counts.
 
 ## Lessons from building this (read before adding a new CPT-based plugin)
 
