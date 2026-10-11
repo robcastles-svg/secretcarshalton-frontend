@@ -173,6 +173,25 @@ for it since before `sc-events` existed (5 points per RSVP).
   - 1st Wallington Scouts (41283, staging 4 Jan 2022, live 28 Mar 2025)
     and Logo Fiasco Records (41394, staging 30 Sep 2024, live 8 Nov 2025)
     disagree with live and need checking by hand.
+- [ ] **Members who joined live since the clone.** Live and staging have
+  assigned the same user IDs (4394+) to different people, so members can't
+  be copied with their IDs. Only active ones are copied (reviewers so far:
+  Morgan and nicky23, created on staging 11 Oct 2026 by
+  `tools/sync_live_reviews.py`). They get a random password and use
+  "forgot password" after go-live. As of 11 Oct, 19 other live-only
+  sign-ups had done nothing (several look like spam) and aren't copied.
+  Before the push, delete staging's test accounts (`claudetest…`,
+  `sc-smoke-test`).
+- [ ] **Directory reviews.** Sabai reviews were never migrated. Run
+  `python3 wordpress-plugins/tools/sync_live_reviews.py --apply` (needs
+  sc-membership 0.23.3+): it copies each live review with its stars and
+  owner replies, creates missing reviewers, and skips anything already
+  copied. First run 11 Oct 2026 copied 7 reviews and 2 replies. Re-run
+  just before go-live, then pause sign-ups and reviews on the old site
+  until the switch.
+- [ ] **Listing added on live after the clone:** "Professional Children's
+  football coaching" (30 Aug 2026) isn't on staging. Its owner isn't shown
+  on the public page; check it in Sabai's admin.
 - [ ] **Correct view counts.**
   - *Listings:* staging only had views since the import. sc-post-views
     0.5.0 seeds each listing's old Sabai total from
