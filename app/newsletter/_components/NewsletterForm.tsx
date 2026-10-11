@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SpamTrap, spamFields } from "@/app/_components/SpamTrap";
 
 export function NewsletterForm() {
   const [email, setEmail] = useState("");
@@ -16,7 +17,7 @@ export function NewsletterForm() {
     const res = await fetch("/api/newsletter/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, ...spamFields(e.currentTarget) }),
     });
     const body = await res.json().catch(() => ({}));
 
@@ -48,6 +49,7 @@ export function NewsletterForm() {
       <button type="submit" className="button-pill" disabled={submitting}>
         {submitting ? "Subscribing…" : "Subscribe"}
       </button>
+      <SpamTrap />
     </form>
   );
 }

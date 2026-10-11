@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordInput } from "@/app/_components/PasswordInput";
+import { SpamTrap, spamFields } from "@/app/_components/SpamTrap";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
@@ -21,7 +22,7 @@ export default function RegisterPage() {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, ...spamFields(e.currentTarget) }),
     });
 
     if (res.ok) {
@@ -75,6 +76,7 @@ export default function RegisterPage() {
         <button type="submit" className="button-pill" disabled={submitting}>
           {submitting ? "Creating account…" : "Create account"}
         </button>
+        <SpamTrap />
       </form>
       <p className="auth-switch">
         Already a member? <Link href="/login">Log in</Link>

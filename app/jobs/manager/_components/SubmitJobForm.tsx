@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { SpamTrap } from "@/app/_components/SpamTrap";
 import { annualSalary, formatJobSalary, jobRateBracket, type SalaryPeriod } from "@/lib/pricing";
 
 export function SubmitJobForm() {
@@ -101,6 +102,7 @@ export function SubmitJobForm() {
       <button type="submit" className="button-pill" disabled={submitting}>
         {submitting ? "Submitting…" : "Post job"}
       </button>
+      <SpamTrap />
     </form>
   );
 }

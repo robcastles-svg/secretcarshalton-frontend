@@ -8086,3 +8086,12 @@ a.card-category:hover {
   width: 100%;
   box-sizing: border-box;
 }
+
+/* SpamTrap's honeypot field — off-screen rather than display:none, which some bots skip. */
+.spam-trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
