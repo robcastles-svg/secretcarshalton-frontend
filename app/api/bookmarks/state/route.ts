@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBookmarkState } from "@/lib/wordpress";
+import { getBookmarkState, getStagingPostIdForLivePost } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   const contentType = request.nextUrl.searchParams.get("content_type");
-  const contentId = Number(request.nextUrl.searchParams.get("content_id"));
+  const rawContentId = Number(request.nextUrl.searchParams.get("content_id"));
 
-  if ((contentType !== "post" && contentType !== "listing") || !contentId) {
+  if ((contentType !== "post" && contentType !== "listing") || !rawContentId) {
     return NextResponse.json({ error: "A valid content_type and content_id are required." }, { status: 400 });
+  }
+
+  // Article cards carry the live site's post ID, but bookmarks are stored
+  // on staging — translate it, see getStagingPostIdForLivePost.
+  const contentId = contentType === "post" ? await getStagingPostIdForLivePost(rawContentId) : rawContentId;
+  if (!contentId) {
+    return NextResponse.json({ error: "Bookmarks aren't available for this article yet." }, { status: 404 });
   }
 
   const token = await getSessionToken();
