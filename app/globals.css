@@ -4918,6 +4918,12 @@ a.card-category:hover {
     display: block;
     margin-bottom: 1.5rem;
   }
+
+  /* The header's button (e.g. Community's "Share community news") sat
+     flush on top of the promoted group / ad card below it. */
+  .page-header-row + .mobile-top-ad {
+    margin-top: 1.5rem;
+  }
 }
 
 .directory-verified-check {
@@ -7851,7 +7857,12 @@ a.card-category:hover {
   .evl-s-body { padding: 22px 28px; gap: 10px; align-content: center; }
   .evx .evl-s-body h2 { font-size: 24px; }
   .evl-cd-t b { font-size: 19px; }
-  .evl-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; padding: 16px 32px 32px; align-items: start; }
+  /* Same rhythm as the category pages (.post-layout/.post-sidebar,
+     .post-list-two-column): a 300px ad column behind a thin keyline,
+     3rem between the columns, 2rem between cards. */
+  .evl-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 3rem; padding: 16px 32px 32px; align-items: start; }
+  .evl-side { box-sizing: border-box; padding-left: 2rem; border-left: 1px solid var(--evx-panel-line); }
+  .evl-main .evx-grid { gap: 2rem; }
   .evl-latest { padding: 0 32px 32px; }
 }
 
