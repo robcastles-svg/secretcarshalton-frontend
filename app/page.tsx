@@ -390,7 +390,7 @@ export default async function HomePage() {
             <div className="walk-time-heading">Find a walk by time from Carshalton</div>
             <div className="walk-time-chips">
               {WALK_TIME_CHIPS.map((chip) => (
-                <Link key={chip.slug} href={`/walks?filter=${chip.slug}`}>
+                <Link key={chip.slug} href={`/walks/${chip.slug}`}>
                   {chip.label}
                 </Link>
               ))}
