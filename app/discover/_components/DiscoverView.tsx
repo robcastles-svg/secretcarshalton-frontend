@@ -112,10 +112,7 @@ export async function DiscoverView({
   const featuredListings = allListings.filter(
     (l) => l.meta.sc_featured && (!groupsCategory || !l.sc_listing_category?.includes(groupsCategory.id))
   );
-  // sc_featured_grid_eligible decides which get mixed into the feed below
-  // (see SC_Directory_REST::is_grid_eligible — no view cap any more); the
-  // "Business feature" browse view (isFeatured) shows every featured one.
-  const eligibleForFeed = featuredListings.filter((l) => l.sc_featured_grid_eligible);
+
 
   let posts: WPContentItem[] = [];
   if (!isFeatured) {
@@ -128,12 +125,13 @@ export async function DiscoverView({
     }
   }
 
-  // Featured listings are mixed into the merged feed and into an area page
+  // Every featured listing is mixed in (no monthly view cap any more —
+  // Rob, 2026-10) into the merged feed and into an area page
   // (which always carried one before it took on this look). Spotlight and
   // Business feature stay as just that one kind of card.
   const mixed = !filter || Boolean(activeArea);
   const feed: FeedItem[] = mixed
-    ? buildFeed(posts, eligibleForFeed)
+    ? buildFeed(posts, featuredListings)
     : isFeatured
       ? featuredListings.map((listing) => ({ kind: "listing", listing }))
       : posts.map((post) => ({ kind: "post", post }));
