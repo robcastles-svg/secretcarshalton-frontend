@@ -3759,8 +3759,30 @@ a.card-category:hover {
   }
 
   .post-hero {
-    height: 40vh;
-    min-height: 220px;
+    height: 50vh;
+    min-height: 280px;
+  }
+
+  /* Rob's call (2026-10): on mobile the date/views line sits close under
+     the photo, the date and views lines sit close together, and the
+     share icons are smaller so they line up with the views line. */
+  .post-hero + .post-layout {
+    padding-top: 1rem;
+  }
+
+  .post-meta-row {
+    margin-top: 0;
+    row-gap: 0.3rem;
+  }
+
+  .post-meta-row .share-row-btn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .post-meta-row .share-row-btn svg {
+    width: 13px;
+    height: 13px;
   }
 
   .post-hero-overlay h1,
