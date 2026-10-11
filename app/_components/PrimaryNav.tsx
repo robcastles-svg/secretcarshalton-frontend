@@ -12,6 +12,11 @@ import { useActiveNavSectionOverride } from "./ActiveNavSection";
  * which section they belong to — the post page sets that via
  * SetActiveNavSection (ActiveNavSection.tsx), read here as `override`.
  */
+/** "/news" matches /news and /news/…, but not /newsletter. */
+function isUnder(pathname: string, href: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export function PrimaryNav({ items }: { items: Array<{ label: string; href: string }> }) {
   const pathname = usePathname();
   const override = useActiveNavSectionOverride();
@@ -20,7 +25,7 @@ export function PrimaryNav({ items }: { items: Array<{ label: string; href: stri
     <>
       {items.map((item) => {
         const isActive =
-          override !== null ? override === item.label : item.href !== "/" && pathname.startsWith(item.href);
+          override !== null ? override === item.label : item.href !== "/" && isUnder(pathname, item.href);
         return (
           <Fragment key={item.label}>
             <Link href={item.href} className={isActive ? "active" : undefined}>

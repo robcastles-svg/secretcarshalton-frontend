@@ -9,7 +9,6 @@ import { AdSlot } from "./_components/AdSlot";
 import { BackToTop } from "./_components/BackToTop";
 import { GoogleAnalytics } from "./_components/GoogleAnalytics";
 import { MemberBenefitsBar } from "./_components/MemberBenefitsBar";
-import { NewsletterForm } from "./newsletter/_components/NewsletterForm";
 import { PrimaryNav } from "./_components/PrimaryNav";
 import { SiteDateWeather } from "./_components/SiteDateWeather";
 import { UtilityNav } from "./_components/UtilityNav";
@@ -166,14 +165,13 @@ export default async function RootLayout({
 
         {children}
 
+        {/* Every newsletter prompt is the Insider logo, linking to the sign-up page (no inline email box). */}
         <div className="newsletter-band">
-          <div className="container newsletter-band-inner">
-            <div>
-              <div className="newsletter-band-title">Insider</div>
-              <p>Get the Secret Carshalton newsletter in your inbox.</p>
-            </div>
-            <NewsletterForm />
-          </div>
+          <Link href="/newsletter" className="container newsletter-band-inner">
+            <img src="/insider-logo.png" alt="Insider" className="newsletter-band-logo" width={1200} height={232} />
+            <p>Get the Secret Carshalton newsletter in your inbox.</p>
+            <span className="button-pill">Sign up</span>
+          </Link>
         </div>
 
         <footer className="site-footer">

@@ -2556,39 +2556,60 @@ a.card-category:hover {
   padding: 2rem 1.5rem;
 }
 
-.newsletter-band-title {
-  color: #c2607a;
-  font-weight: 900;
-  font-size: 1.6rem;
+.newsletter-band-inner {
+  color: inherit;
+  text-decoration: none;
+}
+
+.newsletter-band-logo {
+  display: block;
+  width: 220px;
+  max-width: 100%;
+  height: auto;
 }
 
 .newsletter-band p {
-  margin: 0.25rem 0 0;
+  flex: 1 1 220px;
+  margin: 0;
 }
 
-/* The shared NewsletterForm component is a stacked label+input+button
-   (see /newsletter's own full-page use) — inline here instead, label
-   text visually hidden but kept for screen readers. */
-.newsletter-band-inner .auth-form {
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: 0;
+/* /newsletter — mirrors the WordPress Insider page. */
+.newsletter-page {
+  max-width: 640px;
+  text-align: center;
 }
 
-.newsletter-band-inner .auth-form label {
-  flex-direction: row;
+.newsletter-page-logo {
+  margin: 0 0 1.5rem;
 }
 
-.newsletter-band-inner .auth-form label > span,
-.newsletter-band-inner .auth-form label {
-  font-size: 0;
+.newsletter-page-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
-.newsletter-band-inner .auth-form input {
-  font-size: 0.95rem;
-  min-width: 220px;
+.newsletter-page h2 {
+  font-size: 1.6rem;
+  margin: 0 0 1.5rem;
+}
+
+.newsletter-embed {
+  min-height: 260px;
+  text-align: left;
+}
+
+.newsletter-page-confirm {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.newsletter-page p {
+  line-height: 1.7;
+}
+
+.newsletter-page-example {
+  font-size: 1.2rem;
 }
 
 /* Footer */
