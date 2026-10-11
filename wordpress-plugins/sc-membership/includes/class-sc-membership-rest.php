@@ -66,6 +66,24 @@ class SC_Membership_REST {
 		);
 
 		/**
+		 * sc_listing doesn't support core comments (members review through
+		 * submit_comment), so core's /wp/v2/comments refuses to create one
+		 * on a listing. Moderators get through over REST only, for the same
+		 * migrated-review case as the rating update_callback above.
+		 */
+		add_filter(
+			'comments_open',
+			function ( $open, $post_id ) {
+				if ( $open || ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) {
+					return $open;
+				}
+				return 'sc_listing' === get_post_type( $post_id ) && current_user_can( 'moderate_comments' );
+			},
+			10,
+			2
+		);
+
+		/**
 		 * Upvote count — a public aggregate (SC_Membership_DB::comment_vote_count),
 		 * same reasoning as 'rating' above: added to core's comment object
 		 * type so the frontend's existing /wp/v2/comments reads (see

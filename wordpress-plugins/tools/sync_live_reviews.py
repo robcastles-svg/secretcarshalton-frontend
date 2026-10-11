@@ -17,8 +17,8 @@ Re-runnable: a review or reply already on staging (same listing, author
 and date) is skipped, so run it again just before go-live to pick up
 anything new. Dry run by default; pass --apply to write.
 
-Needs sc-membership 0.23.2+ on staging (moderators can set `rating` on
-core's comments endpoint). Credentials come from WP_USERNAME and
+Needs sc-membership 0.23.3+ on staging (moderators can create comments
+on listings and set `rating` through core's comments endpoint). Credentials come from WP_USERNAME and
 WP_APP_PASSWORD (an administrator Application Password that works on both
 sites).
 
