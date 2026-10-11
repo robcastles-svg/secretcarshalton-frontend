@@ -2033,6 +2033,10 @@ export interface MyJob {
   date: string;
   company: string;
   paymentStatus: string;
+  /** e.g. "£20" — the job's price band (sc-jobs BAND_PRICES). */
+  price?: string;
+  /** YYYY-MM-DD the paid listing comes down. */
+  expiresOn?: string;
 }
 
 export async function submitJob(
@@ -2387,6 +2391,13 @@ export interface MyListing {
   slug: string;
   date: string;
   views: number;
+  /** Payment state — see SC_Directory_Payments. Dates are YYYY-MM-DD, "" when not applicable. */
+  isGroup?: boolean;
+  subscribed?: boolean;
+  featured?: boolean;
+  featuredTier?: string;
+  featuredUntil?: string;
+  promotedUntil?: string;
 }
 
 /** Same reasoning as getMyEvents: views live in sc-post-views, not sc-directory's own /mine response. */
@@ -2564,6 +2575,45 @@ export async function captureWalkMapOrder(
   } catch {
     return NETWORK_ERROR;
   }
+}
+
+/**
+ * The site's shared checkout (SC_Ads_Payments in sc-ads): one-off PayPal
+ * payments for directory Featured, group promotions and job posts, and the
+ * yearly standard-listing subscription. `kind` is the product's name on the
+ * WordPress side; prices are always decided there.
+ */
+async function postPayments<T>(token: string, path: string, body: Record<string, unknown>): Promise<T | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/${path}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const data = await res.json();
+    if (!res.ok) return { code: data.code ?? "payment_failed", message: data.message ?? "Payment didn't go through." };
+    return data;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+export function createPaymentOrder(token: string, kind: string, id: number, extra: Record<string, unknown> = {}) {
+  return postPayments<{ orderId: string; amount: number }>(token, `pay/${kind}/${id}/create-order`, extra);
+}
+
+export function capturePaymentOrder(token: string, kind: string, id: number, orderId: string) {
+  return postPayments<{ status: string; slug?: string; until?: string }>(token, `pay/${kind}/${id}/capture`, { orderId });
+}
+
+export function startSubscription(token: string, kind: string, id: number, returnUrl: string, cancelUrl: string) {
+  return postPayments<{ subscriptionId: string; approveUrl: string }>(token, `subscribe/${kind}/${id}`, { returnUrl, cancelUrl });
+}
+
+export function confirmSubscription(token: string, kind: string, id: number, subscriptionId: string) {
+  return postPayments<{ status: string; slug?: string }>(token, `subscribe/${kind}/${id}/confirm`, { subscriptionId });
 }
 
 /** "Is this your group?" — asks to manage an organiser; Rob approves it in wp-admin. SC_Events_REST::claim_organizer. */

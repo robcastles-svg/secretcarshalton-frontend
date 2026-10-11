@@ -168,8 +168,45 @@ class SC_Ads_PayPal_REST {
 		);
 	}
 
+	/** Ads and walk maps on the Payments screen (their checkout routes are their own, older ones). */
+	public static function payment_products( $products ) {
+		$products['ad']  = array(
+			'label'    => 'Text ad',
+			'title'    => 'get_the_title',
+			'edit_url' => function ( $id ) {
+				return admin_url( 'post.php?post=' . (int) $id . '&action=edit' );
+			},
+			'undo'     => function ( $id ) {
+				update_post_meta( $id, 'sc_ad_active', false );
+				return 'The ad is switched off.';
+			},
+		);
+		$products['map'] = array(
+			'label'    => 'Walk map',
+			'title'    => 'get_the_title',
+			'edit_url' => function ( $id ) {
+				return admin_url( 'post.php?post=' . (int) $id . '&action=edit' );
+			},
+		);
+		return $products;
+	}
+
 	private static function mark_paid_from_capture( $ad_id, $capture ) {
 		$captured_value = $capture['purchase_units'][0]['payments']['captures'][0]['amount']['value'] ?? null;
+
+		$details = SC_Ads_Payments::capture_details( $capture );
+		SC_Ads_Payments::record_once(
+			array(
+				'kind'        => 'ad',
+				'object_id'   => $ad_id,
+				'amount'      => $captured_value,
+				'user_id'     => (int) get_post_field( 'post_author', $ad_id ),
+				'order_id'    => (string) get_post_meta( $ad_id, 'sc_ad_paypal_order_id', true ),
+				'capture_id'  => $details['capture_id'],
+				'payer_name'  => $details['payer_name'],
+				'payer_email' => $details['payer_email'],
+			)
+		);
 
 		update_post_meta( $ad_id, 'sc_ad_payment_status', 'paid' );
 		update_post_meta( $ad_id, 'sc_ad_active', true );

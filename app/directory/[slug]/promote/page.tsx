@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
 import { GROUP_PROMOTION_PRICE } from "@/lib/pricing";
 import { getDirectoryListingBySlug, getMemberMe } from "@/lib/wordpress";
-import { SubmitPromotionRequest } from "./_components/SubmitPromotionRequest";
+import { PayNow } from "@/app/_components/PayNow";
 
 export const metadata = { title: "Promote your group — Secret Carshalton" };
 
@@ -13,7 +13,8 @@ export const metadata = { title: "Promote your group — Secret Carshalton" };
  * directory listing (groups in particular, but not restricted to the
  * "groups-to-join" category — same reasoning /dashboard/upgrade doesn't
  * restrict by category either). Mirrors /events/[slug]/feature's own
- * request-a-paid-upgrade-for-a-thing-you-own pattern.
+ * request-a-paid-upgrade-for-a-thing-you-own pattern. Paid online; it's
+ * promoted as soon as payment goes through (SC_Directory_Payments).
  */
 export default async function PromoteListingPage({
   params,
@@ -57,15 +58,14 @@ export default async function PromoteListingPage({
             Back to listing
           </Link>
         </>
-      ) : listing.sc_group_promo_pending ? (
-        <>
-          <p className="dashboard-hint">You already have a promotion request pending review for this listing.</p>
-          <Link href={`/directory/${slug}`} className="button-pill button-pill-secondary">
-            Back to listing
-          </Link>
-        </>
       ) : (
-        <SubmitPromotionRequest listingId={listing.id} listingSlug={listing.slug} />
+        <PayNow
+          kind="group_promotion"
+          id={listing.id}
+          price={GROUP_PROMOTION_PRICE.split(" ")[0]}
+          what="promoted in the Community section for 30 days"
+          paidText="Paid — your listing is promoted until {until}."
+        />
       )}
     </main>
   );

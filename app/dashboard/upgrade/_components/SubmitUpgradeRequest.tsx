@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { PayNow } from "@/app/_components/PayNow";
 import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
 import type { MyListing, WPDirectoryCategory } from "@/lib/wordpress";
 
@@ -22,7 +23,7 @@ export function SubmitUpgradeRequest({
   const [photos, setPhotos] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,6 +35,8 @@ export function SubmitUpgradeRequest({
     // Blank leaves the listing's current category as it is.
     if (selectedCategory) formData.set("category", selectedCategory);
     photos.slice(0, PHOTO_LIMIT).forEach((file) => formData.append("photos[]", file));
+    // Paying online makes it Featured straight away (no review queue).
+    formData.set("pay", "1");
 
     const res = await fetch(`/api/directory/${listingId}/request-upgrade`, {
       method: "POST",
@@ -47,17 +50,25 @@ export function SubmitUpgradeRequest({
       return;
     }
 
-    setDone(true);
+    setSaved(true);
     router.refresh();
   }
 
-  if (done) {
+  if (saved && listingId) {
+    const chosen = FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)!;
     return (
-      <p>
-        Thanks — your upgrade request and the extra details are in. There&apos;s no automated payment yet, so
-        we&apos;ll be in touch to arrange it (PayPal) — your listing goes featured once that&apos;s sorted and
-        we&apos;ve approved it. You can track the status from your dashboard.
-      </p>
+      <>
+        <p>Thanks — your details are saved. Pay below and your listing is Featured straight away.</p>
+        <PayNow
+          kind="featured"
+          id={listingId}
+          price={chosen.price}
+          what={`${chosen.label}, ${chosen.per}`}
+          extraBody={{ tier }}
+          paidText="Paid — your listing is Featured until {until}. We'll email you a week before it ends."
+          viewPath="/directory/"
+        />
+      </>
     );
   }
 
@@ -200,14 +211,13 @@ export function SubmitUpgradeRequest({
       <p className="dashboard-hint">
         {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.label}:{" "}
         {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.price}{" "}
-        {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.per}. There&apos;s no automated payment yet —
-        once you submit this, we&apos;ll review it and get in touch to arrange payment (PayPal). Nothing is
-        charged now.
+        {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.per}. You&apos;ll pay with PayPal on the next
+        step, and your listing is Featured as soon as it&apos;s paid.
       </p>
 
       {error && <p className="auth-error">{error}</p>}
       <button type="submit" className="button-pill" disabled={submitting || !listingId}>
-        {submitting ? "Submitting…" : "Request upgrade"}
+        {submitting ? "Saving…" : "Continue to payment"}
       </button>
     </form>
   );

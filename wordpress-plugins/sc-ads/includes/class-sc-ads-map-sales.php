@@ -16,7 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * with custom_id "map-{product id}". No login needed to buy.
  *
  * Delivery matches the old plugin: once paid, the buyer gets a download
- * button straight away. Rob gets an email per sale.
+ * button straight away. Each sale is on the Payments screen and emailed
+ * to Rob (SC_Ads_Payments).
  */
 class SC_Ads_Map_Sales {
 
@@ -29,8 +30,6 @@ class SC_Ads_Map_Sales {
 
 	/** Order → product it was created for, so a capture can't be pointed at a different (dearer or cheaper) map. */
 	const ORDER_TRANSIENT = 'sc_map_order_';
-	/** Set once a sale's email has gone, so a retried capture doesn't email Rob twice. */
-	const NOTIFIED_TRANSIENT = 'sc_map_sold_';
 
 	public static function register_routes() {
 		register_rest_route(
@@ -129,23 +128,20 @@ class SC_Ads_Map_Sales {
 		);
 	}
 
-	/** One email to Rob per sale. */
+	/** Recorded on the Payments screen, with the usual email to Rob — once per sale. */
 	private static function notify( $order_id, $product, $capture ) {
-		if ( get_transient( self::NOTIFIED_TRANSIENT . $order_id ) ) {
-			return;
-		}
-		set_transient( self::NOTIFIED_TRANSIENT . $order_id, 1, WEEK_IN_SECONDS );
-
-		$payer = $capture['payer'] ?? array();
-		$name  = trim( ( $payer['name']['given_name'] ?? '' ) . ' ' . ( $payer['name']['surname'] ?? '' ) );
-		$email = $payer['email_address'] ?? '';
-		$value = $capture['purchase_units'][0]['payments']['captures'][0]['amount']['value'] ?? $product['price'];
-
-		wp_mail(
-			get_option( 'admin_email' ),
-			'Walk map sold — ' . $product['name'],
-			( $name ? $name : 'Someone' ) . ( $email ? " ({$email})" : '' ) . ' bought the ' . $product['name'] .
-			' map for £' . number_format( (float) $value, 2 ) . ".\n\nPayPal order: " . $order_id
+		$details = SC_Ads_Payments::capture_details( $capture );
+		SC_Ads_Payments::record_once(
+			array(
+				'kind'        => 'map',
+				'object_id'   => (int) get_transient( self::ORDER_TRANSIENT . $order_id ),
+				'amount'      => $details['amount'] ?? $product['price'],
+				'order_id'    => $order_id,
+				'capture_id'  => $details['capture_id'],
+				'payer_name'  => $details['payer_name'],
+				'payer_email' => $details['payer_email'],
+			),
+			'Walk map sold'
 		);
 	}
 }

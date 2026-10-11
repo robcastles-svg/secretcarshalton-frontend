@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { PayNow, SubscribeNow } from "@/app/_components/PayNow";
 import { FEATURED_DIRECTORY_TIERS, STANDARD_LISTING_PRICE } from "@/lib/pricing";
 import type { WPDirectoryCategory } from "@/lib/wordpress";
 
@@ -47,8 +48,8 @@ export function SubmitListingForm({
   const [photosTrimmed, setPhotosTrimmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
-  const [resultMessage, setResultMessage] = useState("");
+  /** Set once the listing exists — the next step is paying for it. */
+  const [created, setCreated] = useState<{ id: number; upgradeSaved: boolean } | null>(null);
 
   const isFeatured = mode === "featured";
 
@@ -82,6 +83,7 @@ export function SubmitListingForm({
     if (isFeatured) {
       const upgradeData = new FormData();
       upgradeData.set("tier", tier);
+      upgradeData.set("pay", "1");
       for (const field of [
         "tagline",
         "description",
@@ -108,23 +110,41 @@ export function SubmitListingForm({
         body: upgradeData,
       });
 
-      setResultMessage(
-        upgradeRes.ok
-          ? "Thanks — your listing and Featured request are both in. There's no automated payment yet, so we'll be in touch to arrange it (PayPal); your listing goes featured once that's sorted and we've approved it."
-          : "Your listing was submitted, but we couldn't send the Featured request just now — you can request it again from your dashboard once the listing's live."
-      );
+      setCreated({ id, upgradeSaved: upgradeRes.ok });
     } else {
-      setResultMessage(
-        `Thanks — your listing has been submitted. There's no automated payment yet, so we'll review it and get in touch to arrange the ${STANDARD_LISTING_PRICE} payment (PayPal); nothing's charged now. Once it's live, you can add the rest of your profile (address, contact details, photos and more) by requesting a Featured upgrade from your dashboard.`
-      );
+      setCreated({ id, upgradeSaved: false });
     }
-
-    setDone(true);
     router.refresh();
   }
 
-  if (done) {
-    return <p>{resultMessage}</p>;
+  if (created) {
+    const chosen = FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier);
+    return (
+      <>
+        <p>Thanks — your listing is saved. Pay below and it goes live straight away.</p>
+        {isFeatured && chosen ? (
+          <>
+            {!created.upgradeSaved && (
+              <p className="dashboard-hint">
+                We couldn&apos;t save your extra details just now — you can add them from your dashboard after paying.
+              </p>
+            )}
+            <PayNow
+              kind="featured"
+              id={created.id}
+              price={chosen.price}
+              what={`${chosen.label}, ${chosen.per}`}
+              extraBody={{ tier }}
+              paidText="Paid — your Featured listing is live until {until}. We'll email you a week before it ends."
+              viewPath="/directory/"
+            />
+          </>
+        ) : (
+          <SubscribeNow kind="standard_listing" id={created.id} price={STANDARD_LISTING_PRICE} what="standard directory listing" />
+        )}
+        <p className="dashboard-hint">You can also pay later from your dashboard.</p>
+      </>
+    );
   }
 
   return (
@@ -247,21 +267,20 @@ export function SubmitListingForm({
           <>
             {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.label}:{" "}
             {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.price}{" "}
-            {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.per}. There&apos;s no automated payment yet — once you
-            submit this, we&apos;ll review it and get in touch to arrange payment (PayPal). Nothing is charged
-            now.
+            {FEATURED_DIRECTORY_TIERS.find((t) => t.slug === tier)?.per}. You&apos;ll pay with PayPal on the next
+            step, and your listing goes live as soon as it&apos;s paid.
           </>
         ) : (
           <>
-            Standard listing: {STANDARD_LISTING_PRICE}. There&apos;s no automated payment yet — once you submit
-            this, we&apos;ll review it and get in touch to arrange payment (PayPal). Nothing is charged now.
+            Standard listing: {STANDARD_LISTING_PRICE}, renewing automatically each year. You&apos;ll set up the
+            payment with PayPal on the next step, and your listing goes live as soon as it&apos;s done.
           </>
         )}
       </p>
 
       {error && <p className="auth-error">{error}</p>}
       <button type="submit" className="button-pill" disabled={submitting}>
-        {submitting ? "Submitting…" : isFeatured ? "Submit & request Featured" : "Submit listing"}
+        {submitting ? "Saving…" : "Continue to payment"}
       </button>
     </form>
   );

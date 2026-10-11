@@ -2,10 +2,10 @@
  * All of /advertise's pricing in one place — the page, the dashboard's
  * upgrade/job forms, and the dashboard's own "My business"/"My advertising"
  * display all read from here, so a price change is a one-file edit rather
- * than hunting through JSX. Holding figures (confirmed with Rob 2026-10),
- * not tied to any payment automation — every product on the site is still
- * "submit, then we arrange payment by hand" (see each submit form's own
- * copy).
+ * than hunting through JSX (confirmed with Rob 2026-10). These are labels
+ * only: what's actually charged is set on the WordPress side (sc-ads'
+ * shared checkout and the products that plug into it), so a price change
+ * means changing both.
  */
 
 export const TEXT_AD_TIERS = [
@@ -109,3 +109,9 @@ export const GROUP_PROMOTION_PRICE = "£10 for 30 days";
 
 /** The basic directory tier — no longer free, per Rob's call (2026-10): a nominal yearly fee filters low-effort/spam submissions and funds the renewal touchpoint, without pricing anyone out the way a monthly fee would. Featured is unaffected by this change. */
 export const STANDARD_LISTING_PRICE = "£2.50/year";
+
+/** "2026-11-14" → "14 November 2026" (paid-until dates from the checkout). */
+export function formatUntil(date?: string): string {
+  if (!date) return "";
+  return new Date(`${date}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+}

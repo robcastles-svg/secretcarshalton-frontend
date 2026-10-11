@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
+import { formatUntil } from "@/lib/pricing";
 import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
 import { getDirectoryCategories, getMemberMe, getMyListings } from "@/lib/wordpress";
 import { SubmitUpgradeRequest } from "./_components/SubmitUpgradeRequest";
@@ -17,6 +18,9 @@ export default async function DirectoryUpgradePage() {
     getDirectoryCategories().catch(() => []),
   ]);
   if (!profile) redirect("/login?next=/dashboard/upgrade");
+
+  // A listing Featured through online payment can be renewed from here.
+  const renewable = listings.find((l) => l.featuredUntil);
 
   return (
     <main className="container auth-page">
@@ -38,6 +42,15 @@ export default async function DirectoryUpgradePage() {
           <p className="dashboard-hint">You already have a request pending review.</p>
           <Link href="/dashboard" className="button-pill button-pill-secondary">
             Back to dashboard
+          </Link>
+        </>
+      ) : renewable ? (
+        <>
+          <p>
+            <strong>{renewable.title}</strong> is Featured until {formatUntil(renewable.featuredUntil)}.
+          </p>
+          <Link href={`/payment/pay?kind=featured&id=${renewable.id}`} className="button-pill">
+            Renew Featured
           </Link>
         </>
       ) : profile.directory_upgrade_status === "approved" ? (

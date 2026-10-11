@@ -27,6 +27,7 @@ export function PayPalPayButton({
   adId,
   onPaid,
   endpoints,
+  extraBody,
 }: {
   adId: number;
   /** Receives the capture route's JSON (e.g. a walk map's download link). */
@@ -37,6 +38,8 @@ export function PayPalPayButton({
    * through the same sc-ads PayPal setup on the WordPress side.
    */
   endpoints?: { createOrder: string; capture: string };
+  /** Extra fields for the create-order request, e.g. { tier } for a Featured package. */
+  extraBody?: Record<string, string>;
 }) {
   const createUrl = endpoints?.createOrder ?? "/api/ads/paypal/create-order";
   const captureUrl = endpoints?.capture ?? "/api/ads/paypal/capture-order";
@@ -76,7 +79,7 @@ export function PayPalPayButton({
             const res = await fetch(createUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ adId }),
+              body: JSON.stringify({ adId, ...extraBody }),
             });
             const body = await res.json();
             if (!res.ok) {

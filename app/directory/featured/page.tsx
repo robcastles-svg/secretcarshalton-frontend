@@ -188,8 +188,7 @@ export default async function FeaturedListingPage({
           <span className="adv-eyebrow">Add your listing</span>
           <h2 className="adv-h2">Add your Featured listing</h2>
           <p className="adv-lede">
-            There&apos;s no automated payment yet — submit this and we&apos;ll be in touch to arrange it (PayPal).
-            Nothing is charged now.
+            Fill this in, pay with PayPal, and your listing is live and Featured straight away.
           </p>
           <p className="adv-lede">
             Cancel anytime — no lock-in. If you cancel, your listing drops back to a Standard listing

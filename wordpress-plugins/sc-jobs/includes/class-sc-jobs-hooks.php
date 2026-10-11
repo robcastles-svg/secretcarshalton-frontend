@@ -4,39 +4,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Mirrors SC_Events_Hooks::on_claim_requested / SC_Directory_Hooks's
- * pattern exactly — a review queue nobody's watching might as well not
- * exist, so this emails admin_email the moment a member submits a job,
- * with a direct link to review it.
- *
- * It also adds a pending-count bubble to the Jobs admin menu item —
- * the same native "awaiting-mod" style WordPress core already uses for
- * pending comments, so the queue is visible at a glance in wp-admin
- * without a separate notification-bell widget to build and keep
- * working.
+ * Adds a pending-count bubble to the Jobs admin menu item — the same
+ * native "awaiting-mod" style WordPress core uses for pending comments.
+ * (A member's job goes live as soon as it's paid for — see
+ * SC_Jobs_REST::payment_products — and the payment email is Rob's
+ * notification, so there's no separate "job submitted" email any more;
+ * pending jobs are ones that were never paid for.)
  */
 class SC_Jobs_Hooks {
 
 	public static function init() {
-		add_action( 'sc_jobs_job_submitted', array( __CLASS__, 'on_job_submitted' ), 10, 1 );
 		add_filter( 'add_menu_classes', array( __CLASS__, 'add_pending_count_bubble' ) );
-	}
-
-	public static function on_job_submitted( $job_id ) {
-		$job = get_post( $job_id );
-		if ( ! $job ) {
-			return;
-		}
-		$user = get_userdata( $job->post_author );
-		$who  = $user ? "{$user->display_name} ({$user->user_email})" : 'A member';
-
-		$review_url = admin_url( 'edit.php?post_status=pending&post_type=' . SC_Jobs_CPT::POST_TYPE );
-
-		wp_mail(
-			get_option( 'admin_email' ),
-			'New job submitted — ' . $job->post_title,
-			"{$who} submitted a job listing: \"{$job->post_title}\".\n\nReview it here:\n{$review_url}"
-		);
 	}
 
 	public static function add_pending_count_bubble( $menu ) {
