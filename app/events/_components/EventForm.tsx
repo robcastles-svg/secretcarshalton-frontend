@@ -23,6 +23,7 @@ import { EVENT_UPGRADE_PRICE } from "@/lib/pricing";
 import type { WPEventOrganizerProfile, WPEventVenue, WPScEventCategory, WPScEventTag } from "@/lib/wordpress";
 import { ClockIcon, PinIcon, RepeatIcon } from "./EvIcons";
 import { FeatureEventPay } from "./FeatureEventPay";
+import { SpamTrap, spamFields } from "@/app/_components/SpamTrap";
 
 /** "£5 per event" → "£5" */
 const FEATURE_PRICE = EVENT_UPGRADE_PRICE.split(" ")[0];
@@ -322,6 +323,7 @@ export function EventForm({
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    const spam = spamFields(e.currentTarget);
 
     if (!date || !startTime) {
       setError("Please add the date and start time.");
@@ -387,6 +389,8 @@ export function EventForm({
       data.organizer_id = String(selectedOrg.id);
       if (editingOrg) Object.assign(data, orgFields, { organizer_edit: true });
     } else data.organizer_id = "";
+
+    if (mode === "create") Object.assign(data, spam);
 
     setSubmitting(true);
     const res = await fetch(mode === "create" ? "/api/events/submit" : `/api/events/${eventId}`, {
@@ -1233,6 +1237,7 @@ export function EventForm({
           </div>
         </div>
       )}
+      <SpamTrap />
     </form>
   );
 }

@@ -1381,6 +1381,8 @@ a.card-category:hover {
 
 .home-section-header {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 1rem;
@@ -3811,7 +3813,8 @@ a.card-category:hover {
 
 /* Auth pages (login/register) */
 .auth-page {
-  max-width: 420px;
+  max-width: min(420px, 100%);
+  box-sizing: border-box;
 }
 
 /* Wider than the plain login/register forms above — benefit copy plus a
@@ -7346,7 +7349,7 @@ a.card-category:hover {
   position: relative;
   margin-left: calc(50% - 50vw);
   width: 100vw;
-  padding-left: calc(50vw - 50% + 1.5rem);
+  padding-left: calc(50vw - 50%);
   /* This codebase never resets box-sizing globally, so by default
      (content-box) the padding-left above was being added ON TOP of the
      100vw width instead of carved out of it — the element rendered
@@ -7374,14 +7377,16 @@ a.card-category:hover {
 
 .reels-track li {
   flex: none;
-  width: 160px;
+  width: 200px;
   scroll-snap-align: start;
 }
 
 .reels-item {
   position: relative;
   display: block;
-  aspect-ratio: 9 / 16;
+  /* Instagram's own portrait shape — 9:16 cropped the sides off photo
+     posts and the text on graphics. */
+  aspect-ratio: 4 / 5;
   border-radius: 8px;
   overflow: hidden;
   background: #ece8e3;
@@ -8046,3 +8051,47 @@ a.card-category:hover {
   .evv-venue, .evv-main, .evv-ads { order: 0; }
 }
 .evv-past .evx-past-more { justify-self: start; }
+
+/* Walk route map purchase (WalkMapBuy) — replaces WP Express Checkout's button. */
+.walk-map-buy {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  max-width: min(420px, 100%);
+  box-sizing: border-box;
+}
+.walk-map-buy-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+.walk-map-buy-price { color: #d6293e; white-space: nowrap; }
+.walk-map-buy-thanks { margin: 0 0 0.75rem; }
+.walk-map-buy-paypal { min-height: 48px; }
+
+/* Job form: pay amount + per hour/year side by side. */
+.job-salary-field {
+  display: flex;
+  gap: 0.75rem;
+}
+.job-salary-field label {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.job-salary-field input,
+.job-salary-field select {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* SpamTrap's honeypot field — off-screen rather than display:none, which some bots skip. */
+.spam-trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

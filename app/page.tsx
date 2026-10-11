@@ -8,6 +8,7 @@ import { HomeFeaturedRotator } from "@/app/_components/home/HomeFeaturedRotator"
 import { isFeaturedNow } from "@/lib/event-view";
 import { MostReadList, type MostReadItem } from "@/app/_components/home/MostReadList";
 import { ReelsSlider } from "@/app/_components/home/ReelsSlider";
+import { getInstagramFeed } from "@/lib/instagram";
 import { SponsorStrip, type Sponsor } from "@/app/_components/home/SponsorStrip";
 import { getSessionToken } from "@/lib/auth";
 import {
@@ -64,16 +65,6 @@ const DUMMY_SPONSORS: Sponsor[] = Array.from({ length: 8 }, (_, i) => ({
   href: "/directory/featured",
 }));
 
-// Placeholder reels so the slider itself is visible per the design handoff
-// — the Instagram feed plugin on staging has no public REST API to pull
-// real reels from yet (see ReelsSlider's own docblock); swap these for the
-// real feed once that bridge exists.
-const DUMMY_REELS = Array.from({ length: 9 }, (_, i) => ({
-  id: `dummy-${i + 1}`,
-  thumbnailUrl: `https://picsum.photos/seed/screel${i + 1}/360/640`,
-  videoUrl: "https://www.instagram.com/secret.carshalton/",
-}));
-
 export default async function HomePage() {
   const [
     recentPosts,
@@ -89,6 +80,7 @@ export default async function HomePage() {
     comments,
     events,
     sessionToken,
+    instagramFeed,
   ] = await Promise.all([
     getPosts(24).catch(() => []),
     getCategories().catch(() => []),
@@ -103,6 +95,7 @@ export default async function HomePage() {
     getLatestCommentItems(3),
     getUpcomingScEvents(20).catch(() => []),
     getSessionToken(),
+    getInstagramFeed().catch(() => []),
   ]);
 
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
@@ -541,7 +534,7 @@ export default async function HomePage() {
               @secret.carshalton →
             </a>
           </div>
-          <ReelsSlider items={DUMMY_REELS} />
+          <ReelsSlider items={instagramFeed} />
         </section>
       </div>
     </main>

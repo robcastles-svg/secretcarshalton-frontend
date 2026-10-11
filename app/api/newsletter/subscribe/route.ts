@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { subscribeToNewsletter } from "@/lib/newsletter";
+import { looksLikeSpam, SPAM_MESSAGE } from "@/lib/spam";
 
 export async function POST(request: NextRequest) {
   const data = await request.json().catch(() => ({}));
   const email = typeof data.email === "string" ? data.email.trim() : "";
+
+  if (looksLikeSpam(data.website, data.form_ms)) {
+    return NextResponse.json({ error: SPAM_MESSAGE }, { status: 400 });
+  }
 
   if (!email || !email.includes("@")) {
     return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });

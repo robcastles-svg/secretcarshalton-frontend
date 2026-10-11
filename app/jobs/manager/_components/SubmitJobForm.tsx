@@ -2,14 +2,20 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { JOB_RATE_BRACKETS } from "@/lib/pricing";
+import { SpamTrap } from "@/app/_components/SpamTrap";
+import { annualSalary, formatJobSalary, jobRateBracket, type SalaryPeriod } from "@/lib/pricing";
 
 export function SubmitJobForm() {
   const router = useRouter();
-  const [rateBracket, setRateBracket] = useState<string>(JOB_RATE_BRACKETS[0].slug);
+  const [amount, setAmount] = useState("");
+  const [period, setPeriod] = useState<SalaryPeriod>("hour");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+
+  // Display only — SC_Jobs_REST works out the band itself from the pay sent.
+  const salary = Number(amount) > 0 ? Number(amount) : null;
+  const band = salary ? jobRateBracket(annualSalary(salary, period)) : null;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,20 +57,30 @@ export function SubmitJobForm() {
         Company / organisation
         <input type="text" name="company" placeholder="Who's hiring" />
       </label>
-      <label>
-        Salary (optional)
-        <input type="text" name="salary" placeholder="e.g. £12/hour, or £24,000 - £28,000" />
-      </label>
-      <label>
-        Hourly rate band
-        <select name="rate_bracket" value={rateBracket} onChange={(e) => setRateBracket(e.target.value)}>
-          {JOB_RATE_BRACKETS.map((b) => (
-            <option key={b.slug} value={b.slug}>
-              {b.label} — {b.price}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="job-salary-field">
+        <label>
+          Pay (£)
+          <input
+            type="number"
+            name="salary_amount"
+            required
+            min="0.01"
+            step="0.01"
+            inputMode="decimal"
+            placeholder={period === "hour" ? "e.g. 12.50" : "e.g. 28000"}
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+        </label>
+        <label>
+          Per
+          <select name="salary_period" value={period} onChange={(e) => setPeriod(e.target.value as SalaryPeriod)}>
+            <option value="hour">hour</option>
+            <option value="year">year (per annum)</option>
+          </select>
+        </label>
+      </div>
+      {salary && <p className="dashboard-hint">Shown on the listing as: {formatJobSalary(salary, period)}</p>}
       <label>
         How to apply
         <input type="text" name="apply_url" placeholder="A link to apply, or an email address" />
@@ -75,7 +91,9 @@ export function SubmitJobForm() {
       </label>
 
       <p className="dashboard-hint">
-        {JOB_RATE_BRACKETS.find((b) => b.slug === rateBracket)?.price} for 7 days, based on the rate band above.
+        {band
+          ? `${band.price} for 7 days — ${band.label.toLowerCase()}${period === "hour" ? " (hourly pay is priced on the full-time equivalent)" : ""}.`
+          : "Enter the pay to see the price."}{" "}
         There&apos;s no automated payment yet, so once you submit this, we&apos;ll review it and get in touch to
         arrange payment (PayPal). Nothing is charged now.
       </p>
@@ -84,6 +102,7 @@ export function SubmitJobForm() {
       <button type="submit" className="button-pill" disabled={submitting}>
         {submitting ? "Submitting…" : "Post job"}
       </button>
+      <SpamTrap />
     </form>
   );
 }

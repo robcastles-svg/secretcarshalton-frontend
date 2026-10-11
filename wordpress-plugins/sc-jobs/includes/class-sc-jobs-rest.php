@@ -45,6 +45,12 @@ class SC_Jobs_REST {
 			return new WP_Error( 'missing_title', 'A job title is required.', array( 'status' => 400 ) );
 		}
 
+		$salary_amount = round( (float) $request->get_param( 'salary_amount' ), 2 );
+		$salary_period = 'year' === $request->get_param( 'salary_period' ) ? 'year' : 'hour';
+		if ( $salary_amount <= 0 ) {
+			return new WP_Error( 'missing_salary', 'Please enter the pay for this job.', array( 'status' => 400 ) );
+		}
+
 		$post_id = wp_insert_post(
 			array(
 				'post_type'    => SC_Jobs_CPT::POST_TYPE,
@@ -62,12 +68,11 @@ class SC_Jobs_REST {
 
 		update_post_meta( $post_id, 'source', 'member' );
 		update_post_meta( $post_id, 'job_company', sanitize_text_field( (string) $request->get_param( 'company' ) ) );
-		update_post_meta( $post_id, 'job_salary_text', sanitize_text_field( (string) $request->get_param( 'salary' ) ) );
-
-		$rate_bracket = sanitize_key( (string) $request->get_param( 'rate_bracket' ) );
-		if ( in_array( $rate_bracket, array( 'up_to_15', '15_to_20', 'over_20' ), true ) ) {
-			update_post_meta( $post_id, 'job_rate_bracket', $rate_bracket );
-		}
+		update_post_meta( $post_id, 'job_salary_amount', $salary_amount );
+		update_post_meta( $post_id, 'job_salary_period', $salary_period );
+		update_post_meta( $post_id, 'job_salary_text', self::salary_text( $salary_amount, $salary_period ) );
+		// Decided here from the pay entered, never taken from the form.
+		update_post_meta( $post_id, 'job_rate_bracket', self::rate_bracket( self::annual_salary( $salary_amount, $salary_period ) ) );
 		// A member job posting is paid — no automated payment yet, so this
 		// just flags it for Rob to arrange payment before approving (same
 		// holding pattern as sc-ads' payment_status).
@@ -87,6 +92,44 @@ class SC_Jobs_REST {
 		do_action( 'sc_jobs_job_submitted', $post_id );
 
 		return array( 'id' => $post_id, 'status' => 'pending' );
+	}
+
+	/**
+	 * Job posts are priced on annual pay; an hourly rate is converted at
+	 * 37.5 hours × 52 weeks. Must match HOURS_PER_YEAR, jobRateBracket and
+	 * formatJobSalary in lib/pricing.ts (kept by hand on both sides, like
+	 * the other prices).
+	 */
+	const HOURS_PER_YEAR = 1950;
+
+	/** Bracket slug => [label, price], for the wp-admin metabox. */
+	const RATE_BRACKETS = array(
+		'under_30k'  => array( 'Under £30,000 a year', '£15' ),
+		'30k_to_40k' => array( '£30,000–£40,000 a year', '£20' ),
+		'over_40k'   => array( 'Over £40,000 a year', '£40' ),
+	);
+
+	public static function annual_salary( $amount, $period ) {
+		return 'hour' === $period ? $amount * self::HOURS_PER_YEAR : $amount;
+	}
+
+	public static function rate_bracket( $annual ) {
+		if ( $annual < 30000 ) {
+			return 'under_30k';
+		}
+		return $annual <= 40000 ? '30k_to_40k' : 'over_40k';
+	}
+
+	private static function pounds( $n ) {
+		return '£' . number_format( $n, floor( $n ) == $n ? 0 : 2 );
+	}
+
+	/** "£18 per hour (about £35,100 a year)" / "£30,000 a year (about £15.38 per hour)". */
+	public static function salary_text( $amount, $period ) {
+		if ( 'hour' === $period ) {
+			return self::pounds( $amount ) . ' per hour (about ' . self::pounds( round( $amount * self::HOURS_PER_YEAR ) ) . ' a year)';
+		}
+		return self::pounds( $amount ) . ' a year (about ' . self::pounds( round( $amount / self::HOURS_PER_YEAR, 2 ) ) . ' per hour)';
 	}
 
 	/** The dashboard's "Your jobs" section. */

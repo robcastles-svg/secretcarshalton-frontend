@@ -56,11 +56,13 @@ export default async function JobDetailPage({
         Posted {daysAgoLabel(job.date)} &middot; {formatDate(job.date)}
       </time>
 
-      <p className="job-external-disclaimer">
-        This listing was pulled in automatically from an external job site (via the Reed API) — Secret
-        Carshalton doesn&apos;t manage, vet, or handle applications for it. Reading the details here is
-        fine, but you&apos;ll need to apply on the original site below.
-      </p>
+      {job.meta.source !== "member" && (
+        <p className="job-external-disclaimer">
+          This listing was pulled in automatically from an external job site (via the Reed API) — Secret
+          Carshalton doesn&apos;t manage, vet, or handle applications for it. Reading the details here is
+          fine, but you&apos;ll need to apply on the original site below.
+        </p>
+      )}
 
       <div className="post-content job-detail-content" dangerouslySetInnerHTML={{ __html: job.content.rendered }} />
 

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { SpamTrap } from "@/app/_components/SpamTrap";
 
 export function SubmitCommunityForm() {
   const router = useRouter();
@@ -57,6 +58,7 @@ export function SubmitCommunityForm() {
       <button type="submit" className="button-pill" disabled={submitting}>
         {submitting ? "Submitting…" : "Share with the community"}
       </button>
+      <SpamTrap />
     </form>
   );
 }

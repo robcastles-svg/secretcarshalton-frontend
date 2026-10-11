@@ -7,6 +7,7 @@ import { ABOUT_PAGE_SLUGS } from "./_components/AboutMiniNav";
 import { ActiveNavSectionProvider } from "./_components/ActiveNavSection";
 import { AdSlot } from "./_components/AdSlot";
 import { BackToTop } from "./_components/BackToTop";
+import { GoogleAnalytics } from "./_components/GoogleAnalytics";
 import { MemberBenefitsBar } from "./_components/MemberBenefitsBar";
 import { NewsletterForm } from "./newsletter/_components/NewsletterForm";
 import { PrimaryNav } from "./_components/PrimaryNav";
@@ -239,6 +240,9 @@ export default async function RootLayout({
                   <Link href="/disclaimer-terms-conditions">Disclaimer, Terms &amp; Conditions</Link>
                 </li>
                 <li>
+                  <Link href="/privacy-policy">Privacy Statement</Link>
+                </li>
+                <li>
                   <Link href="/contact">Enquiries</Link>
                 </li>
                 <li>
@@ -299,6 +303,7 @@ export default async function RootLayout({
         </footer>
         <BackToTop />
         </ActiveNavSectionProvider>
+        <GoogleAnalytics />
       </body>
     </html>
   );

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { submitEvent } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
+import { looksLikeSpam, SPAM_MESSAGE } from "@/lib/spam";
 
 export async function POST(request: NextRequest) {
   const token = await getSessionToken();
@@ -8,7 +9,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not logged in." }, { status: 401 });
   }
 
-  const data = await request.json().catch(() => ({}));
+  const { website, form_ms, ...data } = await request.json().catch(() => ({}));
+  if (looksLikeSpam(website, form_ms)) {
+    return NextResponse.json({ error: SPAM_MESSAGE }, { status: 400 });
+  }
   if (!data.title) {
     return NextResponse.json({ error: "An event title is required." }, { status: 400 });
   }

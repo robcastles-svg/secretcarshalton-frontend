@@ -318,7 +318,7 @@ export default async function AdvertisePage() {
                 <span className="adv-per">for 7 days</span>
               </div>
             </div>
-            <p className="adv-card-text">Priced by the hourly rate of the job.</p>
+            <p className="adv-card-text">Priced by the annual pay of the job (hourly pay at its full-time equivalent).</p>
             <div className="adv-rate-table">
               {JOB_RATE_BRACKETS.map((b) => (
                 <div key={b.slug} className="adv-rate-row">

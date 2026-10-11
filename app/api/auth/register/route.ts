@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { registerMember } from "@/lib/wordpress";
 import { SESSION_COOKIE } from "@/lib/auth";
+import { looksLikeSpam, SPAM_MESSAGE } from "@/lib/spam";
 
 export async function POST(request: NextRequest) {
-  const { username, email, password } = await request.json();
+  const { username, email, password, website, form_ms } = await request.json().catch(() => ({}));
+
+  if (looksLikeSpam(website, form_ms)) {
+    return NextResponse.json({ error: SPAM_MESSAGE }, { status: 400 });
+  }
 
   if (!username || !email || !password) {
     return NextResponse.json(
