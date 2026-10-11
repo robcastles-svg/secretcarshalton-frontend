@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
@@ -70,6 +71,8 @@ export default async function ThemePage({
 
   return (
     <main className="container">
+      {/* Themes are part of the Discover section (Rob, 2026-10). */}
+      <SetActiveNavSection section="Discover" />
       <span className="theme-eyebrow">Stories by theme</span>
       <h1>
         {tag.name}

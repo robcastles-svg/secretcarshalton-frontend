@@ -1,292 +1,36 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
-import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
-import { FeaturedListingImpressionTracker } from "@/app/_components/FeaturedListingImpressionTracker";
-import { MobileTopAd } from "@/app/_components/MobileTopAd";
-import { Pagination } from "@/app/_components/Pagination";
-import { PostListCard } from "@/app/_components/PostListCard";
-import { SidebarAds } from "@/app/_components/SidebarAds";
-import { paginate, parsePageParam } from "@/lib/pagination";
-import {
-  getAd,
-  getCategories,
-  getCategoryBySlug,
-  getDirectoryCategories,
-  getDirectoryListings,
-  getPostsByCategories,
-  getPostsByCategory,
-  getTags,
-  GROUPS_CATEGORY_SLUG,
-  type WPContentItem,
-  type WPListing,
-} from "@/lib/wordpress";
+import { permanentRedirect } from "next/navigation";
+import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
+import { DiscoverView } from "./_components/DiscoverView";
 
 export const revalidate = 3600;
 
-const DEFAULT_METADATA = { title: "Discover — Secret Carshalton" };
+export const metadata: Metadata = { title: "Discover — Secret Carshalton" };
 
-/**
- * An area filter here (?filter=cheam) shows the exact same posts as the
- * real, dedicated /stories/{area} page — this view is a browsing
- * convenience, not a second copy of that content. Without a canonical
- * tag, both URLs could get crawled/indexed for the same content, with
- * this one carrying weaker, non-area-specific metadata — splitting
- * signals instead of concentrating them on the page actually built for
- * that area. Spotlight/Business-feature/no-filter have no equivalent
- * standalone page, so they just keep the generic title.
- */
-export async function generateMetadata({
-  searchParams,
-}: {
-  searchParams: Promise<{ filter?: string }>;
-}): Promise<Metadata> {
-  const { filter } = await searchParams;
-  if (!filter || filter === "spotlight" || filter === "featured") {
-    return DEFAULT_METADATA;
-  }
-
-  const storiesParent = await getCategoryBySlug("stories").catch(() => null);
-  const allCategories = storiesParent ? await getCategories().catch(() => []) : [];
-  const area = storiesParent
-    ? allCategories.find((c) => c.parent === storiesParent.id && c.slug === filter)
-    : null;
-
-  if (!area) return DEFAULT_METADATA;
-
-  return {
-    title: `${area.name} — Discover`,
-    alternates: { canonical: `/stories/${area.slug}` },
-  };
-}
-
-/** Every 5th card in the default/unfiltered feed is swapped for a featured Directory listing (pink outline) instead of a story — matches the PDF's mixed feed. */
-const FEATURE_EVERY = 5;
-
-type FeedItem = { kind: "post"; post: WPContentItem } | { kind: "listing"; listing: WPListing };
-
-function buildFeed(posts: WPContentItem[], featuredListings: WPListing[]): FeedItem[] {
-  if (featuredListings.length === 0) {
-    return posts.map((post) => ({ kind: "post", post }));
-  }
-  const feed: FeedItem[] = [];
-  let listingIndex = 0;
-  posts.forEach((post, i) => {
-    feed.push({ kind: "post", post });
-    if ((i + 1) % FEATURE_EVERY === 0) {
-      feed.push({ kind: "listing", listing: featuredListings[listingIndex % featuredListings.length] });
-      listingIndex++;
-    }
-  });
-  return feed;
+/** The stories area with this slug, if it is one. */
+async function storiesArea(slug: string) {
+  const [storiesParent, allCategories] = await Promise.all([
+    getCategoryBySlug("stories").catch(() => null),
+    getCategories().catch(() => []),
+  ]);
+  return storiesParent ? allCategories.find((c) => c.parent === storiesParent.id && c.slug === slug) : undefined;
 }
 
 /**
- * Pagination cuts the feed into fixed 9-card pages, which can land a
- * featured listing right at the top of a page depending on where the
- * FEATURE_EVERY interleave falls relative to the page boundary — swap it
- * with the first post later in the same page so a featured card is never
- * the first thing you see. A no-op on the "Business feature" filter view
- * (every card there is a featured listing by definition) since there's no
- * post on the page to swap with.
- */
-function avoidFeaturedFirst(pageItems: FeedItem[]): FeedItem[] {
-  if (pageItems.length < 2 || pageItems[0].kind !== "listing") return pageItems;
-  const swapIndex = pageItems.findIndex((item) => item.kind === "post");
-  if (swapIndex <= 0) return pageItems;
-  const next = [...pageItems];
-  [next[0], next[swapIndex]] = [next[swapIndex], next[0]];
-  return next;
-}
-
-/**
- * The main nav's browsing hub, replacing the old plain /stories link-list.
- * Per Rob (after seeing his own PDF wireframe again): the main feed is all
- * story posts from every area merged together — not links out to the
- * separate area pages — with a featured Directory listing (pink outline)
- * mixed in every few cards. The individual /stories/[area] pages
- * themselves are untouched (still real, separate, crawlable pages — good
- * for SEO), Discover's area/Spotlight/Business-feature row is just a
- * filter on this page's own feed, not a set of links elsewhere.
- * Spotlight is a filter option here now, not its own standing section.
+ * Discover: every area's stories merged, or the Spotlight / Business
+ * feature filters. An area filter (?filter=cheam, the old links) now lives
+ * at its own page, /stories/cheam, which looks the same — redirect there
+ * so there's one address per area.
  */
 export default async function DiscoverPage({
   searchParams,
 }: {
   searchParams: Promise<{ filter?: string; page?: string }>;
 }) {
-  const { filter, page: rawPage } = await searchParams;
-
-  const [storiesParent, peopleCategory, allCategories, allTags, directoryCategories, allListings, ad1, ad2, ad3] = await Promise.all([
-    getCategoryBySlug("stories").catch(() => null),
-    getCategoryBySlug("people").catch(() => null),
-    getCategories().catch(() => []),
-    getTags().catch(() => []),
-    getDirectoryCategories().catch(() => []),
-    getDirectoryListings().catch(() => []),
-    getAd("sidebar", 1),
-    getAd("sidebar", 2),
-    getAd("sidebar", 3),
-  ]);
-
-  const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
-  const tagsById = new Map(allTags.map((t) => [t.id, t]));
-
-  const areas = storiesParent
-    ? allCategories.filter((c) => c.parent === storiesParent.id && c.count > 0)
-    : [];
-  const activeArea = filter ? areas.find((a) => a.slug === filter) : null;
-  const isSpotlight = filter === "spotlight";
-  const isFeatured = filter === "featured";
-
-  // Groups get their own separate blue-ad-style promo on /community (see
-  // PromotedGroupCard) — excluded here so a featured group never also
-  // shows up via the directory's in-feed interleave or its "Business
-  // feature" browse tab, the two different things a featured group isn't.
-  const groupsCategory = directoryCategories.find((c) => c.slug === GROUPS_CATEGORY_SLUG);
-  const featuredListings = allListings.filter(
-    (l) => l.meta.sc_featured && (!groupsCategory || !l.sc_listing_category?.includes(groupsCategory.id))
-  );
-  // The monthly 150-impression cap (Rob's holding figure) only applies to
-  // getting mixed into the main feed below — the dedicated "Business
-  // feature" browse view (isFeatured) is a listing's own page, same as
-  // Directory's own featured display, not subject to it. sc_featured_grid_eligible
-  // — see SC_Directory_REST::is_grid_eligible.
-  const eligibleForFeed = featuredListings.filter((l) => l.sc_featured_grid_eligible);
-
-  let posts: WPContentItem[] = [];
-  if (!isFeatured) {
-    if (activeArea) {
-      posts = await getPostsByCategory(activeArea.id).catch(() => []);
-    } else if (isSpotlight) {
-      posts = peopleCategory ? await getPostsByCategory(peopleCategory.id).catch(() => []) : [];
-    } else {
-      posts = await getPostsByCategories(areas.map((a) => a.id)).catch(() => []);
-    }
+  const { filter, page } = await searchParams;
+  if (filter && filter !== "spotlight" && filter !== "featured") {
+    const area = await storiesArea(filter);
+    if (area) permanentRedirect(`/stories/${area.slug}${page ? `?page=${encodeURIComponent(page)}` : ""}`);
   }
-
-  // Interleaving only makes sense in the default merged view — a filtered
-  // view (one area, Spotlight, or the featured listings themselves) stays
-  // as just that one kind of card, not padded out with unrelated ones.
-  const feed: FeedItem[] = !filter
-    ? buildFeed(posts, eligibleForFeed)
-    : isFeatured
-      ? featuredListings.map((listing) => ({ kind: "listing", listing }))
-      : posts.map((post) => ({ kind: "post", post }));
-
-  const { items: pageFeed, page, totalPages } = paginate(feed, parsePageParam(rawPage));
-  const pageItems = avoidFeaturedFirst(pageFeed);
-
-  const buildPageHref = (p: number) => {
-    const params = new URLSearchParams();
-    if (filter) params.set("filter", filter);
-    params.set("page", String(p));
-    return `/discover?${params.toString()}`;
-  };
-
-  return (
-    <>
-      <div className="secondary-nav-bar">
-        <nav className="container secondary-nav">
-          <Link href="/discover" className={!filter ? "active" : undefined}>
-            All
-          </Link>
-          {areas.map((area) => (
-            <Link
-              key={area.id}
-              href={`/discover?filter=${area.slug}`}
-              className={activeArea?.id === area.id ? "active" : undefined}
-            >
-              {area.name}
-            </Link>
-          ))}
-          <Link href="/discover?filter=spotlight" className={isSpotlight ? "active" : undefined}>
-            Spotlight
-          </Link>
-          <Link href="/discover?filter=featured" className={isFeatured ? "active" : undefined}>
-            Business feature
-          </Link>
-        </nav>
-      </div>
-
-      <main className="container">
-        <div className="category-header-row">
-          {activeArea ? (
-            <h1>
-              {activeArea.name}
-              <CategoryKeyIcon />
-            </h1>
-          ) : (
-            <h1>
-              Discover
-              <CategoryKeyIcon />
-            </h1>
-          )}
-          <p className="category-header-description">
-            Timeless and fascinating stories from around Carshalton and nearby areas
-          </p>
-        </div>
-
-        <MobileTopAd ad={ad1} />
-
-        <div className="post-layout discover-layout">
-          <div className="post-body">
-            {pageItems.length === 0 ? (
-              <p className="directory-empty">Nothing here yet — check back soon.</p>
-            ) : (
-              <ul className="post-list post-list-two-column">
-                {pageItems.map((item) =>
-                  item.kind === "post" ? (
-                    <PostListCard
-                      key={`post-${item.post.id}`}
-                      item={item.post}
-                      categoriesById={categoriesById}
-                      tagsById={tagsById}
-                      showDate={false}
-                    />
-                  ) : (
-                    <DirectoryListingCard key={`listing-${item.listing.id}`} listing={item.listing} />
-                  )
-                )}
-              </ul>
-            )}
-            {!filter &&
-              pageItems
-                .filter((item) => item.kind === "listing")
-                .map((item) => (
-                  <FeaturedListingImpressionTracker key={item.listing.id} listingId={item.listing.id} />
-                ))}
-
-            <Pagination page={page} totalPages={totalPages} buildHref={buildPageHref} />
-          </div>
-
-          <aside className="post-sidebar">
-            {directoryCategories.length > 0 && (
-              <div className="sidebar-block sidebar-directory-promo">
-                <p className="sidebar-directory-eyebrow">Directory</p>
-                <h3>Discover local business</h3>
-                <p className="sidebar-directory-subtitle">Shops, trades, groups and places around Carshalton.</p>
-                <ul className="sidebar-directory-pills">
-                  {directoryCategories.slice(0, 11).map((c) => (
-                    <li key={c.id}>
-                      <Link href={`/directory/${c.slug}`} className="sidebar-directory-pill">
-                        {c.name}
-                      </Link>
-                    </li>
-                  ))}
-                  <li>
-                    <Link href="/directory" className="sidebar-directory-pill sidebar-directory-pill-browse">
-                      Browse all →
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            )}
-
-            <SidebarAds ads={[ad1, ad2, ad3]} hideFirstOnMobile />
-          </aside>
-        </div>
-      </main>
-    </>
-  );
+  return <DiscoverView filter={filter} rawPage={page} />;
 }

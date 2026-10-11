@@ -71,10 +71,10 @@ class SC_Directory_Meta {
 		/**
 		 * The directory-upgrade perk of showing up in News/Discover/etc
 		 * category grids, not just the Directory page's own featured
-		 * section — capped at 150 impressions/month for now (Rob's holding
-		 * figure), no option to buy more yet. Reset monthly by comparing
+		 * section. Appearances are counted per month as a record only (the
+		 * old 150/month cap is gone). Reset monthly by comparing
 		 * sc_featured_views_month against the current Y-m rather than a
-		 * cron job — see SC_Directory_REST::is_grid_eligible.
+		 * cron job — see SC_Directory_REST::record_featured_impression.
 		 */
 		'sc_featured_views_used'  => 'integer',
 		'sc_featured_views_month' => 'string', // 'Y-m' of the last reset
