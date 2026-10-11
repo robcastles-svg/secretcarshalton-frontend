@@ -240,6 +240,9 @@ export default async function RootLayout({
                   <Link href="/disclaimer-terms-conditions">Disclaimer, Terms &amp; Conditions</Link>
                 </li>
                 <li>
+                  <Link href="/privacy-policy">Privacy Statement</Link>
+                </li>
+                <li>
                   <Link href="/contact">Enquiries</Link>
                 </li>
                 <li>
