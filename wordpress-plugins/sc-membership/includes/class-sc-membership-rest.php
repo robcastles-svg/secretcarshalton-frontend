@@ -40,14 +40,47 @@ class SC_Membership_REST {
 			'comment',
 			'rating',
 			array(
-				'get_callback' => function ( $comment ) {
+				'get_callback'    => function ( $comment ) {
 					$rating = get_comment_meta( $comment['id'], 'sc_rating', true );
 					return '' === $rating ? null : (int) $rating;
 				},
-				'schema'       => array(
+				// Moderators only: lets reviews migrated from the old Sabai
+				// directory keep their stars when created through core's
+				// /wp/v2/comments. Members set ratings via submit_comment.
+				'update_callback' => function ( $value, $comment ) {
+					if ( ! current_user_can( 'moderate_comments' ) ) {
+						return new WP_Error( 'rest_forbidden', 'Only moderators can set a rating here.', array( 'status' => 403 ) );
+					}
+					$rating = self::sanitize_rating( $value );
+					if ( null === $rating ) {
+						delete_comment_meta( $comment->comment_ID, 'sc_rating' );
+					} else {
+						update_comment_meta( $comment->comment_ID, 'sc_rating', $rating );
+					}
+					return true;
+				},
+				'schema'          => array(
 					'type' => array( 'integer', 'null' ),
 				),
 			)
+		);
+
+		/**
+		 * sc_listing doesn't support core comments (members review through
+		 * submit_comment), so core's /wp/v2/comments refuses to create one
+		 * on a listing. Moderators get through over REST only, for the same
+		 * migrated-review case as the rating update_callback above.
+		 */
+		add_filter(
+			'comments_open',
+			function ( $open, $post_id ) {
+				if ( $open || ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) {
+					return $open;
+				}
+				return 'sc_listing' === get_post_type( $post_id ) && current_user_can( 'moderate_comments' );
+			},
+			10,
+			2
 		);
 
 		/**

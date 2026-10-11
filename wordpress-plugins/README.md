@@ -148,13 +148,17 @@ for it since before `sc-events` existed (5 points per RSVP).
      `lib/wordpress.ts` at it, then switch `www` to Vercel. Staging19
      goes back to being a test copy.
 - [ ] **Up-to-date articles and comments.** As of Oct 2026, live had 4
-  articles staging doesn't (tree measurement, Bongs on the High Street,
-  Islands in the Stream, History sleuth) and 6 newer comments. Staging
-  had 1 article live doesn't (abandoned pub), and 2 articles had been
-  edited differently on each site. Re-diff by slug right before the push;
-  `getStagingPostIdBySlug` in `lib/wordpress.ts` explains why articles
-  must be re-created on staging (new IDs) rather than copied with their
-  live IDs.
+  articles staging didn't. On 11 Oct 2026 they were re-created on staging
+  under new IDs (live → staging: 41261 → 43199 tree measurement, 41327 →
+  43201 Bongs on the High Street, 41344 → 43204 Islands in the Stream,
+  41434 → 43206 History sleuth), with their featured and inline images
+  uploaded to staging and the tree article's 2 comments. Live still has
+  its own copies, so edits made there since need re-syncing. Also still
+  to reconcile: 4 other newer comments on live, 1 article only on
+  staging (abandoned pub), and 2 articles edited differently on each
+  site. Re-diff by slug right before the push; `getStagingPostIdBySlug`
+  in `lib/wordpress.ts` explains why articles must be re-created on
+  staging (new IDs) rather than copied with their live IDs.
 - [ ] **Ownerships.** Directory listings were imported unclaimed (see the
   sc-directory row above); assign real owners. Check event organiser
   ownership too, now that most member-written events are linked to an
@@ -169,6 +173,25 @@ for it since before `sc-events` existed (5 points per RSVP).
   - 1st Wallington Scouts (41283, staging 4 Jan 2022, live 28 Mar 2025)
     and Logo Fiasco Records (41394, staging 30 Sep 2024, live 8 Nov 2025)
     disagree with live and need checking by hand.
+- [ ] **Members who joined live since the clone.** Live and staging have
+  assigned the same user IDs (4394+) to different people, so members can't
+  be copied with their IDs. Only active ones are copied (reviewers so far:
+  Morgan and nicky23, created on staging 11 Oct 2026 by
+  `tools/sync_live_reviews.py`). They get a random password and use
+  "forgot password" after go-live. As of 11 Oct, 19 other live-only
+  sign-ups had done nothing (several look like spam) and aren't copied.
+  Before the push, delete staging's test accounts (`claudetest…`,
+  `sc-smoke-test`).
+- [ ] **Directory reviews.** Sabai reviews were never migrated. Run
+  `python3 wordpress-plugins/tools/sync_live_reviews.py --apply` (needs
+  sc-membership 0.23.3+): it copies each live review with its stars and
+  owner replies, creates missing reviewers, and skips anything already
+  copied. First run 11 Oct 2026 copied 7 reviews and 2 replies. Re-run
+  just before go-live, then pause sign-ups and reviews on the old site
+  until the switch.
+- [ ] **Listing added on live after the clone:** "Professional Children's
+  football coaching" (30 Aug 2026) isn't on staging. Its owner isn't shown
+  on the public page; check it in Sabai's admin.
 - [ ] **Correct view counts.**
   - *Listings:* staging only had views since the import. sc-post-views
     0.5.0 seeds each listing's old Sabai total from
@@ -178,10 +201,10 @@ for it since before `sc-events` existed (5 points per RSVP).
     counting until the switch, so regenerate the file and bump
     `SC_POST_VIEWS_LISTING_SEED` just before go-live to bring the totals
     up to date.
-  - *Articles:* the 4 live-only articles have no staging count. Once
-    they're re-created on staging, seed them from the live Post Views
-    Counter (the existing backfill in `SC_Post_Views_Admin` does this by
-    live ID, so it needs pointing at the new staging IDs).
+  - *Articles:* the 4 re-created articles get their live Post Views
+    Counter totals from `sc-post-views/data/article-baselines.json`
+    (sc-post-views 0.5.1). Like the listings, regenerate it and bump
+    `SC_POST_VIEWS_ARTICLE_SEED` just before go-live.
 
 ## Lessons from building this (read before adding a new CPT-based plugin)
 
