@@ -19,6 +19,19 @@ const nextConfig = {
   async redirects() {
     return legacyRedirects;
   },
+  // Keep every address other than the real domain (the *.vercel.app
+  // preview site, branch previews) out of search results, so Google only
+  // ever indexes secretcarshalton.com. Robots.txt alone can't do this:
+  // it blocks crawling but a blocked page can still be listed.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        missing: [{ type: "host", value: "(www\\.)?secretcarshalton\\.com" }],
+        headers: [{ key: "X-Robots-Tag", value: "noindex" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

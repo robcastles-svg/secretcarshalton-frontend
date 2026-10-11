@@ -505,6 +505,13 @@ class SC_Directory_REST {
 					'status' => $post->post_status,
 					'slug'   => $post->post_name,
 					'date'   => $post->post_date,
+					// Payment state, for "Pay now" / "Renew" on the dashboard (see SC_Directory_Payments).
+					'isGroup'       => has_term( SC_Directory_Payments::GROUPS_CATEGORY, SC_Directory_CPT::TAXONOMY, $post->ID ),
+					'subscribed'    => (bool) get_post_meta( $post->ID, 'sc_standard_subscription_id', true ),
+					'featured'      => (bool) get_post_meta( $post->ID, 'sc_featured', true ),
+					'featuredTier'  => (string) get_post_meta( $post->ID, 'sc_featured_tier', true ),
+					'featuredUntil' => get_post_meta( $post->ID, 'sc_featured_until', true ) ? wp_date( 'Y-m-d', (int) get_post_meta( $post->ID, 'sc_featured_until', true ) ) : '',
+					'promotedUntil' => get_post_meta( $post->ID, 'sc_group_promoted', true ) ? substr( (string) get_post_meta( $post->ID, 'sc_group_promo_expires_at', true ), 0, 10 ) : '',
 				);
 			},
 			$posts
@@ -934,6 +941,15 @@ class SC_Directory_REST {
 		 * strictness as every other free-text field in this request.
 		 */
 		$tier = sanitize_key( (string) $request->get_param( 'tier' ) );
+
+		// Paying online (SC_Directory_Payments' 'featured' product) makes it
+		// Featured straight away, so it skips the manual approval queue —
+		// the tier is just remembered for the checkout.
+		if ( $request->get_param( 'pay' ) ) {
+			update_post_meta( $listing_id, 'sc_featured_requested_tier', $tier );
+			return array( 'status' => 'awaiting_payment' );
+		}
+
 		do_action( 'sc_directory_upgrade_requested', $user_id, $listing_id, $tier );
 
 		return array( 'status' => 'pending' );

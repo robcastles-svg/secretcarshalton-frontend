@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { PayNow } from "@/app/_components/PayNow";
 import { SpamTrap } from "@/app/_components/SpamTrap";
 import { annualSalary, formatJobSalary, jobRateBracket, type SalaryPeriod } from "@/lib/pricing";
 
@@ -11,7 +12,7 @@ export function SubmitJobForm() {
   const [period, setPeriod] = useState<SalaryPeriod>("hour");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+  const [submitted, setSubmitted] = useState<{ id: number; price: string } | null>(null);
 
   // Display only — SC_Jobs_REST works out the band itself from the pay sent.
   const salary = Number(amount) > 0 ? Number(amount) : null;
@@ -33,17 +34,25 @@ export function SubmitJobForm() {
       return;
     }
 
-    setDone(true);
+    const body = await res.json().catch(() => ({}));
+    setSubmitted({ id: Number(body.id), price: body.price || band?.price || "" });
     router.refresh();
   }
 
-  if (done) {
+  if (submitted) {
     return (
-      <p>
-        Thanks — your job posting&apos;s been submitted. There&apos;s no automated payment yet, so we&apos;ll be
-        in touch to arrange it (PayPal) — it goes live once that&apos;s sorted and we&apos;ve approved it. You
-        can track the status from your dashboard.
-      </p>
+      <>
+        <p>Thanks — your job is saved. Pay below and it goes live straight away for 7 days.</p>
+        <PayNow
+          kind="job"
+          id={submitted.id}
+          price={submitted.price}
+          what="job post, live for 7 days"
+          paidText="Paid — your job is live until {until}."
+          viewPath="/jobs/"
+        />
+        <p className="dashboard-hint">You can also pay later from your dashboard.</p>
+      </>
     );
   }
 
@@ -94,8 +103,7 @@ export function SubmitJobForm() {
         {band
           ? `${band.price} for 7 days — ${band.label.toLowerCase()}${period === "hour" ? " (hourly pay is priced on the full-time equivalent)" : ""}.`
           : "Enter the pay to see the price."}{" "}
-        There&apos;s no automated payment yet, so once you submit this, we&apos;ll review it and get in touch to
-        arrange payment (PayPal). Nothing is charged now.
+        You&apos;ll pay with PayPal on the next step, and the job goes live as soon as it&apos;s paid.
       </p>
 
       {error && <p className="auth-error">{error}</p>}

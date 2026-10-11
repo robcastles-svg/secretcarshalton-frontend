@@ -173,6 +173,162 @@ class SC_Ads_PayPal {
 	}
 
 	/**
+	 * Refunds a captured payment in full. Works for one-off captures and
+	 * for subscription payments (their transaction IDs are captures too);
+	 * the classic v1 sale refund is tried if v2 rejects the ID.
+	 */
+	public static function refund_capture( $capture_id ) {
+		$token = self::get_access_token();
+		if ( is_wp_error( $token ) ) {
+			return $token;
+		}
+
+		$result = self::request( 'POST', '/v2/payments/captures/' . rawurlencode( $capture_id ) . '/refund', $token, new stdClass() );
+		if ( is_wp_error( $result ) ) {
+			$sale = self::request( 'POST', '/v1/payments/sale/' . rawurlencode( $capture_id ) . '/refund', $token, new stdClass() );
+			if ( ! is_wp_error( $sale ) ) {
+				return $sale;
+			}
+		}
+		return $result;
+	}
+
+	/**
+	 * The PayPal billing plan for a yearly subscription product, created
+	 * the first time it's needed in each mode (sandbox and live have
+	 * separate catalogues) and remembered in an option. $key names the
+	 * product, e.g. 'standard_listing'; a price change means a new plan,
+	 * so the price is part of the stored key.
+	 */
+	public static function ensure_yearly_plan( $key, $name, $price ) {
+		$creds  = SC_Ads_PayPal_Settings::active_credentials();
+		$option = 'sc_ads_paypal_plan_' . $creds['mode'] . '_' . $key . '_' . str_replace( '.', '_', number_format( (float) $price, 2, '.', '' ) );
+		$stored = get_option( $option );
+		if ( $stored ) {
+			return $stored;
+		}
+
+		$token = self::get_access_token();
+		if ( is_wp_error( $token ) ) {
+			return $token;
+		}
+
+		$product = self::request(
+			'POST',
+			'/v1/catalogs/products',
+			$token,
+			array(
+				'name' => $name,
+				'type' => 'SERVICE',
+			)
+		);
+		if ( is_wp_error( $product ) ) {
+			return $product;
+		}
+
+		$plan = self::request(
+			'POST',
+			'/v1/billing/plans',
+			$token,
+			array(
+				'product_id'          => $product['id'],
+				'name'                => $name,
+				'status'              => 'ACTIVE',
+				'billing_cycles'      => array(
+					array(
+						'frequency'      => array(
+							'interval_unit'  => 'YEAR',
+							'interval_count' => 1,
+						),
+						'tenure_type'    => 'REGULAR',
+						'sequence'       => 1,
+						'total_cycles'   => 0,
+						'pricing_scheme' => array(
+							'fixed_price' => array(
+								'value'         => number_format( (float) $price, 2, '.', '' ),
+								'currency_code' => 'GBP',
+							),
+						),
+					),
+				),
+				'payment_preferences' => array(
+					'auto_bill_outstanding'     => true,
+					'payment_failure_threshold' => 1,
+				),
+			)
+		);
+		if ( is_wp_error( $plan ) ) {
+			return $plan;
+		}
+
+		update_option( $option, $plan['id'] );
+		return $plan['id'];
+	}
+
+	/** Starts a subscription; the buyer approves it on PayPal's own page (the 'approve' link) and comes back to $return_url. */
+	public static function create_subscription( $plan_id, $custom_id, $return_url, $cancel_url ) {
+		$token = self::get_access_token();
+		if ( is_wp_error( $token ) ) {
+			return $token;
+		}
+
+		return self::request(
+			'POST',
+			'/v1/billing/subscriptions',
+			$token,
+			array(
+				'plan_id'             => $plan_id,
+				'custom_id'           => (string) $custom_id,
+				'application_context' => array(
+					'brand_name'          => 'Secret Carshalton',
+					'shipping_preference' => 'NO_SHIPPING',
+					'user_action'         => 'SUBSCRIBE_NOW',
+					'return_url'          => $return_url,
+					'cancel_url'          => $cancel_url,
+				),
+			)
+		);
+	}
+
+	public static function get_subscription( $subscription_id ) {
+		$token = self::get_access_token();
+		if ( is_wp_error( $token ) ) {
+			return $token;
+		}
+		return self::request( 'GET', '/v1/billing/subscriptions/' . rawurlencode( $subscription_id ), $token );
+	}
+
+	public static function cancel_subscription( $subscription_id, $reason ) {
+		$token = self::get_access_token();
+		if ( is_wp_error( $token ) ) {
+			return $token;
+		}
+		return self::request( 'POST', '/v1/billing/subscriptions/' . rawurlencode( $subscription_id ) . '/cancel', $token, array( 'reason' => $reason ) );
+	}
+
+	/** Completed payments on a subscription between two timestamps (oldest first). */
+	public static function subscription_transactions( $subscription_id, $from_ts, $to_ts ) {
+		$token = self::get_access_token();
+		if ( is_wp_error( $token ) ) {
+			return $token;
+		}
+		$path   = '/v1/billing/subscriptions/' . rawurlencode( $subscription_id ) . '/transactions?start_time=' .
+			rawurlencode( gmdate( 'Y-m-d\TH:i:s\Z', $from_ts ) ) . '&end_time=' . rawurlencode( gmdate( 'Y-m-d\TH:i:s\Z', $to_ts ) );
+		$result = self::request( 'GET', $path, $token );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+		return array_values(
+			array_filter(
+				(array) ( $result['transactions'] ?? array() ),
+				function ( $t ) {
+					return 'COMPLETED' === ( $t['status'] ?? '' );
+				}
+			)
+		);
+	}
+
+	/**
 	 * Creates the webhook subscription against whichever mode is active
 	 * right now, and stores its ID — called once by hand from wp-admin
 	 * (see SC_Ads_PayPal_Settings) after the target URL is reachable,

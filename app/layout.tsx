@@ -293,7 +293,7 @@ export default async function RootLayout({
                 Read our Google reviews
               </a>
               <form action="/search" className="footer-search">
-                <input type="search" name="q" placeholder="Search stories and walks" />
+                <input type="search" name="s" placeholder="Search stories and walks" />
                 <button type="submit">Search</button>
               </form>
             </div>

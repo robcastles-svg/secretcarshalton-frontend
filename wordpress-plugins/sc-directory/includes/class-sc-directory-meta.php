@@ -46,7 +46,7 @@ class SC_Directory_Meta {
 		'sc_featured'         => 'boolean',
 		'sc_verified'         => 'boolean',
 		'sc_claimed'          => 'boolean',
-		'sc_plan'             => 'string', // 'free' | 'paid'
+		'sc_plan'             => 'string', // 'free' | 'standard' (yearly subscription) | 'paid' (Featured)
 		'sc_claim_expires_at' => 'string', // ISO date, empty string when not applicable
 		/**
 		 * Which Featured package this listing is on — 'featured' |

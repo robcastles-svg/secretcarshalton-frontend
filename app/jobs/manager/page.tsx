@@ -51,8 +51,8 @@ export default async function JobsManagerPage() {
           <div className="adv-how-step">
             <span className="adv-how-number">2</span>
             <div>
-              <div className="adv-how-title">We review &amp; arrange payment</div>
-              <div className="adv-how-text">No automated payment yet — we&apos;ll be in touch to arrange it (PayPal).</div>
+              <div className="adv-how-title">Pay with PayPal</div>
+              <div className="adv-how-text">Your job goes live as soon as it&apos;s paid for.</div>
             </div>
           </div>
           <div className="adv-how-step">

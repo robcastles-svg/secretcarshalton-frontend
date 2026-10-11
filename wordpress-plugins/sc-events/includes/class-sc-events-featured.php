@@ -29,6 +29,7 @@ class SC_Events_Featured {
 
 	public static function init() {
 		add_action( 'sc_ads_paypal_capture_completed', array( __CLASS__, 'on_webhook_capture' ), 10, 2 );
+		add_filter( 'sc_payments_products', array( __CLASS__, 'payment_products' ) );
 	}
 
 	public static function register_routes() {
@@ -133,7 +134,7 @@ class SC_Events_Featured {
 		}
 
 		$value = $capture['purchase_units'][0]['payments']['captures'][0]['amount']['value'] ?? null;
-		self::mark_featured( $event_id, $value );
+		self::mark_featured( $event_id, $value, SC_Ads_Payments::capture_details( $capture ), $order_id );
 
 		return array(
 			'status'   => 'featured',
@@ -153,13 +154,32 @@ class SC_Events_Featured {
 		if ( 'COMPLETED' !== ( $resource['status'] ?? '' ) || 'paid' === get_post_meta( $event_id, 'sc_event_featured_payment', true ) ) {
 			return;
 		}
-		self::mark_featured( $event_id, $resource['amount']['value'] ?? null );
+		self::mark_featured(
+			$event_id,
+			$resource['amount']['value'] ?? null,
+			array( 'capture_id' => $resource['id'] ?? '' ),
+			(string) get_post_meta( $event_id, 'sc_event_paypal_order_id', true )
+		);
 	}
 
-	/** Features the event until its date, records the payment and tells Rob. Safe to call twice. */
-	private static function mark_featured( $event_id, $value ) {
-		$already = 'paid' === get_post_meta( $event_id, 'sc_event_featured_payment', true );
+	/** Featured events on the Payments screen; Unpublish there un-features the event (it stays live). */
+	public static function payment_products( $products ) {
+		$products['event_feature'] = array(
+			'label'    => 'Featured event',
+			'title'    => 'get_the_title',
+			'edit_url' => function ( $id ) {
+				return admin_url( 'post.php?post=' . (int) $id . '&action=edit' );
+			},
+			'undo'     => function ( $id ) {
+				update_post_meta( $id, 'sc_event_featured', false );
+				return 'The event is no longer featured (it stays live).';
+			},
+		);
+		return $products;
+	}
 
+	/** Features the event until its date and records the payment (Payments screen + email to Rob). Safe to call twice. */
+	private static function mark_featured( $event_id, $value, $details = array(), $order_id = '' ) {
 		update_post_meta( $event_id, 'sc_event_featured', true );
 		update_post_meta( $event_id, 'sc_event_featured_until', self::event_date( $event_id ) );
 		update_post_meta( $event_id, 'sc_event_featured_status', 'approved' );
@@ -168,16 +188,19 @@ class SC_Events_Featured {
 			update_post_meta( $event_id, 'sc_event_featured_amount_paid', '£' . $value );
 		}
 
-		if ( ! $already ) {
-			$event = get_post( $event_id );
-			$owner = $event ? get_userdata( (int) $event->post_author ) : null;
-			wp_mail(
-				get_option( 'admin_email' ),
-				'Event featured (paid) — ' . ( $event ? $event->post_title : '#' . $event_id ),
-				( $owner ? "{$owner->display_name} ({$owner->user_email})" : 'A member' ) .
-				' has paid ' . ( null !== $value ? '£' . $value : '' ) . " to feature an event. It's now in the featured slider and has the Featured badge until " .
-				self::event_date( $event_id ) . ".\n\nEvent: " . ( $event ? $event->post_title : '#' . $event_id ) .
-				"\nEdit it here:\n" . admin_url( 'post.php?post=' . $event_id . '&action=edit' )
+		if ( class_exists( 'SC_Ads_Payments' ) ) {
+			SC_Ads_Payments::record_once(
+				array(
+					'kind'        => 'event_feature',
+					'object_id'   => $event_id,
+					'amount'      => $value,
+					'user_id'     => (int) get_post_field( 'post_author', $event_id ),
+					'order_id'    => $order_id,
+					'capture_id'  => $details['capture_id'] ?? '',
+					'payer_name'  => $details['payer_name'] ?? '',
+					'payer_email' => $details['payer_email'] ?? '',
+					'note'        => 'Featured until ' . self::event_date( $event_id ) . '.',
+				)
 			);
 		}
 

@@ -90,6 +90,28 @@ subscription (WP Express Checkout plugin is installed). `sc-membership`
 tracks approval state; it does not (yet) touch payment collection —
 that stays manual/PayPal for now per Rob's existing process.
 
+## Payments (Oct 2026)
+
+Everything paid for goes live as soon as PayPal confirms the payment, Rob
+gets an email per payment, and **Payments** in wp-admin lists every one
+with **Refund** (through PayPal; also stops a yearly subscription) and
+**Unpublish** buttons. All of it runs through sc-ads' PayPal settings, so
+the sandbox/live switch is in one place.
+
+- `SC_Ads_Payments` (sc-ads): the ledger, the shared checkout
+  (`sc-ads/v1/pay/{kind}/{id}/create-order|capture`), yearly subscriptions
+  (`sc-ads/v1/subscribe/{kind}/{id}` + `/confirm`, checked daily for
+  renewals/cancellations/failures) and the Payments screen. Other plugins
+  add products through the `sc_payments_products` filter.
+- Products: `job` (sc-jobs, 7 days by pay band), `featured` (one-off,
+  1 or 6 months, renewal reminder a week before), `group_promotion`
+  (£10/30 days) and `standard_listing` (£2.50/year PayPal subscription,
+  unpublished 30 days after a lapsed year) in sc-directory's
+  `SC_Directory_Payments`; ads, featured events and walk maps keep their
+  own checkout routes but are recorded in the same ledger.
+- Listings Featured before this have no `sc_featured_until` and are
+  never expired or charged (grandfathered, as above).
+
 ## Contract between plugins (so they "talk to each other cleanly")
 
 `sc-membership` exposes:

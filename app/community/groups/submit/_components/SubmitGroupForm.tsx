@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { PayNow } from "@/app/_components/PayNow";
 import { GROUP_PROMOTION_PRICE } from "@/lib/pricing";
 import { GROUPS_CATEGORY_SLUG } from "@/lib/wordpress";
 
@@ -16,7 +17,8 @@ export function SubmitGroupForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
-  const [resultMessage, setResultMessage] = useState("");
+  /** Set when they ticked "Promote my group" — the next step is paying for it. */
+  const [promoteId, setPromoteId] = useState<number | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,14 +53,7 @@ export function SubmitGroupForm() {
 
     if (wantsPromotion) {
       const { id } = await createRes.json();
-      const promoRes = await fetch(`/api/directory/${id}/request-promotion`, { method: "POST" });
-      setResultMessage(
-        promoRes.ok
-          ? "Thanks — your group has been submitted, and your promotion request has also gone in. It'll run for 30 days once approved."
-          : "Your group was submitted, but we couldn't send the promotion request just now — you can request it again from your group's page once it's live."
-      );
-    } else {
-      setResultMessage("Thanks — your group has been submitted and is awaiting review.");
+      setPromoteId(Number(id));
     }
 
     setDone(true);
@@ -66,7 +61,20 @@ export function SubmitGroupForm() {
   }
 
   if (done) {
-    return <p>{resultMessage}</p>;
+    return (
+      <>
+        <p>Thanks — your group has been submitted and is awaiting review.</p>
+        {promoteId && (
+          <PayNow
+            kind="group_promotion"
+            id={promoteId}
+            price={GROUP_PROMOTION_PRICE.split(" ")[0]}
+            what="promote your group for 30 days"
+            paidText="Paid — your group is promoted until {until}. It shows once we've approved the group."
+          />
+        )}
+      </>
+    );
   }
 
   return (
@@ -105,8 +113,8 @@ export function SubmitGroupForm() {
         Promote my group — {GROUP_PROMOTION_PRICE}
       </label>
       <p className="dashboard-hint">
-        Optional — featured placement within the Community section for 30 days. Your listing itself is always
-        free; this just gets it seen more. Subject to approval, like the listing itself.
+        Optional — featured placement within the Community section for 30 days, paid with PayPal on the next
+        step. Your listing itself is always free; this just gets it seen more.
       </p>
 
       {error && <p className="auth-error">{error}</p>}

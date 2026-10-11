@@ -73,9 +73,8 @@ class SC_Jobs_REST {
 		update_post_meta( $post_id, 'job_salary_text', self::salary_text( $salary_amount, $salary_period ) );
 		// Decided here from the pay entered, never taken from the form.
 		update_post_meta( $post_id, 'job_rate_bracket', self::rate_bracket( self::annual_salary( $salary_amount, $salary_period ) ) );
-		// A member job posting is paid — no automated payment yet, so this
-		// just flags it for Rob to arrange payment before approving (same
-		// holding pattern as sc-ads' payment_status).
+		// Stays 'pending' until paid for through the site's checkout (see
+		// payment_products below), which publishes it for 7 days.
 		update_post_meta( $post_id, 'payment_status', 'pending' );
 
 		// The form accepts either a link or a plain email address ("how to
@@ -91,7 +90,12 @@ class SC_Jobs_REST {
 
 		do_action( 'sc_jobs_job_submitted', $post_id );
 
-		return array( 'id' => $post_id, 'status' => 'pending' );
+		$band = self::RATE_BRACKETS[ get_post_meta( $post_id, 'job_rate_bracket', true ) ] ?? null;
+		return array(
+			'id'     => $post_id,
+			'status' => 'pending',
+			'price'  => $band ? $band[1] : '',
+		);
 	}
 
 	/**
@@ -132,6 +136,70 @@ class SC_Jobs_REST {
 		return self::pounds( $amount ) . ' a year (about ' . self::pounds( round( $amount / self::HOURS_PER_YEAR, 2 ) ) . ' per hour)';
 	}
 
+	const LIVE_DAYS = 7;
+
+	/** Pounds charged per band; older submissions may carry the retired hourly bands. */
+	const BAND_PRICES = array(
+		'under_30k'  => 15,
+		'30k_to_40k' => 20,
+		'over_40k'   => 40,
+		'up_to_15'   => 15,
+		'15_to_20'   => 20,
+		'over_20'    => 40,
+	);
+
+	/**
+	 * A member's job on the site's shared checkout (SC_Ads_Payments): paid
+	 * for after submitting, it goes live straight away for LIVE_DAYS days
+	 * (SC_Jobs_Sync's daily sweep unpublishes it once expiry_date passes).
+	 */
+	public static function payment_products( $products ) {
+		$products['job'] = array(
+			'label'    => 'Job post',
+			'title'    => 'get_the_title',
+			'edit_url' => function ( $id ) {
+				return admin_url( 'post.php?post=' . (int) $id . '&action=edit' );
+			},
+			'can_pay'  => function ( $id, $user_id, $stage ) {
+				$job = get_post( $id );
+				if ( ! $job || SC_Jobs_CPT::POST_TYPE !== $job->post_type || 'member' !== get_post_meta( $id, 'source', true ) ) {
+					return new WP_Error( 'not_found', 'Job not found.', array( 'status' => 404 ) );
+				}
+				if ( (int) $job->post_author !== (int) $user_id ) {
+					return new WP_Error( 'not_owner', 'You can only pay for your own job posts.', array( 'status' => 403 ) );
+				}
+				if ( 'start' === $stage && 'paid' === get_post_meta( $id, 'payment_status', true ) && 'publish' === $job->post_status ) {
+					return new WP_Error( 'already_paid', 'This job is already paid for and live.', array( 'status' => 400 ) );
+				}
+				return true;
+			},
+			'price'    => function ( $id ) {
+				$price = self::BAND_PRICES[ get_post_meta( $id, 'job_rate_bracket', true ) ] ?? null;
+				if ( null === $price ) {
+					return new WP_Error( 'no_price', "This job has no pay band, so it can't be priced — please contact us.", array( 'status' => 400 ) );
+				}
+				return array( $price, 'Secret Carshalton job post: ' . get_the_title( $id ) . ' (' . self::LIVE_DAYS . ' days)' );
+			},
+			'on_paid'  => function ( $id, $payment_id ) {
+				$until = wp_date( 'Y-m-d', strtotime( '+' . self::LIVE_DAYS . ' days' ) );
+				update_post_meta( $id, 'payment_status', 'paid' );
+				update_post_meta( $id, 'amount_paid', '£' . get_post_meta( $payment_id, 'amount', true ) );
+				update_post_meta( $id, 'expiry_date', $until );
+				wp_update_post( array( 'ID' => $id, 'post_status' => 'publish' ) );
+				update_post_meta( $payment_id, 'note', 'Live until ' . wp_date( 'j F Y', strtotime( $until ) ) . '.' );
+				return array(
+					'slug'  => get_post_field( 'post_name', $id ),
+					'until' => $until,
+				);
+			},
+			'undo'     => function ( $id ) {
+				wp_update_post( array( 'ID' => $id, 'post_status' => 'draft' ) );
+				return 'The job is unpublished.';
+			},
+		);
+		return $products;
+	}
+
 	/** The dashboard's "Your jobs" section. */
 	public static function get_my_jobs( WP_REST_Request $request ) {
 		$posts = get_posts(
@@ -155,6 +223,8 @@ class SC_Jobs_REST {
 					'date'          => $post->post_date,
 					'company'       => get_post_meta( $post->ID, 'job_company', true ),
 					'paymentStatus' => get_post_meta( $post->ID, 'payment_status', true ),
+					'price'         => isset( self::BAND_PRICES[ get_post_meta( $post->ID, 'job_rate_bracket', true ) ] ) ? '£' . self::BAND_PRICES[ get_post_meta( $post->ID, 'job_rate_bracket', true ) ] : '',
+					'expiresOn'     => (string) get_post_meta( $post->ID, 'expiry_date', true ),
 				);
 			},
 			$posts

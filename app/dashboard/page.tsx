@@ -15,7 +15,7 @@ import {
   parseEventDate,
   WP_ADMIN_URL,
 } from "@/lib/wordpress";
-import { EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
+import { EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS, formatUntil } from "@/lib/pricing";
 import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { ExtendAdButton } from "./_components/ExtendAdButton";
@@ -454,7 +454,7 @@ export default async function DashboardPage() {
                           job.status === "publish"
                             ? { label: "Live", cls: "dash-chip-ok" }
                             : job.paymentStatus === "paid"
-                              ? { label: "Paid — awaiting review", cls: "dash-chip-sched" }
+                              ? { label: "Ended", cls: "dash-chip-sched" }
                               : { label: "Awaiting payment", cls: "dash-chip-wait" };
                         return (
                           <>
@@ -465,6 +465,14 @@ export default async function DashboardPage() {
                                 <span>{job.title}</span>
                               )}
                               {job.company && <div className="dash-meta">{job.company}</div>}
+                              {job.status === "publish" && job.expiresOn && (
+                                <div className="dash-meta">Live until {formatUntil(job.expiresOn)}</div>
+                              )}
+                              {job.status !== "publish" && job.paymentStatus !== "paid" && (
+                                <Link href={`/payment/pay?kind=job&id=${job.id}`} className="dash-meta">
+                                  Pay {job.price} to publish
+                                </Link>
+                              )}
                             </div>
                             <span className={`dash-chip ${chip.cls}`}>{chip.label}</span>
                           </>
@@ -535,6 +543,16 @@ export default async function DashboardPage() {
                       <span className="dashboard-my-list-views">
                         {listing.views} view{listing.views === 1 ? "" : "s"}
                       </span>
+                      {listing.status !== "publish" && !listing.isGroup && !listing.subscribed && !listing.featured && (
+                        <Link href={`/payment/pay?kind=standard_listing&id=${listing.id}`} className="dashboard-my-list-edit">
+                          Pay to publish
+                        </Link>
+                      )}
+                      {listing.featuredUntil && (
+                        <Link href={`/payment/pay?kind=featured&id=${listing.id}`} className="dashboard-my-list-edit">
+                          Featured until {formatUntil(listing.featuredUntil)} · Renew
+                        </Link>
+                      )}
                       <Link href={`/directory/${listing.slug}/edit`} className="dashboard-my-list-edit">
                         Edit
                       </Link>
