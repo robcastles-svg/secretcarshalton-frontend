@@ -12,6 +12,8 @@ export interface WalkMap {
   productId: number;
   name: string;
   price: string;
+  /** The product's thumbnail (a small image of the map) from the block's modal, or "" — shown blurred as a teaser. */
+  thumbnail: string;
 }
 
 export const WALK_MAP_MARKER = /<!--sc-map:(\d+)-->/;
@@ -56,6 +58,7 @@ export function extractWalkMaps(html: string): { html: string; maps: Map<number,
         productId,
         name: decodeName(block.match(/"name":"((?:[^"\\]|\\.)*)"/)?.[1] ?? "Route map"),
         price: block.match(/class="wpec-price-amount">([^<]+)</)?.[1].trim() ?? "",
+        thumbnail: block.match(/class="wpec-modal-item-thumbnail"[\s\S]*?<img[^>]*?\ssrc="([^"]+)"/)?.[1] ?? "",
       });
     }
     out += html.slice(pos, m.index).replace(WRAPPER_COMMENT, "") + `<!--sc-map:${productId}-->`;
