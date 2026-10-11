@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { getTags } from "@/lib/wordpress";
 
@@ -11,6 +12,8 @@ export default async function ThemesPage() {
 
   return (
     <main className="container">
+      {/* Themes are part of the Discover section (Rob, 2026-10). */}
+      <SetActiveNavSection section="Discover" />
       <h1>
         Stories by theme
         <CategoryKeyIcon />

@@ -193,7 +193,9 @@ export async function DiscoverView({
             </h1>
           )}
           <p className="category-header-description">
-            Timeless and fascinating stories from around Carshalton and nearby areas
+            {activeArea
+              ? `Timeless and fascinating stories from around ${activeArea.name}`
+              : "Timeless and fascinating stories from around Carshalton and nearby areas"}
           </p>
         </div>
 
