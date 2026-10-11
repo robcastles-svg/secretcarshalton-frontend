@@ -41,6 +41,10 @@ function buildFeed(posts: WPContentItem[], featuredListings: WPListing[]): FeedI
       listingIndex++;
     }
   });
+  // Too few stories to reach the first slot (a quiet area): still show one.
+  if (listingIndex === 0 && posts.length > 0) {
+    feed.push({ kind: "listing", listing: featuredListings[0] });
+  }
   return feed;
 }
 
