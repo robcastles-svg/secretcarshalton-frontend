@@ -1381,6 +1381,8 @@ a.card-category:hover {
 
 .home-section-header {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 1rem;
@@ -7347,7 +7349,7 @@ a.card-category:hover {
   position: relative;
   margin-left: calc(50% - 50vw);
   width: 100vw;
-  padding-left: calc(50vw - 50% + 1.5rem);
+  padding-left: calc(50vw - 50%);
   /* This codebase never resets box-sizing globally, so by default
      (content-box) the padding-left above was being added ON TOP of the
      100vw width instead of carved out of it — the element rendered
@@ -7375,14 +7377,16 @@ a.card-category:hover {
 
 .reels-track li {
   flex: none;
-  width: 160px;
+  width: 200px;
   scroll-snap-align: start;
 }
 
 .reels-item {
   position: relative;
   display: block;
-  aspect-ratio: 9 / 16;
+  /* Instagram's own portrait shape — 9:16 cropped the sides off photo
+     posts and the text on graphics. */
+  aspect-ratio: 4 / 5;
   border-radius: 8px;
   overflow: hidden;
   background: #ece8e3;
