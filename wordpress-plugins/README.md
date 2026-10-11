@@ -153,10 +153,15 @@ for it since before `sc-events` existed (5 points per RSVP).
   43201 Bongs on the High Street, 41344 → 43204 Islands in the Stream,
   41434 → 43206 History sleuth), with their featured and inline images
   uploaded to staging and the tree article's 2 comments. Live still has
-  its own copies, so edits made there since need re-syncing. Also still
-  to reconcile: 4 other newer comments on live, 1 article only on
-  staging (abandoned pub), and 2 articles edited differently on each
-  site. Re-diff by slug right before the push; `getStagingPostIdBySlug`
+  its own copies, so edits made there since need re-syncing. Also on
+  11 Oct: the 4 other newer live comments (1 on the fire-walking article,
+  3 on the Dave Barry Quartet and Day of Dance 2026 events) were copied
+  with their original authors and dates; the 2 articles edited on both
+  sites were reconciled (only a tag and a category had changed on live);
+  and the "Community" category, created on live after the clone, was
+  added on staging (ID 1163 there, 815 on live). The abandoned-pub
+  article exists only on staging, which is fine since staging becomes the
+  CMS. Re-diff by slug right before the push; `getStagingPostIdBySlug`
   in `lib/wordpress.ts` explains why articles must be re-created on
   staging (new IDs) rather than copied with their live IDs.
 - [ ] **Ownerships.** Directory listings were imported unclaimed (see the
@@ -189,9 +194,11 @@ for it since before `sc-events` existed (5 points per RSVP).
   copied. First run 11 Oct 2026 copied 7 reviews and 2 replies. Re-run
   just before go-live, then pause sign-ups and reviews on the old site
   until the switch.
-- [ ] **Listing added on live after the clone:** "Professional Children's
-  football coaching" (30 Aug 2026) isn't on staging. Its owner isn't shown
-  on the public page; check it in Sabai's admin.
+- [x] **Listing added on live after the clone:** "Professional Children's
+  football coaching" (30 Aug 2026) was created on staging on 11 Oct 2026
+  (listing 43223, owner KooraAca, user 4246). Its 238 live views aren't in
+  `listing-baselines.json` yet; add it when that file is regenerated for
+  go-live.
 - [ ] **Correct view counts.**
   - *Listings:* staging only had views since the import. sc-post-views
     0.5.0 seeds each listing's old Sabai total from
