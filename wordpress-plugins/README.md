@@ -148,13 +148,17 @@ for it since before `sc-events` existed (5 points per RSVP).
      `lib/wordpress.ts` at it, then switch `www` to Vercel. Staging19
      goes back to being a test copy.
 - [ ] **Up-to-date articles and comments.** As of Oct 2026, live had 4
-  articles staging doesn't (tree measurement, Bongs on the High Street,
-  Islands in the Stream, History sleuth) and 6 newer comments. Staging
-  had 1 article live doesn't (abandoned pub), and 2 articles had been
-  edited differently on each site. Re-diff by slug right before the push;
-  `getStagingPostIdBySlug` in `lib/wordpress.ts` explains why articles
-  must be re-created on staging (new IDs) rather than copied with their
-  live IDs.
+  articles staging didn't. On 11 Oct 2026 they were re-created on staging
+  under new IDs (live → staging: 41261 → 43199 tree measurement, 41327 →
+  43201 Bongs on the High Street, 41344 → 43204 Islands in the Stream,
+  41434 → 43206 History sleuth), with their featured and inline images
+  uploaded to staging and the tree article's 2 comments. Live still has
+  its own copies, so edits made there since need re-syncing. Also still
+  to reconcile: 4 other newer comments on live, 1 article only on
+  staging (abandoned pub), and 2 articles edited differently on each
+  site. Re-diff by slug right before the push; `getStagingPostIdBySlug`
+  in `lib/wordpress.ts` explains why articles must be re-created on
+  staging (new IDs) rather than copied with their live IDs.
 - [ ] **Ownerships.** Directory listings were imported unclaimed (see the
   sc-directory row above); assign real owners. Check event organiser
   ownership too, now that most member-written events are linked to an
@@ -178,10 +182,10 @@ for it since before `sc-events` existed (5 points per RSVP).
     counting until the switch, so regenerate the file and bump
     `SC_POST_VIEWS_LISTING_SEED` just before go-live to bring the totals
     up to date.
-  - *Articles:* the 4 live-only articles have no staging count. Once
-    they're re-created on staging, seed them from the live Post Views
-    Counter (the existing backfill in `SC_Post_Views_Admin` does this by
-    live ID, so it needs pointing at the new staging IDs).
+  - *Articles:* the 4 re-created articles get their live Post Views
+    Counter totals from `sc-post-views/data/article-baselines.json`
+    (sc-post-views 0.5.1). Like the listings, regenerate it and bump
+    `SC_POST_VIEWS_ARTICLE_SEED` just before go-live.
 
 ## Lessons from building this (read before adding a new CPT-based plugin)
 

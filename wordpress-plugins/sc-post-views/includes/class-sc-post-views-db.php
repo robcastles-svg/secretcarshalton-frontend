@@ -168,19 +168,35 @@ class SC_Post_Views_DB {
 	 * baseline rather than adding to it.
 	 */
 	public static function seed_listing_live_baselines() {
+		self::seed_baselines_from_file( 'data/listing-baselines.json', 'listings', 'sc_listing' );
+	}
+
+	/**
+	 * The articles published on live after staging was cloned, re-created on
+	 * staging under new IDs, get the live site's Post Views Counter total as
+	 * their baseline, the same as every other article got from the original
+	 * backfill (SC_Post_Views_Admin). That backfill can't do these: it keys
+	 * rows by live ID, and these articles have different IDs here.
+	 */
+	public static function seed_article_live_baselines() {
+		self::seed_baselines_from_file( 'data/article-baselines.json', 'posts', 'post' );
+	}
+
+	/** Upserts baseline rows from a data file of {id, slug, views}, skipping any ID that isn't still that $post_type with that slug. */
+	private static function seed_baselines_from_file( $relative_path, $key, $post_type ) {
 		global $wpdb;
 		$table = self::table();
 
-		$file = SC_POST_VIEWS_DIR . 'data/listing-baselines.json';
+		$file = SC_POST_VIEWS_DIR . $relative_path;
 		$data = file_exists( $file ) ? json_decode( (string) file_get_contents( $file ), true ) : null; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-		if ( empty( $data['listings'] ) || ! is_array( $data['listings'] ) ) {
+		if ( empty( $data[ $key ] ) || ! is_array( $data[ $key ] ) ) {
 			return;
 		}
 
-		foreach ( $data['listings'] as $row ) {
+		foreach ( $data[ $key ] as $row ) {
 			$post_id = isset( $row['id'] ) ? (int) $row['id'] : 0;
 			$post    = $post_id ? get_post( $post_id ) : null;
-			if ( ! $post || 'sc_listing' !== $post->post_type || ( $row['slug'] ?? '' ) !== $post->post_name ) {
+			if ( ! $post || $post_type !== $post->post_type || ( $row['slug'] ?? '' ) !== $post->post_name ) {
 				continue;
 			}
 			$wpdb->query(

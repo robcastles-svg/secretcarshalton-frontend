@@ -1,0 +1,30 @@
+{
+ "generated": "2026-10-11",
+ "source": "live Post Views Counter total (/wp-json/post-views-counter/get-post-views/{live_id}) for articles re-created on staging under new IDs",
+ "posts": [
+  {
+   "id": 43199,
+   "live_id": 41261,
+   "slug": "tree-mendous-new-measurement-finally-announced-for-carshaltons-giant-tree",
+   "views": 1236
+  },
+  {
+   "id": 43201,
+   "live_id": 41327,
+   "slug": "bongs-on-carshalton-high-street-when-did-that-happen",
+   "views": 259
+  },
+  {
+   "id": 43204,
+   "live_id": 41344,
+   "slug": "islands-in-the-stream",
+   "views": 283
+  },
+  {
+   "id": 43206,
+   "live_id": 41434,
+   "slug": "history-sleuth-tracks-down-family-of-long-lost-photo-album",
+   "views": 168
+  }
+ ]
+}
