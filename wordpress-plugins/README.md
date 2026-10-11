@@ -159,12 +159,29 @@ for it since before `sc-events` existed (5 points per RSVP).
   sc-directory row above); assign real owners. Check event organiser
   ownership too, now that most member-written events are linked to an
   organiser.
-- [ ] **Directory listing start dates.** Check they're correct.
-- [ ] **Correct view counts.** Live articles 41344 and 41434 share IDs with
-  the Code Ninjas and Bendy Pilates listings on staging, so those two
-  listings' counts include article views and can't be cleanly split.
-  Decide how to correct them, and make sure the re-created articles
-  start with sensible counts.
+- [ ] **Directory listing start dates** (when each listing began). The
+  import set 51 listings' dates to the import day (21 Aug 2026). 49 were
+  reset on staging (11 Oct 2026) to the "Member since" date on their old
+  Sabai page on live. Still open:
+  - Red Onion Design (41279) and Dog Walker / Pet Sitter (42052) have no
+    live page. Dog Walker was added on staging on 24 Aug 2026, so its
+    date may be right; Red Onion's needs supplying.
+  - 1st Wallington Scouts (41283, staging 4 Jan 2022, live 28 Mar 2025)
+    and Logo Fiasco Records (41394, staging 30 Sep 2024, live 8 Nov 2025)
+    disagree with live and need checking by hand.
+- [ ] **Correct view counts.**
+  - *Listings:* staging only had views since the import. sc-post-views
+    0.5.0 seeds each listing's old Sabai total from
+    `sc-post-views/data/listing-baselines.json` (118 listings, matched by
+    title) and removes the article views misfiled against listings 41344
+    and 41434 (see `remove_misfiled_article_views()`). The old site keeps
+    counting until the switch, so regenerate the file and bump
+    `SC_POST_VIEWS_LISTING_SEED` just before go-live to bring the totals
+    up to date.
+  - *Articles:* the 4 live-only articles have no staging count. Once
+    they're re-created on staging, seed them from the live Post Views
+    Counter (the existing backfill in `SC_Post_Views_Admin` does this by
+    live ID, so it needs pointing at the new staging IDs).
 
 ## Lessons from building this (read before adding a new CPT-based plugin)
 

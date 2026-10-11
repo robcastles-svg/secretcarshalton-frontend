@@ -155,6 +155,79 @@ class SC_Post_Views_DB {
 		);
 	}
 
+	/**
+	 * Directory listings' real view history from the old Sabai directory on
+	 * the live site, as each listing's baseline row. These are real views
+	 * (Sabai's own counter), not the synthetic floor
+	 * remove_listing_baselines() took away. Read from
+	 * data/listing-baselines.json, which is generated outside WordPress (the
+	 * live pages only show the count in their HTML) and matched to staging
+	 * listings by title. A row is skipped unless that ID is still the same
+	 * sc_listing, so a stale file can't write onto something else. Upsert,
+	 * so re-running with a newer file (e.g. at go-live) replaces the
+	 * baseline rather than adding to it.
+	 */
+	public static function seed_listing_live_baselines() {
+		global $wpdb;
+		$table = self::table();
+
+		$file = SC_POST_VIEWS_DIR . 'data/listing-baselines.json';
+		$data = file_exists( $file ) ? json_decode( (string) file_get_contents( $file ), true ) : null; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		if ( empty( $data['listings'] ) || ! is_array( $data['listings'] ) ) {
+			return;
+		}
+
+		foreach ( $data['listings'] as $row ) {
+			$post_id = isset( $row['id'] ) ? (int) $row['id'] : 0;
+			$post    = $post_id ? get_post( $post_id ) : null;
+			if ( ! $post || 'sc_listing' !== $post->post_type || ( $row['slug'] ?? '' ) !== $post->post_name ) {
+				continue;
+			}
+			$wpdb->query(
+				$wpdb->prepare(
+					"INSERT INTO {$table} (post_id, post_slug, post_title, view_date, views) " . // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					'VALUES (%d, %s, %s, %s, %d) ' .
+					'ON DUPLICATE KEY UPDATE post_slug = VALUES(post_slug), post_title = VALUES(post_title), views = VALUES(views)',
+					$post_id,
+					$post->post_name,
+					get_the_title( $post ),
+					self::BASELINE_DATE,
+					max( 0, (int) ( $row['views'] ?? 0 ) )
+				)
+			);
+		}
+	}
+
+	/**
+	 * Live articles 41344 and 41434 were published after staging was
+	 * cloned and share their IDs with two staging directory listings, so
+	 * until the frontend started resolving articles by slug (see
+	 * getStagingPostIdBySlug in lib/wordpress.ts) their page views were
+	 * recorded against those listings. record_view() stamps each daily row
+	 * with the slug of whoever viewed it, so rows carrying the article's
+	 * slug are the misfiled ones. Removing them leaves the listings with
+	 * their own views; the articles' counts come from the live site's
+	 * Post Views Counter when they're re-created on staging.
+	 */
+	public static function remove_misfiled_article_views() {
+		global $wpdb;
+		$table = self::table();
+
+		$misfiled = array(
+			41344 => 'islands-in-the-stream',
+			41434 => 'history-sleuth-tracks-down-family-of-long-lost-photo-album',
+		);
+		foreach ( $misfiled as $post_id => $article_slug ) {
+			$wpdb->query(
+				$wpdb->prepare(
+					"DELETE FROM {$table} WHERE post_id = %d AND post_slug = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+					$post_id,
+					$article_slug
+				)
+			);
+		}
+	}
+
 	/** All-time total for one post — baseline row (if any) plus every day since. */
 	public static function total_for( $post_id ) {
 		global $wpdb;
