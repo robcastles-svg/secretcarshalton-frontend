@@ -3759,8 +3759,40 @@ a.card-category:hover {
   }
 
   .post-hero {
-    height: 40vh;
-    min-height: 220px;
+    height: 50vh;
+    min-height: 280px;
+  }
+
+  /* Rob's call (2026-10): on mobile the date/views line sits close under
+     the photo, the date and views lines sit close together, and the
+     share icons are smaller so they line up with the views line. */
+  .post-hero + .post-layout {
+    padding-top: 1rem;
+  }
+
+  .post-meta-row {
+    margin-top: 0;
+    row-gap: 0.3rem;
+  }
+
+  .post-hero-overlay .container {
+    padding-bottom: 1rem;
+  }
+
+  /* Share icons sit straight after the views (and comments) count rather
+     than pushed to the right edge. */
+  .post-meta-row .share-row {
+    margin-left: 0.25rem;
+  }
+
+  .post-meta-row .share-row-btn {
+    width: 26px;
+    height: 26px;
+  }
+
+  .post-meta-row .share-row-btn svg {
+    width: 13px;
+    height: 13px;
   }
 
   .post-hero-overlay h1,
@@ -8103,6 +8135,11 @@ a.card-category:hover {
 .walk-map-buy-price { color: #d6293e; white-space: nowrap; }
 .walk-map-buy-thanks { margin: 0 0 0.75rem; }
 .walk-map-buy-paypal { min-height: 48px; }
+/* The map's thumbnail (already blurred by Rob) as a small teaser beside the name and price. */
+.walk-map-buy-has-preview { display: flex; gap: 1rem; align-items: flex-start; }
+.walk-map-buy-body { flex: 1; min-width: 0; }
+.walk-map-buy-preview { flex: 0 0 auto; width: 88px; height: 88px; border-radius: 8px; overflow: hidden; background: #f1eef0; }
+.walk-map-buy-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* Job form: pay amount + per hour/year side by side. */
 .job-salary-field {
