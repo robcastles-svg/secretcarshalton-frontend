@@ -955,37 +955,21 @@ class SC_Directory_REST {
 		return array( 'status' => 'pending' );
 	}
 
-	/** 150/month, Rob's holding figure — see SC_Directory_Meta::FIELDS' docblock. No cron: reset happens lazily, the first time this is checked in a new calendar month. */
-	const FEATURED_GRID_MONTHLY_LIMIT = 150;
-
 	/**
-	 * True if this listing is featured and hasn't used up this month's
-	 * grid-impression allowance. Deliberately read-only — a new month just
-	 * means "not yet used, so eligible"; the actual counter reset only
-	 * happens in record_featured_impression, the one place that's
-	 * supposed to write. (get_featured_for_grid also reads this, so a GET
-	 * request never has the side effect of resetting anyone's count.)
+	 * True if this listing is featured. There used to be a 150-a-month
+	 * cap on grid appearances; Rob removed it (2026-10) since featuring
+	 * isn't sold on a view allowance. Appearances are still counted per
+	 * month (record_featured_impression) as a record, but never hide the
+	 * listing.
 	 */
 	private static function is_grid_eligible( $listing_id ) {
-		if ( ! get_post_meta( $listing_id, 'sc_featured', true ) ) {
-			return false;
-		}
-
-		$current_month = current_time( 'Y-m' );
-		$stored_month  = get_post_meta( $listing_id, 'sc_featured_views_month', true );
-		if ( $stored_month !== $current_month ) {
-			return true;
-		}
-
-		$used = (int) get_post_meta( $listing_id, 'sc_featured_views_used', true );
-		return $used < self::FEATURED_GRID_MONTHLY_LIMIT;
+		return (bool) get_post_meta( $listing_id, 'sc_featured', true );
 	}
 
 	/**
-	 * One featured listing still under its monthly impression allowance,
-	 * for interleaving into a News/Discover/etc grid — the pink-card
+	 * One featured listing, for interleaving into a News/Discover/etc grid — the pink-card
 	 * counterpart to sc-ads' blue in_feed rotation, gated by directory
-	 * upgrade + the monthly cap rather than an Active toggle. Picks
+	 * upgrade rather than an Active toggle. Picks
 	 * randomly among everything eligible rather than always the same one,
 	 * in the (likely, once this feature actually sells) case of more than
 	 * one featured listing existing at once.
@@ -1045,6 +1029,6 @@ class SC_Directory_REST {
 		$used = (int) get_post_meta( $listing_id, 'sc_featured_views_used', true );
 		update_post_meta( $listing_id, 'sc_featured_views_used', $used + 1 );
 
-		return array( 'views_used' => $used + 1, 'limit' => self::FEATURED_GRID_MONTHLY_LIMIT );
+		return array( 'views_used' => $used + 1 );
 	}
 }

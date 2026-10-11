@@ -112,11 +112,9 @@ export async function DiscoverView({
   const featuredListings = allListings.filter(
     (l) => l.meta.sc_featured && (!groupsCategory || !l.sc_listing_category?.includes(groupsCategory.id))
   );
-  // The monthly 150-impression cap (Rob's holding figure) only applies to
-  // getting mixed into the main feed below — the dedicated "Business
-  // feature" browse view (isFeatured) is a listing's own page, same as
-  // Directory's own featured display, not subject to it. sc_featured_grid_eligible
-  // — see SC_Directory_REST::is_grid_eligible.
+  // sc_featured_grid_eligible decides which get mixed into the feed below
+  // (see SC_Directory_REST::is_grid_eligible — no view cap any more); the
+  // "Business feature" browse view (isFeatured) shows every featured one.
   const eligibleForFeed = featuredListings.filter((l) => l.sc_featured_grid_eligible);
 
   let posts: WPContentItem[] = [];

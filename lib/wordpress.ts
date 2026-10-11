@@ -1135,7 +1135,7 @@ export interface WPListing {
   sc_logo_image?: { id: number; url: string } | null;
   /** Rolled up from approved review comments (sc_rating meta) server-side — see SC_Directory_REST's sc_review_stats REST field. Powers the Most Reviews / Highest Rated directory sort. */
   sc_review_stats?: { count: number; average: number | null };
-  /** True if sc_featured and still under this month's 150-impression grid allowance — see SC_Directory_REST::is_grid_eligible. */
+  /** True if the listing can be mixed into story grids (currently: it's featured; the old 150/month cap is gone) — see SC_Directory_REST::is_grid_eligible. */
   sc_featured_grid_eligible?: boolean;
   _embedded?: {
     "wp:featuredmedia"?: WPFeaturedMedia[];
@@ -1395,8 +1395,7 @@ export async function renewListingClaim(
 }
 
 /**
- * One featured listing still under its monthly grid-impression allowance
- * (150/month — Rob's holding figure), for interleaving into a category
+ * One featured listing, picked at random, for interleaving into a category
  * grid — the pink-card counterpart to getAd()'s blue in_feed ads. Same
  * "never fail the page it's on" contract as getAd(): a network hiccup or
  * nobody currently eligible both just mean no card shows, not an error.
