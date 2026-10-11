@@ -8165,3 +8165,31 @@ a.card-category:hover {
   border-bottom: 1px solid #eee;
   font-weight: 700;
 }
+
+/* 404 page */
+.not-found-page {
+  max-width: 640px;
+  min-height: 50vh;
+}
+.not-found-search {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 2rem;
+}
+.not-found-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+.not-found-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  list-style: none;
+  padding: 0;
+  font-weight: 600;
+}
