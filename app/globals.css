@@ -3811,7 +3811,8 @@ a.card-category:hover {
 
 /* Auth pages (login/register) */
 .auth-page {
-  max-width: 420px;
+  max-width: min(420px, 100%);
+  box-sizing: border-box;
 }
 
 /* Wider than the plain login/register forms above — benefit copy plus a
@@ -8046,3 +8047,23 @@ a.card-category:hover {
   .evv-venue, .evv-main, .evv-ads { order: 0; }
 }
 .evv-past .evx-past-more { justify-self: start; }
+
+/* Walk route map purchase (WalkMapBuy) — replaces WP Express Checkout's button. */
+.walk-map-buy {
+  margin: 0 0 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  max-width: min(420px, 100%);
+  box-sizing: border-box;
+}
+.walk-map-buy-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+.walk-map-buy-price { color: #d6293e; white-space: nowrap; }
+.walk-map-buy-thanks { margin: 0 0 0.75rem; }
+.walk-map-buy-paypal { min-height: 48px; }

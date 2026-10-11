@@ -13,7 +13,9 @@ import { getLatestCommentItems } from "@/app/_components/home/latestComments";
 import { ContentList } from "@/app/_components/ContentList";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { SidebarAds } from "@/app/_components/SidebarAds";
+import { WalkMapBuy } from "@/app/_components/WalkMapBuy";
 import { YopPollScripts } from "@/app/_components/YopPollScripts";
+import { extractWalkMaps, WALK_MAP_MARKER } from "@/lib/walk-maps";
 import {
   categoryHref,
   extractEmbeddedMainImage,
@@ -327,7 +329,9 @@ export default async function ContentPage({
   // back to the simpler self-serve "in_article" pool when nothing's set
   // for that zone — so the two ad systems share these positions instead
   // of self-serve in-article ads having nowhere of their own to render.
-  const contentChunks = splitContentIntoParagraphChunks(post.content.rendered);
+  // Paid route maps (walks only) — see lib/walk-maps.ts.
+  const walkMaps = extractWalkMaps(post.content.rendered);
+  const contentChunks = splitContentIntoParagraphChunks(walkMaps.html);
   const inPost1After = contentChunks.length > 4 ? 3 : null;
   const inPost2After = contentChunks.length > 9 ? contentChunks.length - 3 : null;
 
@@ -429,7 +433,12 @@ export default async function ContentPage({
           <div className="post-content">
             {contentChunks.map((chunk, i) => (
               <Fragment key={i}>
-                <div dangerouslySetInnerHTML={{ __html: chunk }} />
+                {chunk.split(WALK_MAP_MARKER).map((part, j) => {
+                  // split() with a capture group alternates HTML and product IDs.
+                  if (j % 2 === 0) return part.trim() ? <div key={j} dangerouslySetInnerHTML={{ __html: part }} /> : null;
+                  const map = walkMaps.maps.get(Number(part));
+                  return map ? <WalkMapBuy key={j} map={map} /> : null;
+                })}
                 {i === inPost1After && (
                   <AdSlot placement="in_post_1" fallbackPlacement="in_article" className="ad-slot ad-in-post" />
                 )}

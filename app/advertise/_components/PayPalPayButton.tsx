@@ -29,11 +29,12 @@ export function PayPalPayButton({
   endpoints,
 }: {
   adId: number;
-  onPaid: () => void;
+  /** Receives the capture route's JSON (e.g. a walk map's download link). */
+  onPaid: (result: Record<string, unknown>) => void;
   /**
    * Where to create and capture the order. Defaults to the text-ad routes;
-   * featuring an event passes its own (/api/events/{id}/feature/…), which
-   * go through the same sc-ads PayPal setup on the WordPress side.
+   * featuring an event and buying a walk map pass their own, which go
+   * through the same sc-ads PayPal setup on the WordPress side.
    */
   endpoints?: { createOrder: string; capture: string };
 }) {
@@ -95,7 +96,7 @@ export function PayPalPayButton({
               setError(body.error || "Payment didn't go through — please try again.");
               return;
             }
-            onPaid();
+            onPaid(body);
           },
           onError: () => {
             setError("Something went wrong with PayPal — please try again.");

@@ -2529,6 +2529,43 @@ export async function captureEventFeatureOrder(
   }
 }
 
+/** Starts a PayPal order for a walk's route map — SC_Ads_Map_Sales::create_order (price from the WP Express Checkout product). No login needed. */
+export async function createWalkMapOrder(productId: number): Promise<{ orderId: string; amount: number } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/maps/${productId}/create-order`, {
+      method: "POST",
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) return { code: body.code ?? "create_failed", message: body.message ?? "Could not start payment." };
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Captures the approved order and hands back the map's download link — SC_Ads_Map_Sales::capture. */
+export async function captureWalkMapOrder(
+  productId: number,
+  orderId: string
+): Promise<{ status: string; name: string; downloadUrl: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/maps/${productId}/capture`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) return { code: body.code ?? "capture_failed", message: body.message ?? "Payment didn't go through." };
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
 /** "Is this your group?" — asks to manage an organiser; Rob approves it in wp-admin. SC_Events_REST::claim_organizer. */
 export async function claimOrganizer(
   token: string,
