@@ -71,15 +71,15 @@ export default async function JobsManagerPage() {
           <span className="adv-eyebrow">Pricing</span>
           <h2 className="adv-h2">Priced by what the role pays</h2>
           <p className="adv-lede">
-            One flat price for a 7-day listing, based on the annual pay. Hourly pay is priced on the full-time
-            equivalent (37.5 hours a week).
+            One flat price for a 7-day listing, based on the hourly rate. A yearly salary is converted at 37.5 hours
+            a week.
           </p>
         </div>
 
         <div className="adv-rate-table">
           {JOB_RATE_BRACKETS.map((b) => (
             <div key={b.slug} className="adv-rate-row">
-              <span>{b.label}</span>
+              <span>{b.hourlyLabel}</span>
               <strong>{b.price} for 7 days</strong>
             </div>
           ))}

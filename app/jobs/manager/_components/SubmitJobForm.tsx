@@ -101,7 +101,7 @@ export function SubmitJobForm() {
 
       <p className="dashboard-hint">
         {band
-          ? `${band.price} for 7 days — ${band.label.toLowerCase()}${period === "hour" ? " (hourly pay is priced on the full-time equivalent)" : ""}.`
+          ? `${band.price} for 7 days — ${band.hourlyLabel.toLowerCase()} (${band.label.toLowerCase()}).`
           : "Enter the pay to see the price."}{" "}
         You&apos;ll pay with PayPal on the next step, and the job goes live as soon as it&apos;s paid.
       </p>
