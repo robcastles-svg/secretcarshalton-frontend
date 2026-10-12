@@ -762,6 +762,7 @@ a.ad-slot-text-image img {
      they fall back to CSS Grid auto-placement in column 1, under the
      thumbnail, which is the broken layout reported on News desktop. */
   .post-list.post-list-single-column .directory-badge,
+  .post-list.post-list-single-column .card-rating,
   .post-list.post-list-single-column li > p,
   .post-list.post-list-single-column .directory-card-socials {
     grid-column: 2;
@@ -3652,6 +3653,18 @@ a.card-category:hover {
 
 .directory-rating-summary:hover .directory-rating-count {
   text-decoration: underline;
+}
+
+/* A directory card's rating, just under its headline: stars and the
+   average, linking to the reviews (the count stays bottom-right). */
+.post-list .card-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  align-self: flex-start;
+  margin: 0.15rem 1rem 0.1rem;
+  font-size: 0.85rem;
+  color: #1a1a1a;
 }
 
 /* On a directory card the stars sit inline in the review-count link,
