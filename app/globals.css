@@ -4732,6 +4732,12 @@ a.card-category:hover {
   margin: 0.4rem 0;
 }
 
+/* Inside a card (.post-list li is a flex column, which stretches its
+   children): keep the badge pill-sized rather than the card's full width. */
+.post-list li > .directory-badge {
+  align-self: flex-start;
+}
+
 /* Pink outline on featured-listing cards — matches the PDF wireframe's
    treatment (a pink border box, distinct from the plain white cards
    around it), most visible where a featured listing sits interleaved
@@ -4849,6 +4855,15 @@ a.card-category:hover {
   font-size: 0.78rem;
   line-height: 1.3;
   color: #555;
+}
+
+/* No photo (e.g. a promoted group without one): the badge is the card's
+   first thing, so give it room at the top. Desktop only — mobile's row
+   layout already pads every side (see the media query below). */
+@media (min-width: 721px) {
+  .ad-card-external .ad-card-row > .card-text:first-child {
+    padding-top: 1rem;
+  }
 }
 
 @media (max-width: 720px) {
