@@ -3624,6 +3624,36 @@ a.card-category:hover {
   color: #ddd;
 }
 
+/* Under a directory listing's headline: stars, the average and the
+   review count, all one link down to the reviews. */
+.directory-rating-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: -0.25rem 0 0.75rem;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.directory-rating-summary .directory-rating-stars {
+  display: inline-block;
+  margin: 0;
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+}
+
+.directory-rating-summary b {
+  color: #1a1a1a;
+}
+
+.directory-rating-summary span {
+  color: #c2607a;
+}
+
+.directory-rating-summary:hover span {
+  text-decoration: underline;
+}
+
 /* On a directory card the stars sit inline in the review-count link,
    ahead of the bubble, rather than as their own block. */
 .card-star-rating {

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
+import { StarRatingDisplay } from "@/app/_components/StarRatingDisplay";
 import { DirectoryImageSlider } from "@/app/_components/DirectoryImageSlider";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { listingSocials } from "@/app/_components/SocialIcons";
@@ -240,6 +241,15 @@ export default async function DirectoryListingPage({
               </Link>
             )}
           </div>
+          {averageRating !== null && (
+            <a href="#comments" className="directory-rating-summary">
+              <StarRatingDisplay rating={averageRating} className="directory-rating-stars" />
+              <b>{averageRating.toFixed(1)}</b>
+              <span>
+                ({ratings.length} review{ratings.length === 1 ? "" : "s"})
+              </span>
+            </a>
+          )}
           {isFeatured && meta.sc_tagline && <p className="directory-tagline">{meta.sc_tagline}</p>}
           {(matchedCategories.length > 0 || meta.sc_featured) && (
             <div className="directory-badges">
