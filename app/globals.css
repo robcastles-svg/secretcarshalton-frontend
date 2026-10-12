@@ -4851,6 +4851,15 @@ a.card-category:hover {
   color: #555;
 }
 
+/* No photo (e.g. a promoted group without one): the badge is the card's
+   first thing, so give it room at the top. Desktop only — mobile's row
+   layout already pads every side (see the media query below). */
+@media (min-width: 721px) {
+  .ad-card-external .ad-card-row > .card-text:first-child {
+    padding-top: 1rem;
+  }
+}
+
 @media (max-width: 720px) {
   /* The extra .post-list li.ad-card-external specificity below is needed
      to beat .post-list li/li img's own base rules (vertical card,

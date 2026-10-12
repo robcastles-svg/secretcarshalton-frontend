@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
+import { MasonryGrid } from "@/app/_components/MasonryGrid";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { getAd, getGroupListings } from "@/lib/wordpress";
 
@@ -48,18 +49,14 @@ export default async function CommunityGroupsPage() {
             <p className="directory-empty">No groups listed yet — be the first to add one.</p>
           ) : (
             <>
-              {featured.length > 0 && (
-                <ul className="post-list post-list-two-column directory-featured-list">
-                  {featured.map((listing) => (
-                    <DirectoryListingCard key={listing.id} listing={listing} />
-                  ))}
-                </ul>
-              )}
-              <ul className="post-list directory-list">
-                {regular.map((listing) => (
+              {/* One masonry grid, featured first, like the directory (see
+                  DirectoryBrowse) — so featured and free groups sit side by
+                  side rather than a half-empty featured row above. */}
+              <MasonryGrid>
+                {[...featured, ...regular].map((listing) => (
                   <DirectoryListingCard key={listing.id} listing={listing} />
                 ))}
-              </ul>
+              </MasonryGrid>
             </>
           )}
         </div>
