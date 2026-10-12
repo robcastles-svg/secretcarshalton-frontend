@@ -328,6 +328,12 @@ export function EventForm({
     setError(null);
     const spam = spamFields(e.currentTarget);
 
+    // Rob's rule (2026-10): every event needs an image. New events must
+    // pick one; an older event being edited only if it has none yet.
+    if (!imageFile && !imageUrl) {
+      setError("Please add an event image. Every event needs one.");
+      return;
+    }
     if (!date || !startTime) {
       setError("Please add the date and start time.");
       return;
@@ -507,7 +513,7 @@ export function EventForm({
               <span className="evf-hint">Price and booking have their own boxes below.</span>
             </div>
             <div className="evf-field">
-              <span className="evf-lab">Event image</span>
+              <span className="evf-lab">Event image (required)</span>
               <div
                 className={`evf-drop${dragOver ? " evf-drop-over" : ""}`}
                 onDragOver={(e) => {

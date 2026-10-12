@@ -408,20 +408,24 @@ class SC_Membership_REST {
 	}
 
 	/**
-	 * "Ban/spam" a member — BuddyPress (confirmed active on this install,
-	 * see the avatar filter's mystery-man.jpg path) already has a real,
-	 * standalone-site-safe version of this via
-	 * bp_core_process_spammer_status(): it hides the member's BuddyPress
-	 * content sitewide and blocks them logging in. Falls back to a plain
-	 * user-meta flag + the wp_authenticate_user login block below if
-	 * BuddyPress isn't active for some reason, so this never silently
-	 * no-ops.
+	 * "Ban/spam" a member. Our own sc_member_banned flag is the record, so
+	 * a ban holds whether or not BuddyPress is active (it's being retired
+	 * with the old site). Members BuddyPress marked as spammers before
+	 * that have user_status 1 on wp_users, which also counts as banned.
+	 * While BuddyPress is still active it's told too, so it keeps hiding
+	 * the member's old BuddyPress content.
 	 */
 	public static function is_banned( $user_id ) {
-		if ( function_exists( 'bp_is_user_spammer' ) ) {
-			return (bool) bp_is_user_spammer( $user_id );
+		// Admins can't be banned (see moderate_member), so a stray
+		// user_status can never lock Rob out.
+		if ( user_can( $user_id, 'manage_options' ) ) {
+			return false;
 		}
-		return '1' === get_user_meta( $user_id, 'sc_member_banned', true );
+		if ( '1' === get_user_meta( $user_id, 'sc_member_banned', true ) ) {
+			return true;
+		}
+		$user = get_userdata( $user_id );
+		return $user && 1 === (int) $user->user_status;
 	}
 
 	public static function moderate_member( WP_REST_Request $request ) {
@@ -439,10 +443,14 @@ class SC_Membership_REST {
 			return new WP_Error( 'invalid_action', 'Unknown action.', array( 'status' => 400 ) );
 		}
 
+		update_user_meta( $user_id, 'sc_member_banned', 'ban' === $action ? '1' : '0' );
 		if ( function_exists( 'bp_core_process_spammer_status' ) ) {
 			bp_core_process_spammer_status( $user_id, 'ban' === $action ? 'spam' : 'ham' );
-		} else {
-			update_user_meta( $user_id, 'sc_member_banned', 'ban' === $action ? '1' : '0' );
+		} elseif ( 'unban' === $action && 1 === (int) $user->user_status ) {
+			// Banned by BuddyPress before it was switched off.
+			global $wpdb;
+			$wpdb->update( $wpdb->users, array( 'user_status' => 0 ), array( 'ID' => $user_id ) );
+			clean_user_cache( $user_id );
 		}
 
 		return array( 'status' => 'ban' === $action ? 'banned' : 'unbanned' );

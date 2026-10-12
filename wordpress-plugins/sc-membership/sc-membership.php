@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Membership
  * Description: Central member record (points, tiers, directory-upgrade approvals) shared by the directory, events, and comments. Other Secret Carshalton plugins hook into this rather than keeping their own copy of "who's a member."
- * Version: 0.23.3
+ * Version: 0.23.4
  * Author: Secret Carshalton
  * Text Domain: sc-membership
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_MEMBERSHIP_VERSION', '0.23.3' );
+define( 'SC_MEMBERSHIP_VERSION', '0.23.4' );
 define( 'SC_MEMBERSHIP_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-db.php';
@@ -46,18 +46,14 @@ add_action( 'rest_api_init', array( 'SC_Membership_REST', 'register_routes' ) );
 add_filter( 'get_avatar_url', array( 'SC_Membership_REST', 'filter_default_avatar' ), 20, 3 );
 
 /**
- * Fallback enforcement for a ban when BuddyPress isn't handling it (see
- * SC_Membership_REST::moderate_member) — blocks both wp-admin's cookie
+ * Enforces a ban (see SC_Membership_REST::is_banned) — blocks both wp-admin's cookie
  * login and the JWT bridge's login() below, since both call
  * wp_authenticate() and this filter runs inside that.
  */
 add_filter(
 	'wp_authenticate_user',
 	function ( $user, $password ) {
-		if ( ! is_wp_error( $user )
-			&& ! function_exists( 'bp_core_process_spammer_status' )
-			&& '1' === get_user_meta( $user->ID, 'sc_member_banned', true )
-		) {
+		if ( ! is_wp_error( $user ) && SC_Membership_REST::is_banned( $user->ID ) ) {
 			return new WP_Error( 'account_banned', 'This account has been suspended.' );
 		}
 		return $user;
