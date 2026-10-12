@@ -227,6 +227,42 @@ for it since before `sc-events` existed (5 points per RSVP).
     Counter totals from `sc-post-views/data/article-baselines.json`
     (sc-post-views 0.5.1). Like the listings, regenerate it and bump
     `SC_POST_VIEWS_ARTICLE_SEED` just before go-live.
+- [ ] **Old plugins off, then deleted, before the push** (Rob, Oct 2026).
+  Scan of every post and page (12 Oct 2026) sorted the ~75 plugins:
+  - *Keep* — the sc-* plugins, Yoast SEO, YOP Poll (/polls), WP Express
+    Checkout (walk-map products), Classic Editor, Site Reviews (/reviews),
+    Easy Social Feed (homepage reels, via sc-membership's
+    /instagram-feed), Vision (the coat-of-arms article), SiteGround
+    Speed Optimizer (purges the server cache on content changes).
+  - *Off now* (replaced, or the old theme only): Sabai ×4, EventON ×2,
+    AdRotate, GamiPress, BuddyPress and its add-ons (sc-membership 0.23.4
+    keeps bans without it), Youzify ×2, Profile Builder, Theme My Login
+    ×2, WP ULike, WP Popular Posts, Decent Comments, wpDiscuz, Mailchimp
+    for WP, Site Kit, Fluent Snippets (old-theme CSS/PHP only), and the
+    old-theme extras (snow, weather, back-to-top, prettyPhoto, carousel,
+    Ditty, AOS, the Elementor filter/post-kit widgets, Smart Recent
+    Posts, Black Studio TinyMCE, Sassy Social Share, Show Current
+    Template, featured-image toggles, Remove Category URL, WP Select
+    Primary Category, WP Simple Adsense, WP Rollback).
+  - *Off once the frontend replacements are merged:* SiteOrigin Widgets +
+    Elementor (About/Welcome/Privacy now in `lib/static-pages.ts`, Donate
+    is `app/donate`), Contact Form 7 + WP Armour (`app/contact`),
+    HTML5 Video Player (`lib/html5-video.ts`), Featured Image from URL
+    (one article's stock image — Rob is replacing it).
+  - Switch off in batches and check the site; delete a week later.
+  - Old pages built with SiteOrigin/Elementor that nobody visits will
+    break once those are off — unpublish them.
+- [ ] **Media URLs after `www` moves to Vercel.** Article, page and
+  Instagram images and videos are stored with
+  `https://www.secretcarshalton.com/wp-content/...` URLs. Once `www` is
+  the new site those paths must still resolve — add a Vercel rewrite of
+  `/wp-content/:path*` to the CMS hostname (or search-replace the URLs to
+  it) as part of the switch.
+- [ ] **Two articles' videos are gone for good:** "Student nurses at St
+  Helier Hospital in 1943…" and "Bringing old Carshalton photos back to
+  life…" use an old `[video id=…]` shortcode whose files were deleted
+  long ago (they show nothing on the old site either). Rob to re-upload
+  or remove the mentions.
 
 ## Lessons from building this (read before adding a new CPT-based plugin)
 
