@@ -17,6 +17,7 @@ import { SidebarAds } from "@/app/_components/SidebarAds";
 import { WalkMapBuy } from "@/app/_components/WalkMapBuy";
 import { YopPollScripts } from "@/app/_components/YopPollScripts";
 import { replaceHtml5VideoPlayers } from "@/lib/html5-video";
+import { STATIC_PAGES } from "@/lib/static-pages";
 import { extractWalkMaps, WALK_MAP_MARKER } from "@/lib/walk-maps";
 import {
   categoryHref,
@@ -65,7 +66,7 @@ export async function generateStaticParams() {
     getAllPageSlugs().catch(() => []),
     getRecentPostSlugs(30).catch(() => []),
   ]);
-  const slugs = new Set([...pageSlugs, ...recentPostSlugs]);
+  const slugs = new Set([...pageSlugs, ...recentPostSlugs, ...Object.keys(STATIC_PAGES)]);
   return Array.from(slugs).map((slug) => ({ slug }));
 }
 
@@ -75,7 +76,10 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const item = (await getPostBySlug(slug).catch(() => null)) ?? (await getPageBySlug(slug).catch(() => null));
+  const item =
+    STATIC_PAGES[slug] ??
+    (await getPostBySlug(slug).catch(() => null)) ??
+    (await getPageBySlug(slug).catch(() => null));
   if (!item) return {};
 
   // Yoast's own title/description/social-image overrides, when an editor
@@ -143,8 +147,10 @@ export default async function ContentPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = await getPostBySlug(slug).catch(() => null);
-  const item = post ?? (await getPageBySlug(slug).catch(() => null));
+  // About, Welcome and Privacy live in the site itself (lib/static-pages).
+  const staticPage = STATIC_PAGES[slug] ?? null;
+  const post = staticPage ? null : await getPostBySlug(slug).catch(() => null);
+  const item = staticPage ?? post ?? (await getPageBySlug(slug).catch(() => null));
 
   if (!item) notFound();
 

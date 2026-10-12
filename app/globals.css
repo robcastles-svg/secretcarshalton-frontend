@@ -8375,3 +8375,76 @@ a.card-category:hover {
   color: #666;
   font-size: 0.9rem;
 }
+
+/* Donate page (app/donate). */
+.donate-page h1 {
+  margin-bottom: 1rem;
+}
+.donate-why {
+  max-width: 720px;
+  color: #333;
+}
+.donate-sign {
+  font-weight: 700;
+}
+.donate-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+  margin: 1.75rem 0 1rem;
+}
+.donate-card {
+  background: #fff;
+  border: 1px solid #e6dfe3;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+.donate-card h2 {
+  margin: 0 0 0.9rem;
+  font-size: 1.2rem;
+}
+.donate-amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.donate-amount {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 4.5rem;
+  padding: 0.6rem 0.9rem;
+  border: 2px solid #c2607a;
+  border-radius: 10px;
+  background: #fff;
+  color: #c2607a;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+.donate-amount small {
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.donate-amount:hover,
+.donate-amount-active {
+  background: #c2607a;
+  color: #fff;
+}
+.donate-paypal {
+  margin-top: 1rem;
+}
+.donate-hint,
+.donate-note {
+  color: #666;
+  font-size: 0.85rem;
+}
+.donate-thanks {
+  background: #eef7f1;
+  border: 1px solid #b7dcc4;
+  color: #1d5c37;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin: 0;
+}

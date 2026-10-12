@@ -2606,6 +2606,42 @@ export async function createWalkMapOrder(productId: number): Promise<{ orderId: 
   }
 }
 
+/** Starts a one-off donation — SC_Ads_Donations::create_order (only the amounts it offers). */
+export async function createDonationOrder(amount: number): Promise<{ orderId: string; amount: number } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/donations/create-order`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) return { code: body.code ?? "create_failed", message: body.message ?? "Could not start payment." };
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Captures an approved donation — SC_Ads_Donations::capture (records it and emails Rob). */
+export async function captureDonationOrder(orderId: string): Promise<{ status: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-ads/v1/donations/capture`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(30_000),
+    });
+    const body = await res.json();
+    if (!res.ok) return { code: body.code ?? "capture_failed", message: body.message ?? "Payment didn't go through." };
+    return body;
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
 /** Captures the approved order and hands back the map's download link — SC_Ads_Map_Sales::capture. */
 export async function captureWalkMapOrder(
   productId: number,
