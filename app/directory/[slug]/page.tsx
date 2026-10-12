@@ -22,6 +22,7 @@ import {
   getPostViewCount,
   GROUPS_CATEGORY_SLUG,
   stripHtml,
+  soft,
 } from "@/lib/wordpress";
 
 function formatListedSince(iso: string) {
@@ -74,7 +75,7 @@ export async function generateMetadata({
     };
   }
 
-  const listing = await getDirectoryListingBySlug(slug).catch(() => null);
+  const listing = await getDirectoryListingBySlug(slug).catch(soft(null));
   if (!listing) return {};
 
   const title = `${stripHtml(listing.title.rendered)} — Directory — Secret Carshalton`;
@@ -113,7 +114,7 @@ export default async function DirectoryListingPage({
 }) {
   const { slug } = await params;
 
-  const categories = await getDirectoryCategories().catch(() => []);
+  const categories = await getDirectoryCategories().catch(soft([]));
   const category = categories.find((c) => c.slug === slug && c.slug !== GROUPS_CATEGORY_SLUG);
   if (category) {
     const { q: rawQ, sort: rawSort, page: rawPage } = await searchParams;
@@ -128,7 +129,7 @@ export default async function DirectoryListingPage({
   }
 
   const [listing, sessionToken] = await Promise.all([
-    getDirectoryListingBySlug(slug).catch(() => null),
+    getDirectoryListingBySlug(slug).catch(soft(null)),
     getSessionToken(),
   ]);
 
@@ -136,7 +137,7 @@ export default async function DirectoryListingPage({
 
   const [profile, fullThread, viewCount] = await Promise.all([
     sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
-    getCommentsForPost(listing.id, 50).catch(() => []),
+    getCommentsForPost(listing.id, 50).catch(soft([])),
     getPostViewCount(listing.id),
   ]);
   const canEdit = Boolean(profile && (profile.id === listing.author || profile.is_editor));

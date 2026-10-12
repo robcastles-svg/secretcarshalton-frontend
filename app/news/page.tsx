@@ -11,6 +11,7 @@ import {
   getFeaturedListingForGrid,
   getPostsByCategory,
   getTags,
+  soft,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -22,15 +23,15 @@ export default async function NewsPage({
 }) {
   const { page: rawPage } = await searchParams;
   const [category, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3, featuredListing] = await Promise.all([
-    getCategoryBySlug("news").catch(() => null),
-    getCategories().catch(() => []),
-    getTags().catch(() => []),
+    getCategoryBySlug("news").catch(soft(null)),
+    getCategories().catch(soft([])),
+    getTags().catch(soft([])),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),
     getFeaturedListingForGrid(),
   ]);
-  const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
+  const posts = category ? await getPostsByCategory(category.id).catch(soft([])) : [];
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
   const tagsById = new Map(allTags.map((t) => [t.id, t]));
   const { items: pagePosts, page, totalPages } = paginate(posts, parsePageParam(rawPage));

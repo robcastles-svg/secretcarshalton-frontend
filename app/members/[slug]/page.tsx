@@ -11,6 +11,7 @@ import {
   getWPUserBySlug,
   parseEventDate,
   stripHtml,
+  soft,
 } from "@/lib/wordpress";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { EventImage } from "@/app/_components/EventImage";
@@ -24,7 +25,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const user = await getWPUserBySlug(slug).catch(() => null);
+  const user = await getWPUserBySlug(slug).catch(soft(null));
   if (!user) return {};
   return { title: `${user.name} — Secret Carshalton` };
 }
@@ -44,15 +45,15 @@ export default async function MemberProfilePage({
 }) {
   const { slug } = await params;
   const [user, sessionToken] = await Promise.all([
-    getWPUserBySlug(slug).catch(() => null),
+    getWPUserBySlug(slug).catch(soft(null)),
     getSessionToken(),
   ]);
 
   if (!user) notFound();
 
   const [allEvents, listings, comments, viewerProfile] = await Promise.all([
-    getScEventsByAuthor(user.id).catch(() => []),
-    getDirectoryListingsByAuthor(user.id).catch(() => []),
+    getScEventsByAuthor(user.id).catch(soft([])),
+    getDirectoryListingsByAuthor(user.id).catch(soft([])),
     getCommentsByUser(user.id),
     sessionToken ? getMemberMe(sessionToken) : Promise.resolve(null),
   ]);

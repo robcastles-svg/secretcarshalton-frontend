@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { SITE_URL, getOccurrences, upcomingOccurrences, type Occurrence } from "@/lib/event-view";
-import { getAd, getFeaturedImage, getScEventsByVenue, stripHtml, type WPScEvent } from "@/lib/wordpress";
+import { getAd, getFeaturedImage, getScEventsByVenue, stripHtml, type WPScEvent, soft } from "@/lib/wordpress";
 import { BackToEvent } from "../../_components/BackToEvent";
 import { EventCard } from "../../_components/EventCard";
 import { PastEventsList } from "../../_components/PastEventsList";
@@ -41,7 +41,7 @@ function venueData(events: WPScEvent[], now = Date.now()) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { venue } = await params;
-  const events = await getScEventsByVenue(venue).catch(() => []);
+  const events = await getScEventsByVenue(venue).catch(soft([]));
   if (events.length === 0) return {};
   const { upcoming, name, address } = venueData(events);
   const title = `Events at ${name} – What's On | Secret Carshalton`;
@@ -74,7 +74,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function EventsByVenuePage({ params }: Props) {
   const { venue } = await params;
   const [events, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
-    getScEventsByVenue(venue).catch(() => []),
+    getScEventsByVenue(venue).catch(soft([])),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),

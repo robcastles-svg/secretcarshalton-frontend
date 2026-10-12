@@ -8,6 +8,7 @@ import {
   getScEvents,
   getScEventTags,
   GROUPS_CATEGORY_SLUG,
+  soft,
 } from "@/lib/wordpress";
 import { AREAS, HIDDEN_TOPICS, addMonths, currentMonth, listHref } from "@/lib/event-list";
 import { getOccurrences } from "@/lib/event-view";
@@ -33,7 +34,7 @@ const FALLBACK_SITEMAP: MetadataRoute.Sitemap = [
  *   happened next: Next.js kills any route that takes over 60 seconds to
  *   generate, and the retry/backoff chains inside the WordPress fetches
  *   can still run past that even when they eventually succeed or resolve
- *   via their own internal .catch(() => []) fallbacks — the *time*, not
+ *   via their own internal .catch(soft([])) fallbacks — the *time*, not
  *   just the outcome, is the problem).
  * - a hard wall-clock timeout via Promise.race, so this route always
  *   resolves in well under 60 seconds regardless of how slow WordPress is
@@ -54,13 +55,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
 async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   const [pageSlugs, posts, categories, events, listings, directoryCategories, eventTags] = await Promise.all([
-    getAllPageSlugs().catch(() => []),
+    getAllPageSlugs().catch(soft([])),
     getAllPostSlugs(),
-    getCategories().catch(() => []),
-    getScEvents(300).catch(() => []),
-    getDirectoryListings().catch(() => []),
-    getDirectoryCategories().catch(() => []),
-    getScEventTags().catch(() => []),
+    getCategories().catch(soft([])),
+    getScEvents(300).catch(soft([])),
+    getDirectoryListings().catch(soft([])),
+    getDirectoryCategories().catch(soft([])),
+    getScEventTags().catch(soft([])),
   ]);
 
   const entries: MetadataRoute.Sitemap = [...FALLBACK_SITEMAP];

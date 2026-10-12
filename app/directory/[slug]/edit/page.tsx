@@ -6,6 +6,7 @@ import {
   getMemberMe,
   htmlToPlainText,
   stripHtml,
+  soft,
 } from "@/lib/wordpress";
 import { EditListingForm } from "./_components/EditListingForm";
 
@@ -22,9 +23,9 @@ export default async function EditListingPage({
   if (!token) redirect("/login");
 
   const [listing, profile, categories] = await Promise.all([
-    getDirectoryListingBySlug(slug).catch(() => null),
+    getDirectoryListingBySlug(slug).catch(soft(null)),
     getMemberMe(token),
-    getDirectoryCategories().catch(() => []),
+    getDirectoryCategories().catch(soft([])),
   ]);
 
   if (!listing) notFound();

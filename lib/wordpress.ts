@@ -245,19 +245,75 @@ export function parseEventDate(raw?: string, endOfDay = false): Date | null {
  * per-call-site (see bb5b5ba, 06e2353, ac88a2b for the earlier ad hoc
  * fixes this generalizes).
  */
+/**
+ * WordPress couldn't be reached (network failure, server errors, or
+ * SiteGround's anti-bot challenge page served in place of the API's JSON).
+ * Unlike an ordinary "not found", pages must not render a fallback for
+ * this — see soft() — so Next keeps serving the last good version of the
+ * page instead of caching a 404 or an empty list (which is what happened
+ * on 12 Oct 2026 when SiteGround briefly challenged Vercel's servers).
+ */
+export class WordPressUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "WordPressUnavailableError";
+  }
+}
+
+/**
+ * For a page's `.catch()`: falls back to `fallback` for ordinary failures
+ * (e.g. a malformed slug), but rethrows WordPressUnavailableError so the
+ * page fails instead of rendering "not found" or empty. In ISR that keeps
+ * the previously generated page live until WordPress is back.
+ */
+export function soft<T>(fallback: T) {
+  return (err: unknown): T => {
+    if (err instanceof WordPressUnavailableError) throw err;
+    return fallback;
+  };
+}
+
+/**
+ * SiteGround's anti-bot challenge: an HTML page (HTTP 202) where the REST
+ * API's JSON should be. Judged by the body, not the content-type header —
+ * the live WordPress labels some genuine JSON responses text/html.
+ */
+async function isBlockedResponse(url: string, res: Response): Promise<boolean> {
+  if (!url.includes("/wp-json")) return false;
+  if (res.status === 202) return true;
+  if (!res.ok) return false;
+  const start = (await res.clone().text()).trimStart().slice(0, 15).toLowerCase();
+  return start.startsWith("<html") || start.startsWith("<!doctype");
+}
+
+/** Same request, different cache key — so a challenge page Next cached under the original URL isn't read back. */
+function bustCache(url: string, attempt: number): string {
+  return `${url}${url.includes("?") ? "&" : "?"}_scr=${attempt}`;
+}
+
 async function fetchWithRetry(
   url: string,
   init: RequestInit,
   attempts = 3
 ): Promise<Response> {
   let lastError: unknown;
+  let target = url;
   for (let attempt = 0; attempt < attempts; attempt++) {
     try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(15_000), ...init });
-      if (res.ok || res.status < 500) return res;
-      lastError = new Error(`HTTP ${res.status}`);
+      const res = await fetch(target, { signal: AbortSignal.timeout(15_000), ...init });
+      if (await isBlockedResponse(url, res)) {
+        lastError = new WordPressUnavailableError(`WordPress challenged the request (HTTP ${res.status}): ${url}`);
+        target = bustCache(url, attempt + 1);
+      } else if (res.ok || res.status < 500) {
+        return res;
+      } else {
+        lastError = new WordPressUnavailableError(`HTTP ${res.status}: ${url}`);
+      }
     } catch (err) {
-      lastError = err;
+      // Next's own control-flow signals (e.g. dynamic-rendering bailouts)
+      // carry a digest and must pass through untouched.
+      if (err && typeof err === "object" && "digest" in err) throw err;
+      lastError = new WordPressUnavailableError(err instanceof Error ? err.message : String(err));
     }
     if (attempt < attempts - 1) {
       await new Promise((resolve) => setTimeout(resolve, 500 * 2 ** attempt));

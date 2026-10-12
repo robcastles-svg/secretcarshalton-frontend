@@ -1,5 +1,5 @@
 import { permanentRedirect } from "next/navigation";
-import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
+import { getCategories, getCategoryBySlug, soft } from "@/lib/wordpress";
 import { WalksView } from "./_components/WalksView";
 
 export const revalidate = 3600;
@@ -17,8 +17,8 @@ export default async function WalksPage({
   const { filter, page } = await searchParams;
   if (filter) {
     const [parent, allCategories] = await Promise.all([
-      getCategoryBySlug("walks").catch(() => null),
-      getCategories().catch(() => []),
+      getCategoryBySlug("walks").catch(soft(null)),
+      getCategories().catch(soft([])),
     ]);
     const distance = parent && allCategories.find((c) => c.parent === parent.id && c.slug === filter);
     if (distance) permanentRedirect(`/walks/${distance.slug}${page ? `?page=${encodeURIComponent(page)}` : ""}`);

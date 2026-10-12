@@ -3,7 +3,7 @@ import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { getSessionToken } from "@/lib/auth";
 import { FEATURED_DIRECTORY_TIERS, STANDARD_LISTING_PRICE } from "@/lib/pricing";
 import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
-import { getDirectoryCategories, getDirectoryListingBySlug, getMyListings } from "@/lib/wordpress";
+import { getDirectoryCategories, getDirectoryListingBySlug, getMyListings, soft } from "@/lib/wordpress";
 import { SubmitListingForm } from "../submit/_components/SubmitListingForm";
 
 export const metadata = { title: "Featured directory listing — Secret Carshalton" };
@@ -31,9 +31,9 @@ export default async function FeaturedListingPage({
   const token = await getSessionToken();
 
   const [categories, featuredListing, myListings] = await Promise.all([
-    getDirectoryCategories().catch(() => []),
-    getDirectoryListingBySlug(FEATURED_EXAMPLE_SLUG).catch(() => null),
-    token ? getMyListings(token).catch(() => []) : Promise.resolve([]),
+    getDirectoryCategories().catch(soft([])),
+    getDirectoryListingBySlug(FEATURED_EXAMPLE_SLUG).catch(soft(null)),
+    token ? getMyListings(token).catch(soft([])) : Promise.resolve([]),
   ]);
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
   const featuredCategoriesList = featuredListing?.sc_listing_category

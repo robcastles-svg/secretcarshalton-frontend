@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
-import { getJobListings, getMemberJobListings, type WPJobListing } from "@/lib/wordpress";
+import { getJobListings, getMemberJobListings, type WPJobListing, soft } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -43,8 +43,8 @@ function JobRow({ job }: { job: WPJobListing }) {
 
 export default async function JobsPage() {
   const [allJobs, everyMemberJob] = await Promise.all([
-    getJobListings().catch(() => []),
-    getMemberJobListings().catch(() => null),
+    getJobListings().catch(soft([])),
+    getMemberJobListings().catch(soft(null)),
   ]);
   // Member jobs come from their own lookup (the Reed sync soon pushes them
   // out of the newest 100); if that fails, fall back to the ones in it.

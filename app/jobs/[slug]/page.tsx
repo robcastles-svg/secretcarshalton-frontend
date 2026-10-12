@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getJobListingBySlug, stripHtml } from "@/lib/wordpress";
+import { getJobListingBySlug, stripHtml, soft } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -22,7 +22,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const job = await getJobListingBySlug(slug).catch(() => null);
+  const job = await getJobListingBySlug(slug).catch(soft(null));
   if (!job) return {};
   return {
     title: `${stripHtml(job.title.rendered)} — The Sutton Jobs Board — Secret Carshalton`,
@@ -36,7 +36,7 @@ export default async function JobDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const job = await getJobListingBySlug(slug).catch(() => null);
+  const job = await getJobListingBySlug(slug).catch(soft(null));
 
   if (!job) notFound();
 

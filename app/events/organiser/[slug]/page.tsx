@@ -11,7 +11,7 @@ import {
   organizerSocials,
   upcomingOccurrences,
 } from "@/lib/event-view";
-import { getAd, getScEventsByOrganizer, stripHtml } from "@/lib/wordpress";
+import { getAd, getScEventsByOrganizer, stripHtml, soft } from "@/lib/wordpress";
 import { CopyButton } from "../../_components/CopyButton";
 import { EventCard } from "../../_components/EventCard";
 import { GlobeIcon, MailIcon, PhoneIcon, PinIcon, SOCIAL_ICONS } from "../../_components/EvIcons";
@@ -27,7 +27,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const events = await getScEventsByOrganizer(slug).catch(() => []);
+  const events = await getScEventsByOrganizer(slug).catch(soft([]));
   const organizer = events[0]?.sc_event_organizer_profile;
   if (!organizer) return {};
   return {
@@ -50,7 +50,7 @@ export default async function EventsByOrganizerPage({
 }) {
   const { slug } = await params;
   const [events, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
-    getScEventsByOrganizer(slug).catch(() => []),
+    getScEventsByOrganizer(slug).catch(soft([])),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),

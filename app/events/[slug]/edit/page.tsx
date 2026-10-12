@@ -13,6 +13,7 @@ import {
   getScEventTags,
   htmlToPlainText,
   stripHtml,
+  soft,
 } from "@/lib/wordpress";
 import { ChevronIcon } from "../../_components/EvIcons";
 import { EventForm, type EventFormInitial } from "../../_components/EventForm";
@@ -42,13 +43,13 @@ export default async function EditEventPage({
   if (!token) redirect("/login");
 
   const [event, profile, areas, tags, venues, organizers, allOrganizers] = await Promise.all([
-    getScEventBySlug(slug).catch(() => null),
+    getScEventBySlug(slug).catch(soft(null)),
     getMemberMe(token),
-    getScEventCategories().catch(() => []),
-    getScEventTags().catch(() => []),
-    getEventVenues().catch(() => []),
+    getScEventCategories().catch(soft([])),
+    getScEventTags().catch(soft([])),
+    getEventVenues().catch(soft([])),
     getMyOrganizers(token),
-    getEventOrganizers().catch(() => []),
+    getEventOrganizers().catch(soft([])),
   ]);
 
   if (!event) notFound();

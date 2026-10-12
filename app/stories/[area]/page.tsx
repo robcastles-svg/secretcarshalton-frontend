@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getCategories, getCategoryBySlug, stripHtml } from "@/lib/wordpress";
+import { getCategories, getCategoryBySlug, stripHtml, soft } from "@/lib/wordpress";
 import { DiscoverView } from "../../discover/_components/DiscoverView";
 
 export const revalidate = 3600;
@@ -18,7 +18,7 @@ export async function generateMetadata({
   params: Promise<{ area: string }>;
 }): Promise<Metadata> {
   const { area } = await params;
-  const category = await getCategoryBySlug(area).catch(() => null);
+  const category = await getCategoryBySlug(area).catch(soft(null));
   if (!category) return {};
   const title = `${category.name} — Stories`;
   const description = stripHtml(category.description) || undefined;
@@ -40,7 +40,7 @@ export default async function StoriesAreaPage({
 }) {
   const { area } = await params;
   const { page: rawPage } = await searchParams;
-  const category = await getCategoryBySlug(area).catch(() => null);
+  const category = await getCategoryBySlug(area).catch(soft(null));
 
   if (!category) notFound();
 

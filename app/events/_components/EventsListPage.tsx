@@ -41,6 +41,7 @@ import {
   stripHtml,
   type WPScEvent,
   type WPScEventTag,
+  soft,
 } from "@/lib/wordpress";
 import { ShareRow } from "@/app/_components/ShareRow";
 import { CategorySelect } from "./CategorySelect";
@@ -154,7 +155,7 @@ export function listTitle(filter: ListFilter, tags: WPScEventTag[], now = Date.n
 
 /** Title, description and social preview for any list page. */
 export async function listMetadata(filter: ListFilter): Promise<Metadata> {
-  const [tags, events] = await Promise.all([getScEventTags().catch(() => []), getScEvents(300).catch(() => [])]);
+  const [tags, events] = await Promise.all([getScEventTags().catch(soft([])), getScEvents(300).catch(soft([]))]);
   const { title, intro } = listTitle(filter, tags);
   const isMain = !filter.area && filter.when === "all" && !filter.topic;
   const pageTitle = isMain ? "Events — what's on in Carshalton and Sutton" : `${title} — Secret Carshalton`;
@@ -192,9 +193,9 @@ function Grid({ items }: { items: Item[] }) {
 export async function EventsListPage({ filter }: { filter: ListFilter }) {
   const now = Date.now();
   const [allEvents, categories, tags, ad1, ad2, ad3] = await Promise.all([
-    getScEvents(300).catch(() => []),
-    getScEventCategories().catch(() => []),
-    getScEventTags().catch(() => []),
+    getScEvents(300).catch(soft([])),
+    getScEventCategories().catch(soft([])),
+    getScEventTags().catch(soft([])),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),

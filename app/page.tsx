@@ -29,6 +29,7 @@ import {
   GROUPS_CATEGORY_SLUG,
   parseEventDate,
   stripHtml,
+  soft,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -84,21 +85,21 @@ export default async function HomePage() {
     sessionToken,
     instagramFeed,
   ] = await Promise.all([
-    getPosts(24).catch(() => []),
-    getCategories().catch(() => []),
-    getTags().catch(() => []),
-    getCategoryBySlug("news").catch(() => null),
-    getCategoryBySlug("stories").catch(() => null),
-    getCategoryBySlug("walks").catch(() => null),
-    getDirectoryCategories().catch(() => []),
-    getDirectoryListings().catch(() => []),
-    getJobListings(30).catch(() => []),
-    getMemberJobListings().catch(() => []),
-    getTopPostsThisWeek(10).catch(() => []),
+    getPosts(24).catch(soft([])),
+    getCategories().catch(soft([])),
+    getTags().catch(soft([])),
+    getCategoryBySlug("news").catch(soft(null)),
+    getCategoryBySlug("stories").catch(soft(null)),
+    getCategoryBySlug("walks").catch(soft(null)),
+    getDirectoryCategories().catch(soft([])),
+    getDirectoryListings().catch(soft([])),
+    getJobListings(30).catch(soft([])),
+    getMemberJobListings().catch(soft([])),
+    getTopPostsThisWeek(10).catch(soft([])),
     getLatestCommentItems(3),
-    getUpcomingScEvents(20).catch(() => []),
+    getUpcomingScEvents(20).catch(soft([])),
     getSessionToken(),
-    getInstagramFeed().catch(() => []),
+    getInstagramFeed().catch(soft([])),
   ]);
 
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
@@ -164,7 +165,7 @@ export default async function HomePage() {
     ? await getLatestPostsInCategories(
         [walksCategory.id, ...walkChildCategories.map((c) => c.id)],
         2
-      ).catch(() => [])
+      ).catch(soft([]))
     : [];
   const latestWalk = walkCandidates.find((w) => w.id !== lead.id) ?? walkCandidates[0] ?? null;
   const latestWalkImage = latestWalk ? getFeaturedImage(latestWalk) : null;

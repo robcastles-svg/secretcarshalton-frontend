@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { STANDARD_LISTING_PRICE } from "@/lib/pricing";
-import { getDirectoryCategories, getDirectoryListingBySlug, getMyListings, type WPListing } from "@/lib/wordpress";
+import { getDirectoryCategories, getDirectoryListingBySlug, getMyListings, type WPListing, soft } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 import { SubmitListingForm } from "./_components/SubmitListingForm";
 
@@ -34,9 +34,9 @@ export default async function DirectorySubmitPage() {
   const token = await getSessionToken();
 
   const [categories, exampleListing, myListings] = await Promise.all([
-    getDirectoryCategories().catch(() => []),
-    getDirectoryListingBySlug(EXAMPLE_SLUG).catch(() => null),
-    token ? getMyListings(token).catch(() => []) : Promise.resolve([]),
+    getDirectoryCategories().catch(soft([])),
+    getDirectoryListingBySlug(EXAMPLE_SLUG).catch(soft(null)),
+    token ? getMyListings(token).catch(soft([])) : Promise.resolve([]),
   ]);
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
   const exampleCategoriesList = exampleListing?.sc_listing_category

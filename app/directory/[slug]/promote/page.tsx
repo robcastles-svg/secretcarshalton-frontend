@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
 import { GROUP_PROMOTION_PRICE } from "@/lib/pricing";
-import { getDirectoryListingBySlug, getMemberMe } from "@/lib/wordpress";
+import { getDirectoryListingBySlug, getMemberMe, soft } from "@/lib/wordpress";
 import { PayNow } from "@/app/_components/PayNow";
 
 export const metadata = { title: "Promote your group — Secret Carshalton" };
@@ -27,7 +27,7 @@ export default async function PromoteListingPage({
   if (!token) redirect(`/login?next=/directory/${slug}/promote`);
 
   const [listing, profile] = await Promise.all([
-    getDirectoryListingBySlug(slug).catch(() => null),
+    getDirectoryListingBySlug(slug).catch(soft(null)),
     getMemberMe(token),
   ]);
 

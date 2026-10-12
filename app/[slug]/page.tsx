@@ -41,6 +41,7 @@ import {
   splitContentIntoParagraphChunks,
   stripHtml,
   type WPComment,
+  soft,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -78,8 +79,8 @@ export async function generateMetadata({
   const { slug } = await params;
   const item =
     STATIC_PAGES[slug] ??
-    (await getPostBySlug(slug).catch(() => null)) ??
-    (await getPageBySlug(slug).catch(() => null));
+    (await getPostBySlug(slug).catch(soft(null))) ??
+    (await getPageBySlug(slug).catch(soft(null)));
   if (!item) return {};
 
   // Yoast's own title/description/social-image overrides, when an editor
@@ -149,8 +150,8 @@ export default async function ContentPage({
   const { slug } = await params;
   // About, Welcome and Privacy live in the site itself (lib/static-pages).
   const staticPage = STATIC_PAGES[slug] ?? null;
-  const post = staticPage ? null : await getPostBySlug(slug).catch(() => null);
-  const item = staticPage ?? post ?? (await getPageBySlug(slug).catch(() => null));
+  const post = staticPage ? null : await getPostBySlug(slug).catch(soft(null));
+  const item = staticPage ?? post ?? (await getPageBySlug(slug).catch(soft(null)));
 
   if (!item) notFound();
 
@@ -174,7 +175,7 @@ export default async function ContentPage({
     let sidebarAd3: Awaited<ReturnType<typeof getAd>> = null;
     if (showAboutSidebar) {
       [directoryCategories, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
-        getDirectoryCategories().catch(() => []),
+        getDirectoryCategories().catch(soft([])),
         getAd("sidebar", 1),
         getAd("sidebar", 2),
         getAd("sidebar", 3),
@@ -296,11 +297,11 @@ export default async function ContentPage({
 
   const [allCategories, allTags, comments, fullThread, viewCount, topToday, sidebarAd1, sidebarAd2, sidebarAd3] =
     await Promise.all([
-      getCategories().catch(() => []),
-      getTags().catch(() => []),
+      getCategories().catch(soft([])),
+      getTags().catch(soft([])),
       // Site-wide, not this post's — its own comments are already below.
       getLatestCommentItems(3),
-      stagingPostId ? getCommentsForPost(stagingPostId, 50).catch(() => []) : Promise.resolve<WPComment[]>([]),
+      stagingPostId ? getCommentsForPost(stagingPostId, 50).catch(soft([])) : Promise.resolve<WPComment[]>([]),
       stagingPostId ? getPostViewCount(stagingPostId) : Promise.resolve(0),
       // +1: the current post is filtered out below, so ask for one extra
       // to still land on 5 when it would otherwise have been in the list.
@@ -357,7 +358,7 @@ export default async function ContentPage({
   // "related" means genuinely the same section a reader browsing that
   // category would see, not a separate relevance algorithm.
   const relatedPosts = category
-    ? (await getPostsByCategory(category.id).catch(() => []))
+    ? (await getPostsByCategory(category.id).catch(soft([])))
         .filter((p) => p.id !== post.id)
         .slice(0, 4)
     : [];
