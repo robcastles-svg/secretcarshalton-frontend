@@ -3038,6 +3038,17 @@ a.card-category:hover {
   height: auto;
 }
 
+/* Videos from the old HTML5 Video Player (see lib/html5-video.ts). */
+.post-content video.post-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  margin: 1.25rem 0;
+  border-radius: 8px;
+  background: #000;
+}
+
 .related-stories {
   margin-top: 2.5rem;
   padding-top: 2rem;
