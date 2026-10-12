@@ -3646,11 +3646,11 @@ a.card-category:hover {
   color: #1a1a1a;
 }
 
-.directory-rating-summary span {
+.directory-rating-count {
   color: #c2607a;
 }
 
-.directory-rating-summary:hover span {
+.directory-rating-summary:hover .directory-rating-count {
   text-decoration: underline;
 }
 

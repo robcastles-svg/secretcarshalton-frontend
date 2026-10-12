@@ -245,7 +245,7 @@ export default async function DirectoryListingPage({
             <a href="#comments" className="directory-rating-summary">
               <StarRatingDisplay rating={averageRating} className="directory-rating-stars" />
               <b>{averageRating.toFixed(1)}</b>
-              <span>
+              <span className="directory-rating-count">
                 ({ratings.length} review{ratings.length === 1 ? "" : "s"})
               </span>
             </a>
