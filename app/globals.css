@@ -696,13 +696,13 @@ a.ad-slot-text-image img {
        grid-template-rows at all, the explicit grid has zero row tracks,
        and a negative line index counts from the end of the EXPLICIT grid
        only, so "-1" silently resolved to line 1 (no span at all) rather
-       than the last of the text column's actual (implicit) rows. 10 auto
-       rows is more than the text column ever needs (tag/title/category/
+       than the last of the text column's actual (implicit) rows. 10 rows
+       (9 auto plus a 1fr last row for the meta row) is more than the text column ever needs (tag/title/category/
        meta-row is 4; the interleaved Featured card's title/badge/multiple
        categories/excerpt/socials/meta-row tops out lower than that) —
        unused trailing rows have no content assigned to them, so they
        size to 0 and cost nothing. */
-    grid-template-rows: repeat(10, auto);
+    grid-template-rows: repeat(9, auto) 1fr;
     column-gap: 1.5rem;
     /* Zeroed so the stretched image (below) can reach the card's actual
        bottom edge — .post-list li's shared 1rem bottom padding otherwise
@@ -745,8 +745,14 @@ a.ad-slot-text-image img {
     margin-left: 0;
   }
 
+  /* The last row is the 1fr one (see grid-template-rows above), and the
+     meta row is put in it and pushed to its bottom — so the date,
+     comment bubble and bookmark sit at the card's bottom right, as on
+     Discover's cards, rather than just under the headline. */
   .post-list.post-list-single-column .card-meta-row {
     padding-bottom: 1rem;
+    grid-row: -2;
+    align-self: end;
   }
 
   /* DirectoryListingCard's own extra elements — the interleaved Featured
