@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getFeaturedImage, stripHtml, type WPScEvent } from "@/lib/wordpress";
 import {
+  eventStatusLabel,
   formatTimeRange,
   getOccurrences,
   isFeaturedNow,
@@ -17,6 +18,7 @@ import { ClockIcon, PinIcon, RepeatIcon } from "./EvIcons";
  * one grey line with time and venue. Deliberately no price and no
  * category. Repeating events get a "Monthly"/"Weekly" flag on the image
  * and "+N more dates". Featured events get a pink outline and badge.
+ * Sold out / cancelled events (still live) get a label on the image.
  *
  * `occurrence` is the date this card stands for — the next date in the
  * main list, or a specific date on a month page (Stage 3).
@@ -41,6 +43,7 @@ export function EventCard({
     ? getOccurrences(event).filter((o) => o.start.getTime() > occurrence.start.getTime()).length
     : 0;
   const featured = isFeaturedNow(event);
+  const status = eventStatusLabel(event);
 
   return (
     <Link
@@ -54,6 +57,11 @@ export function EventCard({
           <div className="evx-card-noimg" aria-hidden="true" />
         )}
         {featured && <span className="evx-badge-featured">Featured</span>}
+        {status && (
+          <span className={`evx-badge-status${event.meta.sc_event_status === "cancelled" ? " evx-badge-cancelled" : ""}`}>
+            {status}
+          </span>
+        )}
         {flag && (
           <span className="evx-badge-repeat">
             <RepeatIcon />

@@ -19,6 +19,7 @@ import {
   upcomingOccurrences,
   venueShort,
   dateParts,
+  eventStatusLabel,
   type Booking,
   type Occurrence,
   type PriceInfo,
@@ -107,6 +108,25 @@ function BookingCard({
   finished: boolean;
   organizerHref: string | null;
 }) {
+  const status = event.meta.sc_event_status;
+  if (!finished && (status === "cancelled" || status === "sold_out")) {
+    return (
+      <>
+        <p className="evx-eyebrow">Booking</p>
+        <p className="evx-status-big">{status === "cancelled" ? "Cancelled" : "Sold out"}</p>
+        <p className="evx-booktext">
+          {status === "cancelled"
+            ? "The organiser has cancelled this event."
+            : "The organiser says there are no tickets or places left."}
+        </p>
+        {organizerHref && (
+          <Link className="evx-btn-dark" href={organizerHref}>
+            More from this organiser
+          </Link>
+        )}
+      </>
+    );
+  }
   if (finished) {
     return (
       <>
@@ -303,6 +323,8 @@ export default async function EventPage({
   const image = getFeaturedImage(event);
   const now = Date.now();
   const finished = isFinished(event, now);
+  // Sold out / cancelled: still live, but marked, with no way to book.
+  const statusLabel = finished ? null : eventStatusLabel(event);
   const repeating = isRepeating(event);
   const shown = displayOccurrence(event, now);
   const upcoming = upcomingOccurrences(event, now);
@@ -347,6 +369,14 @@ export default async function EventPage({
             {finished && (
               <div className="evx-ended">
                 <b>This event has finished.</b>
+                {org && organizerHref && (
+                  <Link href={organizerHref}>See what {org.name} have coming up →</Link>
+                )}
+              </div>
+            )}
+            {statusLabel && (
+              <div className={`evx-ended evx-status${event.meta.sc_event_status === "cancelled" ? " evx-status-cancelled" : ""}`}>
+                <b>{event.meta.sc_event_status === "cancelled" ? "This event has been cancelled." : "This event is sold out."}</b>
                 {org && organizerHref && (
                   <Link href={organizerHref}>See what {org.name} have coming up →</Link>
                 )}
@@ -518,7 +548,7 @@ export default async function EventPage({
         </aside>
       </div>
 
-      {!finished && (
+      {!finished && !statusLabel && (
         <StickyBookBar event={event} booking={booking} price={price} next={next} whenLabel={whenLabel} />
       )}
     </main>

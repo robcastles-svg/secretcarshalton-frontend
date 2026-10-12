@@ -20,6 +20,8 @@ export interface Slide {
   topic: string | null;
   /** The real start instant, for the countdown. */
   targetMs: number;
+  /** "Sold out" / "Cancelled" when the organiser has marked it so. */
+  status?: string | null;
 }
 
 function Tile({ s, onImage = false }: { s: Slide; onImage?: boolean }) {
@@ -124,6 +126,7 @@ export function FeaturedSlider({ slides }: { slides: Slide[] }) {
             </div>
             <div className="evl-s-body">
               <span className="evl-promo-pill">Featured</span>
+              {s.status && <span className="evl-promo-pill evl-status-pill">{s.status}</span>}
               <div className="evl-s-top">
                 <Tile s={s} />
                 <div>

@@ -7606,6 +7606,9 @@ a.card-category:hover {
 .evx-ended { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; background: var(--evx-charcoal); color: #fff; border-radius: 10px; padding: 10px 14px; font-size: 14px; margin-bottom: 16px; }
 .evx-ended b { color: var(--evx-accent-dark); }
 .evx .evx-ended a { color: #fff; font-weight: 700; }
+.evx-status b { color: #fff; }
+.evx-status-cancelled { background: #b3261e; }
+.evx-status-big { margin: 4px 0 6px; font-size: 26px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: var(--evx-accent-dark); }
 .evx-facts { list-style: none; margin: 18px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
 .evx-facts li { display: flex; align-items: center; gap: 7px; border: 1px solid var(--evx-line); border-radius: 999px; padding: 6px 12px 6px 10px; font-size: 14px; color: var(--evx-ink); min-width: 0; }
 .evx-facts li svg { width: 16px; height: 16px; color: var(--evx-accent-ink); }
@@ -7740,6 +7743,8 @@ a.card-category:hover {
 .evx-badge-featured { position: absolute; left: 10px; top: 10px; background: var(--evx-accent); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 3px 9px; }
 .evx-badge-repeat { position: absolute; right: 10px; top: 10px; background: rgba(0, 0, 0, .8); color: #fff; font-size: 12px; font-weight: 700; border-radius: 999px; padding: 4px 10px; display: flex; gap: 6px; align-items: center; }
 .evx-badge-repeat svg { width: 13px; height: 13px; color: var(--evx-accent-dark); }
+.evx-badge-status { position: absolute; left: 10px; bottom: 10px; background: #1f1b1e; color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; border-radius: 6px; padding: 5px 10px; }
+.evx-badge-cancelled { background: #b3261e; }
 .evx-card-body { padding: 14px 16px 16px; display: flex; gap: 14px; align-items: flex-start; }
 .evx-card-txt { min-width: 0; display: grid; gap: 5px; }
 .evx-card-txt h3 { margin: 0; font-size: 17px; line-height: 1.25; font-weight: 700; text-wrap: balance; }
@@ -7833,6 +7838,7 @@ a.card-category:hover {
 .evl-slide-date-img { display: none; }
 .evl-s-body { padding: 18px 18px 20px; display: grid; gap: 14px; align-content: start; min-width: 0; }
 .evl-promo-pill { display: inline-flex; align-items: center; background: var(--evx-accent); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; border-radius: 999px; padding: 3px 10px; width: max-content; }
+.evl-status-pill { background: #1f1b1e; margin-left: 6px; }
 .evl-s-top { display: flex; gap: 16px; align-items: flex-start; }
 .evl-s-top > div { min-width: 0; display: grid; gap: 6px; }
 .evl-slide .evx-date { background: #2b282d; border-color: #3a363c; }

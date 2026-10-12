@@ -23,6 +23,7 @@ import {
 import {
   SITE_URL,
   dateParts,
+  eventStatusLabel,
   formatTimeRange,
   getOccurrences,
   isFeaturedNow,
@@ -273,6 +274,7 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
         time: formatTimeRange(occurrence),
         topic: topicTag?.name ?? null,
         targetMs: ukInstant(occurrence.start),
+        status: eventStatusLabel(event),
       };
     });
   }

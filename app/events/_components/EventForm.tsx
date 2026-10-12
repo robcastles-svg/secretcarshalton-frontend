@@ -58,6 +58,8 @@ export interface EventFormInitial {
   booking_phone: string;
   event_url: string;
   image: string;
+  /** "sold_out" / "cancelled" / "" (on as planned) — edit form only. */
+  event_status?: string;
 }
 
 const NEW_VENUE = "__new__";
@@ -223,6 +225,7 @@ export function EventForm({
 
   // ---- Admin: feature by hand
   const [featuredTick, setFeaturedTick] = useState(Boolean(adminFeatured));
+  const [eventStatus, setEventStatus] = useState(initial?.event_status ?? "");
 
   // ---- Submit
   const [submitting, setSubmitting] = useState(false);
@@ -368,6 +371,7 @@ export function EventForm({
       repeat_pattern: repeats ? patternText(fullRule) : "",
     };
     if (adminFeatured !== undefined) data.featured = featuredTick;
+    if (mode === "edit") data.event_status = eventStatus;
 
     // Organiser — see SC_Events_REST::set_organizer_from_request: an
     // organizer_id attaches (or, with organizer_edit, also updates) that
@@ -453,6 +457,37 @@ export function EventForm({
       <div className="evf-main">
         {header}
         {mode === "create" && <h2 className="evf-divider">New event</h2>}
+
+        {/* Sold out / cancelled: the event stays live, just marked. */}
+        {mode === "edit" && (
+          <section className="evf-sec">
+            <h2>Status</h2>
+            <div className="evf-fields">
+              <div className="evf-field">
+                <span className="evf-lab">Is it still going ahead?</span>
+                <div className="evf-choices evf-c3">
+                  {[
+                    ["", "On as planned", "Booking works as normal"],
+                    ["sold_out", "Sold out", "No tickets or places left"],
+                    ["cancelled", "Cancelled", "It's not happening"],
+                  ].map(([v, l, d]) => (
+                    <label key={v || "on"} className="evf-choice">
+                      <input type="radio" name="ev-status" checked={eventStatus === v} onChange={() => setEventStatus(v)} />
+                      <span>
+                        <b>{l}</b>
+                        <small>{d}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <div className="evf-hint">
+                  Sold out or cancelled events stay on the site, with a label on the card and page, and the booking button
+                  is taken away.
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* 1. The event */}
         <section className="evf-sec">

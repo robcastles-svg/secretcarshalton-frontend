@@ -106,11 +106,19 @@ class SC_Events_Meta {
 		 * below because array meta needs a REST schema.
 		 */
 		'sc_repeat_pattern' => 'string',
+		/**
+		 * Marked by the organiser on the edit form: one of EVENT_STATUSES,
+		 * or '' for on as planned. The event stays live either way — the
+		 * frontend shows a Sold out / Cancelled label on its card and page
+		 * and takes away the booking button.
+		 */
+		'sc_event_status'   => 'string',
 	);
 
 	const PRICE_TYPES        = array( 'free', 'paid', 'unknown' );
 	const BOOKING_TYPES      = array( 'link', 'contact', 'none' );
 	const BOOKING_LINK_KINDS = array( 'tickets', 'website' );
+	const EVENT_STATUSES     = array( 'sold_out', 'cancelled' );
 
 	/** Most dates a repeating event may hold — matches the add-event form's "ends after N dates (max 52)". */
 	const MAX_REPEAT_DATES = 52;
@@ -152,6 +160,8 @@ class SC_Events_Meta {
 				$args['sanitize_callback'] = self::enum_sanitizer( self::PRICE_TYPES );
 			} elseif ( 'sc_booking_type' === $key ) {
 				$args['sanitize_callback'] = self::enum_sanitizer( self::BOOKING_TYPES );
+			} elseif ( 'sc_event_status' === $key ) {
+				$args['sanitize_callback'] = self::enum_sanitizer( self::EVENT_STATUSES );
 			} elseif ( 'sc_booking_link_kind' === $key ) {
 				$args['sanitize_callback'] = self::enum_sanitizer( self::BOOKING_LINK_KINDS );
 			} elseif ( 'sc_price_amount' === $key ) {

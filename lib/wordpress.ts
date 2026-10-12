@@ -1437,6 +1437,9 @@ export async function recordFeaturedListingImpression(listingId: number): Promis
 // Events pages below read from here now instead of getEvents/getEventSchema.
 // ---------------------------------------------------------------------------
 
+/** See sc_event_status — SC_Events_Meta::EVENT_STATUSES. */
+export type ScEventStatus = "sold_out" | "cancelled";
+
 export interface WPScEventMeta {
   sc_start: string;
   sc_end: string;
@@ -1473,6 +1476,8 @@ export interface WPScEventMeta {
    */
   sc_repeat_dates?: string[];
   sc_repeat_pattern?: string;
+  /** Marked by the organiser when editing: sold out or cancelled ("" = on as planned). The event stays live. */
+  sc_event_status?: ScEventStatus | "";
 }
 
 export type ScEventPriceType = "free" | "paid" | "unknown";
