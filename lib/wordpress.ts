@@ -7,7 +7,7 @@ const REVALIDATE_SECONDS = 3600;
  * (built this session) and not something to push to production without
  * Rob reviewing them first. Once approved, this becomes WP_BASE's host.
  */
-const WP_STAGING_ROOT = "https://www.staging19.secretcarshalton.com/wp-json";
+export const WP_STAGING_ROOT = "https://www.staging19.secretcarshalton.com/wp-json";
 
 /**
  * Derived from WP_STAGING_ROOT rather than a second hardcoded URL, so

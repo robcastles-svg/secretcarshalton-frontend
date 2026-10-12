@@ -1,18 +1,19 @@
 import type { ReelItem } from "@/app/_components/home/ReelsSlider";
+import { WP_STAGING_ROOT } from "@/lib/wordpress";
 
 /**
  * The homepage "Reels & photos" strip, fed by the Instagram feed WordPress
- * already has: Easy Social Feed (connected to @secret.carshalton) renders
- * the latest posts into the WordPress homepage and keeps each image on the
- * WordPress server (uploads/esf-instagram/{id}.jpg). It has no Instagram
- * REST API, so this reads that rendered feed — which also keeps the
- * plugin's own refresh running, as it updates when the feed renders — and
- * its public per-post popup for the post's own Instagram link and
- * caption. Cached for an hour; any failure just hides the strip.
+ * already has: Easy Social Feed (connected to @secret.carshalton) keeps
+ * the latest posts and their images on the WordPress server
+ * (uploads/esf-instagram/{id}.jpg). It has no Instagram REST API, so
+ * sc-membership's /instagram-feed renders the plugin's feed and returns
+ * its HTML (SC_Membership_Instagram) — rendering it is also what keeps
+ * the plugin's own refresh running. Each post's Instagram link and
+ * caption come from the plugin's public per-post popup. Cached for an
+ * hour; any failure just hides the strip. (This used to read the old
+ * WordPress homepage, which won't exist once www is the new site.)
  */
 
-// Same WordPress the articles come from (see WP_BASE in lib/wordpress.ts).
-const WP_SITE = "https://www.secretcarshalton.com";
 const PROFILE_URL = "https://www.instagram.com/secret.carshalton/";
 const MAX_ITEMS = 15;
 
@@ -49,7 +50,13 @@ async function postDetails(popupUrl: string): Promise<{ url: string | null; capt
 }
 
 export async function getInstagramFeed(): Promise<ReelItem[]> {
-  const home = await fetchText(`${WP_SITE}/`);
+  const json = await fetchText(`${WP_STAGING_ROOT}/sc-membership/v1/instagram-feed`);
+  let home = "";
+  try {
+    home = json ? String(JSON.parse(json).html ?? "") : "";
+  } catch {
+    home = "";
+  }
   if (!home) return [];
 
   const seen = new Set<string>();
