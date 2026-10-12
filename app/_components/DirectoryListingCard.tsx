@@ -64,6 +64,16 @@ export const DirectoryListingCard = forwardRef<
         )}
         <span dangerouslySetInnerHTML={{ __html: listing.title.rendered }} />
       </Link>
+      {reviewAverage !== null && reviewCount > 0 && (
+        <Link
+          href={`/directory/${listing.slug}#comments`}
+          className="card-rating"
+          aria-label={`Rated ${Number(reviewAverage.toFixed(1))} out of 5 from ${reviewCount} review${reviewCount === 1 ? "" : "s"} — jump to reviews`}
+        >
+          <StarRatingDisplay rating={reviewAverage} className="card-star-rating" />
+          <b>{reviewAverage.toFixed(1)}</b>
+        </Link>
+      )}
       {listing.meta.sc_featured && <span className="directory-badge">Featured</span>}
       {categoriesList?.map((category) => (
         <Link key={category.id} href={`/directory/${category.slug}`} className="card-category">
@@ -79,7 +89,6 @@ export const DirectoryListingCard = forwardRef<
               className="card-comment-count"
               aria-label={`${reviewCount} review${reviewCount === 1 ? "" : "s"}${reviewAverage !== null ? `, rated ${Number(reviewAverage.toFixed(1))} out of 5` : ""} — jump to reviews`}
             >
-              {reviewAverage !== null && <StarRatingDisplay rating={reviewAverage} className="card-star-rating" />}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 <path d="M21 12a8 8 0 0 1-8 8H7l-4 3 1-5.2A8 8 0 1 1 21 12Z" strokeLinejoin="round" />
               </svg>

@@ -76,10 +76,16 @@ export const EVENT_UPGRADE_PRICE = "£5 per event";
  */
 export const HOURS_PER_YEAR = 1950;
 
+/**
+ * hourlyLabel is the same cut-off as label, at HOURS_PER_YEAR (£30,000 ÷
+ * 1950 = £15.38, £40,000 ÷ 1950 = £20.51). Rob's call (2026-10): most
+ * local jobs are hourly, so the jobs page lists the bands by hourly rate,
+ * and the form gives the yearly figure in brackets after it.
+ */
 export const JOB_RATE_BRACKETS = [
-  { slug: "under_30k", label: "Under £30,000 a year", price: "£15" },
-  { slug: "30k_to_40k", label: "£30,000–£40,000 a year", price: "£20" },
-  { slug: "over_40k", label: "Over £40,000 a year", price: "£40" },
+  { slug: "under_30k", label: "Under £30,000 a year", hourlyLabel: "Under £15.38 an hour", price: "£15" },
+  { slug: "30k_to_40k", label: "£30,000–£40,000 a year", hourlyLabel: "£15.38–£20.51 an hour", price: "£20" },
+  { slug: "over_40k", label: "Over £40,000 a year", hourlyLabel: "Over £20.51 an hour", price: "£40" },
 ] as const;
 
 export type SalaryPeriod = "hour" | "year";
