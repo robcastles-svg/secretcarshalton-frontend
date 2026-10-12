@@ -68,24 +68,20 @@ export function featuredTierLabel(slug: string | null | undefined): string {
 export const EVENT_UPGRADE_PRICE = "£5 per event";
 
 /**
- * Job posts are priced on the job's annual pay (Rob, 2026-10): an hourly
- * rate is converted at HOURS_PER_YEAR (37.5 hours × 52 weeks), so part-time
- * and hourly jobs are priced on the full-time equivalent. Slugs and
- * cut-offs must match SC_Jobs_REST in wordpress-plugins/sc-jobs, which
- * decides the band itself from the salary entered.
+ * Job posts are priced on the hourly rate, in round bands (Rob, 2026-10):
+ * most local jobs are hourly. A yearly salary is converted at
+ * HOURS_PER_YEAR (37.5 hours × 52 weeks), so the cut-offs are £29,250 and
+ * £39,000 a year. Slugs and cut-offs must match SC_Jobs_REST in
+ * wordpress-plugins/sc-jobs, which decides the band itself from the pay
+ * entered. The jobs page lists the bands by hourlyLabel; the form adds
+ * label (the yearly figure) in brackets.
  */
 export const HOURS_PER_YEAR = 1950;
 
-/**
- * hourlyLabel is the same cut-off as label, at HOURS_PER_YEAR (£30,000 ÷
- * 1950 = £15.38, £40,000 ÷ 1950 = £20.51). Rob's call (2026-10): most
- * local jobs are hourly, so the jobs page lists the bands by hourly rate,
- * and the form gives the yearly figure in brackets after it.
- */
 export const JOB_RATE_BRACKETS = [
-  { slug: "under_30k", label: "Under £30,000 a year", hourlyLabel: "Under £15.38 an hour", price: "£15" },
-  { slug: "30k_to_40k", label: "£30,000–£40,000 a year", hourlyLabel: "£15.38–£20.51 an hour", price: "£20" },
-  { slug: "over_40k", label: "Over £40,000 a year", hourlyLabel: "Over £20.51 an hour", price: "£40" },
+  { slug: "up_to_15", label: "Under £29,250 a year", hourlyLabel: "Under £15 an hour", price: "£15" },
+  { slug: "15_to_20", label: "£29,250–£39,000 a year", hourlyLabel: "£15–£20 an hour", price: "£20" },
+  { slug: "over_20", label: "Over £39,000 a year", hourlyLabel: "Over £20 an hour", price: "£40" },
 ] as const;
 
 export type SalaryPeriod = "hour" | "year";
@@ -94,10 +90,10 @@ export function annualSalary(amount: number, period: SalaryPeriod): number {
   return period === "hour" ? amount * HOURS_PER_YEAR : amount;
 }
 
-/** Under £30k → first band; £30k up to and including £40k → second; over £40k → third. */
+/** Under £15 an hour → first band; £15 up to and including £20 → second; over £20 → third (compared as yearly figures). */
 export function jobRateBracket(annual: number) {
-  if (annual < 30000) return JOB_RATE_BRACKETS[0];
-  if (annual <= 40000) return JOB_RATE_BRACKETS[1];
+  if (annual < 15 * HOURS_PER_YEAR) return JOB_RATE_BRACKETS[0];
+  if (annual <= 20 * HOURS_PER_YEAR) return JOB_RATE_BRACKETS[1];
   return JOB_RATE_BRACKETS[2];
 }
 

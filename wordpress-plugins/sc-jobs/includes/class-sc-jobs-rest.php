@@ -99,15 +99,24 @@ class SC_Jobs_REST {
 	}
 
 	/**
-	 * Job posts are priced on annual pay; an hourly rate is converted at
-	 * 37.5 hours × 52 weeks. Must match HOURS_PER_YEAR, jobRateBracket and
-	 * formatJobSalary in lib/pricing.ts (kept by hand on both sides, like
-	 * the other prices).
+	 * Job posts are priced on the hourly rate in round bands (Rob, 2026-10):
+	 * under £15, £15–£20, over £20 an hour. A yearly salary is converted at
+	 * 37.5 hours × 52 weeks, so the cut-offs are £29,250 and £39,000 a
+	 * year. Must match HOURS_PER_YEAR, JOB_RATE_BRACKETS, jobRateBracket
+	 * and formatJobSalary in lib/pricing.ts (kept by hand on both sides,
+	 * like the other prices).
 	 */
 	const HOURS_PER_YEAR = 1950;
 
-	/** Bracket slug => [label, price], for the wp-admin metabox. */
+	/**
+	 * Bracket slug => [label, price], for the wp-admin metabox. The £30k/£40k
+	 * a-year slugs are the previous bands, kept so older jobs still show
+	 * theirs.
+	 */
 	const RATE_BRACKETS = array(
+		'up_to_15'   => array( 'Under £15 an hour (£29,250 a year)', '£15' ),
+		'15_to_20'   => array( '£15–£20 an hour (£29,250–£39,000 a year)', '£20' ),
+		'over_20'    => array( 'Over £20 an hour (£39,000 a year)', '£40' ),
 		'under_30k'  => array( 'Under £30,000 a year', '£15' ),
 		'30k_to_40k' => array( '£30,000–£40,000 a year', '£20' ),
 		'over_40k'   => array( 'Over £40,000 a year', '£40' ),
@@ -117,11 +126,12 @@ class SC_Jobs_REST {
 		return 'hour' === $period ? $amount * self::HOURS_PER_YEAR : $amount;
 	}
 
+	/** Under £15 an hour → up_to_15; £15 up to and including £20 → 15_to_20; over £20 → over_20 (compared as yearly figures). */
 	public static function rate_bracket( $annual ) {
-		if ( $annual < 30000 ) {
-			return 'under_30k';
+		if ( $annual < 15 * self::HOURS_PER_YEAR ) {
+			return 'up_to_15';
 		}
-		return $annual <= 40000 ? '30k_to_40k' : 'over_40k';
+		return $annual <= 20 * self::HOURS_PER_YEAR ? '15_to_20' : 'over_20';
 	}
 
 	private static function pounds( $n ) {
@@ -138,7 +148,7 @@ class SC_Jobs_REST {
 
 	const LIVE_DAYS = 7;
 
-	/** Pounds charged per band; older submissions may carry the retired hourly bands. */
+	/** Pounds charged per band; older submissions may carry the previous yearly bands. */
 	const BAND_PRICES = array(
 		'under_30k'  => 15,
 		'30k_to_40k' => 20,
