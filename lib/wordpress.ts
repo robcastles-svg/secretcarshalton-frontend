@@ -1416,6 +1416,38 @@ export async function getFeaturedListingForGrid(): Promise<WPListing | null> {
   }
 }
 
+/**
+ * The contact form's message, emailed to info@ by SC_Membership_Contact.
+ * Sent with the shared REVALIDATE_SECRET (WordPress holds the same value
+ * under Settings → Site refresh) so only this site can use that endpoint,
+ * plus the visitor's IP for its hourly limit.
+ */
+export async function sendContactMessage(
+  message: { name: string; email: string; subject: string; message: string },
+  clientIp: string
+): Promise<{ ok: true } | { ok: false; status: number; message: string }> {
+  const fallback = "Sorry, your message couldn't be sent. Please email us at info@secretcarshalton.com.";
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/contact`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-sc-secret": process.env.REVALIDATE_SECRET ?? "",
+        "x-sc-client-ip": clientIp,
+      },
+      body: JSON.stringify(message),
+      cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (res.ok) return { ok: true };
+    const body = await res.json().catch(() => ({}));
+    const status = res.status === 400 || res.status === 429 ? res.status : 502;
+    return { ok: false, status, message: status === 502 ? fallback : body.message || fallback };
+  } catch {
+    return { ok: false, status: 502, message: fallback };
+  }
+}
+
 /** Fire-and-forget — tells sc-directory a real browser just rendered this listing's grid card. See PostViewTracker/getAd for why this is only ever called client-side, never during SSR/ISR regeneration. */
 export async function recordFeaturedListingImpression(listingId: number): Promise<void> {
   try {

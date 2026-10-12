@@ -8358,3 +8358,20 @@ a.card-category:hover {
   border-color: #b9dcc9;
   background: #f1f9f4;
 }
+
+/* Contact page (app/contact). */
+.contact-page .contact-form textarea {
+  resize: vertical;
+}
+.contact-sent {
+  background: #eef7f1;
+  border: 1px solid #b7dcc4;
+  color: #1d5c37;
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+.contact-alt {
+  margin-top: 1.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
