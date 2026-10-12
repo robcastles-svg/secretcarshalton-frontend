@@ -15,6 +15,7 @@ import {
   getPostsByCategory,
   getTags,
   type WPCategory,
+  soft,
 } from "@/lib/wordpress";
 
 /**
@@ -26,9 +27,9 @@ import {
  */
 export async function WalksView({ distance, rawPage }: { distance?: WPCategory; rawPage?: string }) {
   const [parent, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3, featuredListing] = await Promise.all([
-    getCategoryBySlug("walks").catch(() => null),
-    getCategories().catch(() => []),
-    getTags().catch(() => []),
+    getCategoryBySlug("walks").catch(soft(null)),
+    getCategories().catch(soft([])),
+    getTags().catch(soft([])),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),
@@ -39,8 +40,8 @@ export async function WalksView({ distance, rawPage }: { distance?: WPCategory; 
   const activeDistance = distance ?? null;
 
   const posts = activeDistance
-    ? await getPostsByCategory(activeDistance.id).catch(() => [])
-    : await getPostsByCategories(distances.map((d) => d.id)).catch(() => []);
+    ? await getPostsByCategory(activeDistance.id).catch(soft([]))
+    : await getPostsByCategories(distances.map((d) => d.id)).catch(soft([]));
 
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
   const tagsById = new Map(allTags.map((t) => [t.id, t]));

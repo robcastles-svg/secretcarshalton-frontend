@@ -21,6 +21,7 @@ import {
   type WPCategory,
   type WPContentItem,
   type WPListing,
+  soft,
 } from "@/lib/wordpress";
 
 /** Every 5th card in the default/unfiltered feed is swapped for a featured Directory listing (pink outline) instead of a story — matches the PDF's mixed feed. */
@@ -87,12 +88,12 @@ export async function DiscoverView({
   rawPage?: string;
 }) {
   const [storiesParent, peopleCategory, allCategories, allTags, directoryCategories, allListings, ad1, ad2, ad3] = await Promise.all([
-    getCategoryBySlug("stories").catch(() => null),
-    getCategoryBySlug("people").catch(() => null),
-    getCategories().catch(() => []),
-    getTags().catch(() => []),
-    getDirectoryCategories().catch(() => []),
-    getDirectoryListings().catch(() => []),
+    getCategoryBySlug("stories").catch(soft(null)),
+    getCategoryBySlug("people").catch(soft(null)),
+    getCategories().catch(soft([])),
+    getTags().catch(soft([])),
+    getDirectoryCategories().catch(soft([])),
+    getDirectoryListings().catch(soft([])),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),
@@ -121,11 +122,11 @@ export async function DiscoverView({
   let posts: WPContentItem[] = [];
   if (!isFeatured) {
     if (activeArea) {
-      posts = await getPostsByCategory(activeArea.id).catch(() => []);
+      posts = await getPostsByCategory(activeArea.id).catch(soft([]));
     } else if (isSpotlight) {
-      posts = peopleCategory ? await getPostsByCategory(peopleCategory.id).catch(() => []) : [];
+      posts = peopleCategory ? await getPostsByCategory(peopleCategory.id).catch(soft([])) : [];
     } else {
-      posts = await getPostsByCategories(areas.map((a) => a.id)).catch(() => []);
+      posts = await getPostsByCategories(areas.map((a) => a.id)).catch(soft([]));
     }
   }
 

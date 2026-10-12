@@ -11,6 +11,7 @@ import {
   getScEventCategories,
   getScEventTags,
   type WPScEvent,
+  soft,
 } from "@/lib/wordpress";
 import { HIDDEN_TOPICS } from "@/lib/event-list";
 import { ChevronIcon } from "../_components/EvIcons";
@@ -35,11 +36,11 @@ export default async function EventsSubmitPage() {
 async function AddYourEventPage({ token }: { token: string }) {
   const [profile, areas, tags, venues, organizers, allOrganizers, mine] = await Promise.all([
     getMemberMe(token),
-    getScEventCategories().catch(() => []),
-    getScEventTags().catch(() => []),
-    getEventVenues().catch(() => []),
+    getScEventCategories().catch(soft([])),
+    getScEventTags().catch(soft([])),
+    getEventVenues().catch(soft([])),
     getMyOrganizers(token),
-    getEventOrganizers().catch(() => []),
+    getEventOrganizers().catch(soft([])),
     getMyEvents(token),
   ]);
 

@@ -4,7 +4,7 @@ import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getAd, getCategories, getCategoryBySlug, getPostsByCategory, getTags } from "@/lib/wordpress";
+import { getAd, getCategories, getCategoryBySlug, getPostsByCategory, getTags, soft } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -15,14 +15,14 @@ export default async function PeoplePage({
 }) {
   const { page: rawPage } = await searchParams;
   const [category, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
-    getCategoryBySlug("people").catch(() => null),
-    getCategories().catch(() => []),
-    getTags().catch(() => []),
+    getCategoryBySlug("people").catch(soft(null)),
+    getCategories().catch(soft([])),
+    getTags().catch(soft([])),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),
   ]);
-  const posts = category ? await getPostsByCategory(category.id).catch(() => []) : [];
+  const posts = category ? await getPostsByCategory(category.id).catch(soft([])) : [];
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
   const tagsById = new Map(allTags.map((t) => [t.id, t]));
   // 10 per page, not the shared PAGE_SIZE (9) — this grid is 2 columns on

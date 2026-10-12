@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
-import { getAllMembers, getMemberMe, type WPMember } from "@/lib/wordpress";
+import { getAllMembers, getMemberMe, type WPMember, soft } from "@/lib/wordpress";
 
 export const metadata = { title: "Members — Secret Carshalton" };
 export const revalidate = 3600;
@@ -72,7 +72,7 @@ export default async function MembersPage({
   const sessionToken = await getSessionToken();
   if (!sessionToken) redirect("/login?next=/members");
 
-  const [members, profile] = await Promise.all([getAllMembers().catch(() => []), getMemberMe(sessionToken)]);
+  const [members, profile] = await Promise.all([getAllMembers().catch(soft([])), getMemberMe(sessionToken)]);
   const isAdmin = Boolean(profile?.is_editor);
   const letterGroups = groupByLetter(members);
 

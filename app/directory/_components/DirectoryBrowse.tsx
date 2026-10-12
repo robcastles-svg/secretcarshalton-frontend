@@ -15,6 +15,7 @@ import {
   stripHtml,
   type WPDirectoryCategory,
   type WPListing,
+  soft,
 } from "@/lib/wordpress";
 
 function matchesQuery(listing: WPListing, q: string) {
@@ -71,7 +72,7 @@ export async function DirectoryBrowse({
   const basePath = activeCategory ? `/directory/${activeCategory.slug}` : "/directory";
 
   const [allCategories, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
-    getDirectoryCategories().catch(() => []),
+    getDirectoryCategories().catch(soft([])),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),
@@ -85,7 +86,7 @@ export async function DirectoryBrowse({
   const rawListings = await (activeCategory
     ? getDirectoryListingsByCategory(activeCategory.id)
     : getDirectoryListings()
-  ).catch(() => []);
+  ).catch(soft([]));
 
   const filteredListings = rawListings
     .filter((l) => matchesQuery(l, q))

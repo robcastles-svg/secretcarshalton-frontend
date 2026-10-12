@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
 import { formatUntil } from "@/lib/pricing";
 import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
-import { getDirectoryCategories, getMemberMe, getMyListings } from "@/lib/wordpress";
+import { getDirectoryCategories, getMemberMe, getMyListings, soft } from "@/lib/wordpress";
 import { SubmitUpgradeRequest } from "./_components/SubmitUpgradeRequest";
 
 export const metadata = { title: "Directory upgrade — Secret Carshalton" };
@@ -15,7 +15,7 @@ export default async function DirectoryUpgradePage() {
   const [profile, listings, categories] = await Promise.all([
     getMemberMe(token),
     getMyListings(token),
-    getDirectoryCategories().catch(() => []),
+    getDirectoryCategories().catch(soft([])),
   ]);
   if (!profile) redirect("/login?next=/dashboard/upgrade");
 

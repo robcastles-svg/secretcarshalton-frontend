@@ -36,6 +36,7 @@ import {
   slugifyVenue,
   stripHtml,
   type WPScEvent,
+  soft,
 } from "@/lib/wordpress";
 import { CopyButton } from "../_components/CopyButton";
 import { DateTile } from "../_components/DateTile";
@@ -60,7 +61,7 @@ import { ShareRow } from "@/app/_components/ShareRow";
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const slugs = await getRecentScEventSlugs(50).catch(() => []);
+  const slugs = await getRecentScEventSlugs(50).catch(soft([]));
   return slugs.map((slug) => ({ slug }));
 }
 
@@ -70,7 +71,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const event = await getScEventBySlug(slug).catch(() => null);
+  const event = await getScEventBySlug(slug).catch(soft(null));
   if (!event) return {};
 
   const title = stripHtml(event.title.rendered);
@@ -297,14 +298,14 @@ export default async function EventPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const event = await getScEventBySlug(slug).catch(() => null);
+  const event = await getScEventBySlug(slug).catch(soft(null));
 
   if (!event) notFound();
 
   const [sessionToken, fullThread, allTags] = await Promise.all([
     getSessionToken(),
-    getCommentsForPost(event.id, 50).catch(() => []),
-    getScEventTags().catch(() => []),
+    getCommentsForPost(event.id, 50).catch(soft([])),
+    getScEventTags().catch(soft([])),
   ]);
 
   const [profile, rsvpStatus] = await Promise.all([

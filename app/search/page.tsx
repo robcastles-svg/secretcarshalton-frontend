@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Pagination } from "@/app/_components/Pagination";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
-import { getAd, getTags, searchSite } from "@/lib/wordpress";
+import { getAd, getTags, searchSite, soft } from "@/lib/wordpress";
 
 export const metadata = { title: "Search" };
 
@@ -53,8 +53,8 @@ export default async function SearchPage({
   const sort = params.sort || "";
 
   const [allTags, results, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
-    getTags().catch(() => []),
-    q ? searchSite({ q, category, searchMode, tag, sort }).catch(() => []) : Promise.resolve([]),
+    getTags().catch(soft([])),
+    q ? searchSite({ q, category, searchMode, tag, sort }).catch(soft([])) : Promise.resolve([]),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),

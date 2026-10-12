@@ -15,6 +15,7 @@ import {
   getPostsByCategory,
   getTags,
   stripHtml,
+  soft,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -29,17 +30,17 @@ export default async function CommunityPage({
   const { page: rawPage } = await searchParams;
 
   const [communityCategory, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3, featuredListing, groups] = await Promise.all([
-    getCategoryBySlug("community").catch(() => null),
-    getCategories().catch(() => []),
-    getTags().catch(() => []),
+    getCategoryBySlug("community").catch(soft(null)),
+    getCategories().catch(soft([])),
+    getTags().catch(soft([])),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),
     getFeaturedListingForGrid(),
-    getGroupListings().catch(() => []),
+    getGroupListings().catch(soft([])),
   ]);
 
-  const posts = communityCategory ? await getPostsByCategory(communityCategory.id).catch(() => []) : [];
+  const posts = communityCategory ? await getPostsByCategory(communityCategory.id).catch(soft([])) : [];
   const categoriesById = new Map(allCategories.map((c) => [c.id, c]));
   const tagsById = new Map(allTags.map((t) => [t.id, t]));
   // ContentList adds the featured listing as an extra card on top of

@@ -14,12 +14,13 @@ import {
   getPostsByTag,
   getTagBySlug,
   getTags,
+  soft,
 } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const tags = await getTags().catch(() => []);
+  const tags = await getTags().catch(soft([]));
   return tags.filter((t) => t.count === undefined || t.count > 0).map((t) => ({ slug: t.slug }));
 }
 
@@ -29,7 +30,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const tag = await getTagBySlug(slug).catch(() => null);
+  const tag = await getTagBySlug(slug).catch(soft(null));
   if (!tag) return {};
   return { title: `${tag.name} — Stories by theme — Secret Carshalton` };
 }
@@ -43,14 +44,14 @@ export default async function ThemePage({
 }) {
   const { slug } = await params;
   const { page: rawPage } = await searchParams;
-  const tag = await getTagBySlug(slug).catch(() => null);
+  const tag = await getTagBySlug(slug).catch(soft(null));
 
   if (!tag) notFound();
 
   const [posts, allCategories, allTags, sidebarAd1, sidebarAd2, sidebarAd3, featuredListing] = await Promise.all([
-    getPostsByTag(tag.id).catch(() => []),
-    getCategories().catch(() => []),
-    getTags().catch(() => []),
+    getPostsByTag(tag.id).catch(soft([])),
+    getCategories().catch(soft([])),
+    getTags().catch(soft([])),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),

@@ -1,5 +1,5 @@
 import type { HomeCommentItem } from "@/app/_components/home/HomeComments";
-import { getLatestComments, getMembersByIds, memberBadge, stripHtml } from "@/lib/wordpress";
+import { getLatestComments, getMembersByIds, memberBadge, stripHtml, soft } from "@/lib/wordpress";
 
 /**
  * The latest comments from across the site, shaped for HomeComments —
@@ -8,7 +8,7 @@ import { getLatestComments, getMembersByIds, memberBadge, stripHtml } from "@/li
  * link) the same way CommentSectionAsync does, via a batch id lookup.
  */
 export async function getLatestCommentItems(count: number): Promise<HomeCommentItem[]> {
-  const rawComments = await getLatestComments(count).catch(() => []);
+  const rawComments = await getLatestComments(count).catch(soft([]));
   const commenterProfiles = await getMembersByIds(rawComments.map((c) => c.author ?? 0)).catch(
     () => new Map<number, { slug: string; name: string; avatar: string; joinedAt: string; tier?: string }>()
   );

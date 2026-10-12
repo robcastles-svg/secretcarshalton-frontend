@@ -3,7 +3,7 @@ import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { MasonryGrid } from "@/app/_components/MasonryGrid";
 import { SidebarAds } from "@/app/_components/SidebarAds";
-import { getAd, getGroupListings } from "@/lib/wordpress";
+import { getAd, getGroupListings, soft } from "@/lib/wordpress";
 
 export const revalidate = 3600;
 
@@ -19,7 +19,7 @@ export const metadata = {
 
 export default async function CommunityGroupsPage() {
   const [listings, sidebarAd1, sidebarAd2, sidebarAd3] = await Promise.all([
-    getGroupListings().catch(() => []),
+    getGroupListings().catch(soft([])),
     getAd("sidebar", 1),
     getAd("sidebar", 2),
     getAd("sidebar", 3),

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { permanentRedirect } from "next/navigation";
-import { getCategories, getCategoryBySlug } from "@/lib/wordpress";
+import { getCategories, getCategoryBySlug, soft } from "@/lib/wordpress";
 import { DiscoverView } from "./_components/DiscoverView";
 
 export const revalidate = 3600;
@@ -10,8 +10,8 @@ export const metadata: Metadata = { title: "Discover — Secret Carshalton" };
 /** The stories area with this slug, if it is one. */
 async function storiesArea(slug: string) {
   const [storiesParent, allCategories] = await Promise.all([
-    getCategoryBySlug("stories").catch(() => null),
-    getCategories().catch(() => []),
+    getCategoryBySlug("stories").catch(soft(null)),
+    getCategories().catch(soft([])),
   ]);
   return storiesParent ? allCategories.find((c) => c.parent === storiesParent.id && c.slug === slug) : undefined;
 }
