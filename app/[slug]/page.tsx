@@ -64,8 +64,8 @@ export async function generateStaticParams() {
   // one. Empty arrays degrade to ISR-on-first-visit instead (see the
   // comment below), which is recoverable; a dead build isn't.
   const [pageSlugs, recentPostSlugs] = await Promise.all([
-    getAllPageSlugs().catch(soft([])),
-    getRecentPostSlugs(30).catch(soft([])),
+    getAllPageSlugs().catch(() => []),
+    getRecentPostSlugs(30).catch(() => []),
   ]);
   const slugs = new Set([...pageSlugs, ...recentPostSlugs, ...Object.keys(STATIC_PAGES)]);
   return Array.from(slugs).map((slug) => ({ slug }));

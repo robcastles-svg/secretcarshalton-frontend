@@ -6,9 +6,9 @@ import { DiscoverView } from "../../discover/_components/DiscoverView";
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const parent = await getCategoryBySlug("stories").catch(soft(null));
+  const parent = await getCategoryBySlug("stories").catch(() => null);
   if (!parent) return [];
-  const categories = await getCategories().catch(soft([]));
+  const categories = await getCategories().catch(() => []);
   return categories.filter((c) => c.parent === parent.id && c.count > 0).map((c) => ({ area: c.slug }));
 }
 

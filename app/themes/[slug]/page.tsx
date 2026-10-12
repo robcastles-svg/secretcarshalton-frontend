@@ -20,7 +20,7 @@ import {
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const tags = await getTags().catch(soft([]));
+  const tags = await getTags().catch(() => []);
   return tags.filter((t) => t.count === undefined || t.count > 0).map((t) => ({ slug: t.slug }));
 }
 

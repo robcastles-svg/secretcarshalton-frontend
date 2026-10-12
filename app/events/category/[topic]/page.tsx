@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { HIDDEN_TOPICS } from "@/lib/event-list";
-import { getScEventTags, soft } from "@/lib/wordpress";
+import { getScEventTags } from "@/lib/wordpress";
 import { EventsAreaBar } from "../../_components/EventsAreaBar";
 import { EventsListPage, listMetadata } from "../../_components/EventsListPage";
 import { cleanTopic } from "../../_components/listParams";
@@ -11,7 +11,7 @@ export const revalidate = 3600;
 type Props = { params: Promise<{ topic: string }> };
 
 export async function generateStaticParams() {
-  const tags = await getScEventTags().catch(soft([]));
+  const tags = await getScEventTags().catch(() => []);
   return [{ topic: "free" }, ...tags.filter((t) => !HIDDEN_TOPICS.has(t.slug)).map((t) => ({ topic: t.slug }))];
 }
 

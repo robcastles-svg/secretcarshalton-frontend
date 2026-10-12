@@ -61,7 +61,7 @@ import { ShareRow } from "@/app/_components/ShareRow";
 export const revalidate = 3600;
 
 export async function generateStaticParams() {
-  const slugs = await getRecentScEventSlugs(50).catch(soft([]));
+  const slugs = await getRecentScEventSlugs(50).catch(() => []);
   return slugs.map((slug) => ({ slug }));
 }
 

@@ -273,11 +273,22 @@ export function soft<T>(fallback: T) {
   };
 }
 
-/** SiteGround's anti-bot challenge: an HTML page (HTTP 202) where the REST API's JSON should be. */
-function isBlockedResponse(url: string, res: Response): boolean {
+/**
+ * SiteGround's anti-bot challenge: an HTML page (HTTP 202) where the REST
+ * API's JSON should be. Judged by the body, not the content-type header —
+ * the live WordPress labels some genuine JSON responses text/html.
+ */
+async function isBlockedResponse(url: string, res: Response): Promise<boolean> {
   if (!url.includes("/wp-json")) return false;
-  const type = res.headers.get("content-type") ?? "";
-  return res.status === 202 || (res.ok && type.includes("text/html"));
+  if (res.status === 202) return true;
+  if (!res.ok) return false;
+  const start = (await res.clone().text()).trimStart().slice(0, 15).toLowerCase();
+  return start.startsWith("<html") || start.startsWith("<!doctype");
+}
+
+/** Same request, different cache key — so a challenge page Next cached under the original URL isn't read back. */
+function bustCache(url: string, attempt: number): string {
+  return `${url}${url.includes("?") ? "&" : "?"}_scr=${attempt}`;
 }
 
 async function fetchWithRetry(
@@ -286,21 +297,22 @@ async function fetchWithRetry(
   attempts = 3
 ): Promise<Response> {
   let lastError: unknown;
-  let request = init;
+  let target = url;
   for (let attempt = 0; attempt < attempts; attempt++) {
     try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(15_000), ...request });
-      if (isBlockedResponse(url, res)) {
+      const res = await fetch(target, { signal: AbortSignal.timeout(15_000), ...init });
+      if (await isBlockedResponse(url, res)) {
         lastError = new WordPressUnavailableError(`WordPress challenged the request (HTTP ${res.status}): ${url}`);
-        // The challenge page may now be in Next's data cache under this
-        // request — retry around it rather than reading it back.
-        request = { ...init, cache: "no-store", next: undefined };
+        target = bustCache(url, attempt + 1);
       } else if (res.ok || res.status < 500) {
         return res;
       } else {
         lastError = new WordPressUnavailableError(`HTTP ${res.status}: ${url}`);
       }
     } catch (err) {
+      // Next's own control-flow signals (e.g. dynamic-rendering bailouts)
+      // carry a digest and must pass through untouched.
+      if (err && typeof err === "object" && "digest" in err) throw err;
       lastError = new WordPressUnavailableError(err instanceof Error ? err.message : String(err));
     }
     if (attempt < attempts - 1) {
