@@ -1092,6 +1092,13 @@ a.ad-slot-text-image img {
   color: #1a1a1a;
 }
 
+/* No photo above it (standard directory and group listings, which are
+   headline-only): the title is the card's first thing, so give it the
+   same breathing room at the top as it has at the sides. */
+.post-list li > .card-title:first-child {
+  margin-top: 1.1rem;
+}
+
 .post-list .card-tag {
   display: block;
   color: #c2607a;
