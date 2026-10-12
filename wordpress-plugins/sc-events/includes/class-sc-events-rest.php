@@ -853,6 +853,7 @@ class SC_Events_REST {
 			'booking_email'     => 'sc_booking_email',
 			'booking_phone'     => 'sc_booking_phone',
 			'repeat_pattern'    => 'sc_repeat_pattern',
+			'event_status'      => 'sc_event_status',
 		);
 		foreach ( $fields as $param => $meta_key ) {
 			if ( null === $request->get_param( $param ) ) {

@@ -136,6 +136,12 @@ export function isFinished(event: WPScEvent, now = Date.now()): boolean {
  * until the event's date, so the badge and slider spot drop off by
  * themselves once it's over, whatever the stored flag still says.
  */
+/** "Sold out" / "Cancelled" when the organiser has marked the event so (it stays live), else null. */
+export function eventStatusLabel(event: WPScEvent): string | null {
+  const status = event.meta.sc_event_status;
+  return status === "cancelled" ? "Cancelled" : status === "sold_out" ? "Sold out" : null;
+}
+
 export function isFeaturedNow(event: WPScEvent, now = Date.now()): boolean {
   // (Repeating events can only be featured by hand by an admin — paying is
   // for single events — so they're allowed here.)
@@ -433,7 +439,8 @@ export function eventJsonLd(event: WPScEvent, imageUrl: string | null, now = Dat
     description: stripHtml(event.content.rendered).slice(0, 300) || undefined,
     url: pageUrl,
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    eventStatus: "https://schema.org/EventScheduled",
+    eventStatus:
+      event.meta.sc_event_status === "cancelled" ? "https://schema.org/EventCancelled" : "https://schema.org/EventScheduled",
     location: event.meta.sc_venue_name
       ? { "@type": "Place", name: event.meta.sc_venue_name, address: event.meta.sc_venue_address || undefined }
       : undefined,
@@ -450,7 +457,8 @@ export function eventJsonLd(event: WPScEvent, imageUrl: string | null, now = Dat
             price,
             priceCurrency: "GBP",
             url: booking.kind === "link" ? booking.url : pageUrl,
-            availability: "https://schema.org/InStock",
+            availability:
+              event.meta.sc_event_status === "sold_out" ? "https://schema.org/SoldOut" : "https://schema.org/InStock",
           }
         : undefined,
   };

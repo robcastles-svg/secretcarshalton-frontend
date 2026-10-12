@@ -96,6 +96,7 @@ export default async function EditEventPage({
     booking_phone: m.sc_booking_phone ?? "",
     event_url: m.sc_event_url ?? "",
     image: getFeaturedImage(event)?.source_url ?? "",
+    event_status: m.sc_event_status ?? "",
   };
 
   // "Feature this event" in the side column: single, upcoming events only.
