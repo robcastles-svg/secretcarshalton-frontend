@@ -4732,6 +4732,12 @@ a.card-category:hover {
   margin: 0.4rem 0;
 }
 
+/* Inside a card (.post-list li is a flex column, which stretches its
+   children): keep the badge pill-sized rather than the card's full width. */
+.post-list li > .directory-badge {
+  align-self: flex-start;
+}
+
 /* Pink outline on featured-listing cards — matches the PDF wireframe's
    treatment (a pink border box, distinct from the plain white cards
    around it), most visible where a featured listing sits interleaved
