@@ -9182,8 +9182,23 @@ a.card-category:hover {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  flex: 1 1 200px;
   min-width: 0;
+}
+
+.msg-field-row > .msg-field {
+  flex: 1 1 200px;
+}
+
+/* Outlined white buttons on these screens (the shared secondary pill is
+   transparent, made for the dark Editorial box). */
+.msg-admin-page .button-pill-secondary {
+  background: #fff;
+  color: #222;
+  border: 1px solid #ccc;
+}
+
+.msg-admin-page .button-pill-secondary:hover:not(:disabled) {
+  border-color: #cc99a2;
 }
 
 .msg-field label {
