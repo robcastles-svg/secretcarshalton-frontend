@@ -8451,3 +8451,65 @@ a.card-category:hover {
   padding: 0.9rem 1rem;
   margin: 0;
 }
+
+/* Reviews page (app/reviews): Google review prompt + the old guestbook's reviews. */
+.reviews-page h1 {
+  margin-bottom: 0.75rem;
+}
+.reviews-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  max-width: 720px;
+}
+.reviews-intro p {
+  margin: 0;
+}
+.reviews-google {
+  text-decoration: none;
+}
+.reviews-sub {
+  margin: 2.25rem 0 0.25rem;
+  font-size: 1.3rem;
+}
+.reviews-thanks {
+  margin: 0 0 1.25rem;
+  color: #666;
+}
+.reviews-grid {
+  columns: 3 280px;
+  column-gap: 1.25rem;
+}
+.review-card {
+  break-inside: avoid;
+  margin: 0 0 1.25rem;
+  padding: 1.1rem 1.25rem;
+  background: #fff;
+  border: 1px solid #e6dfe3;
+  border-radius: 12px;
+}
+.review-card h3 {
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
+}
+.review-card blockquote {
+  margin: 0.6rem 0 0.75rem;
+  padding: 0;
+  border: 0;
+  color: #333;
+  font-style: normal;
+}
+.review-card blockquote p {
+  margin: 0 0 0.5rem;
+}
+.review-card figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+  font-size: 0.9rem;
+}
+.review-card figcaption time {
+  color: #777;
+}
