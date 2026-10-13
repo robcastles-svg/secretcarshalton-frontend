@@ -31,8 +31,10 @@ function prettyLocation(name: string) {
 /**
  * Pay as a yearly figure, for the "By pay" sort. Member jobs store an amount
  * and period; Reed only gives text like "£14 - £16" or "£37,800 - £41,500"
- * with no period, so the period is read from the size of the top figure:
- * under £100 an hour, under £1,000 a day (260 working days), else a year.
+ * with no period, so the period is read from the size of the figure: under
+ * £100 an hour, under £1,000 a day (260 working days), else a year. A range
+ * is ranked by its lower figure ("pays at least"), so a typo'd top figure
+ * in Reed's data (e.g. "£35,602 - £543,282") can't jump the queue.
  */
 function payPerYear(job: WPJobListing): number | null {
   const m = job.meta;
@@ -40,11 +42,12 @@ function payPerYear(job: WPJobListing): number | null {
     return annualSalary(Number(m.job_salary_amount), m.job_salary_period);
   }
   const amounts = (m.job_salary_text ?? "").match(/\d[\d,]*(?:\.\d+)?/g)?.map((n) => Number(n.replace(/,/g, ""))) ?? [];
-  const top = Math.max(0, ...amounts.filter((n) => Number.isFinite(n)));
-  if (!top) return null;
-  if (top < 100) return annualSalary(top, "hour");
-  if (top < 1000) return top * 260;
-  return top;
+  const valid = amounts.filter((n) => Number.isFinite(n) && n > 0);
+  if (valid.length === 0) return null;
+  const low = Math.min(...valid);
+  if (low < 100) return annualSalary(low, "hour");
+  if (low < 1000) return low * 260;
+  return low;
 }
 
 async function toCards(jobs: WPJobListing[], locationNames: Map<number, string>): Promise<JobCard[]> {
