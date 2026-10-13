@@ -307,7 +307,11 @@ class SC_Membership_Messages {
 		);
 	}
 
-	/** The showing messages this member should see, newest first, without the ones they dismissed. */
+	/**
+	 * The showing messages this member should see, newest first. Ones
+	 * they've closed come back flagged 'dismissed' — the bell shows them
+	 * as a collapsed one-line bar they can open again (Rob, 2026-10).
+	 */
 	public static function for_user( $user_id ) {
 		$posts = get_posts(
 			array(
@@ -334,12 +338,10 @@ class SC_Membership_Messages {
 			if ( ! self::is_showing( $post ) || ! self::user_in( $user_id, self::get_audiences( $post->ID ) ) ) {
 				continue;
 			}
-			$read = $reads[ $post->ID ] ?? null;
-			if ( $read && $read->dismissed_at ) {
-				continue;
-			}
-			$item         = self::shape( $post );
-			$item['seen'] = (bool) ( $read && $read->seen_at );
+			$read              = $reads[ $post->ID ] ?? null;
+			$item              = self::shape( $post );
+			$item['seen']      = (bool) ( $read && $read->seen_at );
+			$item['dismissed'] = (bool) ( $read && $read->dismissed_at );
 			$out[]        = $item;
 		}
 		return $out;
@@ -622,6 +624,7 @@ class SC_Membership_Messages {
 		register_rest_route( $ns, '/notifications', array( 'methods' => 'GET', 'callback' => array( __CLASS__, 'rest_notifications' ), 'permission_callback' => $member ) );
 		register_rest_route( $ns, '/notifications/seen', array( 'methods' => 'POST', 'callback' => array( __CLASS__, 'rest_seen' ), 'permission_callback' => $member ) );
 		register_rest_route( $ns, '/notifications/(?P<id>\d+)/dismiss', array( 'methods' => 'POST', 'callback' => array( __CLASS__, 'rest_dismiss' ), 'permission_callback' => $member ) );
+		register_rest_route( $ns, '/notifications/(?P<id>\d+)/restore', array( 'methods' => 'POST', 'callback' => array( __CLASS__, 'rest_restore' ), 'permission_callback' => $member ) );
 		register_rest_route( $ns, '/notifications/(?P<id>\d+)/click', array( 'methods' => 'POST', 'callback' => array( __CLASS__, 'rest_click' ), 'permission_callback' => $member ) );
 
 		register_rest_route(
@@ -709,6 +712,14 @@ class SC_Membership_Messages {
 		}
 		self::mark( get_current_user_id(), $id, 'seen_at' );
 		self::mark( get_current_user_id(), $id, 'dismissed_at' );
+		return array( 'ok' => true );
+	}
+
+	/** Opens a collapsed message back up. */
+	public static function rest_restore( WP_REST_Request $request ) {
+		global $wpdb;
+		$table = self::reads_table();
+		$wpdb->query( $wpdb->prepare( "UPDATE {$table} SET dismissed_at = NULL WHERE message_id = %d AND user_id = %d", (int) $request['id'], get_current_user_id() ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		return array( 'ok' => true );
 	}
 

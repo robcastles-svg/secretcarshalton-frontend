@@ -19,6 +19,8 @@ export interface MemberMessage {
   date: string;
   /** Only on the member's own feed. */
   seen?: boolean;
+  /** Closed by the member: shown collapsed, can be opened again. */
+  dismissed?: boolean;
 }
 
 export interface Notifications {
@@ -45,7 +47,7 @@ export const AUDIENCES: Array<{ key: AudienceKey; label: string }> = [
   { key: "community_groups", label: "Community groups" },
 ];
 
-export interface AdminMessage extends Omit<MemberMessage, "seen"> {
+export interface AdminMessage extends Omit<MemberMessage, "seen" | "dismissed"> {
   status: "publish" | "draft";
   state: "live" | "scheduled" | "ended" | "draft";
   audiences: AudienceKey[];
@@ -75,7 +77,7 @@ export function isExternalLink(url: string): boolean {
 const PROXY_ROUTES: Array<{ pattern: RegExp; methods: Array<"GET" | "POST">; auth: boolean }> = [
   { pattern: /^notifications$/, methods: ["GET"], auth: true },
   { pattern: /^notifications\/seen$/, methods: ["POST"], auth: true },
-  { pattern: /^notifications\/\d+\/(dismiss|click)$/, methods: ["POST"], auth: true },
+  { pattern: /^notifications\/\d+\/(dismiss|restore|click)$/, methods: ["POST"], auth: true },
   { pattern: /^email-preferences$/, methods: ["GET", "POST"], auth: true },
   { pattern: /^email-unsubscribe$/, methods: ["GET", "POST"], auth: false },
   { pattern: /^messages$/, methods: ["GET", "POST"], auth: true },

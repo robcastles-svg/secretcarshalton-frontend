@@ -537,6 +537,45 @@ button.button-pill {
   color: #fff;
 }
 
+.notif-msg-collapsed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #eef0f3;
+  border-radius: 12px;
+  background: #fff;
+  color: #14171c;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.notif-msg-collapsed-pinned {
+  background: #fbf3f5;
+  border-color: #ecd3d8;
+}
+
+.notif-msg-collapsed:hover {
+  border-color: #cc99a2;
+}
+
+.notif-msg-collapsed svg {
+  flex-shrink: 0;
+  color: #8a4f5b;
+}
+
+.notif-msg-collapsed-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .notif-msg-dismiss {
   display: flex;
   align-items: center;

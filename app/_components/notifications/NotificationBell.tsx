@@ -73,9 +73,16 @@ export function NotificationBell({ initial }: { initial: Notifications | null })
     };
   }, [open]);
 
+  // Closing a message collapses it to its title rather than removing it,
+  // so it can be opened again (Rob, 2026-10).
   const dismiss = (id: number) => {
-    setMessages((ms) => ms.filter((m) => m.id !== id));
+    setMessages((ms) => ms.map((m) => (m.id === id ? { ...m, dismissed: true, seen: true } : m)));
     post(`notifications/${id}/dismiss`);
+  };
+
+  const restore = (id: number) => {
+    setMessages((ms) => ms.map((m) => (m.id === id ? { ...m, dismissed: false } : m)));
+    post(`notifications/${id}/restore`);
   };
 
   const pinned = messages.filter((m) => m.pinned);
@@ -122,7 +129,9 @@ export function NotificationBell({ initial }: { initial: Notifications | null })
                       key={m.id}
                       message={m}
                       unread={freshIds.has(m.id)}
+                      collapsed={m.dismissed}
                       onDismiss={() => dismiss(m.id)}
+                      onExpand={() => restore(m.id)}
                       onButtonClick={() => post(`notifications/${m.id}/click`)}
                     />
                   ))}
@@ -131,7 +140,9 @@ export function NotificationBell({ initial }: { initial: Notifications | null })
                       key={m.id}
                       message={m}
                       unread={freshIds.has(m.id)}
+                      collapsed={m.dismissed}
                       onDismiss={() => dismiss(m.id)}
+                      onExpand={() => restore(m.id)}
                       onButtonClick={() => post(`notifications/${m.id}/click`)}
                     />
                   ))}
