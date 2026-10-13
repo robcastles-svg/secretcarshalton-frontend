@@ -316,6 +316,313 @@ button.button-pill {
   transform: translateX(3px);
 }
 
+/* Logged in: "Member dashboard" on the left, the bell on the right. */
+.member-benefits-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.member-benefits-inner-left {
+  padding-left: 0;
+  padding-right: 0;
+  text-align: left;
+}
+
+/* ---- Notification bell + panel (app/_components/notifications) ---- */
+.notif-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.notif-bell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+
+.notif-bell:hover,
+.notif-bell-open {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.notif-bell:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
+.notif-badge {
+  position: absolute;
+  top: 2px;
+  right: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #d6293e;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
+
+.notif-backdrop {
+  display: none;
+}
+
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: -10px;
+  z-index: 60;
+  width: 400px;
+  max-height: min(70vh, 640px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  color: #14171c;
+  border: 1px solid #e1e4ea;
+  border-radius: 16px;
+  box-shadow: 0 18px 48px rgba(20, 23, 28, 0.18);
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  font-size: 1rem;
+}
+
+.notif-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0.7rem 0.6rem 1.1rem;
+  border-bottom: 1px solid #eef0f3;
+}
+
+.notif-panel-head strong {
+  font-size: 1.05rem;
+}
+
+.notif-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #3b414c;
+  cursor: pointer;
+}
+
+.notif-close:hover {
+  background: #f3f4f6;
+}
+
+.notif-panel-body {
+  overflow-y: auto;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notif-empty {
+  margin: 0.6rem 0.5rem;
+  color: #3b414c;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.notif-panel-foot {
+  border-top: 1px solid #eef0f3;
+  padding: 0.75rem 1.1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.notif-panel-foot a {
+  color: #8a4f5b;
+  text-decoration: none;
+}
+
+.notif-panel-foot a:hover {
+  text-decoration: underline;
+}
+
+.notif-msg {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.8rem 0.6rem 0.8rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid #eef0f3;
+}
+
+.notif-msg-pinned {
+  background: #fbf3f5;
+  border-color: #ecd3d8;
+}
+
+.notif-msg-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-msg-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.2rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #8a4f5b;
+}
+
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d6293e;
+}
+
+.notif-msg-title {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.notif-msg-body {
+  margin: 0 0 0.6rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #3b414c;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.notif-msg-button {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  background: #d6293e;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.notif-msg-button:hover {
+  background: #b81f33;
+  color: #fff;
+}
+
+.notif-msg-collapsed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #eef0f3;
+  border-radius: 12px;
+  background: #fff;
+  color: #14171c;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.notif-msg-collapsed-pinned {
+  background: #fbf3f5;
+  border-color: #ecd3d8;
+}
+
+.notif-msg-collapsed:hover {
+  border-color: #cc99a2;
+}
+
+.notif-msg-collapsed svg {
+  flex-shrink: 0;
+  color: #8a4f5b;
+}
+
+.notif-msg-collapsed-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notif-msg-dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  margin-top: -4px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #5b6270;
+  cursor: pointer;
+}
+
+.notif-msg-dismiss:hover {
+  background: rgba(20, 23, 28, 0.06);
+}
+
+/* Phones: a sheet from the bottom of the screen, over a dimmed page. */
+@media (max-width: 640px) {
+  .notif-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 59;
+    background: rgba(20, 23, 28, 0.35);
+  }
+
+  .notif-panel {
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-height: 80vh;
+    border-radius: 20px 20px 0 0;
+    border: 0;
+    box-shadow: 0 -10px 40px rgba(20, 23, 28, 0.2);
+  }
+
+  .notif-panel-foot {
+    padding-bottom: calc(0.9rem + env(safe-area-inset-bottom));
+  }
+}
+
 @media (max-width: 720px) {
   /* Tighter than the desktop spacing so "About | Advertise | Join |
      Login" fits on one line instead of wrapping. */
@@ -6237,6 +6544,71 @@ a.card-category:hover {
   top: 1.25rem;
 }
 
+/* Top of the dashboard sidebar — opens the bell's panel. */
+.dash-notif-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #ecd3d8;
+  border-radius: 12px;
+  background: #fbf3f5;
+  color: var(--ad-text);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dash-notif-button:hover {
+  border-color: #cc99a2;
+}
+
+.dash-notif-button-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.dash-notif-button-label svg {
+  color: #a2606c;
+}
+
+.dash-notif-button-count {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: #d6293e;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.email-settings-toggle {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.email-settings-toggle input {
+  width: 20px;
+  height: 20px;
+  margin-top: 0.15rem;
+  flex-shrink: 0;
+  accent-color: #d6293e;
+}
+
+.email-settings-toggle > span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
 .dash-sidebar-label {
   font-size: 0.75rem;
   font-weight: 700;
@@ -8699,4 +9071,370 @@ a.card-category:hover {
 }
 .review-card figcaption time {
   color: #777;
+}
+
+.email-settings-done {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: #e3f3ea;
+  color: #1a6b43;
+  font-weight: 600;
+}
+
+/* ---- Member messages admin (/admin/messages) ---- */
+.dash-messages-button {
+  margin-top: 0.4rem;
+}
+
+.msg-admin-page h1 {
+  margin: 0.2rem 0 0.3rem;
+}
+
+.msg-admin-back {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.msg-admin-back a {
+  text-decoration: none;
+}
+
+.msg-admin-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.msg-admin-table-wrap {
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid #e1e4ea;
+  border-radius: 16px;
+  padding: 0.5rem 1rem;
+}
+
+.msg-admin-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.msg-admin-table th {
+  padding: 0.7rem 0.5rem;
+  border-bottom: 1px solid #e1e4ea;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #5b6270;
+}
+
+.msg-admin-table td {
+  padding: 0.85rem 0.5rem;
+  border-bottom: 1px solid #eef0f3;
+  vertical-align: top;
+  color: #3b414c;
+}
+
+.msg-admin-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.msg-admin-table td strong {
+  display: block;
+  color: #14171c;
+}
+
+.msg-state {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #f0f1f4;
+  color: #3b414c;
+}
+
+.msg-state-live {
+  background: #e3f3ea;
+  color: #1a6b43;
+}
+
+.msg-state-scheduled {
+  background: #e8eefb;
+  color: #264a8f;
+}
+
+.msg-admin-email,
+.msg-admin-sub {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: #5b6270;
+}
+
+.msg-admin-edit {
+  font-weight: 600;
+}
+
+.msg-admin-settings {
+  margin-top: 1.5rem;
+  max-width: 640px;
+}
+
+.msg-admin-settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.msg-admin-settings-row input {
+  flex: 1 1 260px;
+  min-width: 0;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font: inherit;
+}
+
+.msg-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  align-items: flex-start;
+}
+
+.msg-edit-form {
+  flex: 999 1 520px;
+  min-width: 0;
+  gap: 1.1rem;
+}
+
+.msg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.msg-field-row > .msg-field {
+  flex: 1 1 200px;
+}
+
+/* Outlined white buttons on these screens (the shared secondary pill is
+   transparent, made for the dark Editorial box). */
+.msg-admin-page .button-pill-secondary {
+  background: #fff;
+  color: #222;
+  border: 1px solid #ccc;
+}
+
+.msg-admin-page .button-pill-secondary:hover:not(:disabled) {
+  border-color: #cc99a2;
+}
+
+.msg-field label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.msg-optional {
+  font-weight: 400;
+  color: #5b6270;
+}
+
+.msg-field input,
+.msg-field textarea {
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.msg-field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.msg-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.msg-audiences {
+  margin: 0;
+  padding: 0.8rem 1rem 1rem;
+  border: 1px solid #e1e4ea;
+  border-radius: 12px;
+}
+
+.msg-audiences legend {
+  padding: 0 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.msg-audience-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.6rem 1rem;
+  margin-bottom: 0.4rem;
+}
+
+.msg-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.msg-check {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.msg-check input {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: #d6293e;
+}
+
+.msg-email-box {
+  margin-left: 1.7rem;
+  padding: 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: #f6f7f9;
+  border: 1px solid #e1e4ea;
+  border-radius: 12px;
+}
+
+.msg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid #eef0f3;
+}
+
+.msg-actions button:disabled,
+.msg-test-row button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.msg-end {
+  margin-left: auto;
+  padding: 0.5rem 0;
+  border: 0;
+  background: none;
+  color: #b0263a;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.msg-preview {
+  flex: 1 1 340px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.msg-preview-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5b6270;
+}
+
+.msg-preview-bell,
+.msg-preview-email {
+  background: #fff;
+  border: 1px solid #e1e4ea;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(20, 23, 28, 0.1);
+  overflow: hidden;
+}
+
+.msg-preview-email-meta {
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid #eef0f3;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: #3b414c;
+}
+
+.msg-preview-email-head {
+  padding: 0.85rem 1.1rem;
+  background: #cc99a2;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.msg-preview-email-body {
+  padding: 1.1rem 1.1rem 0.6rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: #3b414c;
+}
+
+.msg-preview-email-body p {
+  margin: 0 0 0.75rem;
+}
+
+.msg-preview-email-body h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1.15rem;
+  line-height: 1.3;
+  color: #14171c;
+}
+
+.msg-preview-email-body .notif-msg-button {
+  margin: 0.1rem 0 0.9rem;
+}
+
+.msg-preview-email-foot {
+  padding: 0.85rem 1.1rem;
+  background: #f6f7f9;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: #3b414c;
+}
+
+.msg-preview-link {
+  color: #8a4f5b;
+  text-decoration: underline;
+}
+
+.msg-preview-warn {
+  color: #b0263a;
+}
+
+.msg-preview-stats {
+  gap: 0.3rem;
+  font-size: 0.88rem;
+  color: #3b414c;
+}
+
+.msg-preview-stats strong {
+  color: #14171c;
 }

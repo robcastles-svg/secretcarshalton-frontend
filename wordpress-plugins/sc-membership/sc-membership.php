@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Membership
  * Description: Central member record (points, tiers, directory-upgrade approvals) shared by the directory, events, and comments. Other Secret Carshalton plugins hook into this rather than keeping their own copy of "who's a member."
- * Version: 0.25.0
+ * Version: 0.26.3
  * Author: Secret Carshalton
  * Text Domain: sc-membership
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_MEMBERSHIP_VERSION', '0.25.0' );
+define( 'SC_MEMBERSHIP_VERSION', '0.26.3' );
 define( 'SC_MEMBERSHIP_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-db.php';
@@ -23,6 +23,7 @@ require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-admin.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-auth.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-contact.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-instagram.php';
+require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-messages.php';
 
 register_activation_hook( __FILE__, array( 'SC_Membership_DB', 'install' ) );
 
@@ -44,6 +45,7 @@ add_action(
 );
 
 add_action( 'plugins_loaded', array( 'SC_Membership_Hooks', 'init' ) );
+add_action( 'plugins_loaded', array( 'SC_Membership_Messages', 'init' ) );
 add_action( 'rest_api_init', array( 'SC_Membership_REST', 'register_routes' ) );
 add_action( 'rest_api_init', array( 'SC_Membership_Contact', 'register_routes' ) );
 add_action( 'rest_api_init', array( 'SC_Membership_Instagram', 'register_routes' ) );
