@@ -1437,7 +1437,7 @@ export async function uploadListingPhotos(
   token: string,
   listingId: number,
   formData: FormData
-): Promise<{ gallery: number[] } | MemberAuthError> {
+): Promise<{ gallery: number[]; images?: Array<{ id: number; url: string; alt: string }> } | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/${listingId}/photos`, {
       method: "POST",

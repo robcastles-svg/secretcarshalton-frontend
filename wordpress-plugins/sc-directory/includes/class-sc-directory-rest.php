@@ -742,7 +742,24 @@ class SC_Directory_REST {
 			return new WP_Error( 'upload_failed', 'No photos were uploaded — check the file(s) and try again.', array( 'status' => 400 ) );
 		}
 
-		return array( 'gallery' => array_map( 'intval', self::gallery_ids( $post_id ) ) );
+		$ids = self::gallery_ids( $post_id );
+		// The photos with their URLs, so the edit page can show them at
+		// once — its own listing data is cached for a while.
+		$images = array();
+		foreach ( $ids as $attachment_id ) {
+			$src = wp_get_attachment_image_src( $attachment_id, 'large' );
+			if ( $src ) {
+				$images[] = array(
+					'id'  => $attachment_id,
+					'url' => $src[0],
+					'alt' => (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ),
+				);
+			}
+		}
+		return array(
+			'gallery' => $ids,
+			'images'  => $images,
+		);
 	}
 
 	public static function delete_photo( WP_REST_Request $request ) {

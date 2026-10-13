@@ -150,10 +150,11 @@ export function EditListingForm({
     const res = await fetch(`/api/directory/${listingId}/photos`, { method: "POST", body: photoData });
     const body = await res.json().catch(() => ({}));
     if (res.ok) {
-      router.refresh();
-      // The upload response only carries attachment IDs, not URLs — a full
-      // refresh already re-fetches the listing with resolved sc_gallery_images,
-      // so just clear the picker rather than trying to re-derive URLs here.
+      // Show the new photos straight away from the upload's reply. No
+      // router.refresh(): the page's own listing data is cached, so a
+      // refresh could put the old gallery back over them.
+      if (Array.isArray(body.images)) setCurrentGallery(body.images);
+      else router.refresh();
     } else {
       setPhotoError(body.error || (res.status === 413 ? TOO_BIG_MESSAGE : "Could not upload photo(s) — please try again."));
     }
