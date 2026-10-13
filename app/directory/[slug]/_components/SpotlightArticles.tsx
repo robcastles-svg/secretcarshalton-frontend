@@ -4,13 +4,14 @@ import type { SpotlightArticle } from "@/lib/wordpress";
 /**
  * Every listing page has this section (Rob, 2026-10). With articles: a
  * card for each. Without: a quiet line pointing at Featured Gold (which
- * includes a written article) and a white button to read the Spotlight
- * articles that already exist.
+ * includes a written article) and a link to the Spotlight
+ * articles that already exist — the same ⭐️ Business Spotlights
+ * lozenge as on the directory homepage.
  */
 export function SpotlightArticles({ articles }: { articles: SpotlightArticle[] }) {
   return (
     <section className="listing-spotlight" aria-labelledby="listing-spotlight-title">
-      <h2 id="listing-spotlight-title">Spotlight articles</h2>
+      <h2 id="listing-spotlight-title">Spotlight articles by this business</h2>
       {articles.length > 0 ? (
         <ul className="listing-spotlight-list">
           {articles.map((a) => (
@@ -37,8 +38,9 @@ export function SpotlightArticles({ articles }: { articles: SpotlightArticle[] }
             No spotlight article yet.{" "}
             <Link href="/advertise#featured-gold">Get one with Featured Gold →</Link>
           </p>
-          <Link href="/spotlight" className="button-pill button-pill-secondary listing-spotlight-more">
-            Read spotlight articles
+          {/* Same lozenge as the directory homepage's link (Rob, 2026-10). */}
+          <Link href="/spotlight" className="directory-spotlight-link">
+            ⭐️ Business Spotlights
           </Link>
         </div>
       )}
