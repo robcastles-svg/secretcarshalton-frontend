@@ -9438,3 +9438,11 @@ a.card-category:hover {
 .msg-preview-stats strong {
   color: #14171c;
 }
+
+/* Under the button on /community/submit. */
+.community-submit-note {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: #5b6270;
+}

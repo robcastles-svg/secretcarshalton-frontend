@@ -58,6 +58,11 @@ export function SubmitCommunityForm() {
       <button type="submit" className="button-pill" disabled={submitting}>
         {submitting ? "Submitting…" : "Share with the community"}
       </button>
+      <p className="community-submit-note">
+        Community news is a new feature we&apos;re still trying out. We&apos;re a very small team, so we can&apos;t
+        publish every story we&apos;re sent, and we may not always be able to explain why one hasn&apos;t been used.
+        Please don&apos;t take it personally — it&apos;s how we keep Secret Carshalton worth reading.
+      </p>
       <SpamTrap />
     </form>
   );
