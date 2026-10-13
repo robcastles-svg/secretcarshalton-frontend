@@ -98,25 +98,28 @@ export function getFeaturedImage(item: {
 }
 
 /**
- * Batch post-id -> {image, excerpt} lookup, one request for however many
- * ids are passed — used by the homepage's "Most read this week" list,
+ * Batch slug -> {image, excerpt} lookup, one request for however many
+ * slugs are passed — used by the homepage's "Most read this week" list,
  * which only has post_id/slug/title/views from sc-post-views (see
- * getTopPosts) and needs a thumbnail and a short intro per row. A single
- * `include=` core posts request rather than sc-post-views field
- * additions: the images and excerpts already live on the posts
- * themselves, no new plugin surface needed for them.
+ * getTopPosts) and needs a thumbnail and a short intro per row. Matched by
+ * slug, not id: the view counts live on staging while articles are read
+ * from live, and the articles re-created on staging have different ids
+ * there (the id split in wordpress-plugins/README.md), so an id lookup
+ * left those rows without a picture or intro.
  */
-export async function getFeaturedImagesForPosts(
-  postIds: number[]
-): Promise<Map<number, { image: WPFeaturedMedia | null; excerpt: string }>> {
-  if (postIds.length === 0) return new Map();
+export async function getFeaturedImagesForSlugs(
+  slugs: string[]
+): Promise<Map<string, { image: WPFeaturedMedia | null; excerpt: string }>> {
+  if (slugs.length === 0) return new Map();
   try {
     const posts = await wpFetch<
-      Array<{ id: number; excerpt: WPRendered; _embedded?: { "wp:featuredmedia"?: WPFeaturedMedia[] } }>
-    >(`/posts?include=${postIds.join(",")}&per_page=${postIds.length}&_fields=id,excerpt,_links&_embed=wp:featuredmedia`);
-    const map = new Map<number, { image: WPFeaturedMedia | null; excerpt: string }>();
+      Array<{ slug: string; excerpt: WPRendered; _embedded?: { "wp:featuredmedia"?: WPFeaturedMedia[] } }>
+    >(
+      `/posts?slug=${slugs.map(encodeURIComponent).join(",")}&per_page=${slugs.length}&_fields=slug,excerpt,_links&_embed=wp:featuredmedia`
+    );
+    const map = new Map<string, { image: WPFeaturedMedia | null; excerpt: string }>();
     for (const post of posts) {
-      map.set(post.id, { image: getFeaturedImage(post), excerpt: stripHtml(post.excerpt.rendered) });
+      map.set(post.slug, { image: getFeaturedImage(post), excerpt: stripHtml(post.excerpt.rendered) });
     }
     return map;
   } catch {
