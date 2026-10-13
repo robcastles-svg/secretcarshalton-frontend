@@ -24,6 +24,8 @@ import { DeleteAdButton } from "./_components/DeleteAdButton";
 import { EditAdButton } from "./_components/EditAdButton";
 import { LogoutButton } from "./_components/LogoutButton";
 import { VerifyEmailBanner } from "./_components/VerifyEmailBanner";
+import { SidebarNotificationsButton } from "./_components/SidebarNotificationsButton";
+import { EmailSettings } from "./_components/EmailSettings";
 
 export const metadata = { title: "Your dashboard — Secret Carshalton" };
 
@@ -118,6 +120,7 @@ export default async function DashboardPage() {
           Jump to a section
         </label>
         <nav className="dash-sidebar" aria-label="My account">
+          <SidebarNotificationsButton />
           <div className="dash-sidebar-label">My Secret Carshalton</div>
           <a href="#dash-top" className="dash-sidebar-link dash-sidebar-link-current">
             Overview
@@ -130,6 +133,9 @@ export default async function DashboardPage() {
           </a>
           <a href="#bookmarks" className="dash-sidebar-link">
             Saved &amp; favourites
+          </a>
+          <a href="#email-settings" className="dash-sidebar-link">
+            Email settings
           </a>
 
           <div className="dash-sidebar-label">My content</div>
@@ -216,6 +222,12 @@ export default async function DashboardPage() {
                 Draft a story
               </Link>
               <p className="dashboard-hint" style={{ marginTop: "0.75rem" }}>
+                Keep members up to date in their notification bell, and by email.
+              </p>
+              <Link href="/admin/messages" className="button-pill button-pill-secondary dash-messages-button">
+                Member messages
+              </Link>
+              <p className="dashboard-hint" style={{ marginTop: "0.75rem" }}>
                 Need the full WordPress backend (approve posts, manage ads/jobs/directory, settings)?
               </p>
               <a href={WP_ADMIN_URL} target="_blank" rel="noopener noreferrer" className="button-pill button-pill-secondary">
@@ -297,6 +309,8 @@ export default async function DashboardPage() {
               Change password
             </a>
           </section>
+
+          <EmailSettings />
 
           {/* Free for every member */}
           <div className="dash-group">
