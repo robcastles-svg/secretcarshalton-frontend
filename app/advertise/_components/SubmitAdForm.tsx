@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { TEXT_AD_TIERS } from "@/lib/pricing";
 import { AdPreview } from "./AdPreview";
 import { PayPalPayButton } from "./PayPalPayButton";
+import { shrinkFormImages } from "@/lib/shrink-image";
 
 function estimateCost(days: number, pricePerDay: number): number {
   return days * pricePerDay;
@@ -42,7 +43,7 @@ export function SubmitAdForm() {
     setSubmitting(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
+    const formData = await shrinkFormImages(new FormData(e.currentTarget));
 
     const res = await fetch("/api/ads/submit", { method: "POST", body: formData });
     const result = await res.json().catch(() => ({}));

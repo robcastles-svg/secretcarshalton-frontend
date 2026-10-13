@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PayNow } from "@/app/_components/PayNow";
 import { FEATURED_DIRECTORY_TIERS } from "@/lib/pricing";
 import type { MyListing, WPDirectoryCategory } from "@/lib/wordpress";
+import { shrinkFormImages, shrinkImage } from "@/lib/shrink-image";
 
 /** Mirrors SC_Directory_REST's PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap (counting photos the listing already has). One category per listing, so a single dropdown. */
 const PHOTO_LIMIT = 3;
@@ -31,10 +32,10 @@ export function SubmitUpgradeRequest({
     setSubmitting(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
+    const formData = await shrinkFormImages(new FormData(e.currentTarget));
     // Blank leaves the listing's current category as it is.
     if (selectedCategory) formData.set("category", selectedCategory);
-    photos.slice(0, PHOTO_LIMIT).forEach((file) => formData.append("photos[]", file));
+    for (const file of photos.slice(0, PHOTO_LIMIT)) formData.append("photos[]", await shrinkImage(file, 2000));
     // Paying online makes it Featured straight away (no review queue).
     formData.set("pay", "1");
 

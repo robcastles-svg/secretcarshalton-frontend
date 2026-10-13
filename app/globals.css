@@ -9723,3 +9723,40 @@ a.card-category:hover {
     width: 96px;
   }
 }
+
+/* Listing edit page: one button that opens the file picker and uploads straight away. */
+.directory-upload-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.3rem;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: #fff;
+  color: #1a1a1a;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.directory-upload-button:hover {
+  border-color: #cc99a2;
+}
+
+.directory-upload-button:focus-within {
+  outline: 2px solid #cc99a2;
+  outline-offset: 2px;
+}
+
+.directory-upload-button input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.directory-upload-button.is-busy {
+  opacity: 0.6;
+  cursor: default;
+}

@@ -24,6 +24,7 @@ import type { WPEventOrganizerProfile, WPEventVenue, WPScEventCategory, WPScEven
 import { ClockIcon, PinIcon, RepeatIcon } from "./EvIcons";
 import { FeatureEventPay } from "./FeatureEventPay";
 import { SpamTrap, spamFields } from "@/app/_components/SpamTrap";
+import { shrinkImage } from "@/lib/shrink-image";
 
 /** "£5 per event" → "£5" */
 const FEATURE_PRICE = EVENT_UPGRADE_PRICE.split(" ")[0];
@@ -71,28 +72,6 @@ const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_UPLOAD = 5 * 1024 * 1024;
 const DAYS3 = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 const MONS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
-
-/**
- * Photos are shrunk in the browser before upload (longest side 2000px,
- * logos 800px): Vercel refuses request bodies over ~4.5MB, so a 5MB photo
- * would otherwise fail, and nobody needs more than this on a web page.
- */
-async function shrinkImage(file: File, maxSide: number): Promise<Blob> {
-  try {
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
-    if (scale === 1 && file.size < 3.5 * 1024 * 1024) return file;
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(bitmap.width * scale);
-    canvas.height = Math.round(bitmap.height * scale);
-    canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    const type = file.type === "image/png" ? "image/png" : "image/jpeg";
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.86));
-    return blob ?? file;
-  } catch {
-    return file;
-  }
-}
 
 function t12(t: string): string {
   const m = /^(\d{1,2}):(\d{2})/.exec(t);

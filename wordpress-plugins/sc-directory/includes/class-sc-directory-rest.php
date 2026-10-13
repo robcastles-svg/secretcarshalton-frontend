@@ -603,7 +603,7 @@ class SC_Directory_REST {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 
-		$gallery = (array) get_post_meta( $post_id, 'sc_gallery', true );
+		$gallery = self::gallery_ids( $post_id );
 		$uploaded = array();
 
 		$file_list = $files['photos'];
@@ -717,13 +717,22 @@ class SC_Directory_REST {
 		return array( 'logo' => array( 'id' => $attachment_id, 'url' => $src ? $src[0] : '' ) );
 	}
 
+	/**
+	 * A listing's gallery attachment ids. (array) on an empty meta value
+	 * gives array( '' ), which counted as one photo against the limit and
+	 * was saved back as a stray 0 — filter those out.
+	 */
+	private static function gallery_ids( $post_id ) {
+		return array_values( array_filter( array_map( 'intval', (array) get_post_meta( $post_id, 'sc_gallery', true ) ) ) );
+	}
+
 	/** Adding photos to an existing listing after submission — the edit page's gallery manager. */
 	public static function upload_photos( WP_REST_Request $request ) {
 		$post_id = (int) $request->get_param( 'id' );
 		$plan    = get_post_meta( $post_id, 'sc_plan', true ) ?: 'free';
 		$limit   = 'paid' === $plan ? self::PAID_PHOTO_LIMIT : self::FREE_PHOTO_LIMIT;
 
-		$existing = (array) get_post_meta( $post_id, 'sc_gallery', true );
+		$existing = self::gallery_ids( $post_id );
 		if ( count( $existing ) >= $limit ) {
 			return new WP_Error( 'photo_limit', "This listing's plan allows up to {$limit} photos.", array( 'status' => 400 ) );
 		}
@@ -733,14 +742,14 @@ class SC_Directory_REST {
 			return new WP_Error( 'upload_failed', 'No photos were uploaded — check the file(s) and try again.', array( 'status' => 400 ) );
 		}
 
-		return array( 'gallery' => array_map( 'intval', (array) get_post_meta( $post_id, 'sc_gallery', true ) ) );
+		return array( 'gallery' => array_map( 'intval', self::gallery_ids( $post_id ) ) );
 	}
 
 	public static function delete_photo( WP_REST_Request $request ) {
 		$post_id       = (int) $request->get_param( 'id' );
 		$attachment_id = (int) $request->get_param( 'attachment_id' );
 
-		$gallery = (array) get_post_meta( $post_id, 'sc_gallery', true );
+		$gallery = self::gallery_ids( $post_id );
 		if ( ! in_array( $attachment_id, array_map( 'intval', $gallery ), true ) ) {
 			return new WP_Error( 'not_found', 'That photo is not part of this listing.', array( 'status' => 404 ) );
 		}
