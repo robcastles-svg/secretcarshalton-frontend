@@ -214,6 +214,19 @@ for it since before `sc-events` existed (5 points per RSVP).
 - [ ] **Listing added on live after the clone:** "Professional Children's
   football coaching" (30 Aug 2026) isn't on staging. Its owner isn't shown
   on the public page; check it in Sabai's admin.
+- [ ] **Events added or changed on live since the last check.** Checked
+  in full on 13 Oct 2026: all 273 live EventON events compared with
+  staging. Fixed then: the 32 repeating events got their missing dates
+  (EventON only shows the first date on an event's page, so the original
+  migration lost the rest), 6 missing events imported, 3 wrong dates
+  corrected, 5 event comments copied, 23 missing photos brought over.
+  Re-run the same comparison just before go-live (scripts and method in
+  that session: live event pages' `data-time`/`ri-N` repeat links vs
+  staging `sc_start`/`sc_repeat_dates`, plus live `ajde_events` comments).
+- [ ] **Directory listing edits on live since the last check.** All 122
+  listings were compared with live on 13 Oct 2026 (description, phone,
+  email); only Lambert Heating had changed, and was updated. Re-run just
+  before go-live, and copy any edits across.
 - [ ] **Correct view counts.**
   - *Listings:* staging only had views since the import. sc-post-views
     0.5.0 seeds each listing's old Sabai total from
@@ -250,6 +263,13 @@ for it since before `sc-events` existed (5 points per RSVP).
     HTML5 Video Player (`lib/html5-video.ts`), Featured Image from URL
     (one article's stock image — Rob is replacing it).
   - Switch off in batches and check the site; delete a week later.
+  - **Done on staging19, 13 Oct 2026:** the 50 switched-off plugins' files
+    were removed (Rob's backup copy: staging21.staging19). Only the
+    folders went — a temporary admin-only tool deleted them without
+    running each plugin's uninstall routine, so their database tables and
+    options are untouched (Sabai's reviews included). 19 plugins remain,
+    all active. Don't use WordPress's own Delete button for the rest
+    later: it runs uninstall routines, which can wipe data.
   - Old pages built with SiteOrigin/Elementor that nobody visits will
     break once those are off — unpublish them.
 - [ ] **Media URLs after `www` moves to Vercel.** Article, page and

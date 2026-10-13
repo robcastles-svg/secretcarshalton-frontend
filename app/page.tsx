@@ -18,7 +18,7 @@ import {
   getDirectoryCategories,
   getDirectoryListings,
   getFeaturedImage,
-  getFeaturedImagesForPosts,
+  getFeaturedImagesForSlugs,
   getJobListings,
   getLatestPostsInCategories,
   getMemberJobListings,
@@ -149,14 +149,14 @@ export default async function HomePage() {
   // Most read this week — sc-post-views gives post_id/slug/title/views,
   // no image or excerpt, so the 60px thumbnails and 2-line intros are a
   // separate batched lookup straight against the posts themselves (see
-  // getFeaturedImagesForPosts).
-  const mostReadDetails = await getFeaturedImagesForPosts(topThisWeek.map((p) => p.post_id));
+  // getFeaturedImagesForSlugs).
+  const mostReadDetails = await getFeaturedImagesForSlugs(topThisWeek.map((p) => p.slug));
   const mostReadItems: MostReadItem[] = topThisWeek.map((p) => ({
     slug: p.slug,
     title: p.title,
-    imageUrl: mostReadDetails.get(p.post_id)?.image?.source_url,
-    imageAlt: mostReadDetails.get(p.post_id)?.image?.alt_text,
-    excerpt: mostReadDetails.get(p.post_id)?.excerpt,
+    imageUrl: mostReadDetails.get(p.slug)?.image?.source_url,
+    imageAlt: mostReadDetails.get(p.slug)?.image?.alt_text,
+    excerpt: mostReadDetails.get(p.slug)?.excerpt,
   }));
 
   // Walks: the latest walk, falling back to the 2nd-latest if the latest
