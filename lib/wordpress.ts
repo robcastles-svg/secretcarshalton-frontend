@@ -904,9 +904,14 @@ export function splitContentIntoParagraphChunks(html: string): string[] {
   const parts = html.split(/(<\/p>|<\/ul>|<\/ol>|<\/blockquote>|<\/h[1-6]>)/i);
   const chunks: string[] = [];
   let current = "";
+  // Never cut inside an open <details> (the old theme's accordions, see
+  // lib/elementor-accordion.ts): each chunk is rendered on its own, so a
+  // cut there closed the box early and spilled the rest of its text out.
+  const openDetails = (chunk: string) =>
+    (chunk.match(/<details\b/gi)?.length ?? 0) - (chunk.match(/<\/details>/gi)?.length ?? 0);
   for (const part of parts) {
     current += part;
-    if (/^<\/(p|ul|ol|blockquote|h[1-6])>$/i.test(part)) {
+    if (/^<\/(p|ul|ol|blockquote|h[1-6])>$/i.test(part) && openDetails(current) <= 0) {
       chunks.push(current);
       current = "";
     }
