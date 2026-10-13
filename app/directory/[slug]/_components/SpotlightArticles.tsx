@@ -1,0 +1,47 @@
+import Link from "next/link";
+import type { SpotlightArticle } from "@/lib/wordpress";
+
+/**
+ * Every listing page has this section (Rob, 2026-10). With articles: a
+ * card for each. Without: a quiet line pointing at Featured Gold (which
+ * includes a written article) and a white button to read the Spotlight
+ * articles that already exist.
+ */
+export function SpotlightArticles({ articles }: { articles: SpotlightArticle[] }) {
+  return (
+    <section className="listing-spotlight" aria-labelledby="listing-spotlight-title">
+      <h2 id="listing-spotlight-title">Spotlight articles</h2>
+      {articles.length > 0 ? (
+        <ul className="listing-spotlight-list">
+          {articles.map((a) => (
+            <li key={a.slug}>
+              <Link href={`/${a.slug}`} className="listing-spotlight-card">
+                {a.image ? (
+                  <img src={a.image.source_url} alt="" loading="lazy" />
+                ) : (
+                  <span className="listing-spotlight-noimg" aria-hidden="true" />
+                )}
+                <span className="listing-spotlight-text">
+                  <strong dangerouslySetInnerHTML={{ __html: a.title }} />
+                  <time dateTime={a.date}>
+                    {new Date(a.date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+                  </time>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="listing-spotlight-empty">
+          <p>
+            No spotlight article yet.{" "}
+            <Link href="/advertise#featured-gold">Get one with Featured Gold →</Link>
+          </p>
+          <Link href="/spotlight" className="button-pill button-pill-secondary listing-spotlight-more">
+            Read spotlight articles
+          </Link>
+        </div>
+      )}
+    </section>
+  );
+}

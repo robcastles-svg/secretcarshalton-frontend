@@ -27,6 +27,7 @@ class SC_Directory_Meta {
 		'sc_phone'            => 'string',
 		'sc_email'            => 'string',
 		'sc_tagline'          => 'string', // Short one-line teaser shown under the title/on cards, separate from the full description.
+		'sc_spotlight_slugs'  => 'string', // Spotlight articles about this listing: comma-separated article slugs, in order (see SC_Directory_Admin::render_spotlight_meta_box).
 		/**
 		 * Attachment ID of a square/white-background logo for the
 		 * homepage's Featured-member strip (SponsorStrip) — deliberately

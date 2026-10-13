@@ -127,6 +127,36 @@ export async function getFeaturedImagesForSlugs(
   }
 }
 
+export interface SpotlightArticle {
+  slug: string;
+  title: string;
+  date: string;
+  image: WPFeaturedMedia | null;
+}
+
+/**
+ * The articles Rob has linked to a directory listing (its "Spotlight
+ * articles"), in his order. Linked by slug, like getFeaturedImagesForSlugs,
+ * since articles are read from the live site and listings from staging.
+ */
+export async function getSpotlightArticles(slugs: string[]): Promise<SpotlightArticle[]> {
+  if (slugs.length === 0) return [];
+  try {
+    const posts = await wpFetch<
+      Array<{ slug: string; date: string; title: WPRendered; _embedded?: { "wp:featuredmedia"?: WPFeaturedMedia[] } }>
+    >(
+      `/posts?slug=${slugs.map(encodeURIComponent).join(",")}&per_page=${slugs.length}&_fields=slug,date,title,_links&_embed=wp:featuredmedia`
+    );
+    const bySlug = new Map(posts.map((p) => [p.slug, p]));
+    return slugs.flatMap((slug) => {
+      const post = bySlug.get(slug);
+      return post ? [{ slug, title: post.title.rendered, date: post.date, image: getFeaturedImage(post) }] : [];
+    });
+  } catch {
+    return [];
+  }
+}
+
 /** Scans forward from just after a div's opening tag, counting nested <div>/</div> pairs, to find the index right after that div's own matching closing tag. */
 function findMatchingDivEnd(html: string, searchFrom: number): number {
   const tagRe = /<div\b[^>]*>|<\/div\s*>/gi;
@@ -1164,6 +1194,8 @@ export interface WPListingMeta {
   sc_phone: string;
   sc_email: string;
   sc_tagline: string;
+  /** Spotlight articles about this listing: comma-separated article slugs, in order (sc-directory 0.11). */
+  sc_spotlight_slugs?: string;
   sc_facebook: string;
   sc_instagram: string;
   sc_twitter: string;

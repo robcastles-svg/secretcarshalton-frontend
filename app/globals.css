@@ -9619,13 +9619,113 @@ a.card-category:hover {
   background: #b8838d;
 }
 
-/* Featured directory listing on the homepage: text at twice the size (Rob, 2026-10). */
+/* Featured directory listing on the homepage: the name at twice the size (Rob, 2026-10); the one-liner stays as it was. */
 .home-featured-listing .home-featured-pink-body strong {
   font-size: 2.1rem;
   line-height: 1.15;
 }
 
-.home-featured-listing .home-featured-pink-body span.home-featured-sub {
-  font-size: 1.7rem;
+/* Spotlight articles on every directory listing page. */
+.listing-spotlight {
+  margin: 2rem 0 0.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+.listing-spotlight h2 {
+  margin: 0 0 0.9rem;
+  font-size: 1.35rem;
+}
+
+.listing-spotlight-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.listing-spotlight-card {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.6rem;
+  border: 1px solid #ecd3d8;
+  border-radius: 12px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+}
+
+.listing-spotlight-card:hover {
+  border-color: #cc99a2;
+}
+
+.listing-spotlight-card img,
+.listing-spotlight-noimg {
+  flex-shrink: 0;
+  width: 120px;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f3ede6;
+}
+
+.listing-spotlight-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.listing-spotlight-text strong {
+  font-size: 1.05rem;
   line-height: 1.3;
+}
+
+.listing-spotlight-card:hover .listing-spotlight-text strong {
+  color: #b8838d;
+}
+
+.listing-spotlight-text time {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.listing-spotlight-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+}
+
+.listing-spotlight-empty p {
+  margin: 0;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+.listing-spotlight-empty p a {
+  color: #8a4f5b;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.listing-spotlight-empty p a:hover {
+  text-decoration: underline;
+}
+
+.listing-spotlight-more {
+  background: #fff;
+  font-size: 0.9rem;
+  padding: 0.5rem 1.1rem;
+}
+
+@media (max-width: 480px) {
+  .listing-spotlight-card img,
+  .listing-spotlight-noimg {
+    width: 96px;
+  }
 }
