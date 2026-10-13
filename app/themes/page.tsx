@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { getTags, soft } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -15,8 +15,7 @@ export default async function ThemesPage() {
       {/* Themes are part of the Discover section (Rob, 2026-10). */}
       <SetActiveNavSection section="Discover" />
       <h1>
-        Stories by theme
-        <CategoryKeyIcon />
+        <KeyTitle>Stories by theme</KeyTitle>
       </h1>
       <ul className="theme-index-list">
         {themes.map((t) => (

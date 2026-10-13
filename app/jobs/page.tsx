@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { getJobListings, getJobLocationsByIds, getMemberJobListings, type WPJobListing, soft } from "@/lib/wordpress";
 import { CARSHALTON, geocodePlace, milesBetween } from "@/lib/geocode";
 import { annualSalary } from "@/lib/pricing";
@@ -106,8 +106,7 @@ export default async function JobsPage() {
         <div className="container page-header-row">
           <div>
             <h1>
-              The Sutton Jobs Board
-              <CategoryKeyIcon />
+              <KeyTitle>The Sutton Jobs Board</KeyTitle>
             </h1>
             <p>Local vacancies from around Carshalton, Sutton and the surrounding area.</p>
           </div>

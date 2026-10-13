@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { getCategories, getCategoryBySlug, soft } from "@/lib/wordpress";
 
 export const revalidate = 3600;
@@ -12,8 +12,7 @@ export default async function StoriesPage() {
   return (
     <main className="container">
       <h1>
-        Stories
-        <CategoryKeyIcon />
+        <KeyTitle>Stories</KeyTitle>
       </h1>
       <ul className="link-list">
         {areas.map((area) => (

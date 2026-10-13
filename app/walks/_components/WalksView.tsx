@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
@@ -77,8 +77,7 @@ export async function WalksView({ distance, rawPage }: { distance?: WPCategory; 
       <main className="container">
         <div className="category-header-row">
           <h1>
-            {activeDistance ? activeDistance.name : "Walks"}
-            <CategoryKeyIcon />
+            <KeyTitle>{activeDistance ? activeDistance.name : "Walks"}</KeyTitle>
           </h1>
           <p className="category-header-description">
             Great ideas for often FREE places to visit in a day, from Carshalton

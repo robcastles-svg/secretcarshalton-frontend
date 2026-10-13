@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
@@ -62,8 +62,7 @@ export default async function CommunityPage({
       <div className="page-header-row">
         <div>
           <h1>
-            Community
-            <CategoryKeyIcon />
+            <KeyTitle>Community</KeyTitle>
           </h1>
           <p>Local groups, causes and community-led news from around Carshalton.</p>
         </div>

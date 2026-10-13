@@ -214,6 +214,11 @@ button.button-pill {
   width: auto;
 }
 
+/* KeyTitle: the headline's last word and the key wrap as one. */
+.category-key-nowrap {
+  white-space: nowrap;
+}
+
 .category-key-icon {
   display: inline-block;
   height: 0.7em;
@@ -4611,25 +4616,36 @@ a.card-category:hover {
 
 .directory-spotlight-link {
   align-self: center;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: #fff;
+  color: #333;
+  font-size: 0.85rem;
   font-weight: 600;
-  font-size: 0.95rem;
-  color: #222;
+  line-height: 1.2;
+  white-space: nowrap;
   text-decoration: none;
 }
 
+.directory-spotlight-link:hover {
+  border-color: #cc99a2;
+  color: #b8838d;
+}
+
 @media (max-width: 480px) {
+  .directory-toolbar {
+    gap: 0.5rem;
+  }
+
   .directory-spotlight-link {
-    font-size: 0.85rem;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.8rem;
   }
 
   .directory-controls {
     gap: 0.5rem;
   }
-}
-
-.directory-spotlight-link:hover {
-  color: #b8838d;
-  text-decoration: underline;
 }
 
 .directory-controls select {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { MasonryGrid } from "@/app/_components/MasonryGrid";
 import { SidebarAds } from "@/app/_components/SidebarAds";
@@ -33,8 +33,7 @@ export default async function CommunityGroupsPage() {
       <div className="page-header-row page-header-row-spaced">
         <div>
           <h1>
-            Groups to join
-            <CategoryKeyIcon />
+            <KeyTitle>Groups to join</KeyTitle>
           </h1>
           <p>{DESCRIPTION}</p>
         </div>

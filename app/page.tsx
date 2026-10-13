@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { HomeComments } from "@/app/_components/home/HomeComments";
 import { getLatestCommentItems } from "@/app/_components/home/latestComments";
@@ -238,8 +238,7 @@ export default async function HomePage() {
       <div className="home-lead">
         <div className="home-lead-text">
           <div className="home-lead-kicker">
-            Latest
-            <CategoryKeyIcon />
+            <KeyTitle>Latest</KeyTitle>
           </div>
           <h1>
             <Link href={`/${lead.slug}`} dangerouslySetInnerHTML={{ __html: lead.title.rendered }} />
@@ -299,8 +298,7 @@ export default async function HomePage() {
           <div className="container">
             <div className="home-section-header">
               <h2 className="home-section-title home-section-title-big home-section-title-caps">
-                Events
-                <CategoryKeyIcon />
+                <KeyTitle>Events</KeyTitle>
               </h2>
               <div className="more-latest-links home-events-links-top">
                 <Link href="/events/submit">Add event</Link>
@@ -376,8 +374,7 @@ export default async function HomePage() {
           <section className="home-section">
             <div className="home-section-header">
               <h2 className="home-section-title">
-                Walks
-                <CategoryKeyIcon />
+                <KeyTitle>Walks</KeyTitle>
               </h2>
               <Link href="/walks">All walks →</Link>
             </div>
@@ -411,8 +408,7 @@ export default async function HomePage() {
             <div className="home-dir-jobs-col">
               <div className="home-section-header">
                 <h2 className="home-section-title">
-                  Directory
-                  <CategoryKeyIcon />
+                  <KeyTitle>Directory</KeyTitle>
                 </h2>
                 <div className="more-latest-links">
                   <Link href="/directory/submit">Get listed</Link>
@@ -464,8 +460,7 @@ export default async function HomePage() {
             <div className="home-dir-jobs-col">
               <div className="home-section-header">
                 <h2 className="home-section-title">
-                  Latest jobs
-                  <CategoryKeyIcon />
+                  <KeyTitle>Latest jobs</KeyTitle>
                 </h2>
                 <div className="more-latest-links">
                   <Link href="/jobs/manager">Post a job</Link>

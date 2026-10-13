@@ -1,4 +1,4 @@
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
@@ -40,8 +40,7 @@ export default async function NewsPage({
     <main className="container">
       <div className="category-header-row">
         <h1>
-          News
-          <CategoryKeyIcon />
+          <KeyTitle>News</KeyTitle>
         </h1>
         <p className="category-header-description">A round-up of the key news affecting you</p>
       </div>

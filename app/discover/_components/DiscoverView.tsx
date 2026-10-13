@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { FeaturedListingImpressionTracker } from "@/app/_components/FeaturedListingImpressionTracker";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
@@ -186,13 +186,11 @@ export async function DiscoverView({
         <div className="category-header-row">
           {activeArea ? (
             <h1>
-              {activeArea.name}
-              <CategoryKeyIcon />
+              <KeyTitle>{activeArea.name}</KeyTitle>
             </h1>
           ) : (
             <h1>
-              {isSpotlight ? "Business Spotlight" : "Discover"}
-              <CategoryKeyIcon />
+              <KeyTitle>{isSpotlight ? "Business Spotlight" : "Discover"}</KeyTitle>
             </h1>
           )}
           <p className="category-header-description">
