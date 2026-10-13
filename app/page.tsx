@@ -297,12 +297,12 @@ export default async function HomePage() {
       {featuredEvent && featuredEventStart && (
         <div className="home-events-band">
           <div className="container">
-            <div className="home-section-header home-section-header-stack">
+            <div className="home-section-header">
               <h2 className="home-section-title home-section-title-big home-section-title-caps">
                 Events
                 <CategoryKeyIcon />
               </h2>
-              <div className="more-latest-links">
+              <div className="more-latest-links home-events-links-top">
                 <Link href="/events/submit">Add event</Link>
                 <Link href="/events">All events →</Link>
               </div>
@@ -362,6 +362,11 @@ export default async function HomePage() {
                 </div>
               )}
             </div>
+            {/* Mobile only: the same links, after all the events. */}
+            <div className="more-latest-links home-events-links-bottom">
+              <Link href="/events/submit">Add event</Link>
+              <Link href="/events">All events →</Link>
+            </div>
           </div>
         </div>
       )}
@@ -370,7 +375,7 @@ export default async function HomePage() {
         <div className="container">
           <section className="home-section">
             <div className="home-section-header">
-              <h2 className="home-section-title home-section-title-big">
+              <h2 className="home-section-title">
                 Walks
                 <CategoryKeyIcon />
               </h2>

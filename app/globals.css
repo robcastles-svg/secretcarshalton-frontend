@@ -7000,8 +7000,8 @@ a.card-category:hover {
   }
 }
 
-/* Events and Walks headings twice the other section headings (Rob,
-   Oct 2026); Events also in capitals. The key scales with them (0.7em). */
+/* Events heading twice the other section headings, in capitals (Rob,
+   Oct 2026). The key scales with it (0.7em). */
 .home-section-header h2.home-section-title.home-section-title-big {
   font-size: 3rem;
 }
@@ -7014,12 +7014,25 @@ a.card-category:hover {
     font-size: 4rem;
   }
 }
-/* Mobile: Events' "Add event" / "All events" links drop under the heading. */
+/* Events' "Add event" / "All events": beside the heading on desktop, after
+   all the events on mobile. */
+.home-events-band .home-events-links-bottom {
+  display: none;
+}
 @media (max-width: 759px) {
-  .home-section-header-stack {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+  .home-events-band .home-events-links-top {
+    display: none;
+  }
+  .home-events-band .home-events-links-bottom {
+    display: flex;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .home-events-band .home-events-links-bottom a {
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
   }
 }
 
