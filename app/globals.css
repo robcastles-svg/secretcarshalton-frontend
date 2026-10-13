@@ -7184,6 +7184,14 @@ a.card-category:hover {
   transform: scale(1.06);
 }
 
+/* Twice the default h3 size (18.7px → 37.4px), Rob's request. */
+.home-walk h3 {
+  font-size: 2.34rem;
+  line-height: 1.15;
+  margin: 0 0 0.6rem;
+  text-wrap: balance;
+}
+
 .home-walk-label {
   display: block;
   color: #c2607a;
