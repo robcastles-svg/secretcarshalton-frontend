@@ -97,6 +97,18 @@ class SC_Events_REST {
 
 		register_rest_route(
 			'sc-events/v1',
+			'/(?P<id>\d+)/image-from-url',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'image_from_url' ),
+				'permission_callback' => function () {
+					return current_user_can( 'manage_options' );
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-events/v1',
 			'/organizers/(?P<id>\d+)/claim',
 			array(
 				'methods'             => 'POST',
@@ -536,6 +548,7 @@ class SC_Events_REST {
 				return new WP_Error( 'upload_failed', $attachment_id->get_error_message(), array( 'status' => 400 ) );
 			}
 			set_post_thumbnail( $post_id, $attachment_id );
+			delete_post_meta( $post_id, 'sc_image_url' );
 			$out['image'] = (string) wp_get_attachment_image_url( $attachment_id, 'large' );
 		}
 
@@ -561,6 +574,48 @@ class SC_Events_REST {
 			return new WP_Error( 'no_file', 'No image was received.', array( 'status' => 400 ) );
 		}
 		return $out;
+	}
+
+	/**
+	 * Admin only: copies an image from another website into the media
+	 * library and makes it the event's featured image. Used to bring over
+	 * the old site's event pictures that were only ever links (Unsplash,
+	 * Eventbrite, venue sites) and so weren't in its media library.
+	 */
+	public static function image_from_url( WP_REST_Request $request ) {
+		$post_id = (int) $request->get_param( 'id' );
+		$url     = SC_Events_Meta::sanitize_image_url( (string) $request->get_param( 'url' ) );
+		if ( ! $url || SC_Events_CPT::POST_TYPE !== get_post_type( $post_id ) ) {
+			return new WP_Error( 'bad_request', 'An event and an image link are needed.', array( 'status' => 400 ) );
+		}
+		require_once ABSPATH . 'wp-admin/includes/image.php';
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		require_once ABSPATH . 'wp-admin/includes/media.php';
+		$tmp = download_url( $url, 30 );
+		if ( is_wp_error( $tmp ) ) {
+			return new WP_Error( 'download_failed', $tmp->get_error_message(), array( 'status' => 400 ) );
+		}
+		$type = function_exists( 'mime_content_type' ) ? mime_content_type( $tmp ) : '';
+		$ext  = array( 'image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp' );
+		if ( ! isset( $ext[ $type ] ) || filesize( $tmp ) > self::IMAGE_MAX_BYTES * 2 ) {
+			wp_delete_file( $tmp );
+			return new WP_Error( 'bad_type', 'That link is not a JPG, PNG or WebP image (or is too big).', array( 'status' => 400 ) );
+		}
+		$file = array(
+			'name'     => sanitize_title( get_the_title( $post_id ) ) . '.' . $ext[ $type ],
+			'tmp_name' => $tmp,
+		);
+		$attachment_id = media_handle_sideload( $file, $post_id );
+		if ( is_wp_error( $attachment_id ) ) {
+			wp_delete_file( $tmp );
+			return new WP_Error( 'upload_failed', $attachment_id->get_error_message(), array( 'status' => 400 ) );
+		}
+		set_post_thumbnail( $post_id, $attachment_id );
+		delete_post_meta( $post_id, 'sc_image_url' );
+		return array(
+			'id'    => $attachment_id,
+			'image' => (string) wp_get_attachment_image_url( $attachment_id, 'large' ),
+		);
 	}
 
 	/**
@@ -863,6 +918,16 @@ class SC_Events_REST {
 			// registered with (see SC_Events_Meta::register) — enums,
 			// price amount, email-not-a-URL — so no per-field cleaning here.
 			update_post_meta( $post_id, $meta_key, (string) $request->get_param( $param ) );
+		}
+
+		// An image link replaces any uploaded photo — an event has one or
+		// the other, never both (upload_images clears the link the same way).
+		if ( null !== $request->get_param( 'image_url' ) ) {
+			$image_url = SC_Events_Meta::sanitize_image_url( (string) $request->get_param( 'image_url' ) );
+			update_post_meta( $post_id, 'sc_image_url', $image_url );
+			if ( $image_url ) {
+				delete_post_thumbnail( $post_id );
+			}
 		}
 
 		if ( null !== $request->get_param( 'price_from' ) ) {

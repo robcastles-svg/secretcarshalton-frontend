@@ -87,9 +87,14 @@ export interface WPContentItem {
  */
 export function getFeaturedImage(item: {
   _embedded?: { "wp:featuredmedia"?: WPFeaturedMedia[] };
+  meta?: unknown;
 }): WPFeaturedMedia | null {
   const media = item._embedded?.["wp:featuredmedia"]?.[0];
-  return media && "source_url" in media ? media : null;
+  if (media && "source_url" in media) return media;
+  // Events can use an image link instead of an upload (sc_image_url) —
+  // shown straight from the other site, so it takes no server space.
+  const link = (item.meta as { sc_image_url?: string } | undefined)?.sc_image_url;
+  return link ? { source_url: link, alt_text: "" } : null;
 }
 
 /**
@@ -1570,6 +1575,8 @@ export interface WPScEventMeta {
    */
   sc_repeat_dates?: string[];
   sc_repeat_pattern?: string;
+  /** An image given as a web link instead of an upload; only used when there's no featured image. */
+  sc_image_url?: string;
   /** Marked by the organiser when editing: sold out or cancelled ("" = on as planned). The event stays live. */
   sc_event_status?: ScEventStatus | "";
 }

@@ -19,6 +19,14 @@ class SC_Events_Meta {
 		'sc_organizer'     => 'string',
 		'sc_event_url'     => 'string',
 		/**
+		 * An event image given as a web link instead of an upload — shown
+		 * as-is from the other site, so it takes no space on this server.
+		 * Only used when the event has no featured image: uploading a photo
+		 * clears it, and saving a link removes the uploaded photo (see
+		 * SC_Events_REST), so an event only ever has one of the two.
+		 */
+		'sc_image_url'     => 'string',
+		/**
 		 * The sc-listings post ID of the business/organisation this event
 		 * belongs to — distinct from post_author (a WP *user* account).
 		 * "Submitted by [member]" was never the right public-facing credit
@@ -156,6 +164,8 @@ class SC_Events_Meta {
 
 			if ( 'sc_event_url' === $key ) {
 				$args['sanitize_callback'] = array( __CLASS__, 'sanitize_web_url' );
+			} elseif ( 'sc_image_url' === $key ) {
+				$args['sanitize_callback'] = array( __CLASS__, 'sanitize_image_url' );
 			} elseif ( 'sc_price_type' === $key ) {
 				$args['sanitize_callback'] = self::enum_sanitizer( self::PRICE_TYPES );
 			} elseif ( 'sc_booking_type' === $key ) {
@@ -245,6 +255,12 @@ class SC_Events_Meta {
 	 * SC_Events_REST::validate_web_urls); this is the backstop for every
 	 * other path (wp-admin custom fields, core REST meta).
 	 */
+	/** A plain http(s) link or '' — never javascript:, data: or a relative path. */
+	public static function sanitize_image_url( $value ) {
+		$url = esc_url_raw( trim( (string) $value ), array( 'http', 'https' ) );
+		return preg_match( '#^https?://[^/\s]+\.[^/\s]+/#i', $url ) ? $url : '';
+	}
+
 	public static function sanitize_web_url( $value ) {
 		if ( self::looks_like_email( $value ) ) {
 			return '';
