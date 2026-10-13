@@ -7832,6 +7832,8 @@ a.card-category:hover {
 .evx-venue h3 { margin: 0; font-size: 16px; color: var(--evx-on-dark); }
 .evx-addr { margin: 2px 0 12px; color: var(--evx-on-dark-soft); font-size: 14px; }
 .evx-map { border-radius: 10px; overflow: hidden; }
+/* Same magenta tint as .event-map's fallback embed (directory listings). */
+.evx-map iframe { filter: invert(90%) hue-rotate(305deg) saturate(2.5) brightness(0.9) contrast(1.05); }
 .evx-map > * { margin: 0 !important; }
 .evx-venue-actions { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 12px; }
 
