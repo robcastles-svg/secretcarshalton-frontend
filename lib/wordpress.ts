@@ -157,6 +157,18 @@ export async function getSpotlightArticles(slugs: string[]): Promise<SpotlightAr
   }
 }
 
+/** Article search for Rob's Spotlight picker on the listing edit page. */
+export async function searchArticles(q: string): Promise<Array<{ slug: string; title: string; date: string }>> {
+  try {
+    const posts = await wpFetch<Array<{ slug: string; date: string; title: WPRendered }>>(
+      `/posts?search=${encodeURIComponent(q)}&per_page=8&_fields=slug,date,title`
+    );
+    return posts.map((p) => ({ slug: p.slug, title: stripHtml(p.title.rendered), date: p.date }));
+  } catch {
+    return [];
+  }
+}
+
 /** Scans forward from just after a div's opening tag, counting nested <div>/</div> pairs, to find the index right after that div's own matching closing tag. */
 function findMatchingDivEnd(html: string, searchFrom: number): number {
   const tagRe = /<div\b[^>]*>|<\/div\s*>/gi;

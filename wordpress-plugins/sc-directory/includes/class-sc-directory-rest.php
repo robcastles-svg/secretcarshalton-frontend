@@ -268,6 +268,19 @@ class SC_Directory_REST {
 			)
 		);
 
+		// Spotlight articles: editors only (Rob links them from the site's listing edit page).
+		register_rest_route(
+			'sc-directory/v1',
+			'/(?P<id>\d+)/spotlight',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'set_spotlight' ),
+				'permission_callback' => function () {
+					return current_user_can( 'edit_others_posts' );
+				},
+			)
+		);
+
 		register_rest_route(
 			'sc-directory/v1',
 			'/(?P<id>\d+)/photos',
@@ -724,6 +737,17 @@ class SC_Directory_REST {
 	 */
 	private static function gallery_ids( $post_id ) {
 		return array_values( array_filter( array_map( 'intval', (array) get_post_meta( $post_id, 'sc_gallery', true ) ) ) );
+	}
+
+	/** Saves a listing's Spotlight article slugs, in order (same meta the wp-admin box writes). */
+	public static function set_spotlight( WP_REST_Request $request ) {
+		$post_id = (int) $request->get_param( 'id' );
+		if ( SC_Directory_CPT::POST_TYPE !== get_post_type( $post_id ) ) {
+			return new WP_Error( 'not_found', 'Listing not found.', array( 'status' => 404 ) );
+		}
+		$slugs = array_values( array_unique( array_filter( array_map( 'sanitize_title', (array) $request->get_param( 'slugs' ) ) ) ) );
+		update_post_meta( $post_id, 'sc_spotlight_slugs', implode( ',', $slugs ) );
+		return array( 'slugs' => $slugs );
 	}
 
 	/** Adding photos to an existing listing after submission — the edit page's gallery manager. */

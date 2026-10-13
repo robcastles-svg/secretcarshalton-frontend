@@ -8,10 +8,18 @@ import type { SpotlightArticle } from "@/lib/wordpress";
  * articles that already exist — the same ⭐️ Business Spotlights
  * lozenge as on the directory homepage.
  */
-export function SpotlightArticles({ articles }: { articles: SpotlightArticle[] }) {
+export function SpotlightArticles({ articles, editHref }: { articles: SpotlightArticle[]; editHref?: string }) {
   return (
     <section className="listing-spotlight" aria-labelledby="listing-spotlight-title">
-      <h2 id="listing-spotlight-title">Spotlight articles by this business</h2>
+      <div className="listing-spotlight-head">
+        <h2 id="listing-spotlight-title">Spotlight articles by this business</h2>
+        {/* Editors only (Rob): jump to the picker on the edit page. */}
+        {editHref && (
+          <Link href={editHref} className="listing-spotlight-edit">
+            Edit spotlight articles
+          </Link>
+        )}
+      </div>
       {articles.length > 0 ? (
         <ul className="listing-spotlight-list">
           {articles.map((a) => (

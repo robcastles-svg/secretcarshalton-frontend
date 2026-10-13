@@ -300,7 +300,10 @@ export default async function DirectoryListingPage({
             </div>
           )}
 
-          <SpotlightArticles articles={spotlightArticles} />
+          <SpotlightArticles
+            articles={spotlightArticles}
+            editHref={profile?.is_editor ? `/directory/${listing.slug}/edit#spotlight` : undefined}
+          />
 
           <CommentSection
             postId={listing.id}
