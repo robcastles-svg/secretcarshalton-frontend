@@ -67,26 +67,31 @@ function JobRow({ job }: { job: JobCard }) {
 
 export function JobsSortBar({ value, onChange }: { value: SortKey; onChange: (k: SortKey) => void }) {
   return (
-    <div className="jobs-sort" role="group" aria-label="Sort jobs">
-      {SORTS.map((s) => (
-        <button
-          key={s.key}
-          type="button"
-          className={value === s.key ? "jobs-sort-btn jobs-sort-btn-on" : "jobs-sort-btn"}
-          aria-pressed={value === s.key}
-          onClick={() => onChange(s.key)}
-        >
-          {s.label}
-        </button>
-      ))}
+    <div className="jobs-sort">
+      <label htmlFor="jobs-sort-select" className="jobs-sort-label">
+        Sort
+      </label>
+      <select
+        id="jobs-sort-select"
+        className="jobs-sort-select"
+        value={value}
+        onChange={(e) => onChange(e.target.value as SortKey)}
+      >
+        {SORTS.map((s) => (
+          <option key={s.key} value={s.key}>
+            {s.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
 
 /**
- * Both job sections with one shared sort bar above them. The cards arrive
- * newest first; sorting happens here in the browser so the page itself
- * stays a cached copy. A featured local job stays at the top of its list.
+ * Both job sections. The sort dropdown sits in "From around the area" and
+ * sorts only those (Reed) jobs; locally posted jobs stay newest first with
+ * a featured one on top. Cards arrive newest first and sorting happens here
+ * in the browser, so the page itself stays a cached copy.
  */
 export function JobsBoard({
   localJobs,
@@ -100,13 +105,11 @@ export function JobsBoard({
   emptyApi: React.ReactNode;
 }) {
   const [sort, setSort] = useState<SortKey>("date");
-  const local = [...sorted(localJobs.filter((j) => j.featured), sort), ...sorted(localJobs.filter((j) => !j.featured), sort)];
+  const local = [...localJobs.filter((j) => j.featured), ...localJobs.filter((j) => !j.featured)];
   const api = sorted(apiJobs, sort);
 
   return (
     <>
-      <JobsSortBar value={sort} onChange={setSort} />
-
       {local.length > 0 && (
         <section className="home-section">
           <div className="home-section-header">
@@ -123,6 +126,7 @@ export function JobsBoard({
       <section className="home-section">
         <div className="home-section-header">
           <h2>From around the area</h2>
+          {apiJobs.length > 1 && <JobsSortBar value={sort} onChange={setSort} />}
         </div>
         {disclaimer}
         {api.length === 0 ? (
