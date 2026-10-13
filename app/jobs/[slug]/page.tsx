@@ -27,6 +27,10 @@ export async function generateMetadata({
   return {
     title: `${stripHtml(job.title.rendered)} — The Sutton Jobs Board — Secret Carshalton`,
     description: stripHtml(job.content.rendered).slice(0, 160),
+    // Reed jobs repeat Reed's own advert word for word and only last a few
+    // weeks, so keep them out of search results (Rob, Oct 2026); jobs posted
+    // by local members are our own content and stay indexed.
+    ...(job.meta.source !== "member" && { robots: { index: false, follow: true } }),
   };
 }
 
