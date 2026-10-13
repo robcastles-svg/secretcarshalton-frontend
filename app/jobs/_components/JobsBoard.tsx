@@ -67,18 +67,22 @@ function JobRow({ job }: { job: JobCard }) {
 
 export function JobsSortBar({ value, onChange }: { value: SortKey; onChange: (k: SortKey) => void }) {
   return (
-    <div className="jobs-sort" role="group" aria-label="Sort jobs">
-      {SORTS.map((s) => (
-        <button
-          key={s.key}
-          type="button"
-          className={value === s.key ? "jobs-sort-btn jobs-sort-btn-on" : "jobs-sort-btn"}
-          aria-pressed={value === s.key}
-          onClick={() => onChange(s.key)}
-        >
-          {s.label}
-        </button>
-      ))}
+    <div className="jobs-sort">
+      <label htmlFor="jobs-sort-select" className="jobs-sort-label">
+        Sort
+      </label>
+      <select
+        id="jobs-sort-select"
+        className="jobs-sort-select"
+        value={value}
+        onChange={(e) => onChange(e.target.value as SortKey)}
+      >
+        {SORTS.map((s) => (
+          <option key={s.key} value={s.key}>
+            {s.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }

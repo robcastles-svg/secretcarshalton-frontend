@@ -4735,33 +4735,39 @@ a.card-category:hover {
   margin-top: 0.4rem;
 }
 
-/* Jobs page: By date / Nearest to Carshalton / By pay. */
+/* Jobs page: a quiet white sort dropdown (By date / Nearest to Carshalton /
+   By pay), so it doesn't compete with the "Add a job" button. */
 .jobs-sort {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
   gap: 0.5rem;
   margin: 1.5rem 0 0.5rem;
 }
-.jobs-sort-btn {
-  padding: 0.5rem 1rem;
-  border: 0;
+.jobs-sort-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+}
+.jobs-sort-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0.45rem 2.2rem 0.45rem 1rem;
+  border: 1px solid #ddd5d9;
   border-radius: 999px;
-  background: #f1eef0;
+  background: #fff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23555' stroke-width='1.6'/%3E%3C/svg%3E")
+    no-repeat right 0.9rem center;
   color: #333;
   font: inherit;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
-.jobs-sort-btn:hover {
-  background: #e7dfe3;
+.jobs-sort-select:hover {
+  border-color: #c2607a;
 }
-.jobs-sort-btn-on,
-.jobs-sort-btn-on:hover {
-  background: #c2607a;
-  color: #fff;
-}
-.jobs-sort-btn:focus-visible {
+.jobs-sort-select:focus-visible {
   outline: 2px solid #c2607a;
   outline-offset: 2px;
 }
