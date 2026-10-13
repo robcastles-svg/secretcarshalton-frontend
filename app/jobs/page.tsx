@@ -32,7 +32,7 @@ function prettyLocation(name: string) {
  * Pay as a yearly figure, for the "By pay" sort. Member jobs store an amount
  * and period; Reed only gives text like "£14 - £16" or "£37,800 - £41,500"
  * with no period, so the period is read from the size of the figure: under
- * £100 an hour, under £1,000 a day (260 working days), else a year. A range
+ * £60 an hour, under £1,000 a day (260 working days), else a year. A range
  * is ranked by its lower figure ("pays at least"), so a typo'd top figure
  * in Reed's data (e.g. "£35,602 - £543,282") can't jump the queue.
  */
@@ -45,7 +45,7 @@ function payPerYear(job: WPJobListing): number | null {
   const valid = amounts.filter((n) => Number.isFinite(n) && n > 0);
   if (valid.length === 0) return null;
   const low = Math.min(...valid);
-  if (low < 100) return annualSalary(low, "hour");
+  if (low < 60) return annualSalary(low, "hour");
   if (low < 1000) return low * 260;
   return low;
 }
