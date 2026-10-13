@@ -250,6 +250,13 @@ for it since before `sc-events` existed (5 points per RSVP).
     HTML5 Video Player (`lib/html5-video.ts`), Featured Image from URL
     (one article's stock image — Rob is replacing it).
   - Switch off in batches and check the site; delete a week later.
+  - **Done on staging19, 13 Oct 2026:** the 50 switched-off plugins' files
+    were removed (Rob's backup copy: staging21.staging19). Only the
+    folders went — a temporary admin-only tool deleted them without
+    running each plugin's uninstall routine, so their database tables and
+    options are untouched (Sabai's reviews included). 19 plugins remain,
+    all active. Don't use WordPress's own Delete button for the rest
+    later: it runs uninstall routines, which can wipe data.
   - Old pages built with SiteOrigin/Elementor that nobody visits will
     break once those are off — unpublish them.
 - [ ] **Media URLs after `www` moves to Vercel.** Article, page and
