@@ -72,7 +72,7 @@ export function JobsSortBar({ value, onChange }: { value: SortKey; onChange: (k:
         <button
           key={s.key}
           type="button"
-          className={value === s.key ? "button-pill button-pill-active" : "button-pill"}
+          className={value === s.key ? "jobs-sort-btn jobs-sort-btn-on" : "jobs-sort-btn"}
           aria-pressed={value === s.key}
           onClick={() => onChange(s.key)}
         >

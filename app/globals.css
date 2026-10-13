@@ -4742,6 +4742,29 @@ a.card-category:hover {
   gap: 0.5rem;
   margin: 1.5rem 0 0.5rem;
 }
+.jobs-sort-btn {
+  padding: 0.5rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: #f1eef0;
+  color: #333;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.jobs-sort-btn:hover {
+  background: #e7dfe3;
+}
+.jobs-sort-btn-on,
+.jobs-sort-btn-on:hover {
+  background: #c2607a;
+  color: #fff;
+}
+.jobs-sort-btn:focus-visible {
+  outline: 2px solid #c2607a;
+  outline-offset: 2px;
+}
 
 .job-detail-date {
   margin-top: 0.3rem;
