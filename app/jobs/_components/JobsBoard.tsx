@@ -88,9 +88,10 @@ export function JobsSortBar({ value, onChange }: { value: SortKey; onChange: (k:
 }
 
 /**
- * Both job sections with one shared sort bar above them. The cards arrive
- * newest first; sorting happens here in the browser so the page itself
- * stays a cached copy. A featured local job stays at the top of its list.
+ * Both job sections. The sort dropdown sits in "From around the area" and
+ * sorts only those (Reed) jobs; locally posted jobs stay newest first with
+ * a featured one on top. Cards arrive newest first and sorting happens here
+ * in the browser, so the page itself stays a cached copy.
  */
 export function JobsBoard({
   localJobs,
@@ -104,13 +105,11 @@ export function JobsBoard({
   emptyApi: React.ReactNode;
 }) {
   const [sort, setSort] = useState<SortKey>("date");
-  const local = [...sorted(localJobs.filter((j) => j.featured), sort), ...sorted(localJobs.filter((j) => !j.featured), sort)];
+  const local = [...localJobs.filter((j) => j.featured), ...localJobs.filter((j) => !j.featured)];
   const api = sorted(apiJobs, sort);
 
   return (
     <>
-      <JobsSortBar value={sort} onChange={setSort} />
-
       {local.length > 0 && (
         <section className="home-section">
           <div className="home-section-header">
@@ -127,6 +126,7 @@ export function JobsBoard({
       <section className="home-section">
         <div className="home-section-header">
           <h2>From around the area</h2>
+          {apiJobs.length > 1 && <JobsSortBar value={sort} onChange={setSort} />}
         </div>
         {disclaimer}
         {api.length === 0 ? (

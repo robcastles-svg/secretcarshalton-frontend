@@ -4736,13 +4736,12 @@ a.card-category:hover {
 }
 
 /* Jobs page: a quiet white sort dropdown (By date / Nearest to Carshalton /
-   By pay), so it doesn't compete with the "Add a job" button. */
+   By pay) on the right of the "From around the area" heading. */
 .jobs-sort {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 0.5rem;
-  margin: 1.5rem 0 0.5rem;
+  margin-left: auto;
 }
 .jobs-sort-label {
   font-size: 0.85rem;
