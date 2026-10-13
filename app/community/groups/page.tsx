@@ -30,7 +30,7 @@ export default async function CommunityGroupsPage() {
 
   return (
     <main className="container">
-      <div className="page-header-row">
+      <div className="page-header-row page-header-row-spaced">
         <div>
           <h1>
             Groups to join
