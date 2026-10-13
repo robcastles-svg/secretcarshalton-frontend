@@ -67,7 +67,7 @@ export function SpotlightEditor({ listingId, initial }: { listingId: number; ini
       if (!r.ok) setStatus({ kind: "err", text: d.error || "Couldn't save." });
       else {
         setDirty(false);
-        setStatus({ kind: "ok", text: "Saved — it can take a few minutes to show on the listing page." });
+        setStatus({ kind: "ok", text: "Saved — the listing page is updated." });
       }
     } finally {
       setSaving(false);

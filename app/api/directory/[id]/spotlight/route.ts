@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getSessionToken } from "@/lib/auth";
 import { WP_STAGING_ROOT } from "@/lib/wordpress";
 
@@ -21,8 +22,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) return NextResponse.json({ error: body.message ?? "Couldn't save." }, { status: res.status });
+    refreshListingPages();
     return NextResponse.json(body);
   } catch {
     return NextResponse.json({ error: "Couldn't reach the site's database — please try again." }, { status: 502 });
   }
+}
+
+/**
+ * These saves don't go through WordPress's own "Update", so the
+ * sc-revalidate plugin never hears about them — refresh every listing page
+ * (and its edit page) now rather than waiting out the hour-long cache.
+ */
+function refreshListingPages() {
+  revalidatePath("/directory/[slug]", "page");
+  revalidatePath("/directory/[slug]/edit", "page");
 }

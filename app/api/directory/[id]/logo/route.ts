@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { uploadListingLogo } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 
@@ -22,6 +23,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const result = await uploadListingLogo(token, listingId, formData);
   if ("logo" in result) {
+    // Not a WordPress "Update", so nothing else refreshes these: the listing
+    // pages and the homepage's Featured logo strip.
+    revalidatePath("/directory/[slug]", "page");
+    revalidatePath("/");
     return NextResponse.json(result);
   }
   return NextResponse.json({ error: result.message }, { status: 400 });
