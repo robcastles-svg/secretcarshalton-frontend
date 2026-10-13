@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
-import { getJobListings, getMemberJobListings, type WPJobListing, soft } from "@/lib/wordpress";
+import { getJobListings, getJobLocationsByIds, getMemberJobListings, type WPJobListing, soft } from "@/lib/wordpress";
+import { CARSHALTON, geocodePlace, milesBetween } from "@/lib/geocode";
+import { annualSalary } from "@/lib/pricing";
+import { JobsBoard, type JobCard } from "./_components/JobsBoard";
 
 export const revalidate = 3600;
 
@@ -19,25 +22,50 @@ function daysAgoLabel(iso: string) {
   return `${days} days ago`;
 }
 
-function JobRow({ job }: { job: WPJobListing }) {
-  const featured = job.meta.featured;
-  return (
-    <li className={featured ? "job-card job-card-featured" : "job-card"}>
-      <Link href={`/jobs/${job.slug}`} className="job-card-main">
-        {featured && <span className="directory-badge">Featured</span>}
-        <span className="card-title" dangerouslySetInnerHTML={{ __html: job.title.rendered }} />
-        <div className="job-card-meta">
-          {job.meta.job_company && <span className="job-card-company">{job.meta.job_company}</span>}
-          {job.meta.job_salary_text && <span className="job-card-salary">{job.meta.job_salary_text}</span>}
-        </div>
-        <time dateTime={job.date} className="job-card-date">
-          {daysAgoLabel(job.date)} &middot; {formatDate(job.date)}
-        </time>
-      </Link>
-      <Link href={`/jobs/${job.slug}`} className="button-pill job-card-apply">
-        View details
-      </Link>
-    </li>
+/** "CR43ND" → "CR4 3ND"; place names unchanged. */
+function prettyLocation(name: string) {
+  const m = name.trim().match(/^([A-Z]{1,2}\d[A-Z\d]?)\s*(\d[A-Z]{2})$/i);
+  return m ? `${m[1]} ${m[2]}`.toUpperCase() : name;
+}
+
+/**
+ * Pay as a yearly figure, for the "By pay" sort. Member jobs store an amount
+ * and period; Reed only gives text like "£14 - £16" or "£37,800 - £41,500"
+ * with no period, so the period is read from the size of the top figure:
+ * under £100 an hour, under £1,000 a day (260 working days), else a year.
+ */
+function payPerYear(job: WPJobListing): number | null {
+  const m = job.meta;
+  if (m.job_salary_amount && (m.job_salary_period === "hour" || m.job_salary_period === "year")) {
+    return annualSalary(Number(m.job_salary_amount), m.job_salary_period);
+  }
+  const amounts = (m.job_salary_text ?? "").match(/\d[\d,]*(?:\.\d+)?/g)?.map((n) => Number(n.replace(/,/g, ""))) ?? [];
+  const top = Math.max(0, ...amounts.filter((n) => Number.isFinite(n)));
+  if (!top) return null;
+  if (top < 100) return annualSalary(top, "hour");
+  if (top < 1000) return top * 260;
+  return top;
+}
+
+async function toCards(jobs: WPJobListing[], locationNames: Map<number, string>): Promise<JobCard[]> {
+  return Promise.all(
+    jobs.map(async (job) => {
+      const raw = job.job_location?.map((id) => locationNames.get(id)).find(Boolean) ?? "";
+      const coords = raw ? await geocodePlace(raw).catch(() => null) : null;
+      return {
+        id: job.id,
+        slug: job.slug,
+        titleHtml: job.title.rendered,
+        company: job.meta.job_company ?? "",
+        salary: job.meta.job_salary_text ?? "",
+        date: job.date,
+        dateLabel: `${daysAgoLabel(job.date)} · ${formatDate(job.date)}`,
+        featured: Boolean(job.meta.featured),
+        location: raw ? prettyLocation(raw) : "",
+        miles: coords ? Math.round(milesBetween(CARSHALTON, coords) * 10) / 10 : null,
+        payPerYear: payPerYear(job),
+      };
+    })
   );
 }
 
@@ -61,6 +89,14 @@ export default async function JobsPage() {
   const apiJobs = allJobs.filter((j) => j.meta.source !== "member" && new Date(j.date).getTime() >= cutoff);
   const localJobs = [...memberJobs.filter((j) => j.meta.featured), ...memberJobs.filter((j) => !j.meta.featured)];
 
+  // Location names for the "Nearest to Carshalton" sort and the card's
+  // location line (Reed gives a town or a postcode per job).
+  const terms = await getJobLocationsByIds([...localJobs, ...apiJobs].flatMap((j) => j.job_location ?? [])).catch(
+    soft([])
+  );
+  const locationNames = new Map(terms.map((t) => [t.id, t.name]));
+  const [localCards, apiCards] = await Promise.all([toCards(localJobs, locationNames), toCards(apiJobs, locationNames)]);
+
   return (
     <>
       <div className="section-hero">
@@ -79,41 +115,22 @@ export default async function JobsPage() {
       </div>
 
       <main className="container">
-        {localJobs.length > 0 && (
-          <section className="home-section">
-            <div className="home-section-header">
-              <h2>Posted locally</h2>
-            </div>
-            <ul className="job-list">
-              {localJobs.map((job) => (
-                <JobRow key={job.id} job={job} />
-              ))}
-            </ul>
-          </section>
-        )}
-
-        <section className="home-section">
-          <div className="home-section-header">
-            <h2>From around the area</h2>
-          </div>
-          <p className="job-external-disclaimer">
-            These listings are pulled in automatically from external job sites (via the Reed API), posted in the
-            last 7 days — Secret Carshalton doesn&apos;t manage or vet them. Click a job to read the details here,
-            then apply on the original site.
-          </p>
-
-          {apiJobs.length === 0 ? (
+        <JobsBoard
+          localJobs={localCards}
+          apiJobs={apiCards}
+          disclaimer={
+            <p className="job-external-disclaimer">
+              These listings are pulled in automatically from external job sites (via the Reed API), posted in the
+              last 7 days — Secret Carshalton doesn&apos;t manage or vet them. Click a job to read the details here,
+              then apply on the original site.
+            </p>
+          }
+          emptyApi={
             <p className="directory-empty">
               No jobs posted in the last 7 days — check back soon, this board updates automatically every day.
             </p>
-          ) : (
-            <ul className="job-list">
-              {apiJobs.map((job) => (
-                <JobRow key={job.id} job={job} />
-              ))}
-            </ul>
-          )}
-        </section>
+          }
+        />
       </main>
     </>
   );

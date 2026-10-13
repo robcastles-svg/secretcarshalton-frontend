@@ -2090,6 +2090,9 @@ export interface WPJobMeta {
   external_url: string;
   job_company: string;
   job_salary_text: string;
+  /** Member jobs: the pay entered as a number, and whether it's per hour or per year (0 / "" for Reed jobs). */
+  job_salary_amount?: number;
+  job_salary_period?: "hour" | "year" | "";
 }
 
 export interface WPJobListing {
@@ -2133,6 +2136,18 @@ export async function getMemberJobListings(): Promise<WPJobListing[]> {
 
 export function getJobLocations() {
   return scDirectoryFetch<WPJobTerm[]>(`/job_location?per_page=50`);
+}
+
+/** The location terms a set of jobs use, by id (there are more than one page of terms in all). */
+export async function getJobLocationsByIds(ids: number[]): Promise<WPJobTerm[]> {
+  const unique = Array.from(new Set(ids)).filter(Boolean);
+  if (unique.length === 0) return [];
+  const out: WPJobTerm[] = [];
+  for (let i = 0; i < unique.length; i += 100) {
+    const batch = unique.slice(i, i + 100);
+    out.push(...(await scDirectoryFetch<WPJobTerm[]>(`/job_location?include=${batch.join(",")}&per_page=100`)));
+  }
+  return out;
 }
 
 export function getJobSectors() {

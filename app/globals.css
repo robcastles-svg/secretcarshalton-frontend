@@ -4728,6 +4728,21 @@ a.card-category:hover {
   margin-top: 0.35rem;
 }
 
+.job-card-location {
+  display: block;
+  color: #555;
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+}
+
+/* Jobs page: By date / Nearest to Carshalton / By pay. */
+.jobs-sort {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
 .job-detail-date {
   margin-top: 0.3rem;
 }
@@ -7933,7 +7948,9 @@ a.card-category:hover {
 .evl-sub-head { max-width: 1180px; margin: 0 auto; padding: 14px 1.5rem 0; }
 .evl-head { max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; justify-content: space-between; padding: 18px 1.5rem 4px; }
 .evx .evl-head h1 { margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -.015em; line-height: 1.1; text-wrap: balance; color: var(--evx-accent-dark); text-transform: uppercase; }
-.evx .evl-head h1.evl-big { font-size: 44px; display: flex; align-items: center; gap: .25em; }
+/* Main /events page only (isHome): twice its old 44px/60px, one weight lighter (Rob, Oct 2026).
+   Capped by screen width so EVENTS + key fit a phone. */
+.evx .evl-head h1.evl-big { font-size: min(88px, 18vw); font-weight: 800; line-height: 1; display: flex; align-items: center; gap: .25em; }
 /* The site's own key icon (as on every other section header), in white. */
 .evl-head h1 .category-key-icon { filter: brightness(0) invert(1); margin-left: 0; height: .8em; flex: 0 0 auto; }
 .evl-intro { margin: 6px 0 0; color: var(--evx-on-dark-soft); font-size: 15px; max-width: 60ch; }
@@ -8029,7 +8046,7 @@ a.card-category:hover {
   .evl-sub-head { padding: 20px 32px 0; }
   .evl-head { padding: 26px 32px 4px; }
   .evx .evl-head h1 { font-size: 42px; }
-  .evx .evl-head h1.evl-big { font-size: 60px; }
+  .evx .evl-head h1.evl-big { font-size: 120px; }
   .evl-fbar { margin-top: 20px; padding: 0 32px; flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 16px; }
   .evl-frow { flex: 1 1 auto; flex-wrap: wrap; overflow: visible; }
   .evl-cat { flex: 0 0 auto; }
