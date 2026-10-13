@@ -11,8 +11,10 @@ import { StyledMap } from "@/app/_components/StyledMap";
 import { DirectoryBrowse } from "../_components/DirectoryBrowse";
 import { ClaimListingButton } from "./_components/ClaimListingButton";
 import { DetailIcon } from "./_components/DetailIcon";
+import { SpotlightArticles } from "./_components/SpotlightArticles";
 import { getSessionToken } from "@/lib/auth";
 import {
+  getSpotlightArticles,
   getCommentsForPost,
   getDirectoryCategories,
   getDirectoryListingBySlug,
@@ -181,6 +183,10 @@ export default async function DirectoryListingPage({
   const mapLat = meta.sc_lat ? Number(meta.sc_lat) : undefined;
   const mapLng = meta.sc_lng ? Number(meta.sc_lng) : undefined;
 
+  const spotlightArticles = await getSpotlightArticles(
+    (meta.sc_spotlight_slugs ?? "").split(",").map((x) => x.trim()).filter(Boolean)
+  );
+
   const ratings = fullThread.map((c) => c.rating).filter((r): r is number => typeof r === "number");
   const averageRating = ratings.length ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length : null;
 
@@ -293,6 +299,8 @@ export default async function DirectoryListingPage({
               ))}
             </div>
           )}
+
+          <SpotlightArticles articles={spotlightArticles} />
 
           <CommentSection
             postId={listing.id}

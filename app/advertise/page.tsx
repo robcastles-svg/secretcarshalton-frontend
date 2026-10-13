@@ -240,7 +240,7 @@ export default async function AdvertisePage() {
             </Link>
           </div>
 
-          <div className="adv-card adv-card-dark">
+          <div id="featured-gold" className="adv-card adv-card-dark">
             <div className="adv-card-head">
               <span className="adv-eyebrow adv-eyebrow-gold">Highest level of promotion</span>
               <h3 className="adv-card-title adv-card-title-light">{FEATURED_DIRECTORY_TIERS[3].label}</h3>

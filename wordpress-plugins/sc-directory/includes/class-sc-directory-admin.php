@@ -32,6 +32,122 @@ class SC_Directory_Admin {
 			'side',
 			'high'
 		);
+		add_meta_box(
+			'sc_directory_spotlight',
+			'Spotlight articles',
+			array( __CLASS__, 'render_spotlight_meta_box' ),
+			SC_Directory_CPT::POST_TYPE,
+			'normal',
+			'default'
+		);
+	}
+
+	/**
+	 * Where the article search looks. Articles are still read from the
+	 * live site while the directory lives on staging (the id split in
+	 * wordpress-plugins/README.md), so on staging this searches the live
+	 * site's posts; once everything is on one WordPress after go-live it
+	 * searches its own. Linked by slug either way, which survives the move.
+	 */
+	private static function articles_endpoint() {
+		return false !== strpos( home_url(), 'staging' )
+			? 'https://www.secretcarshalton.com/wp-json/wp/v2/posts'
+			: rest_url( 'wp/v2/posts' );
+	}
+
+	/**
+	 * Rob links Spotlight articles to a listing here: type part of a
+	 * headline, pick from the matches (or paste the article's link), and
+	 * reorder/remove. Saved as comma-separated slugs in sc_spotlight_slugs,
+	 * which the listing page reads to show the articles.
+	 */
+	public static function render_spotlight_meta_box( $post ) {
+		$slugs = (string) get_post_meta( $post->ID, 'sc_spotlight_slugs', true );
+		?>
+		<p style="margin-top:0;color:#555">Articles about this business — shown in the <strong>Spotlight articles</strong> section of its listing page, in this order.</p>
+		<input type="hidden" name="sc_directory_spotlight_slugs" id="sc-spot-value" value="<?php echo esc_attr( $slugs ); ?>" />
+		<ul id="sc-spot-list" style="margin:0 0 10px"></ul>
+		<div style="position:relative;max-width:520px">
+			<input type="search" id="sc-spot-search" placeholder="Search articles by headline, or paste an article link" style="width:100%" autocomplete="off" />
+			<ul id="sc-spot-results" style="display:none;position:absolute;z-index:10;left:0;right:0;margin:2px 0 0;background:#fff;border:1px solid #c3c4c7;box-shadow:0 4px 12px rgba(0,0,0,.12);max-height:280px;overflow:auto"></ul>
+		</div>
+		<p id="sc-spot-note" style="color:#646970;font-size:12px;margin:6px 0 0"></p>
+		<script>
+		( function () {
+			var api = <?php echo wp_json_encode( self::articles_endpoint() ); ?>;
+			var value = document.getElementById( 'sc-spot-value' );
+			var list = document.getElementById( 'sc-spot-list' );
+			var search = document.getElementById( 'sc-spot-search' );
+			var results = document.getElementById( 'sc-spot-results' );
+			var note = document.getElementById( 'sc-spot-note' );
+			var items = value.value ? value.value.split( ',' ).filter( Boolean ).map( function ( s ) { return { slug: s, title: s }; } ) : [];
+			var timer;
+
+			function decode( html ) { var t = document.createElement( 'textarea' ); t.innerHTML = html; return t.value; }
+			function save() { value.value = items.map( function ( i ) { return i.slug; } ).join( ',' ); }
+			function btn( label, fn ) { var b = document.createElement( 'button' ); b.type = 'button'; b.className = 'button-link'; b.textContent = label; b.style.marginLeft = '10px'; b.onclick = fn; return b; }
+			function draw() {
+				list.innerHTML = '';
+				if ( ! items.length ) { var e = document.createElement( 'li' ); e.style.color = '#646970'; e.textContent = 'None linked yet.'; list.appendChild( e ); }
+				items.forEach( function ( item, i ) {
+					var li = document.createElement( 'li' );
+					li.style.cssText = 'display:flex;align-items:center;padding:6px 8px;border:1px solid #dcdcde;border-radius:4px;margin-bottom:4px;background:#f6f7f7';
+					var t = document.createElement( 'span' ); t.style.flex = '1'; t.textContent = item.title; li.appendChild( t );
+					if ( i > 0 ) li.appendChild( btn( '↑ Up', function () { items.splice( i - 1, 0, items.splice( i, 1 )[0] ); save(); draw(); } ) );
+					li.appendChild( btn( 'Remove', function () { items.splice( i, 1 ); save(); draw(); } ) );
+					list.appendChild( li );
+				} );
+			}
+			function add( slug, title ) {
+				if ( ! slug || items.some( function ( i ) { return i.slug === slug; } ) ) return;
+				items.push( { slug: slug, title: title || slug } ); save(); draw();
+				search.value = ''; results.style.display = 'none';
+			}
+			// Real headlines for the slugs already saved.
+			if ( items.length ) {
+				fetch( api + '?_fields=slug,title&per_page=20&slug=' + encodeURIComponent( items.map( function ( i ) { return i.slug; } ).join( ',' ) ) )
+					.then( function ( r ) { return r.json(); } )
+					.then( function ( posts ) { posts.forEach( function ( p ) { items.forEach( function ( i ) { if ( i.slug === p.slug ) i.title = decode( p.title.rendered ); } ); } ); draw(); } )
+					.catch( function () {} );
+			}
+			draw();
+
+			search.addEventListener( 'keydown', function ( e ) {
+				if ( 'Enter' !== e.key ) return;
+				e.preventDefault();
+				// A pasted link: take the last part of its path as the slug.
+				var m = search.value.trim().match( /^https?:\/\/[^\/]+\/(?:.*\/)?([a-z0-9-]+)\/?(?:[?#].*)?$/i );
+				if ( m ) add( m[1].toLowerCase() );
+			} );
+			search.addEventListener( 'input', function () {
+				clearTimeout( timer );
+				var q = search.value.trim();
+				if ( q.length < 3 || /^https?:/i.test( q ) ) { results.style.display = 'none'; note.textContent = /^https?:/i.test( q ) ? 'Press Enter to add this link.' : ''; return; }
+				timer = setTimeout( function () {
+					note.textContent = 'Searching…';
+					fetch( api + '?_fields=slug,title,date&per_page=8&search=' + encodeURIComponent( q ) )
+						.then( function ( r ) { return r.json(); } )
+						.then( function ( posts ) {
+							note.textContent = posts.length ? '' : 'No articles match that.';
+							results.innerHTML = '';
+							posts.forEach( function ( p ) {
+								var li = document.createElement( 'li' );
+								li.style.cssText = 'padding:8px 10px;cursor:pointer;margin:0;border-bottom:1px solid #f0f0f1';
+								li.textContent = decode( p.title.rendered ) + ' — ' + p.date.slice( 0, 10 );
+								li.onmouseenter = function () { li.style.background = '#f0f6fc'; };
+								li.onmouseleave = function () { li.style.background = ''; };
+								li.onclick = function () { add( p.slug, decode( p.title.rendered ) ); };
+								results.appendChild( li );
+							} );
+							results.style.display = posts.length ? 'block' : 'none';
+						} )
+						.catch( function () { note.textContent = 'Search isn\'t reachable right now — paste the article\'s link and press Enter instead.'; } );
+				}, 300 );
+			} );
+			document.addEventListener( 'click', function ( e ) { if ( ! results.contains( e.target ) && e.target !== search ) results.style.display = 'none'; } );
+		} )();
+		</script>
+		<?php
 	}
 
 	/**
@@ -105,6 +221,11 @@ class SC_Directory_Admin {
 
 		update_post_meta( $post_id, 'sc_tagline', sanitize_text_field( (string) ( $_POST['sc_directory_tagline'] ?? '' ) ) );
 		update_post_meta( $post_id, 'sc_featured', isset( $_POST['sc_directory_featured'] ) );
+
+		if ( isset( $_POST['sc_directory_spotlight_slugs'] ) ) {
+			$slugs = array_filter( array_map( 'sanitize_title', explode( ',', (string) wp_unslash( $_POST['sc_directory_spotlight_slugs'] ) ) ) );
+			update_post_meta( $post_id, 'sc_spotlight_slugs', implode( ',', array_values( array_unique( $slugs ) ) ) );
+		}
 
 		if ( ! empty( $_FILES['sc_directory_logo']['tmp_name'] ) ) {
 			$attachment_id = SC_Directory_REST::sideload_single_image( $_FILES['sc_directory_logo'], $post_id );
