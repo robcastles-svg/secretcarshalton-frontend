@@ -214,6 +214,19 @@ for it since before `sc-events` existed (5 points per RSVP).
 - [ ] **Listing added on live after the clone:** "Professional Children's
   football coaching" (30 Aug 2026) isn't on staging. Its owner isn't shown
   on the public page; check it in Sabai's admin.
+- [ ] **Events added or changed on live since the last check.** Checked
+  in full on 13 Oct 2026: all 273 live EventON events compared with
+  staging. Fixed then: the 32 repeating events got their missing dates
+  (EventON only shows the first date on an event's page, so the original
+  migration lost the rest), 6 missing events imported, 3 wrong dates
+  corrected, 5 event comments copied, 23 missing photos brought over.
+  Re-run the same comparison just before go-live (scripts and method in
+  that session: live event pages' `data-time`/`ri-N` repeat links vs
+  staging `sc_start`/`sc_repeat_dates`, plus live `ajde_events` comments).
+- [ ] **Directory listing edits on live since the last check.** All 122
+  listings were compared with live on 13 Oct 2026 (description, phone,
+  email); only Lambert Heating had changed, and was updated. Re-run just
+  before go-live, and copy any edits across.
 - [ ] **Correct view counts.**
   - *Listings:* staging only had views since the import. sc-post-views
     0.5.0 seeds each listing's old Sabai total from
