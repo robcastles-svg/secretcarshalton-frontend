@@ -58,6 +58,8 @@ export interface EventFormInitial {
   booking_phone: string;
   event_url: string;
   image: string;
+  /** The event's image link (sc_image_url) when it uses one instead of an upload. */
+  image_url?: string;
   /** "sold_out" / "cancelled" / "" (on as planned) — edit form only. */
   event_status?: string;
 }
@@ -162,6 +164,11 @@ export function EventForm({
   const [imageUrl, setImageUrl] = useState<string>(initial?.image ?? "");
   const [imageMeta, setImageMeta] = useState<{ name: string; w: number; h: number; size: number } | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
+  // An image link instead of an upload — shown from the other site, so it
+  // takes no server space. imageUrl (the preview) equals it while in use.
+  const [linkOpen, setLinkOpen] = useState(Boolean(initial?.image_url));
+  const [imageLink, setImageLink] = useState(initial?.image_url ?? "");
+  const [linkChecking, setLinkChecking] = useState(false);
   const [dragOver, setDragOver] = useState(false);
 
   // ---- When
@@ -263,6 +270,8 @@ export function EventForm({
   function pickImage(file: File | undefined) {
     if (!file) return;
     setImageError(null);
+    setLinkOpen(false);
+    setImageLink("");
     if (!IMAGE_TYPES.includes(file.type)) {
       setImageError("That file type isn't supported. Please use a JPG, PNG or WebP image.");
       return;
@@ -279,6 +288,31 @@ export function EventForm({
     };
     probe.src = probeUrl;
     setImageFile(file);
+  }
+
+  /** Loads the pasted link as an image first, so a page link or a broken one is caught here, not after posting. */
+  function applyImageLink() {
+    const link = imageLink.trim();
+    setImageError(null);
+    if (!/^https?:\/\/[^/\s]+\.[^/\s]+\/\S+$/i.test(link)) {
+      setImageError("Please paste the full web address of the image, starting https://");
+      return;
+    }
+    setLinkChecking(true);
+    const probe = new Image();
+    probe.onload = () => {
+      setLinkChecking(false);
+      setImageFile(null);
+      setImageUrl(link);
+      setImageMeta({ name: "Image from a link", w: probe.naturalWidth, h: probe.naturalHeight, size: 0 });
+    };
+    probe.onerror = () => {
+      setLinkChecking(false);
+      setImageError(
+        "That link didn't open as an image. Right-click the picture on the other site, choose “Copy image address” and paste that."
+      );
+    };
+    probe.src = link;
   }
 
   function pickLogo(file: File | undefined) {
@@ -330,6 +364,11 @@ export function EventForm({
 
     // Rob's rule (2026-10): every event needs an image. New events must
     // pick one; an older event being edited only if it has none yet.
+    const usingLink = !imageFile && imageLink.trim() !== "" && imageUrl === imageLink.trim();
+    if (linkOpen && imageLink.trim() && !usingLink && !imageFile) {
+      setError("Press “Use this link” to check your image link first.");
+      return;
+    }
     if (!imageFile && !imageUrl) {
       setError("Please add an event image. Every event needs one.");
       return;
@@ -378,6 +417,8 @@ export function EventForm({
     };
     if (adminFeatured !== undefined) data.featured = featuredTick;
     if (mode === "edit") data.event_status = eventStatus;
+    // A new link replaces any uploaded photo; an upload clears the link.
+    if (usingLink && imageLink.trim() !== (initial?.image_url ?? "")) data.image_url = imageLink.trim();
 
     // Organiser — see SC_Events_REST::set_organizer_from_request: an
     // organizer_id attaches (or, with organizer_edit, also updates) that
@@ -534,7 +575,8 @@ export function EventForm({
                       {imageMeta ? (
                         <>
                           <b>{imageMeta.name}</b>
-                          {imageMeta.w} × {imageMeta.h} px · {(imageMeta.size / 1048576).toFixed(1)} MB
+                          {imageMeta.w} × {imageMeta.h} px
+                          {imageMeta.size > 0 && <> · {(imageMeta.size / 1048576).toFixed(1)} MB</>}
                         </>
                       ) : (
                         <b>Current image</b>
@@ -582,7 +624,42 @@ export function EventForm({
                       Remove
                     </button>
                   )}
+                  {!linkOpen && (
+                    <button type="button" className="evf-link-toggle" onClick={() => setLinkOpen(true)}>
+                      Or use an image link instead
+                    </button>
+                  )}
                 </div>
+                {linkOpen && (
+                  <div className="evf-image-link">
+                    <label className="evf-lab" htmlFor="ev-image-link">
+                      Image link
+                    </label>
+                    <div className="evf-inline">
+                      <input
+                        id="ev-image-link"
+                        type="url"
+                        inputMode="url"
+                        placeholder="https://…/photo.jpg"
+                        value={imageLink}
+                        onChange={(e) => setImageLink(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            applyImageLink();
+                          }
+                        }}
+                      />
+                      <button type="button" className="evx-btn evx-btn-sm" onClick={applyImageLink} disabled={linkChecking}>
+                        {linkChecking ? "Checking…" : "Use this link"}
+                      </button>
+                    </div>
+                    <span className="evf-hint">
+                      The picture stays on the other website, which saves space on ours. If that site removes it, your
+                      event loses its picture, so uploading is safer for anything important.
+                    </span>
+                  </div>
+                )}
               </div>
               <span className="evf-hint">
                 Remember text in an image can&apos;t be read on phones or found in searches, so make sure the details are

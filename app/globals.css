@@ -8091,6 +8091,9 @@ a.card-category:hover {
 .evf-drop-meta { flex: 1; min-width: 0; font-size: 13px; color: var(--evx-ink-soft); overflow-wrap: anywhere; }
 .evf-drop-meta b { color: var(--evx-ink); display: block; font-size: 14px; }
 .evf-file-btn { position: relative; overflow: hidden; }
+.evf-link-toggle { background: none; border: 0; padding: 0; font: inherit; font-size: 14px; color: var(--evx-ink-soft); text-decoration: underline; cursor: pointer; }
+.evf-image-link { display: grid; gap: 6px; margin-top: 12px; }
+.evf-main .evf-image-link .evf-inline input[type=url] { flex: 1 1 220px; min-width: 0; }
 .evf-file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .evf-msg { border-radius: 10px; padding: 8px 12px; font-size: 13px; }
 .evf-msg-warn { background: #fff3df; color: #8a5200; }

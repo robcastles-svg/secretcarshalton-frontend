@@ -463,9 +463,9 @@ export function CommentSection({
             <div className="comment-login-badge">Member</div>
             <ul>
               <li>Receive a ranking and badge based on your activity</li>
-              <li>Create an &apos;about you&apos; page to introduce yourself when people click on your name</li>
               <li>See all your comments and activity in one place</li>
-              <li>Connect with friends</li>
+              <li>Easy to use members dashboard</li>
+              <li>Occasional member-only offers</li>
             </ul>
             <div className="comment-login-actions">
               <button type="button" className="button-pill" onClick={() => setShowLoginModal(true)}>
