@@ -836,7 +836,7 @@ class SC_Membership_REST {
 	 * doesn't leak into some other plugin's unrelated wp_new_comment() call
 	 * later in the same request.
 	 */
-	private static function force_pending( $approved ) {
+	public static function force_pending( $approved ) { // public: WordPress calls it as a filter callback
 		return 0;
 	}
 
