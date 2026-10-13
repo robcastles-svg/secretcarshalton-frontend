@@ -563,7 +563,7 @@ export function navSectionForCategories(
  */
 export function categoryHref(category: WPCategory, categoriesById: Map<number, WPCategory>): string {
   if (category.slug === "news") return "/news";
-  if (category.slug === "people") return "/people";
+  if (category.slug === "people") return "/spotlight";
   if (category.slug === "stories") return "/discover";
   if (category.slug === "walks") return "/walks";
   const parent = categoriesById.get(category.parent);

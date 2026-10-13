@@ -214,6 +214,11 @@ button.button-pill {
   width: auto;
 }
 
+/* KeyTitle: the headline's last word and the key wrap as one. */
+.category-key-nowrap {
+  white-space: nowrap;
+}
+
 .category-key-icon {
   display: inline-block;
   height: 0.7em;
@@ -3038,6 +3043,20 @@ a.card-category:hover {
   height: auto;
 }
 
+/* TikToks in articles (see lib/tiktok-embed.ts): TikTok's portrait player. */
+.post-tiktok {
+  max-width: 340px;
+  margin: 1.5rem auto;
+  aspect-ratio: 9 / 16;
+}
+
+.post-tiktok iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0.75rem;
+}
+
 /* Videos from the old HTML5 Video Player (see lib/html5-video.ts). */
 .post-content video.post-video {
   display: block;
@@ -3240,6 +3259,30 @@ a.card-category:hover {
   border-bottom: 2px solid #1a1a1a;
   padding-bottom: 0.5rem;
   margin-bottom: 0.75rem;
+}
+
+/* Listing details with an icon each (address, phone, email, website). */
+.listing-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.listing-detail > span,
+.listing-detail > a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.listing-detail-icon {
+  flex-shrink: 0;
+  margin-top: 0.2em;
+  color: #cc99a2;
+}
+
+.listing-detail > a[href^="tel:"] {
+  color: inherit;
+  text-decoration: none;
 }
 
 .directory-listing-stats {
@@ -4578,8 +4621,8 @@ a.card-category:hover {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  justify-content: flex-end;
-  gap: 1rem;
+  justify-content: space-between;
+  gap: 0.75rem;
   margin: 1rem 0 2rem;
 }
 
@@ -4588,6 +4631,45 @@ a.card-category:hover {
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+  margin-left: auto;
+  /* The search popup anchors to the whole controls row (not just the
+     icon, which sits left of the sort dropdown), so on a phone it opens
+     inside the screen instead of off its left edge. */
+  position: relative;
+}
+
+.directory-spotlight-link {
+  align-self: center;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: #fff;
+  color: #333;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.directory-spotlight-link:hover {
+  border-color: #cc99a2;
+  color: #b8838d;
+}
+
+@media (max-width: 480px) {
+  .directory-toolbar {
+    gap: 0.5rem;
+  }
+
+  .directory-spotlight-link {
+    padding: 0.4rem 0.7rem;
+    font-size: 0.8rem;
+  }
+
+  .directory-controls {
+    gap: 0.5rem;
+  }
 }
 
 .directory-controls select {
@@ -4600,7 +4682,7 @@ a.card-category:hover {
 }
 
 .directory-search-popup-wrap {
-  position: relative;
+  position: static;
 }
 
 .directory-search-icon {
@@ -4641,6 +4723,7 @@ a.card-category:hover {
   padding: 0.6rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   z-index: 5;
+  max-width: calc(100vw - 2rem);
 }
 
 .directory-search-popup input[type="search"] {
@@ -4648,7 +4731,9 @@ a.card-category:hover {
   border-radius: 999px;
   border: 1px solid #ccc;
   font-size: 0.85rem;
-  min-width: 180px;
+  min-width: 0;
+  width: 180px;
+  flex: 1 1 auto;
 }
 
 .directory-search-popup .button-pill {

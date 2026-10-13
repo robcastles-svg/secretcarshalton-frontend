@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { FeaturedListingImpressionTracker } from "@/app/_components/FeaturedListingImpressionTracker";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
@@ -71,8 +71,9 @@ function avoidFeaturedFirst(pageItems: FeedItem[]): FeedItem[] {
  * The main nav's browsing hub, shared by /discover and the area pages.
  * Per Rob (after seeing his own PDF wireframe again): the main feed is all
  * story posts from every area merged together, with a featured Directory
- * listing (pink outline) mixed in every few cards. Spotlight and Business
- * feature are filters on /discover itself (?filter=spotlight|featured);
+ * listing (pink outline) mixed in every few cards. Spotlight has its own
+ * address, /spotlight; Business feature is a filter on /discover itself
+ * (?filter=featured);
  * an area is its own page, /stories/{area}, rendered here with that area
  * picked (Rob's call, 2026-10: one look for both, the area keeping its
  * own address for search). /discover?filter={area} redirects there.
@@ -148,6 +149,7 @@ export async function DiscoverView({
 
   const buildPageHref = (p: number) => {
     if (activeArea) return `/stories/${activeArea.slug}?page=${p}`;
+    if (isSpotlight) return `/spotlight?page=${p}`;
     const params = new URLSearchParams();
     if (filter) params.set("filter", filter);
     params.set("page", String(p));
@@ -171,7 +173,7 @@ export async function DiscoverView({
               {a.name}
             </Link>
           ))}
-          <Link href="/discover?filter=spotlight" className={isSpotlight ? "active" : undefined}>
+          <Link href="/spotlight" className={isSpotlight ? "active" : undefined}>
             Spotlight
           </Link>
           <Link href="/discover?filter=featured" className={isFeatured ? "active" : undefined}>
@@ -184,19 +186,19 @@ export async function DiscoverView({
         <div className="category-header-row">
           {activeArea ? (
             <h1>
-              {activeArea.name}
-              <CategoryKeyIcon />
+              <KeyTitle>{activeArea.name}</KeyTitle>
             </h1>
           ) : (
             <h1>
-              Discover
-              <CategoryKeyIcon />
+              <KeyTitle>{isSpotlight ? "Business Spotlight" : "Discover"}</KeyTitle>
             </h1>
           )}
           <p className="category-header-description">
             {activeArea
               ? `Timeless and fascinating stories from around ${activeArea.name}`
-              : "Timeless and fascinating stories from around Carshalton and nearby areas"}
+              : isSpotlight
+                ? "Featured premium members"
+                : "Timeless and fascinating stories from around Carshalton and nearby areas"}
           </p>
         </div>
 

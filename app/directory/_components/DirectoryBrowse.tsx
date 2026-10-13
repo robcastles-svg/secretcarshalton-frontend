@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { MasonryGrid } from "@/app/_components/MasonryGrid";
 import { Pagination } from "@/app/_components/Pagination";
@@ -152,14 +152,12 @@ export async function DirectoryBrowse({
               <>
                 <span className="section-hero-eyebrow">The Sutton Business Directory</span>
                 <h1>
-                  {activeCategory.name}
-                  <CategoryKeyIcon />
+                  <KeyTitle>{activeCategory.name}</KeyTitle>
                 </h1>
               </>
             ) : (
               <h1>
-                The Sutton Business Directory
-                <CategoryKeyIcon />
+                <KeyTitle>The Sutton Business Directory</KeyTitle>
               </h1>
             )}
             <p>Local businesses and organisations in and around Carshalton.</p>
@@ -172,6 +170,11 @@ export async function DirectoryBrowse({
 
       <main className="container">
       <div className="directory-toolbar">
+        {!activeCategory && (
+          <Link href="/spotlight" className="directory-spotlight-link">
+            ⭐️ Business Spotlights
+          </Link>
+        )}
         <DirectoryControls basePath={basePath} q={q} sort={sort} />
       </div>
 

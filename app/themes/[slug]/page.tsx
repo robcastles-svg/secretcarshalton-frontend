@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
-import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
+import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
@@ -76,8 +76,7 @@ export default async function ThemePage({
       <SetActiveNavSection section="Discover" />
       <span className="theme-eyebrow">Stories by theme</span>
       <h1>
-        {tag.name}
-        <CategoryKeyIcon />
+        <KeyTitle>{tag.name}</KeyTitle>
       </h1>
       <MobileTopAd ad={sidebarAd1} />
       {posts.length === 0 && <p>No stories tagged &quot;{tag.name}&quot; yet.</p>}
