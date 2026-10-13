@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { StyledMap } from "@/app/_components/StyledMap";
+import { geocodeVenue } from "@/lib/geocode";
 import { DirectionsIcon } from "./EvIcons";
 
 /**
  * The charcoal venue card — map, Directions and one more link — shared by
  * the event page (links to "All events here") and the venue page (links
  * to "Open in Maps"). `className` lets each page place it in its layout.
+ * Looks the venue's coordinates up on the server (lib/geocode.ts) so the
+ * map draws in the same magenta style as directory listings.
  */
-export function VenueCard({
+export async function VenueCard({
   name,
   address,
   allEventsHref,
@@ -22,13 +25,14 @@ export function VenueCard({
 }) {
   const query = [name, address].filter(Boolean).join(", ");
   if (!query) return null;
+  const coords = await geocodeVenue(name, address);
   return (
     <section className={`evx-card-dk evx-venue ${className}`.trim()}>
       <p className="evx-eyebrow">Venue</p>
       {name && <h3>{name}</h3>}
       {address && <p className="evx-addr">{address}</p>}
       <div className="evx-map">
-        <StyledMap query={query} />
+        <StyledMap query={query} lat={coords?.lat} lng={coords?.lng} />
       </div>
       <div className="evx-venue-actions">
         <a

@@ -4728,6 +4728,44 @@ a.card-category:hover {
   margin-top: 0.35rem;
 }
 
+.job-card-location {
+  display: block;
+  color: #555;
+  font-size: 0.85rem;
+  margin-top: 0.4rem;
+}
+
+/* Jobs page: By date / Nearest to Carshalton / By pay. */
+.jobs-sort {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0 0.5rem;
+}
+.jobs-sort-btn {
+  padding: 0.5rem 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: #f1eef0;
+  color: #333;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.jobs-sort-btn:hover {
+  background: #e7dfe3;
+}
+.jobs-sort-btn-on,
+.jobs-sort-btn-on:hover {
+  background: #c2607a;
+  color: #fff;
+}
+.jobs-sort-btn:focus-visible {
+  outline: 2px solid #c2607a;
+  outline-offset: 2px;
+}
+
 .job-detail-date {
   margin-top: 0.3rem;
 }
@@ -7004,6 +7042,7 @@ a.card-category:hover {
    Oct 2026). The key scales with it (0.7em). */
 .home-section-header h2.home-section-title.home-section-title-big {
   font-size: 3rem;
+  margin: 0;
 }
 .home-section-title-caps {
   text-transform: uppercase;
@@ -7072,6 +7111,12 @@ a.card-category:hover {
   background: #1a1a1f;
   padding: 2.25rem 0 2.5rem;
   border-radius: 0;
+}
+
+/* The band's own padding is the gap above EVENTS; drop the page
+   container's extra top padding inside it. */
+.home-events-band > .container {
+  padding-top: 0;
 }
 
 .home-events-band h2,
@@ -7825,6 +7870,8 @@ a.card-category:hover {
 .evx-venue h3 { margin: 0; font-size: 16px; color: var(--evx-on-dark); }
 .evx-addr { margin: 2px 0 12px; color: var(--evx-on-dark-soft); font-size: 14px; }
 .evx-map { border-radius: 10px; overflow: hidden; }
+/* Same magenta tint as .event-map's fallback embed (directory listings). */
+.evx-map iframe { filter: invert(90%) hue-rotate(305deg) saturate(2.5) brightness(0.9) contrast(1.05); }
 .evx-map > * { margin: 0 !important; }
 .evx-venue-actions { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 12px; }
 
@@ -7924,7 +7971,9 @@ a.card-category:hover {
 .evl-sub-head { max-width: 1180px; margin: 0 auto; padding: 14px 1.5rem 0; }
 .evl-head { max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; justify-content: space-between; padding: 18px 1.5rem 4px; }
 .evx .evl-head h1 { margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -.015em; line-height: 1.1; text-wrap: balance; color: var(--evx-accent-dark); text-transform: uppercase; }
-.evx .evl-head h1.evl-big { font-size: 44px; display: flex; align-items: center; gap: .25em; }
+/* Main /events page only (isHome): twice its old 44px/60px, one weight lighter (Rob, Oct 2026).
+   Capped by screen width so EVENTS + key fit a phone. */
+.evx .evl-head h1.evl-big { font-size: min(88px, 18vw); font-weight: 800; line-height: 1; display: flex; align-items: center; gap: .25em; }
 /* The site's own key icon (as on every other section header), in white. */
 .evl-head h1 .category-key-icon { filter: brightness(0) invert(1); margin-left: 0; height: .8em; flex: 0 0 auto; }
 .evl-intro { margin: 6px 0 0; color: var(--evx-on-dark-soft); font-size: 15px; max-width: 60ch; }
@@ -8020,7 +8069,7 @@ a.card-category:hover {
   .evl-sub-head { padding: 20px 32px 0; }
   .evl-head { padding: 26px 32px 4px; }
   .evx .evl-head h1 { font-size: 42px; }
-  .evx .evl-head h1.evl-big { font-size: 60px; }
+  .evx .evl-head h1.evl-big { font-size: 120px; }
   .evl-fbar { margin-top: 20px; padding: 0 32px; flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 16px; }
   .evl-frow { flex: 1 1 auto; flex-wrap: wrap; overflow: visible; }
   .evl-cat { flex: 0 0 auto; }

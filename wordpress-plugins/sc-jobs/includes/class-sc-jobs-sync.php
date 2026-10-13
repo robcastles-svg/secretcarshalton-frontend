@@ -24,6 +24,25 @@ class SC_Jobs_Sync {
 	const OPTION_LAST_SYNC      = 'sc_jobs_last_sync';
 	const CRON_HOOK             = 'sc_jobs_sync_reed';
 
+	/**
+	 * Reed's search results only carry a ~450-character plain-text summary
+	 * (no paragraphs, cut off with "…"). The full, formatted description
+	 * (paragraphs, lists) needs a second call per job to /jobs/{jobId}.
+	 * META_FULL marks a job whose post_content is that full version, so a
+	 * later search sync doesn't overwrite it with the summary again.
+	 * Only jobs posted in the last DETAILS_MAX_AGE_DAYS get it (Rob, Oct
+	 * 2026: the latest jobs and every new one from now on, not the whole
+	 * backlog); DETAILS_PER_RUN caps the calls per sync. Reed's API is free.
+	 */
+	const META_FULL       = 'reed_full_description';
+	const META_JOB_ID     = 'reed_job_id';
+	const DETAILS_PER_RUN      = 40;
+	const DETAILS_MAX_AGE_DAYS = 7;
+	/** Retired 0.10.0 hourly top-up; only cleared now. */
+	const DETAILS_CRON_HOOK = 'sc_jobs_fill_reed_details';
+	/** Last Reed details-call problem, for the settings screen / debugging. */
+	const OPTION_LAST_DETAIL_ERROR = 'sc_jobs_last_detail_error';
+
 	public static function default_location_name() {
 		return 'Carshalton';
 	}
@@ -37,6 +56,9 @@ class SC_Jobs_Sync {
 
 		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
 			wp_schedule_event( time(), 'daily', self::CRON_HOOK );
+		}
+		if ( wp_next_scheduled( self::DETAILS_CRON_HOOK ) ) {
+			wp_clear_scheduled_hook( self::DETAILS_CRON_HOOK );
 		}
 	}
 
@@ -104,10 +126,14 @@ class SC_Jobs_Sync {
 		}
 
 		self::expire_stale_listings();
+		delete_option( self::OPTION_LAST_DETAIL_ERROR );
+		$filled  = self::fill_full_descriptions( $api_key );
+		$problem = get_option( self::OPTION_LAST_DETAIL_ERROR );
+		$note    = $problem ? ' Reed stopped the full descriptions early (' . $problem['error'] . ' on job ' . $problem['job'] . '); the rest follow next sync.' : '';
 
 		$result = array(
 			'ok'      => true,
-			'message' => "Synced {$created} new, {$updated} updated.",
+			'message' => "Synced {$created} new, {$updated} updated, {$filled} full descriptions fetched.{$note}",
 			'created' => $created,
 			'updated' => $updated,
 		);
@@ -179,11 +205,15 @@ class SC_Jobs_Sync {
 		$post_id      = self::find_existing_post_id( $external_url );
 
 		$postarr = array(
-			'post_type'    => SC_Jobs_CPT::POST_TYPE,
-			'post_title'   => sanitize_text_field( $job['jobTitle'] ),
-			'post_content' => isset( $job['jobDescription'] ) ? wp_kses_post( $job['jobDescription'] ) : '',
-			'post_status'  => 'publish',
+			'post_type'   => SC_Jobs_CPT::POST_TYPE,
+			'post_title'  => sanitize_text_field( $job['jobTitle'] ),
+			'post_status' => 'publish',
 		);
+		// Only the search summary here — and never over a full description
+		// fetched earlier (see fill_full_descriptions).
+		if ( ! $post_id || ! get_post_meta( $post_id, self::META_FULL, true ) ) {
+			$postarr['post_content'] = isset( $job['jobDescription'] ) ? wp_kses_post( $job['jobDescription'] ) : '';
+		}
 
 		/**
 		 * Reed's own "date" field is when the job was actually posted, not
@@ -214,6 +244,9 @@ class SC_Jobs_Sync {
 
 		update_post_meta( $post_id, 'source', 'api' );
 		update_post_meta( $post_id, 'external_url', $external_url );
+		if ( ! empty( $job['jobId'] ) ) {
+			update_post_meta( $post_id, self::META_JOB_ID, (int) $job['jobId'] );
+		}
 		update_post_meta( $post_id, 'job_company', isset( $job['employerName'] ) ? sanitize_text_field( $job['employerName'] ) : '' );
 		update_post_meta( $post_id, 'job_salary_text', self::format_salary( $job ) );
 
@@ -227,6 +260,85 @@ class SC_Jobs_Sync {
 		}
 
 		return $outcome;
+	}
+
+	/**
+	 * Replaces the search summary with Reed's full, formatted description
+	 * for up to DETAILS_PER_RUN published Reed jobs that don't have it yet,
+	 * newest first. Jobs synced before reed_job_id was stored get their id
+	 * from the jobUrl (Reed's URLs end in the numeric job id). Returns how
+	 * many were filled.
+	 */
+	public static function fill_full_descriptions( $api_key ) {
+		$todo = get_posts(
+			array(
+				'post_type'      => SC_Jobs_CPT::POST_TYPE,
+				'post_status'    => 'publish',
+				'posts_per_page' => self::DETAILS_PER_RUN,
+				'orderby'        => 'date',
+				'order'          => 'DESC',
+				'fields'         => 'ids',
+				'date_query'     => array(
+					array( 'after' => self::DETAILS_MAX_AGE_DAYS . ' days ago' ),
+				),
+				'meta_query'     => array(
+					array( 'key' => 'source', 'value' => 'api' ),
+					array( 'key' => self::META_FULL, 'compare' => 'NOT EXISTS' ),
+				),
+			)
+		);
+
+		$filled = 0;
+		foreach ( $todo as $post_id ) {
+			$job_id = (int) get_post_meta( $post_id, self::META_JOB_ID, true );
+			if ( ! $job_id && preg_match( '#/(\d{5,})(?:[/?#]|$)#', (string) get_post_meta( $post_id, 'external_url', true ), $m ) ) {
+				$job_id = (int) $m[1];
+				update_post_meta( $post_id, self::META_JOB_ID, $job_id );
+			}
+			if ( ! $job_id ) {
+				update_post_meta( $post_id, self::META_FULL, 'none' ); // No id to look up; don't retry every run.
+				continue;
+			}
+
+			$response = wp_remote_get(
+				'https://www.reed.co.uk/api/1.0/jobs/' . $job_id,
+				array(
+					'timeout' => 10,
+					'headers' => array( 'Authorization' => 'Basic ' . base64_encode( $api_key . ':' ) ),
+				)
+			);
+			if ( is_wp_error( $response ) ) {
+				update_option( self::OPTION_LAST_DETAIL_ERROR, array( 'time' => time(), 'job' => $job_id, 'error' => $response->get_error_message() ), false );
+				break; // Network trouble: try the rest next run.
+			}
+			$code = wp_remote_retrieve_response_code( $response );
+			if ( 200 !== $code ) {
+				update_option( self::OPTION_LAST_DETAIL_ERROR, array( 'time' => time(), 'job' => $job_id, 'error' => 'HTTP ' . $code ), false );
+			}
+			if ( 404 === $code ) {
+				update_post_meta( $post_id, self::META_FULL, 'none' ); // Gone from Reed; keep the summary.
+				continue;
+			}
+			if ( 200 !== $code ) {
+				break; // Rate limit or outage: try again next run.
+			}
+
+			$detail = json_decode( wp_remote_retrieve_body( $response ), true );
+			$html   = isset( $detail['jobDescription'] ) ? trim( (string) $detail['jobDescription'] ) : '';
+			if ( '' === $html ) {
+				update_post_meta( $post_id, self::META_FULL, 'none' );
+				continue;
+			}
+			wp_update_post(
+				array(
+					'ID'           => $post_id,
+					'post_content' => wp_kses_post( $html ),
+				)
+			);
+			update_post_meta( $post_id, self::META_FULL, '1' );
+			++$filled;
+		}
+		return $filled;
 	}
 
 	/**
