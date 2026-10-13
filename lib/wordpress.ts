@@ -690,7 +690,7 @@ export async function getLatestComments(count: number): Promise<
   Array<WPComment & { postSlug: string; postTitle: string }>
 > {
   const comments = await wpFetch<WPComment[]>(
-    `/comments?per_page=${count * 3}&orderby=date&order=desc&_fields=id,post,author,author_name,content,date,link`
+    `/comments?per_page=${Math.max(count * 10, 50)}&orderby=date&order=desc&_fields=id,post,author,author_name,content,date,link`
   );
   const real = comments.filter((c) => c.author_name !== "Secret Carshalton");
   if (real.length === 0) return [];
@@ -705,7 +705,10 @@ export async function getLatestComments(count: number): Promise<
   // some of the newest raw comments belong to events/listings (different
   // post types, not in postById) and drop out here, so slicing early would
   // under-fill the homepage's 3 comment slots even when enough real
-  // post-comments existed further down the pool to backfill them.
+  // post-comments existed further down the pool to backfill them. The pool
+  // is generous (50) because a run of event comments and Secret Carshalton
+  // replies can easily fill a small one — 9 left only 2 article comments.
+  // Only a few small fields per comment, so it costs next to nothing.
   return real
     .map((c) => {
       const post = postById.get(c.post);
