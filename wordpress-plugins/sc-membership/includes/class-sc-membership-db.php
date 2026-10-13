@@ -97,6 +97,7 @@ class SC_Membership_DB {
 		dbDelta( $sql_bookmarks );
 		dbDelta( $sql_comment_votes );
 		dbDelta( SC_Membership_Messages::install_sql( $charset_collate ) );
+		dbDelta( SC_Membership_Activity::install_sql( $charset_collate ) );
 	}
 
 	/** Total bookmark count for one piece of content — a public aggregate, same "no privacy concern" bar as this site's post view counts. */

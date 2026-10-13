@@ -102,6 +102,8 @@ class SC_Membership_Hooks {
 		$who   = $reply->comment_author ? $reply->comment_author : 'Someone';
 		$text  = wp_strip_all_tags( $reply->comment_content );
 
+		SC_Membership_Activity::on_reply( (int) $parent->user_id, $who, $post );
+
 		wp_mail(
 			$recipient->user_email,
 			"{$who} replied to your comment on \"{$title}\"",

@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { getSessionToken } from "@/lib/auth";
 import type { Notifications } from "@/lib/notifications";
 import { WP_STAGING_ROOT } from "@/lib/wordpress";
+import { BellIcon } from "./notifications/BellIcon";
 import { NotificationBell } from "./notifications/NotificationBell";
 
 /**
@@ -18,7 +20,8 @@ import { NotificationBell } from "./notifications/NotificationBell";
  *
  * Logged in, it's the member's own bar: "Member dashboard" on the left
  * and the notification bell on the right (Rob, 2026-10). Because this
- * piece already renders per visitor, the bell's messages come with it.
+ * piece already renders per visitor, the bell's messages come with it —
+ * in their own Suspense, so the bar itself never waits on the CMS.
  */
 export async function MemberBenefitsBar() {
   const sessionToken = await getSessionToken();
@@ -33,7 +36,6 @@ export async function MemberBenefitsBar() {
     );
   }
 
-  const notifications = await getNotifications(sessionToken);
   return (
     <div className="member-benefits-bar member-benefits-bar-loggedin">
       <div className="container member-benefits-row">
@@ -41,8 +43,25 @@ export async function MemberBenefitsBar() {
           Member dashboard
           <Arrow />
         </Link>
-        <NotificationBell initial={notifications} />
+        {/* The bar shows straight away; only the bell waits for its data. */}
+        <Suspense fallback={<BellPlaceholder />}>
+          <BellWithData token={sessionToken} />
+        </Suspense>
       </div>
+    </div>
+  );
+}
+
+async function BellWithData({ token }: { token: string }) {
+  return <NotificationBell initial={await getNotifications(token)} />;
+}
+
+function BellPlaceholder() {
+  return (
+    <div className="notif-wrap">
+      <span className="notif-bell" aria-hidden="true">
+        <BellIcon />
+      </span>
     </div>
   );
 }
