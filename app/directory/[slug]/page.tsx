@@ -10,6 +10,7 @@ import { listingSocials } from "@/app/_components/SocialIcons";
 import { StyledMap } from "@/app/_components/StyledMap";
 import { DirectoryBrowse } from "../_components/DirectoryBrowse";
 import { ClaimListingButton } from "./_components/ClaimListingButton";
+import { DetailIcon } from "./_components/DetailIcon";
 import { getSessionToken } from "@/lib/auth";
 import {
   getCommentsForPost,
@@ -308,15 +309,27 @@ export default async function DirectoryListingPage({
       <aside className="post-sidebar">
         <div className="sidebar-block">
           <h2>Details</h2>
-          {addressParts.length > 0 && <p>{addressParts.join(", ")}</p>}
-          {isFeatured && meta.sc_phone && <p>{meta.sc_phone}</p>}
+          {addressParts.length > 0 && (
+            <p className="listing-detail">
+              <DetailIcon name="address" />
+              <span>{addressParts.join(", ")}</span>
+            </p>
+          )}
+          {isFeatured && meta.sc_phone && (
+            <p className="listing-detail">
+              <DetailIcon name="phone" />
+              <a href={`tel:${meta.sc_phone.replace(/[^\d+]/g, "")}`}>{meta.sc_phone}</a>
+            </p>
+          )}
           {isFeatured && meta.sc_email && (
-            <p>
+            <p className="listing-detail">
+              <DetailIcon name="email" />
               <a href={`mailto:${meta.sc_email}`}>{meta.sc_email}</a>
             </p>
           )}
           {meta.sc_website && (
-            <p>
+            <p className="listing-detail">
+              <DetailIcon name="website" />
               <a href={meta.sc_website}>{meta.sc_website.replace(/^https?:\/\//, "")}</a>
             </p>
           )}
