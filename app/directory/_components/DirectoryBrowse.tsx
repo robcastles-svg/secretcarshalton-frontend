@@ -172,6 +172,11 @@ export async function DirectoryBrowse({
 
       <main className="container">
       <div className="directory-toolbar">
+        {!activeCategory && (
+          <Link href="/spotlight" className="directory-spotlight-link">
+            ⭐️ Business Spotlights
+          </Link>
+        )}
         <DirectoryControls basePath={basePath} q={q} sort={sort} />
       </div>
 

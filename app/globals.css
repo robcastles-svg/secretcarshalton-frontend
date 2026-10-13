@@ -4588,6 +4588,24 @@ a.card-category:hover {
   align-items: center;
   gap: 0.75rem;
   flex-shrink: 0;
+  margin-left: auto;
+  /* The search popup anchors to the whole controls row (not just the
+     icon, which sits left of the sort dropdown), so on a phone it opens
+     inside the screen instead of off its left edge. */
+  position: relative;
+}
+
+.directory-spotlight-link {
+  align-self: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #222;
+  text-decoration: none;
+}
+
+.directory-spotlight-link:hover {
+  color: #b8838d;
+  text-decoration: underline;
 }
 
 .directory-controls select {
@@ -4600,7 +4618,7 @@ a.card-category:hover {
 }
 
 .directory-search-popup-wrap {
-  position: relative;
+  position: static;
 }
 
 .directory-search-icon {
@@ -4641,6 +4659,7 @@ a.card-category:hover {
   padding: 0.6rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   z-index: 5;
+  max-width: calc(100vw - 2rem);
 }
 
 .directory-search-popup input[type="search"] {
@@ -4648,7 +4667,9 @@ a.card-category:hover {
   border-radius: 999px;
   border: 1px solid #ccc;
   font-size: 0.85rem;
-  min-width: 180px;
+  min-width: 0;
+  width: 180px;
+  flex: 1 1 auto;
 }
 
 .directory-search-popup .button-pill {

@@ -17,8 +17,9 @@ async function storiesArea(slug: string) {
 }
 
 /**
- * Discover: every area's stories merged, or the Spotlight / Business
- * feature filters. An area filter (?filter=cheam, the old links) now lives
+ * Discover: every area's stories merged, or the Business feature filter.
+ * Spotlight (?filter=spotlight, the old links) now has its own address,
+ * /spotlight. An area filter (?filter=cheam, the old links) now lives
  * at its own page, /stories/cheam, which looks the same — redirect there
  * so there's one address per area.
  */
@@ -28,9 +29,11 @@ export default async function DiscoverPage({
   searchParams: Promise<{ filter?: string; page?: string }>;
 }) {
   const { filter, page } = await searchParams;
-  if (filter && filter !== "spotlight" && filter !== "featured") {
+  const pageQuery = page ? `?page=${encodeURIComponent(page)}` : "";
+  if (filter === "spotlight") permanentRedirect(`/spotlight${pageQuery}`);
+  if (filter && filter !== "featured") {
     const area = await storiesArea(filter);
-    if (area) permanentRedirect(`/stories/${area.slug}${page ? `?page=${encodeURIComponent(page)}` : ""}`);
+    if (area) permanentRedirect(`/stories/${area.slug}${pageQuery}`);
   }
   return <DiscoverView filter={filter} rawPage={page} />;
 }

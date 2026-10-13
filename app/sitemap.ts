@@ -86,7 +86,7 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     news: "/news",
     stories: "/stories",
     walks: "/walks",
-    people: "/people",
+    people: "/spotlight",
   };
   const categoriesById = new Map(categories.map((c) => [c.id, c]));
 
