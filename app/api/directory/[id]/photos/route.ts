@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { deleteListingPhoto, uploadListingPhotos } from "@/lib/wordpress";
 import { getSessionToken } from "@/lib/auth";
 
@@ -22,6 +23,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const result = await uploadListingPhotos(token, listingId, formData);
   if ("gallery" in result) {
+    refreshListingPages();
     return NextResponse.json(result);
   }
   return NextResponse.json({ error: result.message }, { status: 400 });
@@ -42,7 +44,18 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   const result = await deleteListingPhoto(token, listingId, Number(attachmentId));
   if ("gallery" in result) {
+    refreshListingPages();
     return NextResponse.json(result);
   }
   return NextResponse.json({ error: result.message }, { status: 400 });
+}
+
+/**
+ * These saves don't go through WordPress's own "Update", so the
+ * sc-revalidate plugin never hears about them — refresh every listing page
+ * (and its edit page) now rather than waiting out the hour-long cache.
+ */
+function refreshListingPages() {
+  revalidatePath("/directory/[slug]", "page");
+  revalidatePath("/directory/[slug]/edit", "page");
 }

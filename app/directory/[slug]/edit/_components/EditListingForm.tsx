@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { WPDirectoryCategory, WPListingGalleryImage } from "@/lib/wordpress";
+import { MAX_UPLOAD_BYTES, TOO_BIG_MESSAGE, shrinkImage } from "@/lib/shrink-image";
 
 export interface EditListingLogo {
   id: number;
@@ -62,7 +63,6 @@ export function EditListingForm({
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState(initial.categories[0] ?? "");
   const [currentGallery, setCurrentGallery] = useState(gallery);
-  const [newPhotos, setNewPhotos] = useState<File[]>([]);
   const [photoError, setPhotoError] = useState<string | null>(null);
   const [uploadingPhotos, setUploadingPhotos] = useState(false);
   const [removingPhotoId, setRemovingPhotoId] = useState<number | null>(null);
@@ -70,7 +70,6 @@ export function EditListingForm({
   const [renewError, setRenewError] = useState<string | null>(null);
   const [claimExpiresAt, setClaimExpiresAt] = useState(initial.claimExpiresAt);
   const [currentLogo, setCurrentLogo] = useState(logo);
-  const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
@@ -128,24 +127,36 @@ export function EditListingForm({
     }
   }
 
-  async function handleAddPhotos() {
+  // Uploads as soon as photos are picked — a separate "Add" button after
+  // choosing files was easy to miss (Rob, 2026-10).
+  async function handleAddPhotos(newPhotos: File[]) {
     if (newPhotos.length === 0) return;
     setUploadingPhotos(true);
     setPhotoError(null);
 
     const photoData = new FormData();
-    newPhotos.forEach((file) => photoData.append("photos[]", file));
+    let total = 0;
+    for (const file of newPhotos) {
+      const small = await shrinkImage(file, 2000);
+      total += small.size;
+      photoData.append("photos[]", small);
+    }
+    if (total > MAX_UPLOAD_BYTES) {
+      setPhotoError(newPhotos.length > 1 ? "Those photos are too large to upload together — try adding them one at a time." : TOO_BIG_MESSAGE);
+      setUploadingPhotos(false);
+      return;
+    }
 
     const res = await fetch(`/api/directory/${listingId}/photos`, { method: "POST", body: photoData });
     const body = await res.json().catch(() => ({}));
     if (res.ok) {
-      setNewPhotos([]);
-      router.refresh();
-      // The upload response only carries attachment IDs, not URLs — a full
-      // refresh already re-fetches the listing with resolved sc_gallery_images,
-      // so just clear the picker rather than trying to re-derive URLs here.
+      // Show the new photos straight away from the upload's reply. No
+      // router.refresh(): the page's own listing data is cached, so a
+      // refresh could put the old gallery back over them.
+      if (Array.isArray(body.images)) setCurrentGallery(body.images);
+      else router.refresh();
     } else {
-      setPhotoError(body.error || "Could not upload photo(s).");
+      setPhotoError(body.error || (res.status === 413 ? TOO_BIG_MESSAGE : "Could not upload photo(s) — please try again."));
     }
     setUploadingPhotos(false);
   }
@@ -168,19 +179,18 @@ export function EditListingForm({
     setRemovingPhotoId(null);
   }
 
-  async function handleUploadLogo() {
+  async function handleUploadLogo(newLogoFile: File | null) {
     if (!newLogoFile) return;
     setUploadingLogo(true);
     setLogoError(null);
 
     const logoData = new FormData();
-    logoData.append("logo", newLogoFile);
+    logoData.append("logo", await shrinkImage(newLogoFile, 800, { keepPng: true }));
 
     const res = await fetch(`/api/directory/${listingId}/logo`, { method: "POST", body: logoData });
     const body = await res.json().catch(() => ({}));
     if (res.ok) {
       setCurrentLogo(body.logo);
-      setNewLogoFile(null);
     } else {
       setLogoError(body.error || "Could not upload the logo.");
     }
@@ -309,17 +319,20 @@ export function EditListingForm({
         )}
         {currentGallery.length < photoLimit ? (
           <div className="directory-gallery-add">
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) =>
-                setNewPhotos(Array.from(e.target.files ?? []).slice(0, photoLimit - currentGallery.length))
-              }
-            />
-            <button type="button" className="button-pill button-pill-secondary" onClick={handleAddPhotos} disabled={uploadingPhotos || newPhotos.length === 0}>
-              {uploadingPhotos ? "Uploading…" : `Add photo(s) (${currentGallery.length}/${photoLimit})`}
-            </button>
+            <label className={uploadingPhotos ? "directory-upload-button is-busy" : "directory-upload-button"}>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={uploadingPhotos}
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []).slice(0, photoLimit - currentGallery.length);
+                  e.target.value = "";
+                  handleAddPhotos(files);
+                }}
+              />
+              {uploadingPhotos ? "Uploading…" : `+ Add photos (${currentGallery.length}/${photoLimit})`}
+            </label>
           </div>
         ) : (
           <p className="auth-hint">
@@ -345,15 +358,19 @@ export function EditListingForm({
             />
           )}
           <div className="directory-gallery-add">
-            <input type="file" accept="image/*" onChange={(e) => setNewLogoFile(e.target.files?.[0] ?? null)} />
-            <button
-              type="button"
-              className="button-pill button-pill-secondary"
-              onClick={handleUploadLogo}
-              disabled={uploadingLogo || !newLogoFile}
-            >
-              {uploadingLogo ? "Uploading…" : currentLogo ? "Replace logo" : "Upload logo"}
-            </button>
+            <label className={uploadingLogo ? "directory-upload-button is-busy" : "directory-upload-button"}>
+              <input
+                type="file"
+                accept="image/*"
+                disabled={uploadingLogo}
+                onChange={(e) => {
+                  const file = e.target.files?.[0] ?? null;
+                  e.target.value = "";
+                  handleUploadLogo(file);
+                }}
+              />
+              {uploadingLogo ? "Uploading…" : currentLogo ? "Replace logo" : "+ Upload logo"}
+            </label>
           </div>
           {logoError && <p className="auth-error">{logoError}</p>}
         </div>

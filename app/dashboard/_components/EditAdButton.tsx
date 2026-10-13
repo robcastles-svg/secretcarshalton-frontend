@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { shrinkFormImages } from "@/lib/shrink-image";
 
 export function EditAdButton({
   adId,
@@ -24,7 +25,7 @@ export function EditAdButton({
     setSubmitting(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
+    const formData = await shrinkFormImages(new FormData(e.currentTarget));
     const res = await fetch(`/api/ads/${adId}/update`, { method: "POST", body: formData });
 
     if (res.ok) {

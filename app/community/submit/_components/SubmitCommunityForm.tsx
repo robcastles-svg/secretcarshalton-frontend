@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { SpamTrap } from "@/app/_components/SpamTrap";
+import { shrinkFormImages } from "@/lib/shrink-image";
 
 export function SubmitCommunityForm() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export function SubmitCommunityForm() {
     setSubmitting(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
+    const formData = await shrinkFormImages(new FormData(e.currentTarget));
 
     const res = await fetch("/api/community/submit", { method: "POST", body: formData });
 

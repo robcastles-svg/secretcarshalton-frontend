@@ -268,6 +268,19 @@ class SC_Directory_REST {
 			)
 		);
 
+		// Spotlight articles: editors only (Rob links them from the site's listing edit page).
+		register_rest_route(
+			'sc-directory/v1',
+			'/(?P<id>\d+)/spotlight',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'set_spotlight' ),
+				'permission_callback' => function () {
+					return current_user_can( 'edit_others_posts' );
+				},
+			)
+		);
+
 		register_rest_route(
 			'sc-directory/v1',
 			'/(?P<id>\d+)/photos',
@@ -603,7 +616,7 @@ class SC_Directory_REST {
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		require_once ABSPATH . 'wp-admin/includes/media.php';
 
-		$gallery = (array) get_post_meta( $post_id, 'sc_gallery', true );
+		$gallery = self::gallery_ids( $post_id );
 		$uploaded = array();
 
 		$file_list = $files['photos'];
@@ -717,13 +730,33 @@ class SC_Directory_REST {
 		return array( 'logo' => array( 'id' => $attachment_id, 'url' => $src ? $src[0] : '' ) );
 	}
 
+	/**
+	 * A listing's gallery attachment ids. (array) on an empty meta value
+	 * gives array( '' ), which counted as one photo against the limit and
+	 * was saved back as a stray 0 — filter those out.
+	 */
+	private static function gallery_ids( $post_id ) {
+		return array_values( array_filter( array_map( 'intval', (array) get_post_meta( $post_id, 'sc_gallery', true ) ) ) );
+	}
+
+	/** Saves a listing's Spotlight article slugs, in order (same meta the wp-admin box writes). */
+	public static function set_spotlight( WP_REST_Request $request ) {
+		$post_id = (int) $request->get_param( 'id' );
+		if ( SC_Directory_CPT::POST_TYPE !== get_post_type( $post_id ) ) {
+			return new WP_Error( 'not_found', 'Listing not found.', array( 'status' => 404 ) );
+		}
+		$slugs = array_values( array_unique( array_filter( array_map( 'sanitize_title', (array) $request->get_param( 'slugs' ) ) ) ) );
+		update_post_meta( $post_id, 'sc_spotlight_slugs', implode( ',', $slugs ) );
+		return array( 'slugs' => $slugs );
+	}
+
 	/** Adding photos to an existing listing after submission — the edit page's gallery manager. */
 	public static function upload_photos( WP_REST_Request $request ) {
 		$post_id = (int) $request->get_param( 'id' );
 		$plan    = get_post_meta( $post_id, 'sc_plan', true ) ?: 'free';
 		$limit   = 'paid' === $plan ? self::PAID_PHOTO_LIMIT : self::FREE_PHOTO_LIMIT;
 
-		$existing = (array) get_post_meta( $post_id, 'sc_gallery', true );
+		$existing = self::gallery_ids( $post_id );
 		if ( count( $existing ) >= $limit ) {
 			return new WP_Error( 'photo_limit', "This listing's plan allows up to {$limit} photos.", array( 'status' => 400 ) );
 		}
@@ -733,14 +766,31 @@ class SC_Directory_REST {
 			return new WP_Error( 'upload_failed', 'No photos were uploaded — check the file(s) and try again.', array( 'status' => 400 ) );
 		}
 
-		return array( 'gallery' => array_map( 'intval', (array) get_post_meta( $post_id, 'sc_gallery', true ) ) );
+		$ids = self::gallery_ids( $post_id );
+		// The photos with their URLs, so the edit page can show them at
+		// once — its own listing data is cached for a while.
+		$images = array();
+		foreach ( $ids as $attachment_id ) {
+			$src = wp_get_attachment_image_src( $attachment_id, 'large' );
+			if ( $src ) {
+				$images[] = array(
+					'id'  => $attachment_id,
+					'url' => $src[0],
+					'alt' => (string) get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ),
+				);
+			}
+		}
+		return array(
+			'gallery' => $ids,
+			'images'  => $images,
+		);
 	}
 
 	public static function delete_photo( WP_REST_Request $request ) {
 		$post_id       = (int) $request->get_param( 'id' );
 		$attachment_id = (int) $request->get_param( 'attachment_id' );
 
-		$gallery = (array) get_post_meta( $post_id, 'sc_gallery', true );
+		$gallery = self::gallery_ids( $post_id );
 		if ( ! in_array( $attachment_id, array_map( 'intval', $gallery ), true ) ) {
 			return new WP_Error( 'not_found', 'That photo is not part of this listing.', array( 'status' => 404 ) );
 		}

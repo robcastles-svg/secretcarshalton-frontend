@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PayNow, SubscribeNow } from "@/app/_components/PayNow";
 import { FEATURED_DIRECTORY_TIERS, STANDARD_LISTING_PRICE } from "@/lib/pricing";
 import type { WPDirectoryCategory } from "@/lib/wordpress";
+import { shrinkFormImages, shrinkImage } from "@/lib/shrink-image";
 
 /** Mirrors SC_Directory_REST's PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap. One category per listing, so that's just the single dropdown. */
 const PHOTO_LIMIT = 3;
@@ -58,7 +59,7 @@ export function SubmitListingForm({
     setSubmitting(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
+    const formData = await shrinkFormImages(new FormData(e.currentTarget));
     const basicData = {
       title: formData.get("title"),
       website: formData.get("website"),
@@ -103,7 +104,7 @@ export function SubmitListingForm({
         upgradeData.set(field, formData.get(field) ?? "");
       }
       upgradeData.set("category", (formData.get("category") as string) ?? "");
-      photos.slice(0, PHOTO_LIMIT).forEach((file) => upgradeData.append("photos[]", file));
+      for (const file of photos.slice(0, PHOTO_LIMIT)) upgradeData.append("photos[]", await shrinkImage(file, 2000));
 
       const upgradeRes = await fetch(`/api/directory/${id}/request-upgrade`, {
         method: "POST",

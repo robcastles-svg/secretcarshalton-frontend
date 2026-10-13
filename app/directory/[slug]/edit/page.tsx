@@ -3,12 +3,14 @@ import { getSessionToken } from "@/lib/auth";
 import {
   getDirectoryCategories,
   getDirectoryListingBySlug,
+  getSpotlightArticles,
   getMemberMe,
   htmlToPlainText,
   stripHtml,
   soft,
 } from "@/lib/wordpress";
 import { EditListingForm } from "./_components/EditListingForm";
+import { SpotlightEditor } from "./_components/SpotlightEditor";
 
 export const metadata = { title: "Edit listing — Secret Carshalton" };
 
@@ -37,6 +39,10 @@ export default async function EditListingPage({
   if (profile.id !== listing.author && !profile.is_editor) {
     redirect(`/directory/${slug}`);
   }
+
+  const spotlight = profile.is_editor
+    ? await getSpotlightArticles((listing.meta.sc_spotlight_slugs ?? "").split(",").map((x) => x.trim()).filter(Boolean))
+    : [];
 
   const selectedCategorySlugs = categories
     .filter((c) => listing.sc_listing_category?.includes(c.id))
@@ -75,6 +81,12 @@ export default async function EditListingPage({
           featured: Boolean(listing.meta.sc_featured),
         }}
       />
+      {profile.is_editor && (
+        <SpotlightEditor
+          listingId={listing.id}
+          initial={spotlight.map((a) => ({ slug: a.slug, title: stripHtml(a.title) }))}
+        />
+      )}
     </main>
   );
 }
