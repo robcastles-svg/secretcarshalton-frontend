@@ -7004,6 +7004,7 @@ a.card-category:hover {
    Oct 2026). The key scales with it (0.7em). */
 .home-section-header h2.home-section-title.home-section-title-big {
   font-size: 3rem;
+  margin: 0;
 }
 .home-section-title-caps {
   text-transform: uppercase;
