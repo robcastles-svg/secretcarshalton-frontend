@@ -9534,3 +9534,76 @@ a.card-category:hover {
   line-height: 1.55;
   color: #5b6270;
 }
+
+/* Old-theme Elementor accordions inside articles (see lib/elementor-accordion.ts):
+   native <details>, so they open and close without Elementor's script. */
+.post-content .e-n-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1.5rem 0;
+}
+
+.post-content .e-n-accordion-item {
+  border: 1px solid #e1e4ea;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.post-content .e-n-accordion-item-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1.15rem;
+  list-style: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.35;
+}
+
+.post-content .e-n-accordion-item-title::-webkit-details-marker {
+  display: none;
+}
+
+.post-content .e-n-accordion-item-title:hover {
+  background: #fbf3f5;
+}
+
+.post-content .e-n-accordion-item-title:focus-visible {
+  outline: 2px solid #cc99a2;
+  outline-offset: -2px;
+}
+
+.post-content .e-n-accordion-item-title-icon {
+  display: flex;
+  flex-shrink: 0;
+  color: #a2606c;
+}
+
+.post-content .e-n-accordion-item-title-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.post-content .e-n-accordion-item:not([open]) .e-opened,
+.post-content .e-n-accordion-item[open] .e-closed {
+  display: none;
+}
+
+.post-content .e-n-accordion-item[open] > .e-n-accordion-item-title {
+  background: #fbf3f5;
+  border-bottom: 1px solid #ecd3d8;
+}
+
+.post-content .e-n-accordion-item > [role="region"] {
+  padding: 0.4rem 1.15rem 0.6rem;
+}
+
+.post-content .e-n-accordion-item > [role="region"] img {
+  max-width: 100%;
+  height: auto;
+}

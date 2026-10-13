@@ -18,6 +18,7 @@ import { WalkMapBuy } from "@/app/_components/WalkMapBuy";
 import { YopPollScripts } from "@/app/_components/YopPollScripts";
 import { replaceHtml5VideoPlayers } from "@/lib/html5-video";
 import { replaceTikTokEmbeds } from "@/lib/tiktok-embed";
+import { tidyElementorAccordions } from "@/lib/elementor-accordion";
 import { STATIC_PAGES } from "@/lib/static-pages";
 import { extractWalkMaps, WALK_MAP_MARKER } from "@/lib/walk-maps";
 import {
@@ -195,7 +196,7 @@ export default async function ContentPage({
     // original embedded rendering if the extraction ever doesn't find
     // what it expects, rather than silently losing the image.
     const embeddedImage = isAboutPage && !image ? extractEmbeddedMainImage(item.content.rendered) : null;
-    const contentHtml = replaceTikTokEmbeds(embeddedImage ? embeddedImage.html : item.content.rendered);
+    const contentHtml = tidyElementorAccordions(replaceTikTokEmbeds(embeddedImage ? embeddedImage.html : item.content.rendered));
 
     const content = (
       <>
@@ -340,7 +341,7 @@ export default async function ContentPage({
   // for that zone — so the two ad systems share these positions instead
   // of self-serve in-article ads having nowhere of their own to render.
   // Paid route maps (walks only) — see lib/walk-maps.ts.
-  const walkMaps = extractWalkMaps(replaceTikTokEmbeds(replaceHtml5VideoPlayers(post.content.rendered)));
+  const walkMaps = extractWalkMaps(tidyElementorAccordions(replaceTikTokEmbeds(replaceHtml5VideoPlayers(post.content.rendered))));
   const contentChunks = splitContentIntoParagraphChunks(walkMaps.html);
   const shareTitle = stripHtml(post.title.rendered);
   const inPost1After = contentChunks.length > 4 ? 3 : null;
