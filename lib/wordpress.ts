@@ -275,13 +275,16 @@ export function soft<T>(fallback: T) {
 
 /**
  * SiteGround's anti-bot challenge: an HTML page (HTTP 202) where the REST
- * API's JSON should be. Judged by the body, not the content-type header —
- * the live WordPress labels some genuine JSON responses text/html.
+ * API's JSON should be. Also its firewall (ModSecurity), which still runs
+ * on staging19/cms with the captcha off and answers a request it dislikes
+ * with an HTML 403 page — WordPress's own 403s are always JSON. Judged by
+ * the body, not the content-type header — the live WordPress labels some
+ * genuine JSON responses text/html.
  */
 async function isBlockedResponse(url: string, res: Response): Promise<boolean> {
   if (!url.includes("/wp-json")) return false;
   if (res.status === 202) return true;
-  if (!res.ok) return false;
+  if (!res.ok && res.status !== 403) return false;
   const start = (await res.clone().text()).trimStart().slice(0, 15).toLowerCase();
   return start.startsWith("<html") || start.startsWith("<!doctype");
 }
@@ -302,7 +305,7 @@ async function fetchWithRetry(
     try {
       const res = await fetch(target, { signal: AbortSignal.timeout(15_000), ...init });
       if (await isBlockedResponse(url, res)) {
-        lastError = new WordPressUnavailableError(`WordPress challenged the request (HTTP ${res.status}): ${url}`);
+        lastError = new WordPressUnavailableError(`WordPress blocked the request (HTTP ${res.status}): ${url}`);
         target = bustCache(url, attempt + 1);
       } else if (res.ok || res.status < 500) {
         return res;
