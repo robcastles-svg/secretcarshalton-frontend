@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { WPDirectoryCategory, WPListingGalleryImage } from "@/lib/wordpress";
-import { shrinkImage } from "@/lib/shrink-image";
+import { MAX_UPLOAD_BYTES, TOO_BIG_MESSAGE, shrinkImage } from "@/lib/shrink-image";
 
 export interface EditListingLogo {
   id: number;
@@ -135,7 +135,17 @@ export function EditListingForm({
     setPhotoError(null);
 
     const photoData = new FormData();
-    for (const file of newPhotos) photoData.append("photos[]", await shrinkImage(file, 2000));
+    let total = 0;
+    for (const file of newPhotos) {
+      const small = await shrinkImage(file, 2000);
+      total += small.size;
+      photoData.append("photos[]", small);
+    }
+    if (total > MAX_UPLOAD_BYTES) {
+      setPhotoError(newPhotos.length > 1 ? "Those photos are too large to upload together — try adding them one at a time." : TOO_BIG_MESSAGE);
+      setUploadingPhotos(false);
+      return;
+    }
 
     const res = await fetch(`/api/directory/${listingId}/photos`, { method: "POST", body: photoData });
     const body = await res.json().catch(() => ({}));
@@ -145,7 +155,7 @@ export function EditListingForm({
       // refresh already re-fetches the listing with resolved sc_gallery_images,
       // so just clear the picker rather than trying to re-derive URLs here.
     } else {
-      setPhotoError(body.error || "Could not upload photo(s).");
+      setPhotoError(body.error || (res.status === 413 ? TOO_BIG_MESSAGE : "Could not upload photo(s) — please try again."));
     }
     setUploadingPhotos(false);
   }
@@ -174,7 +184,7 @@ export function EditListingForm({
     setLogoError(null);
 
     const logoData = new FormData();
-    logoData.append("logo", await shrinkImage(newLogoFile, 800));
+    logoData.append("logo", await shrinkImage(newLogoFile, 800, { keepPng: true }));
 
     const res = await fetch(`/api/directory/${listingId}/logo`, { method: "POST", body: logoData });
     const body = await res.json().catch(() => ({}));

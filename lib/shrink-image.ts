@@ -5,9 +5,9 @@
  * (often 3-8 MB) failed with nothing reaching WordPress at all (Rob,
  * 2026-10, listing photos). Resizing to at most `maxSide` pixels also
  * saves space on the server. Anything that can't be decoded (or a GIF or
- * SVG) goes up unchanged; PNGs stay PNG, so logos keep transparency.
+ * SVG) goes up unchanged. Photos become JPEG; pass keepPng for logos.
  */
-export async function shrinkImage(file: File, maxSide = 2000): Promise<File> {
+export async function shrinkImage(file: File, maxSide = 2000, { keepPng = false } = {}): Promise<File> {
   if (!file.type.startsWith("image/") || /gif|svg/.test(file.type)) return file;
   try {
     const bitmap = await createImageBitmap(file);
@@ -17,7 +17,9 @@ export async function shrinkImage(file: File, maxSide = 2000): Promise<File> {
     canvas.width = Math.round(bitmap.width * scale);
     canvas.height = Math.round(bitmap.height * scale);
     canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    const type = file.type === "image/png" ? "image/png" : "image/jpeg";
+    // Photos always go up as JPEG (a PNG photo can stay several MB even
+    // resized); logos keep PNG for their transparent backgrounds.
+    const type = keepPng && file.type === "image/png" ? "image/png" : "image/jpeg";
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, 0.86));
     if (!blob || blob.size >= file.size) return file;
     const name = type === "image/jpeg" ? file.name.replace(/\.(png|heic|heif|webp|jpe?g)$/i, "") + ".jpg" : file.name;
@@ -36,3 +38,9 @@ export async function shrinkFormImages(formData: FormData, maxSide = 2000): Prom
   }
   return out;
 }
+
+/** Vercel's request limit, with a little headroom for the form's other fields. */
+export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
+export const TOO_BIG_MESSAGE =
+  "That photo is too large to upload, even after shrinking it — try a smaller one, or a screenshot of it.";

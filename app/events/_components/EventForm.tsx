@@ -442,8 +442,8 @@ export function EventForm({
     const sendLogo = Boolean(logoFile) && showOrgFields;
     if (imageFile || sendLogo) {
       const upload = new FormData();
-      if (imageFile) upload.append("image", await shrinkImage(imageFile, 2000), imageFile.name);
-      if (logoFile && sendLogo) upload.append("logo", await shrinkImage(logoFile, 800), logoFile.name);
+      if (imageFile) upload.append("image", await shrinkImage(imageFile, 2000));
+      if (logoFile && sendLogo) upload.append("logo", await shrinkImage(logoFile, 800, { keepPng: true }));
       const up = await fetch(`/api/events/${id}/images`, { method: "POST", body: upload });
       if (!up.ok) {
         const upBody = await up.json().catch(() => ({}));
