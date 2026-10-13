@@ -284,6 +284,23 @@ for it since before `sc-events` existed (5 points per RSVP).
   long ago (they show nothing on the old site either). Rob to re-upload
   or remove the mentions.
 
+## After going live
+
+Things Rob has asked to do once the new site is live — remind him.
+
+- [ ] **"Edit in WordPress" button for admins** (Rob, 13 Oct 2026). On
+  articles, events, listings, jobs, groups and pages: a small button,
+  shown only when logged in as an admin, opening that item's
+  `wp-admin/post.php?post=ID&action=edit` on cms.secretcarshalton.com.
+  Pages are cached copies, so add it client-side after a session check,
+  never in the server-rendered HTML. On events and listings show it
+  alongside the existing frontend "Edit" form. Rob needs to be logged in
+  to wp-admin too (separate login); WordPress sends him there first if not.
+- [ ] **Delete staging21.staging19.secretcarshalton.com** — Rob's backup
+  copy from before the 13 Oct plugin clean-up (~65K inodes). Safe once a
+  few days have passed with nothing missing; staging19's SiteGround daily
+  backups (kept 30 days) cover the same.
+
 ## Lessons from building this (read before adding a new CPT-based plugin)
 
 Two real outages happened while building `sc-directory`, both worth not
