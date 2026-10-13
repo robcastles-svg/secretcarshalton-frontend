@@ -675,8 +675,11 @@ class SC_Membership_Messages {
 		);
 	}
 
-	public static function rest_notifications() {
-		$messages = self::for_user( get_current_user_id() );
+	/** The bell: messages from Rob plus the member's own activity (SC_Membership_Activity). */
+	public static function rest_notifications( WP_REST_Request $request ) {
+		$user_id  = get_current_user_id();
+		$limit    = min( 50, max( 1, (int) ( $request->get_param( 'limit' ) ?: 20 ) ) );
+		$messages = self::for_user( $user_id );
 		$unread   = count(
 			array_filter(
 				$messages,
@@ -686,8 +689,9 @@ class SC_Membership_Messages {
 			)
 		);
 		return array(
-			'unread'   => $unread,
+			'unread'   => $unread + SC_Membership_Activity::unread_count( $user_id ),
 			'messages' => $messages,
+			'activity' => SC_Membership_Activity::for_user( $user_id, $limit ),
 		);
 	}
 
@@ -697,6 +701,9 @@ class SC_Membership_Messages {
 		$visible = wp_list_pluck( self::for_user( $user_id ), 'id' );
 		foreach ( array_intersect( $ids, $visible ) as $id ) {
 			self::mark( $user_id, $id, 'seen_at' );
+		}
+		if ( rest_sanitize_boolean( $request->get_param( 'activity' ) ) ) {
+			SC_Membership_Activity::mark_all_seen( $user_id );
 		}
 		return array( 'ok' => true );
 	}

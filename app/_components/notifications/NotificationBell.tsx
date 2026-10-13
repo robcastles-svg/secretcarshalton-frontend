@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { MemberMessage, Notifications } from "@/lib/notifications";
+import type { ActivityItem, MemberMessage, Notifications } from "@/lib/notifications";
+import { ActivityRow } from "./ActivityRow";
 import { BellIcon } from "./BellIcon";
 import { MessageCard } from "./MessageCard";
 import { registerOpener, setUnread } from "./store";
@@ -27,10 +28,12 @@ function post(path: string, body?: unknown) {
  */
 export function NotificationBell({ initial }: { initial: Notifications | null }) {
   const [messages, setMessages] = useState<MemberMessage[]>(initial?.messages ?? []);
+  const [activity, setActivity] = useState<ActivityItem[]>(initial?.activity ?? []);
   const [unread, setUnreadLocal] = useState(initial?.unread ?? 0);
   const [open, setOpen] = useState(false);
   // Which ones were new when the panel was opened — keeps their dots.
   const [freshIds, setFreshIds] = useState<Set<number>>(new Set());
+  const [freshActivity, setFreshActivity] = useState<Set<number>>(new Set());
   const wrapRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -41,13 +44,16 @@ export function NotificationBell({ initial }: { initial: Notifications | null })
   const openPanel = useCallback(() => {
     setOpen(true);
     const unseen = messages.filter((m) => !m.seen).map((m) => m.id);
-    if (unseen.length) {
+    const unseenActivity = activity.filter((a) => !a.seen).map((a) => a.id);
+    if (unseen.length || unseenActivity.length || unread > 0) {
       setFreshIds(new Set(unseen));
+      setFreshActivity(new Set(unseenActivity));
       setMessages((ms) => ms.map((m) => ({ ...m, seen: true })));
+      setActivity((as) => as.map((a) => ({ ...a, seen: true })));
       setUnreadLocal(0);
-      post("notifications/seen", { ids: unseen });
+      post("notifications/seen", { ids: unseen, activity: true });
     }
-  }, [messages]);
+  }, [messages, activity, unread]);
 
   useEffect(() => {
     registerOpener(openPanel);
@@ -86,7 +92,12 @@ export function NotificationBell({ initial }: { initial: Notifications | null })
   };
 
   const pinned = messages.filter((m) => m.pinned);
-  const others = messages.filter((m) => !m.pinned);
+  // Unpinned messages sit in the timeline with the member's own activity, newest first.
+  const timeline = [
+    ...messages.filter((m) => !m.pinned).map((m) => ({ kind: "message" as const, date: m.date, message: m })),
+    ...activity.map((a) => ({ kind: "activity" as const, date: a.date, item: a })),
+  ].sort((a, b) => b.date.localeCompare(a.date));
+  const empty = messages.length === 0 && activity.length === 0;
 
   return (
     <div className="notif-wrap" ref={wrapRef}>
@@ -117,7 +128,7 @@ export function NotificationBell({ initial }: { initial: Notifications | null })
             </div>
 
             <div className="notif-panel-body">
-              {messages.length === 0 ? (
+              {empty ? (
                 <p className="notif-empty">
                   Nothing new. Messages from Secret Carshalton, and replies and updates on what you&apos;ve posted, will
                   show up here.
@@ -135,22 +146,38 @@ export function NotificationBell({ initial }: { initial: Notifications | null })
                       onButtonClick={() => post(`notifications/${m.id}/click`)}
                     />
                   ))}
-                  {others.map((m) => (
-                    <MessageCard
-                      key={m.id}
-                      message={m}
-                      unread={freshIds.has(m.id)}
-                      collapsed={m.dismissed}
-                      onDismiss={() => dismiss(m.id)}
-                      onExpand={() => restore(m.id)}
-                      onButtonClick={() => post(`notifications/${m.id}/click`)}
-                    />
-                  ))}
+                  {timeline.length > 0 && (
+                    <div className="notif-timeline">
+                      {timeline.map((entry) =>
+                        entry.kind === "message" ? (
+                          <MessageCard
+                            key={`m-${entry.message.id}`}
+                            message={entry.message}
+                            unread={freshIds.has(entry.message.id)}
+                            collapsed={entry.message.dismissed}
+                            onDismiss={() => dismiss(entry.message.id)}
+                            onExpand={() => restore(entry.message.id)}
+                            onButtonClick={() => post(`notifications/${entry.message.id}/click`)}
+                          />
+                        ) : (
+                          <ActivityRow
+                            key={`a-${entry.item.id}`}
+                            item={entry.item}
+                            fresh={freshActivity.has(entry.item.id)}
+                            onClick={() => setOpen(false)}
+                          />
+                        )
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </div>
 
             <div className="notif-panel-foot">
+              <Link href="/dashboard/notifications" onClick={() => setOpen(false)}>
+                See all
+              </Link>
               <Link href="/dashboard#email-settings" onClick={() => setOpen(false)}>
                 Email settings
               </Link>

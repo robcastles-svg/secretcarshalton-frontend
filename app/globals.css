@@ -451,11 +451,99 @@ button.button-pill {
 }
 
 .notif-panel-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
   border-top: 1px solid #eef0f3;
   padding: 0.75rem 1.1rem;
-  text-align: center;
   font-size: 0.9rem;
   font-weight: 600;
+}
+
+/* The member's own activity, under any pinned messages. */
+.notif-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.notif-timeline .notif-msg,
+.notif-timeline .notif-msg-collapsed {
+  margin: 0.25rem 0;
+}
+
+.notif-act {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  padding: 0.6rem 0.5rem;
+  border-radius: 10px;
+  color: #14171c;
+  text-decoration: none;
+}
+
+a.notif-act:hover {
+  background: #f6f7f9;
+}
+
+.notif-act-fresh {
+  background: #fffafb;
+}
+
+.notif-act-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.notif-act-icon-pink {
+  background: #fbe9ec;
+  color: #8a4f5b;
+}
+
+.notif-act-icon-green {
+  background: #e3f3ea;
+  color: #1a6b43;
+}
+
+.notif-act-icon-grey {
+  background: #f0f1f4;
+  color: #3b414c;
+}
+
+.notif-act-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.notif-act-text {
+  font-size: 0.88rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.notif-act-when {
+  font-size: 0.75rem;
+  color: #5b6270;
+}
+
+.notif-act-dot {
+  margin-top: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* /dashboard/notifications */
+.notif-page-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
 }
 
 .notif-panel-foot a {

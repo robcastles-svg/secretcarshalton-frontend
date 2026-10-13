@@ -23,9 +23,36 @@ export interface MemberMessage {
   dismissed?: boolean;
 }
 
+/** Something that happened to the member: a reply, a review, an approval, a reminder… */
+export interface ActivityItem {
+  id: number;
+  type: "reply" | "review" | "comment" | "live" | "approved" | "featured" | "tier" | "ending" | "info" | string;
+  text: string;
+  /** A path on this site, e.g. "/events/autumn-fair#comments". */
+  link: string;
+  date: string;
+  seen: boolean;
+}
+
 export interface Notifications {
   unread: number;
   messages: MemberMessage[];
+  activity?: ActivityItem[];
+}
+
+/** "12 minutes ago", "Yesterday", "3 Oct". */
+export function timeAgo(iso: string, now = Date.now()): string {
+  const then = new Date(iso).getTime();
+  if (!Number.isFinite(then)) return "";
+  const mins = Math.max(0, Math.round((now - then) / 60000));
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins} minute${mins === 1 ? "" : "s"} ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.round(hours / 24);
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
 export type AudienceKey =
