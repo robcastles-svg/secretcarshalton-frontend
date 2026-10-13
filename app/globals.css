@@ -3038,6 +3038,20 @@ a.card-category:hover {
   height: auto;
 }
 
+/* TikToks in articles (see lib/tiktok-embed.ts): TikTok's portrait player. */
+.post-tiktok {
+  max-width: 340px;
+  margin: 1.5rem auto;
+  aspect-ratio: 9 / 16;
+}
+
+.post-tiktok iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0.75rem;
+}
+
 /* Videos from the old HTML5 Video Player (see lib/html5-video.ts). */
 .post-content video.post-video {
   display: block;
@@ -4578,8 +4592,8 @@ a.card-category:hover {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  justify-content: flex-end;
-  gap: 1rem;
+  justify-content: space-between;
+  gap: 0.75rem;
   margin: 1rem 0 2rem;
 }
 
@@ -4601,6 +4615,16 @@ a.card-category:hover {
   font-size: 0.95rem;
   color: #222;
   text-decoration: none;
+}
+
+@media (max-width: 480px) {
+  .directory-spotlight-link {
+    font-size: 0.85rem;
+  }
+
+  .directory-controls {
+    gap: 0.5rem;
+  }
 }
 
 .directory-spotlight-link:hover {
