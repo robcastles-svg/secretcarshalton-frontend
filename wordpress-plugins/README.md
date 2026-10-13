@@ -272,6 +272,11 @@ for it since before `sc-events` existed (5 points per RSVP).
     later: it runs uninstall routines, which can wipe data.
   - Old pages built with SiteOrigin/Elementor that nobody visits will
     break once those are off — unpublish them.
+- [ ] **Keep a copy of the old site** (Rob, 13 Oct 2026). On switch day,
+  right after freezing the old site and before the push, create a
+  SiteGround staging copy of the live install (e.g. "oldsite") — the old
+  site exactly as it was, to look things up in or switch back to. Delete
+  staging21 first to make room (each copy is ~65K inodes).
 - [ ] **Media URLs after `www` moves to Vercel.** Article, page and
   Instagram images and videos are stored with
   `https://www.secretcarshalton.com/wp-content/...` URLs. Once `www` is
@@ -296,6 +301,11 @@ Things Rob has asked to do once the new site is live — remind him.
   never in the server-rendered HTML. On events and listings show it
   alongside the existing frontend "Edit" form. Rob needs to be logged in
   to wp-admin too (separate login); WordPress sends him there first if not.
+- [ ] **Back up the new setup** (Rob, 13 Oct 2026). Once go-live checks
+  out, create a SiteGround staging copy of the cms install as a backup —
+  so there are two staging copies: the old site and the new CMS. The
+  frontend code is already in GitHub, and Vercel keeps every earlier
+  deployment for an instant rollback. staging19 can be deleted after.
 - [ ] **Delete staging21.staging19.secretcarshalton.com** — Rob's backup
   copy from before the 13 Oct plugin clean-up (~65K inodes). Safe once a
   few days have passed with nothing missing; staging19's SiteGround daily
