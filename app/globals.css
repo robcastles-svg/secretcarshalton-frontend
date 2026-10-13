@@ -6683,7 +6683,6 @@ a.card-category:hover {
 .home-lead {
   display: flex;
   flex-direction: column;
-  background: #ececec;
 }
 
 .home-lead-image {
@@ -6969,7 +6968,7 @@ a.card-category:hover {
 
 /* More latest band */
 .more-latest-band {
-  background: #f7f5f2;
+  background: #ececec;
   padding: 2.25rem 0;
 }
 
@@ -6998,6 +6997,42 @@ a.card-category:hover {
 @media (min-width: 900px) {
   .home-section-header h2.home-section-title {
     font-size: 2rem;
+  }
+}
+
+/* Events heading twice the other section headings, in capitals (Rob,
+   Oct 2026). The key scales with it (0.7em). */
+.home-section-header h2.home-section-title.home-section-title-big {
+  font-size: 3rem;
+}
+.home-section-title-caps {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+@media (min-width: 900px) {
+  .home-section-header h2.home-section-title.home-section-title-big {
+    font-size: 4rem;
+  }
+}
+/* Events' "Add event" / "All events": beside the heading on desktop, after
+   all the events on mobile. */
+.home-events-band .home-events-links-bottom {
+  display: none;
+}
+@media (max-width: 759px) {
+  .home-events-band .home-events-links-top {
+    display: none;
+  }
+  .home-events-band .home-events-links-bottom {
+    display: flex;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+  }
+  .home-events-band .home-events-links-bottom a {
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
   }
 }
 
@@ -7182,6 +7217,14 @@ a.card-category:hover {
 
 .home-walk:hover .home-walk-image img {
   transform: scale(1.06);
+}
+
+/* Twice the default h3 size (18.7px → 37.4px), Rob's request. */
+.home-walk h3 {
+  font-size: 2.34rem;
+  line-height: 1.15;
+  margin: 0 0 0.6rem;
+  text-wrap: balance;
 }
 
 .home-walk-label {
