@@ -51,10 +51,10 @@ const COMMUNITY_STAND_IN_SLUG = "carshalton-village";
 // to; there's no literal "on foot" category in WordPress.
 const WALK_TIME_CHIPS = [
   { slug: "from-carshalton", label: "On foot" },
-  { slug: "10-minutes-by-car", label: "10" },
-  { slug: "20-minutes-by-car", label: "20" },
-  { slug: "30-minutes-by-car", label: "30" },
-  { slug: "40-minutes-by-car", label: "40+" },
+  { slug: "10-minutes-by-car", label: "10 mins" },
+  { slug: "20-minutes-by-car", label: "20 mins" },
+  { slug: "30-minutes-by-car", label: "30 mins" },
+  { slug: "40-minutes-by-car", label: "40+ mins" },
 ];
 
 // Fallback only for the (now unlikely) case of zero Featured listings —
@@ -66,6 +66,13 @@ const DUMMY_SPONSORS: Sponsor[] = Array.from({ length: 8 }, (_, i) => ({
   name: "Your logo here",
   href: "/directory/featured",
 }));
+
+/** The walk card's intro, cut to about two lines at a word boundary (Rob, 2026-10). */
+function shortIntro(text: string, max = 140) {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), 80)).replace(/[\s,.;:–—-]+$/, "")}…`;
+}
 
 export default async function HomePage() {
   const [
@@ -387,7 +394,9 @@ export default async function HomePage() {
                   Latest walk{latestWalkDistance ? ` · ${latestWalkDistance.name}` : ""}
                 </span>
                 <h3 dangerouslySetInnerHTML={{ __html: latestWalk.title.rendered }} />
-                <p>{stripHtml(latestWalk.excerpt.rendered)}</p>
+                <p>{shortIntro(stripHtml(latestWalk.excerpt.rendered))}</p>
+                {/* A span, not a link: the whole card is already the link. */}
+                <span className="home-lead-button home-walk-button">Read more →</span>
               </div>
             </Link>
             <div className="walk-time-heading">Find a walk by time from Carshalton</div>
@@ -423,7 +432,7 @@ export default async function HomePage() {
                     ?.map((id) => listingCategoriesById.get(id))
                     .find(Boolean);
                   return (
-                    <Link href={`/directory/${spotlightListing.slug}`} className="home-featured-pink">
+                    <Link href={`/directory/${spotlightListing.slug}`} className="home-featured-pink home-featured-listing">
                       {image && <img src={image.source_url} alt={image.alt_text} />}
                       <span className="directory-badge">Featured</span>
                       <div className="home-featured-pink-body">

@@ -9607,3 +9607,25 @@ a.card-category:hover {
   max-width: 100%;
   height: auto;
 }
+
+/* Homepage walk card: same pink "Read more" button as the top story.
+   The card is one link, so the button lights up when the card is hovered. */
+.home-walk .home-walk-button {
+  display: inline-block;
+  margin-top: 0.4rem;
+}
+
+.home-walk:hover .home-walk-button {
+  background: #b8838d;
+}
+
+/* Featured directory listing on the homepage: text at twice the size (Rob, 2026-10). */
+.home-featured-listing .home-featured-pink-body strong {
+  font-size: 2.1rem;
+  line-height: 1.15;
+}
+
+.home-featured-listing .home-featured-pink-body span.home-featured-sub {
+  font-size: 1.7rem;
+  line-height: 1.3;
+}
