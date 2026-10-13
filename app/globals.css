@@ -7075,6 +7075,12 @@ a.card-category:hover {
   border-radius: 0;
 }
 
+/* The band's own padding is the gap above EVENTS; drop the page
+   container's extra top padding inside it. */
+.home-events-band > .container {
+  padding-top: 0;
+}
+
 .home-events-band h2,
 .home-events-band .home-section-header a {
   color: #fff;
