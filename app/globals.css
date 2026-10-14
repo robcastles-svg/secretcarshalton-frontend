@@ -9895,9 +9895,19 @@ a.card-category:hover {
 }
 
 /* Keep the intro text on the headline's line (not the small caps above
-   it) where it sits beside the headline on desktop. */
-.category-header-row:has(> .page-title) {
-  align-items: last baseline;
+   it) where it sits beside the headline on desktop. Desktop only: in the
+   stacked phone layout this alignment pushes everything in from the left. */
+@media (min-width: 961px) {
+  .category-header-row:has(> .page-title) {
+    align-items: last baseline;
+  }
+}
+
+/* A little less space above the small caps, to balance the space under
+   the intro text (Rob, 2026-10). */
+.category-header-row:has(> .page-title),
+.page-header-row:has(> div > .page-title) {
+  margin-top: -0.75rem;
 }
 
 .page-title-eyebrow {
