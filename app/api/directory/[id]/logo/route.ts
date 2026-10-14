@@ -26,6 +26,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Not a WordPress "Update", so nothing else refreshes these: the listing
     // pages and the homepage's Featured logo strip.
     revalidatePath("/directory/[slug]", "page");
+    revalidatePath("/community/groups/[slug]", "page");
     revalidatePath("/");
     return NextResponse.json(result);
   }

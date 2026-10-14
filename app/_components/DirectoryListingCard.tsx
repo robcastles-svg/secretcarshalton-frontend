@@ -18,8 +18,11 @@ export const DirectoryListingCard = forwardRef<
     /** Only passed on /directory's category pages — the homepage's 3-latest grid doesn't show it. All matched categories, not just one — a listing can belong to more than one. */
     categoriesList?: WPDirectoryCategory[];
     style?: React.CSSProperties;
+    /** Where the card links — a community group's page lives under /community/groups. */
+    href?: string;
   }
->(function DirectoryListingCard({ listing, categoriesList, style }, ref) {
+>(function DirectoryListingCard({ listing, categoriesList, style, href }, ref) {
+  const path = href ?? `/directory/${listing.slug}`;
   // Standard (non-Featured) cards are headline-only — the photo and
   // description stay saved on the listing but are Featured extras, same
   // rule as the listing page itself (app/directory/[slug]/page.tsx).
@@ -44,11 +47,11 @@ export const DirectoryListingCard = forwardRef<
        * featured card's image+badge ended up visually broken on News.
        */}
       {image && (
-        <Link href={`/directory/${listing.slug}`}>
+        <Link href={path}>
           <img src={image.source_url} alt={image.alt_text} loading="lazy" />
         </Link>
       )}
-      <Link href={`/directory/${listing.slug}`} className="card-title">
+      <Link href={path} className="card-title">
         {verified && (
           <svg
             className="directory-verified-check directory-verified-check-sm"
@@ -66,7 +69,7 @@ export const DirectoryListingCard = forwardRef<
       </Link>
       {reviewAverage !== null && reviewCount > 0 && (
         <Link
-          href={`/directory/${listing.slug}#comments`}
+          href={`${path}#comments`}
           className="card-rating"
           aria-label={`Rated ${Number(reviewAverage.toFixed(1))} out of 5 from ${reviewCount} review${reviewCount === 1 ? "" : "s"} — jump to reviews`}
         >
@@ -85,7 +88,7 @@ export const DirectoryListingCard = forwardRef<
         <div className="card-actions">
           {reviewCount > 0 && (
             <Link
-              href={`/directory/${listing.slug}#comments`}
+              href={`${path}#comments`}
               className="card-comment-count"
               aria-label={`${reviewCount} review${reviewCount === 1 ? "" : "s"}${reviewAverage !== null ? `, rated ${Number(reviewAverage.toFixed(1))} out of 5` : ""} — jump to reviews`}
             >

@@ -58,4 +58,5 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 function refreshListingPages() {
   revalidatePath("/directory/[slug]", "page");
   revalidatePath("/directory/[slug]/edit", "page");
+  revalidatePath("/community/groups/[slug]", "page");
 }

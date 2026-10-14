@@ -51,7 +51,7 @@ export default async function CommunityGroupsPage() {
                   side rather than a half-empty featured row above. */}
               <MasonryGrid>
                 {[...featured, ...regular].map((listing) => (
-                  <DirectoryListingCard key={listing.id} listing={listing} />
+                  <DirectoryListingCard key={listing.id} listing={listing} href={`/community/groups/${listing.slug}`} />
                 ))}
               </MasonryGrid>
             </>
