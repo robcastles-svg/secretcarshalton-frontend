@@ -8744,7 +8744,7 @@ a.home-comment-author:hover {
   .evl-frow { flex: 1 1 auto; flex-wrap: wrap; overflow: visible; }
   .evl-cat { flex: 0 0 auto; }
   .evl-rot { margin-top: 20px; padding: 0 32px; }
-  .evx .evl-slide { grid-template-columns: minmax(0, .8fr) 1.2fr; grid-template-rows: none; height: 300px; }
+  .evx .evl-slide { grid-template-columns: minmax(0, 1fr) 1fr; grid-template-rows: none; height: 300px; }
   .evl-s-img { aspect-ratio: auto; height: 100%; }
   .evl-slide-date-img { display: block; position: absolute; left: 14px; top: 14px; background: rgba(20, 19, 21, .92) !important; }
   .evl-s-top > .evx-date { display: none; }
