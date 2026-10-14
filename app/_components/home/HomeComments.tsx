@@ -44,10 +44,18 @@ export function HomeComments({
       <ul className={stacked ? "home-comments-grid home-comments-stacked" : "home-comments-grid"}>
         {comments.map((c) => (
           <li key={c.id}>
-            <Link href={c.commentLink} className="home-comment-text">
-              “{c.text}”
-            </Link>
-            <div className="home-comment-byline">
+            {/* Name and badge first, then the article, the comment in pink,
+                and when it was posted (Rob, 2026-10). */}
+            <div className="home-comment-who">
+              {c.authorBadge && (
+                <img
+                  src={c.authorBadge.src}
+                  alt={c.authorBadge.label}
+                  title={c.authorBadge.label}
+                  className="home-comment-badge"
+                  loading="lazy"
+                />
+              )}
               {c.authorSlug ? (
                 isLoggedIn ? (
                   <Link href={`/members/${c.authorSlug}`} className="home-comment-author">
@@ -61,23 +69,16 @@ export function HomeComments({
               ) : (
                 <span className="home-comment-author">{c.authorName}</span>
               )}
-              {c.authorBadge && (
-                <img
-                  src={c.authorBadge.src}
-                  alt={c.authorBadge.label}
-                  title={c.authorBadge.label}
-                  className="home-comment-badge"
-                  loading="lazy"
-                />
-              )}
-              <span>
-                {" "}
-                on <Link href={`/${c.articleSlug}`}>{c.articleTitle}</Link>
-              </span>
-              <time className="home-comment-date" dateTime={c.date}>
-                {c.dateLabel}
-              </time>
             </div>
+            <Link href={`/${c.articleSlug}`} className="home-comment-article">
+              {c.articleTitle}
+            </Link>
+            <Link href={c.commentLink} className="home-comment-text">
+              “{c.text}”
+            </Link>
+            <time className="home-comment-date" dateTime={c.date}>
+              {c.dateLabel}
+            </time>
           </li>
         ))}
       </ul>

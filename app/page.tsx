@@ -524,7 +524,7 @@ export default async function HomePage() {
         <div className="container">
           <section className="home-section">
             <div className="home-section-header">
-              <h2>Latest comments</h2>
+              <h2>Your latest comments</h2>
             </div>
             <HomeComments comments={comments} isLoggedIn={Boolean(sessionToken)} />
           </section>
