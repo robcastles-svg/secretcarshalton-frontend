@@ -1220,7 +1220,7 @@ a.ad-slot-text-image img {
      space in the text column rather than filling it. */
   .post-list.post-list-single-column .card-title {
     font-size: 1.5rem;
-    margin-top: 0.5rem;
+    margin-top: 1.25rem;
   }
 }
 
@@ -1540,6 +1540,24 @@ a.ad-slot-text-image img {
    same breathing room at the top as it has at the sides. */
 .post-list li > .card-title:first-child {
   margin-top: 1.1rem;
+}
+
+/* Bigger headlines on the Discover, Walks, Community and Directory
+   grids and the homepage's three story cards (Rob, 2026-10) — scoped to those grids so sidebar ad cards and
+   other .post-list uses keep the standard size. */
+.post-list.post-list-two-column .card-title,
+.post-list.post-list-three-column .card-title,
+.post-list.directory-list .card-title {
+  font-size: 1.35rem;
+  line-height: 1.25;
+}
+
+/* News (single column): a bit more room above the headline, under the
+   photo on phones (desktop has its own, larger, in the row layout). */
+@media (max-width: 719px) {
+  .post-list.post-list-single-column .card-title {
+    margin-top: 0.4rem;
+  }
 }
 
 .post-list .card-tag {
