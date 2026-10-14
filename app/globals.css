@@ -8106,7 +8106,7 @@ a.home-comment-author:hover {
   display: block;
   margin-bottom: 0.5rem;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 400;
   color: #777;
   text-decoration: none;
 }
@@ -8117,9 +8117,9 @@ a.home-comment-author:hover {
 
 .home-comment-text {
   display: block;
-  font-size: 1.15rem;
-  font-weight: 400;
-  line-height: 1.35;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.22;
   color: #cc99a2;
   text-decoration: none;
   margin-bottom: 0.5rem;
