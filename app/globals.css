@@ -460,6 +460,48 @@ button.button-pill {
   font-weight: 600;
 }
 
+/* Staff only: what's waiting for approval right now (SC_Membership_Admin_Alerts). */
+.notif-pending {
+  border: 1px solid #f3d5db;
+  background: #fff7f8;
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.9rem;
+}
+
+.notif-pending strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b0435a;
+}
+
+.notif-pending ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.notif-pending a {
+  display: inline-block;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #f0c9d1;
+  color: #14171c;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.notif-pending a:hover {
+  border-color: #cc99a2;
+}
+
 /* The member's own activity, under any pinned messages. */
 .notif-timeline {
   display: flex;

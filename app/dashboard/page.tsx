@@ -15,7 +15,7 @@ import {
   parseEventDate,
   WP_ADMIN_URL,
 } from "@/lib/wordpress";
-import { EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS, formatUntil } from "@/lib/pricing";
+import { EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS, GROUP_PROMOTION_PRICE, formatUntil } from "@/lib/pricing";
 import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { ExtendAdButton } from "./_components/ExtendAdButton";
@@ -105,8 +105,13 @@ export default async function DashboardPage() {
     : undefined;
   const businessTier = FEATURED_DIRECTORY_TIERS.find((t) => t.slug === profile.directory_upgrade_tier);
 
+  // Community groups are directory listings underneath, but they're shown
+  // as their own thing here, apart from business listings.
+  const myGroups = myListings.filter((l) => l.isGroup);
+  const myBusinessListings = myListings.filter((l) => !l.isGroup);
+
   const hasAds = myAds.length > 0;
-  const hasSubmissions = myEvents.length > 0 || myJobs.length > 0 || myCommunityPosts.length > 0;
+  const hasSubmissions = myEvents.length > 0 || myJobs.length > 0 || myGroups.length > 0;
 
   return (
     <main className="container dash-page" id="dash-top">
@@ -147,8 +152,11 @@ export default async function DashboardPage() {
               My jobs
             </a>
           )}
-          <a href="#community-posts" className="dash-sidebar-link">
+          <a href="#submissions-community" className="dash-sidebar-link">
             My community groups
+          </a>
+          <a href="#community-posts" className="dash-sidebar-link">
+            My community posts
           </a>
 
           {hasAds && (
@@ -499,27 +507,46 @@ export default async function DashboardPage() {
                 <div className="dash-panel dash-panel-tight" id="submissions-community">
                   <div className="dash-panel-head">
                     <h3 className="dash-h3">Community groups</h3>
-                    <Link href="/directory/submit" className="dash-manage-link">
-                      Manage
+                    <Link href="/community/groups/submit" className="dash-manage-link">
+                      Add a group
                     </Link>
                   </div>
-                  {myCommunityPosts.length === 0 ? (
-                    <p className="dashboard-hint">Nothing shared yet.</p>
+                  {myGroups.length === 0 ? (
+                    <p className="dashboard-hint">Nothing submitted yet.</p>
                   ) : (
                     <ExpandableList
-                      items={myCommunityPosts}
+                      items={myGroups}
                       listClassName="dash-row-list"
-                      itemKey={(post) => post.id}
-                      noun="post"
-                      renderItem={(post) => {
-                        const chip = postStatusChip(post.status);
+                      itemKey={(group) => group.id}
+                      noun="group"
+                      renderItem={(group) => {
+                        const chip = postStatusChip(group.status);
                         return (
                           <>
-                            {post.status === "publish" ? (
-                              <Link href={`/${post.slug}`}>{post.title}</Link>
-                            ) : (
-                              <span>{post.title}</span>
-                            )}
+                            <div>
+                              {group.status === "publish" ? (
+                                <Link href={`/community/groups/${group.slug}`}>{group.title}</Link>
+                              ) : (
+                                <span>{group.title}</span>
+                              )}
+                              <div className="dash-meta">
+                                {group.promotedUntil
+                                  ? `Promoted until ${formatUntil(group.promotedUntil)}`
+                                  : `${group.views} view${group.views === 1 ? "" : "s"}`}
+                                {" · "}
+                                <Link href={`/directory/${group.slug}/edit`} className="dash-manage-link">
+                                  Edit
+                                </Link>
+                                {!group.promotedUntil && group.status === "publish" && (
+                                  <>
+                                    {" · "}
+                                    <Link href={`/payment/pay?kind=group_promotion&id=${group.id}`} className="dash-manage-link">
+                                      Promote
+                                    </Link>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                             <span className={`dash-chip ${chip.cls}`}>{chip.label}</span>
                           </>
                         );
@@ -535,12 +562,12 @@ export default async function DashboardPage() {
             <h2 className="dash-group-title">Share something free</h2>
 
             <section className="dash-panel" id="directory">
-              <h3 className="dash-h3">Your directory listing{myListings.length === 1 ? "" : "s"}</h3>
-              {myListings.length === 0 ? (
+              <h3 className="dash-h3">Your directory listing{myBusinessListings.length === 1 ? "" : "s"}</h3>
+              {myBusinessListings.length === 0 ? (
                 <p className="dashboard-hint">Nothing yet — claim an existing listing or add a new one.</p>
               ) : (
                 <ExpandableList
-                  items={myListings}
+                  items={myBusinessListings}
                   listClassName="dashboard-my-list"
                   itemKey={(listing) => listing.id}
                   noun="listing"
@@ -685,11 +712,37 @@ export default async function DashboardPage() {
 
               <section className="dash-panel dash-panel-tight">
                 <h3 className="dash-h3">Groups &amp; clubs</h3>
-                <p className="dashboard-hint">
-                  Run a local group? It lives in{" "}
-                  <Link href="/community/groups">Groups to join</Link>, free, the same as any directory listing —
-                  and eligible for the same featured upgrade above once it&apos;s added.
-                </p>
+                {myGroups.length > 0 ? (
+                  <ul className="dash-row-list">
+                    {myGroups.map((group) => (
+                      <li key={group.id}>
+                        <div>
+                          {group.status === "publish" ? (
+                            <Link href={`/community/groups/${group.slug}`}>{group.title}</Link>
+                          ) : (
+                            <span>{group.title}</span>
+                          )}
+                          <div className="dash-meta">
+                            {group.promotedUntil ? (
+                              `Promoted until ${formatUntil(group.promotedUntil)}`
+                            ) : group.status === "publish" ? (
+                              <Link href={`/payment/pay?kind=group_promotion&id=${group.id}`} className="dash-manage-link">
+                                Promote for {GROUP_PROMOTION_PRICE.split(" ")[0]}
+                              </Link>
+                            ) : (
+                              "Not live yet"
+                            )}
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="dashboard-hint">
+                    Run a local group? List it free in <Link href="/community/groups">Groups to join</Link> — it goes
+                    live straight away — and promote it in the Community section for {GROUP_PROMOTION_PRICE}.
+                  </p>
+                )}
                 <div className="dashboard-section-actions">
                   <Link href="/community/groups" className="button-pill button-pill-secondary">
                     Browse groups

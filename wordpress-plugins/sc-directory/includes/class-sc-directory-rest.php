@@ -533,7 +533,7 @@ class SC_Directory_REST {
 
 	/**
 	 * A member submitting a brand-new listing (as opposed to claiming an
-	 * existing one). Always lands as 'pending' — a public directory that
+	 * existing one). Lands as 'pending' (except community groups, below) — a public directory that
 	 * anyone logged in can publish to unmoderated is a spam/quality risk,
 	 * and the brief's own editorial model is draft → human approval →
 	 * publish throughout, not just for articles. Rob reviews and publishes
@@ -594,9 +594,22 @@ class SC_Directory_REST {
 		self::geocode_address( $post_id );
 		self::save_uploaded_photos( $request, $post_id, self::FREE_PHOTO_LIMIT );
 
+		// Community groups go live straight away (Rob, 2026-10) — free,
+		// low-risk and the member can edit or remove it themselves; only
+		// business listings wait for approval/payment.
+		$status = 'pending';
+		if ( SC_Directory_Payments::is_group( $post_id ) ) {
+			wp_update_post( array( 'ID' => $post_id, 'post_status' => 'publish' ) );
+			$status = 'publish';
+		}
+
 		do_action( 'sc_directory_listing_submitted', $user_id, $post_id );
 
-		return array( 'status' => 'pending', 'id' => $post_id );
+		return array(
+			'status' => $status,
+			'id'     => $post_id,
+			'slug'   => get_post_field( 'post_name', $post_id ),
+		);
 	}
 
 	/**

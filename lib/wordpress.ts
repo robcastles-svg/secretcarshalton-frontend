@@ -2529,7 +2529,7 @@ export async function resendVerification(
 export async function submitListing(
   token: string,
   data: Record<string, string | string[]>
-): Promise<{ status: string; id: number } | MemberAuthError> {
+): Promise<{ status: string; id: number; slug?: string } | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-directory/v1/submit`, {
       method: "POST",

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PayNow } from "@/app/_components/PayNow";
@@ -16,7 +17,8 @@ export function SubmitGroupForm() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
+  /** The new group's address once it's live (groups publish straight away). */
+  const [done, setDone] = useState<{ slug?: string } | null>(null);
   /** Set when they ticked "Promote my group" — the next step is paying for it. */
   const [promoteId, setPromoteId] = useState<number | null>(null);
 
@@ -51,26 +53,28 @@ export function SubmitGroupForm() {
       return;
     }
 
-    if (wantsPromotion) {
-      const { id } = await createRes.json();
-      setPromoteId(Number(id));
-    }
+    const created: { id?: number; slug?: string } = await createRes.json().catch(() => ({}));
+    if (wantsPromotion && created.id) setPromoteId(Number(created.id));
 
-    setDone(true);
+    setDone({ slug: created.slug });
     router.refresh();
   }
 
   if (done) {
     return (
       <>
-        <p>Thanks — your group has been submitted and is awaiting review.</p>
+        <p>
+          Your group is live on Secret Carshalton.{" "}
+          {done.slug && <Link href={`/community/groups/${done.slug}`}>View your group</Link>} You can edit it any time
+          from your dashboard.
+        </p>
         {promoteId && (
           <PayNow
             kind="group_promotion"
             id={promoteId}
             price={GROUP_PROMOTION_PRICE.split(" ")[0]}
             what="promote your group for 30 days"
-            paidText="Paid — your group is promoted until {until}. It shows once we've approved the group."
+            paidText="Paid — your group is promoted until {until}."
           />
         )}
       </>

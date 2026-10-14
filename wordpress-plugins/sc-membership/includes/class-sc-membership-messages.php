@@ -688,11 +688,16 @@ class SC_Membership_Messages {
 				}
 			)
 		);
-		return array(
+		$response = array(
 			'unread'   => $unread + SC_Membership_Activity::unread_count( $user_id ),
 			'messages' => $messages,
 			'activity' => SC_Membership_Activity::for_user( $user_id, $limit ),
 		);
+		// Staff also get what's waiting for approval right now.
+		if ( SC_Membership_Admin_Alerts::is_staff( $user_id ) ) {
+			$response['pending'] = SC_Membership_Admin_Alerts::pending_summary();
+		}
+		return $response;
 	}
 
 	public static function rest_seen( WP_REST_Request $request ) {

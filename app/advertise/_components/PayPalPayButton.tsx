@@ -61,9 +61,19 @@ export function PayPalPayButton({
       if (!window.paypal) {
         await new Promise<void>((resolve, reject) => {
           const script = document.createElement("script");
-          script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(
-            config.clientId
-          )}&currency=${encodeURIComponent(config.currency)}&intent=capture`;
+          // UK English and pounds throughout, and only PayPal itself plus
+          // debit/credit card — no Pay Later, PayPal Credit or other options
+          // (Rob, 2026-10). buyer-country is sandbox-only (PayPal rejects it
+          // live); it stops a US test account turning £ into $ while testing.
+          const params = new URLSearchParams({
+            "client-id": config.clientId,
+            currency: config.currency || "GBP",
+            intent: "capture",
+            locale: "en_GB",
+            "disable-funding": "paylater,credit,venmo,bancontact,blik,eps,giropay,ideal,mercadopago,mybank,p24,sepa,sofort",
+          });
+          if (config.mode === "sandbox") params.set("buyer-country", "GB");
+          script.src = `https://www.paypal.com/sdk/js?${params.toString()}`;
           script.onload = () => resolve();
           script.onerror = () => reject(new Error("Failed to load PayPal."));
           document.body.appendChild(script);
