@@ -158,7 +158,7 @@ export async function DiscoverView({
 
   return (
     <>
-      {activeArea && <SetActiveNavSection section="Discover" />}
+      {(activeArea || isSpotlight) && <SetActiveNavSection section="Discover" />}
       <div className="secondary-nav-bar">
         <nav className="container secondary-nav">
           <Link href="/discover" className={!filter && !activeArea ? "active" : undefined}>
