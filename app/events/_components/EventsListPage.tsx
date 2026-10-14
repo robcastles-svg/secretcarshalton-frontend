@@ -50,6 +50,7 @@ import { EventCard } from "./EventCard";
 import { FeaturedSlider, type Slide } from "./FeaturedSlider";
 import { LoadMoreGroups } from "./LoadMoreGroups";
 import { SubmitEventButton } from "./SubmitEventButton";
+import { DragScroll } from "@/app/_components/DragScroll";
 
 interface Item {
   event: WPScEvent;
@@ -445,11 +446,11 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
 
       {/* Latest events added: straight under the featured slider, full
           width, text only so it stays compact (Rob, 2026-10). Swipe
-          sideways on a phone. */}
+          sideways on a phone, or drag with the mouse. */}
       {latest.length > 0 && (
         <section className="evl-latest">
           <h2>Latest events added</h2>
-          <div className="evl-hscroll">
+          <DragScroll className="evl-hscroll">
             {latest.map((event) => {
               const next = upcomingOccurrences(event, now)[0] ?? getOccurrences(event)[0];
               const p = next ? dateParts(next.start) : null;
@@ -462,7 +463,7 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
                 </Link>
               );
             })}
-          </div>
+          </DragScroll>
         </section>
       )}
 
