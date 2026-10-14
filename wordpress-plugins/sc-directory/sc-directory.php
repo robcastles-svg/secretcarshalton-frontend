@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Directory
  * Description: Business directory. Replaces Sabai Directory with a REST-first implementation on the same categories/claim/plan model, hooked into sc-membership for claim points and upgrade approval.
- * Version: 0.12.1
+ * Version: 0.13.0
  * Author: Secret Carshalton
  * Text Domain: sc-directory
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_DIRECTORY_VERSION', '0.12.1' );
+define( 'SC_DIRECTORY_VERSION', '0.13.0' );
 define( 'SC_DIRECTORY_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_DIRECTORY_DIR . 'includes/class-sc-directory-cpt.php';
@@ -20,6 +20,7 @@ require_once SC_DIRECTORY_DIR . 'includes/class-sc-directory-rest.php';
 require_once SC_DIRECTORY_DIR . 'includes/class-sc-directory-hooks.php';
 require_once SC_DIRECTORY_DIR . 'includes/class-sc-directory-admin.php';
 require_once SC_DIRECTORY_DIR . 'includes/class-sc-directory-payments.php';
+require_once SC_DIRECTORY_DIR . 'includes/class-sc-directory-campaign.php';
 
 register_activation_hook( __FILE__, array( 'SC_Directory_CPT', 'install' ) );
 register_deactivation_hook(
@@ -53,6 +54,7 @@ add_action( 'init', array( 'SC_Directory_Meta', 'register' ) );
 add_action( 'rest_api_init', array( 'SC_Directory_REST', 'register_routes' ) );
 add_action( 'plugins_loaded', array( 'SC_Directory_Hooks', 'init' ) );
 SC_Directory_Payments::init();
+SC_Directory_Campaign::init();
 add_action( 'admin_menu', array( 'SC_Directory_Admin', 'register_menu' ) );
 add_action( 'add_meta_boxes', array( 'SC_Directory_Admin', 'register_meta_box' ) );
 add_action( 'post_edit_form_tag', array( 'SC_Directory_Admin', 'add_multipart_enctype' ) );

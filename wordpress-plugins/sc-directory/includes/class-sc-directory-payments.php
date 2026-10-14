@@ -149,6 +149,10 @@ class SC_Directory_Payments {
 				delete_post_meta( $id, 'sc_featured_requested_tier' );
 				self::publish( $id );
 				self::mark_member_upgraded( $id, $tier, $payment_id );
+				// Featured Plus/Gold: the package's text ad goes up with it (SC_Directory_Campaign).
+				if ( in_array( $tier, SC_Directory_Campaign::TIERS, true ) ) {
+					SC_Directory_Campaign::sync_ad( $id, $until );
+				}
 				update_post_meta( $payment_id, 'note', 'Featured until ' . wp_date( 'j F Y', $until ) . '.' );
 				return array(
 					'slug'  => get_post_field( 'post_name', $id ),
@@ -220,6 +224,7 @@ class SC_Directory_Payments {
 	}
 
 	private static function unfeature( $id ) {
+		SC_Directory_Campaign::end_ad( $id );
 		update_post_meta( $id, 'sc_featured', false );
 		update_post_meta( $id, 'sc_plan', get_post_meta( $id, 'sc_standard_subscription_id', true ) ? 'standard' : 'free' );
 		delete_post_meta( $id, 'sc_featured_until' );

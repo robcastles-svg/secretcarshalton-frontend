@@ -525,6 +525,8 @@ class SC_Directory_REST {
 					'featuredTier'  => (string) get_post_meta( $post->ID, 'sc_featured_tier', true ),
 					'featuredUntil' => get_post_meta( $post->ID, 'sc_featured_until', true ) ? wp_date( 'Y-m-d', (int) get_post_meta( $post->ID, 'sc_featured_until', true ) ) : '',
 					'promotedUntil' => get_post_meta( $post->ID, 'sc_group_promoted', true ) ? substr( (string) get_post_meta( $post->ID, 'sc_group_promo_expires_at', true ), 0, 10 ) : '',
+					// Featured Plus/Gold checklist, null otherwise (SC_Directory_Campaign).
+					'campaign'      => SC_Directory_Campaign::status( $post->ID ),
 				);
 			},
 			$posts

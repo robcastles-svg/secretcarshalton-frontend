@@ -174,9 +174,11 @@ export default async function DashboardPage() {
               <a href="#business" className="dash-sidebar-link">
                 Directory listing
               </a>
-              <a href="#business-campaign" className="dash-sidebar-link">
-                Campaign progress
-              </a>
+              {businessListing?.campaign && businessListing.campaign.length > 0 && (
+                <a href="#business-campaign" className="dash-sidebar-link">
+                  Campaign progress
+                </a>
+              )}
             </>
           )}
 
@@ -899,14 +901,31 @@ export default async function DashboardPage() {
                 </div>
               </div>
 
-              <div id="business-campaign" className="dash-campaign">
-                <div className="dash-campaign-title">Campaign progress</div>
-                <p className="dashboard-hint">
-                  Step-by-step tracking for your banner, article and social promotion isn&apos;t built yet — for
-                  now, check with the team directly about where things are up to. This panel will show live status
-                  here once it&apos;s wired up.
-                </p>
-              </div>
+              {/* Featured Plus/Gold only — Featured and Featured 6 months are simply live once paid. */}
+              {businessListing?.campaign && businessListing.campaign.length > 0 && (
+                <div id="business-campaign" className="dash-campaign">
+                  <div className="dash-campaign-title">Campaign progress</div>
+                  <ul className="dash-campaign-steps">
+                    {businessListing.campaign.map((step) => (
+                      <li key={step.key} className={step.done ? "is-done" : undefined}>
+                        <span className="dash-campaign-check" aria-hidden="true">
+                          {step.done ? "✓" : ""}
+                        </span>
+                        <span>
+                          {step.label}
+                          {!step.done && <span className="dash-campaign-todo"> — in progress</span>}
+                          {step.key === "ad" && step.done && (
+                            <a href="#advertising" className="dash-campaign-link">
+                              {" "}
+                              Edit wording
+                            </a>
+                          )}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </section>
           )}
 

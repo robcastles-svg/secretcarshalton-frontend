@@ -132,7 +132,6 @@ export default async function FeaturedListingPage({
               <li>Designed banner</li>
               <li>Banner displayed across the site</li>
               <li>Social Story promotion</li>
-              <li>Choose your start date within a 2-week window</li>
               <li>Choose how many months you want to run</li>
             </ul>
           </div>
@@ -158,7 +157,6 @@ export default async function FeaturedListingPage({
               <li>Designed banner displayed across the site</li>
               <li>Written article about your business, organisation or event</li>
               <li>Social media post promoting the article</li>
-              <li>Choose your start date within a 2-week window</li>
               <li>Choose how many months you want to run</li>
             </ul>
           </div>
