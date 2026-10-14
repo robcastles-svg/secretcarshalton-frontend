@@ -201,7 +201,7 @@ export async function DiscoverView({
               ? `Timeless and fascinating stories from around ${activeArea.name}`
               : isSpotlight
                 ? "Featured premium members"
-                : "Timeless and fascinating stories from around Carshalton and nearby areas"}
+                : "Curiosities from in and around Carshalton"}
           </p>
         </div>
 

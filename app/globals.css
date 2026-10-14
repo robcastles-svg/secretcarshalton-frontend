@@ -9894,6 +9894,12 @@ a.card-category:hover {
   min-width: 0;
 }
 
+/* Keep the intro text on the headline's line (not the small caps above
+   it) where it sits beside the headline on desktop. */
+.category-header-row:has(> .page-title) {
+  align-items: last baseline;
+}
+
 .page-title-eyebrow {
   display: block;
   margin-bottom: 0.4rem;
