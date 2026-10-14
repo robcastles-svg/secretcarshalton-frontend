@@ -1853,9 +1853,11 @@ a.card-category:hover {
   color: #cc99a2;
 }
 
+/* The page you're on, in black so it stands out from the grey links
+   (Rob, 2026-10). The strip is always white, so this reads everywhere. */
 .secondary-nav a.active,
 .secondary-nav button.active {
-  color: #cc99a2;
+  color: #1a1a1a;
   font-weight: 700;
 }
 
