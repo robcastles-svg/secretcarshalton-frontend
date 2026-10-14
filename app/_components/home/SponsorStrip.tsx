@@ -142,7 +142,7 @@ export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
         {track.map((s, i) => (
           <li key={`${s.id}-${i}`}>
             <a href={s.href} title={s.name}>
-              <span className="sponsor-strip-label">Featured listing</span>
+              <span className="sponsor-strip-label">Featured member</span>
               {s.logoUrl ? (
                 <span className="sponsor-strip-logo">
                   <img src={s.logoUrl} alt={s.name} loading="lazy" />
