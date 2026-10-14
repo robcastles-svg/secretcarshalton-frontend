@@ -9728,7 +9728,8 @@ a.home-comment-author:hover {
 
 /* Featured directory listing on the homepage: the name at twice the size (Rob, 2026-10); the one-liner stays as it was. */
 .home-featured-listing .home-featured-pink-body strong {
-  font-size: 2.1rem;
+  /* Same as the headline on the listing's own page (h1: 2rem). */
+  font-size: 2rem;
   line-height: 1.15;
 }
 
