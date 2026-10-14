@@ -96,7 +96,9 @@ export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
             <a href={s.href} title={s.name}>
               <span className="sponsor-strip-label">Premium member</span>
               {s.logoUrl ? (
-                <img src={s.logoUrl} alt={s.name} loading="lazy" />
+                <span className="sponsor-strip-logo">
+                  <img src={s.logoUrl} alt={s.name} loading="lazy" />
+                </span>
               ) : (
                 <span className="sponsor-strip-name">{s.name}</span>
               )}

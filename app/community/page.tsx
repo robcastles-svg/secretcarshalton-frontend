@@ -59,7 +59,7 @@ export default async function CommunityPage({
 
   return (
     <main className="container">
-      <div className="page-header-row">
+      <div className="page-header-row page-header-row-keyline">
         <div>
           <PageTitle eyebrow="Community">People power</PageTitle>
           <p>Local groups, causes and community-led news from around Carshalton.</p>

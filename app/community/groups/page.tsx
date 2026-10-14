@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { MasonryGrid } from "@/app/_components/MasonryGrid";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { getAd, getGroupListings, soft } from "@/lib/wordpress";
+import { PageTitle } from "@/app/_components/PageTitle";
 
 export const revalidate = 3600;
 
@@ -30,11 +30,9 @@ export default async function CommunityGroupsPage() {
 
   return (
     <main className="container">
-      <div className="page-header-row page-header-row-spaced">
+      <div className="page-header-row page-header-row-keyline">
         <div>
-          <h1>
-            <KeyTitle>Groups to join</KeyTitle>
-          </h1>
+          <PageTitle eyebrow="Community">Groups to join</PageTitle>
           <p>{DESCRIPTION}</p>
         </div>
         <Link href="/community/groups/manager" className="button-pill">

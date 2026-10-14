@@ -4960,6 +4960,18 @@ a.card-category:hover {
   margin-bottom: 1.75rem;
 }
 
+/* Community and Groups: the same keyline under the intro as News & co's
+   .category-header-row. */
+.page-header-row-keyline {
+  padding-bottom: 1.25rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.page-header-row-keyline p {
+  margin-bottom: 0;
+}
+
 /* A section page's title + one-line strapline, ranged right on the same
    row as the title on desktop (Rob's call, 2026-10) rather than stacked
    underneath — Discover, News and Walks only; every other page with a
@@ -7238,22 +7250,33 @@ a.card-category:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  padding: 0.4rem 0.6rem 0.5rem;
+  justify-content: flex-start;
+  gap: 0.15rem;
+  padding: 0.25rem 0.5rem 0.4rem;
   text-decoration: none;
 }
 
+/* Small and tucked at the top, so the logo gets the rest of the tile (Rob, 2026-10). */
 .sponsor-strip-label {
-  font-size: 0.6rem;
+  font-size: 0.5rem;
+  line-height: 1;
   letter-spacing: 0.06em;
-  color: #777;
+  color: #888;
   text-transform: uppercase;
+}
+
+.sponsor-strip-logo {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sponsor-strip-track img {
   max-width: 100%;
-  max-height: 34px;
+  max-height: 100%;
   object-fit: contain;
 }
 
