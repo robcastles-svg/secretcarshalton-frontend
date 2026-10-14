@@ -109,17 +109,26 @@ export function getFeaturedImage(item: {
  */
 export async function getFeaturedImagesForSlugs(
   slugs: string[]
-): Promise<Map<string, { image: WPFeaturedMedia | null; excerpt: string }>> {
+): Promise<Map<string, { image: WPFeaturedMedia | null; excerpt: string; categories: number[] }>> {
   if (slugs.length === 0) return new Map();
   try {
     const posts = await wpFetch<
-      Array<{ slug: string; excerpt: WPRendered; _embedded?: { "wp:featuredmedia"?: WPFeaturedMedia[] } }>
+      Array<{
+        slug: string;
+        excerpt: WPRendered;
+        categories?: number[];
+        _embedded?: { "wp:featuredmedia"?: WPFeaturedMedia[] };
+      }>
     >(
-      `/posts?slug=${slugs.map(encodeURIComponent).join(",")}&per_page=${slugs.length}&_fields=slug,excerpt,_links&_embed=wp:featuredmedia`
+      `/posts?slug=${slugs.map(encodeURIComponent).join(",")}&per_page=${slugs.length}&_fields=slug,excerpt,categories,_links&_embed=wp:featuredmedia`
     );
-    const map = new Map<string, { image: WPFeaturedMedia | null; excerpt: string }>();
+    const map = new Map<string, { image: WPFeaturedMedia | null; excerpt: string; categories: number[] }>();
     for (const post of posts) {
-      map.set(post.slug, { image: getFeaturedImage(post), excerpt: stripHtml(post.excerpt.rendered) });
+      map.set(post.slug, {
+        image: getFeaturedImage(post),
+        excerpt: stripHtml(post.excerpt.rendered),
+        categories: post.categories ?? [],
+      });
     }
     return map;
   } catch {

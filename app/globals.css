@@ -7484,18 +7484,10 @@ a.card-category:hover {
   color: inherit;
 }
 
-.most-read-rank {
-  flex: none;
-  width: 1.3rem;
-  font-weight: 800;
-  color: #cc99a2;
-  font-size: 1.05rem;
-}
-
 .most-read-thumb {
   flex: none;
-  width: 60px;
-  height: 60px;
+  width: 84px;
+  height: 84px;
   border-radius: 4px;
   overflow: hidden;
   background: #ece8e3;
@@ -7512,6 +7504,14 @@ a.card-category:hover {
   flex-direction: column;
   gap: 0.2rem;
   min-width: 0;
+}
+
+.most-read-category {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #cc99a2;
 }
 
 .most-read-title {
@@ -8068,43 +8068,28 @@ a.card-category:hover {
   padding-right: 0;
 }
 
-.home-comment-text {
-  display: block;
-  font-size: 1.15rem;
-  font-weight: 400;
-  line-height: 1.35;
-  color: #1a1a1a;
-  text-decoration: none;
-  margin-bottom: 0.6rem;
-}
-
-.home-comment-text:hover {
-  color: #cc99a2;
-}
-
-.home-comment-byline {
-  font-size: 0.85rem;
-  color: #777;
-}
-
-.home-comment-date {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.8rem;
-  color: #999;
+.home-comment-who {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 
 .home-comment-author {
+  font-size: 1.15rem;
   font-weight: 700;
   color: #1a1a1a;
   text-decoration: none;
 }
 
+a.home-comment-author:hover {
+  color: #b8838d;
+}
+
 .home-comment-badge {
-  width: 18px;
-  height: 18px;
-  margin-left: 0.3rem;
-  vertical-align: -4px;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
 }
 
 .home-comment-author-button {
@@ -8112,16 +8097,42 @@ a.card-category:hover {
   border: none;
   padding: 0;
   font: inherit;
+  font-size: 1.15rem;
+  font-weight: 700;
   cursor: pointer;
 }
 
-.home-comment-byline a {
+.home-comment-article {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 400;
   color: #777;
   text-decoration: none;
 }
 
-.home-comment-byline a:hover {
+.home-comment-article:hover {
   text-decoration: underline;
+}
+
+.home-comment-text {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.22;
+  color: #cc99a2;
+  text-decoration: none;
+  margin-bottom: 0.5rem;
+}
+
+.home-comment-text:hover {
+  color: #b8838d;
+}
+
+.home-comment-date {
+  display: block;
+  font-size: 0.8rem;
+  color: #999;
 }
 
 @media (max-width: 759px) {

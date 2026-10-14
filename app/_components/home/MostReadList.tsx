@@ -9,6 +9,8 @@ export interface MostReadItem {
   imageUrl?: string;
   imageAlt?: string;
   excerpt?: string;
+  /** Shown in small pink caps above the title. */
+  category?: string;
 }
 
 const COLLAPSED_COUNT = 5;
@@ -24,16 +26,16 @@ export function MostReadList({ items }: { items: MostReadItem[] }) {
 
   return (
     <div className={`most-read${expanded ? " most-read-expanded" : ""}`}>
-      <div className="most-read-heading">Most read this week</div>
+      <div className="most-read-heading">🔥 Top 10 most read this week</div>
       <ol className="most-read-rows">
         {items.map((item, i) => (
           <li key={item.slug} className={i >= COLLAPSED_COUNT ? "most-read-extra" : undefined}>
             <Link href={`/${item.slug}`}>
-              <span className="most-read-rank">{i + 1}</span>
               <span className="most-read-thumb">
                 {item.imageUrl && <img src={item.imageUrl} alt={item.imageAlt ?? ""} loading="lazy" />}
               </span>
               <span className="most-read-text">
+                {item.category && <span className="most-read-category" dangerouslySetInnerHTML={{ __html: item.category }} />}
                 <span className="most-read-title">{item.title}</span>
                 {item.excerpt && <span className="most-read-excerpt">{item.excerpt}</span>}
               </span>

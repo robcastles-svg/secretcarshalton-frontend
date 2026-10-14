@@ -27,7 +27,18 @@ export async function getLatestCommentItems(count: number): Promise<HomeCommentI
       // Formatted here on the server so the client component can't render
       // a different day from the server's in another timezone.
       date: c.date,
-      dateLabel: new Date(c.date).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }),
+      dateLabel: commentWhen(c.date),
     };
   });
+}
+
+/** "14 October 2026 at 10:42am", in UK time. */
+function commentWhen(iso: string): string {
+  const d = new Date(iso);
+  const day = d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/London" });
+  const time = d
+    .toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Europe/London" })
+    .replace(/\s/g, "")
+    .toLowerCase();
+  return `${day} at ${time}`;
 }
