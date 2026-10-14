@@ -15,7 +15,7 @@ const AUTO_SCROLL_PX_PER_SEC = 35;
 const RESUME_DELAY_MS = 1200;
 
 /**
- * Auto-scrolling strip of premium-member logos, directly under the nav.
+ * Auto-scrolling strip of Featured listings' logos, directly under the nav.
  * A real horizontally-scrollable element (overflow-x: auto, see
  * .sponsor-strip-track) that a finger or trackpad can drag/swipe — the
  * auto-scroll itself is driven by JS incrementing scrollLeft each frame
@@ -39,6 +39,7 @@ export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
   const trackRef = useRef<HTMLUListElement>(null);
   const pausedRef = useRef(false);
   const lastInteractionRef = useRef(0);
+  const dragRef = useRef({ down: false, lastX: 0, moved: false, startX: 0 });
 
   useEffect(() => {
     const track = trackRef.current;
@@ -51,7 +52,7 @@ export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
       const dt = now - last;
       last = now;
 
-      if (pausedRef.current && now - lastInteractionRef.current > RESUME_DELAY_MS) {
+      if (pausedRef.current && !dragRef.current.down && now - lastInteractionRef.current > RESUME_DELAY_MS) {
         pausedRef.current = false;
       }
       if (track && !pausedRef.current) {
@@ -80,12 +81,59 @@ export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
     lastInteractionRef.current = performance.now();
   }
 
+  // Mouse drag (Rob, 2026-10) — touch already swipes natively. Moves by
+  // the change since the last event rather than from a fixed start, so
+  // the loop's seam reset in tick() can't make it jump mid-drag.
+  function onPointerDown(e: React.PointerEvent<HTMLUListElement>) {
+    markInteraction();
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    dragRef.current = { down: true, lastX: e.clientX, moved: false, startX: e.clientX };
+  }
+
+  function onPointerMove(e: React.PointerEvent<HTMLUListElement>) {
+    const d = dragRef.current;
+    const el = trackRef.current;
+    if (!d.down || !el) return;
+    if (!d.moved && Math.abs(e.clientX - d.startX) > 5) {
+      d.moved = true;
+      el.classList.add("is-dragging");
+      el.setPointerCapture(e.pointerId);
+    }
+    if (d.moved) {
+      el.scrollLeft -= e.clientX - d.lastX;
+      markInteraction();
+    }
+    d.lastX = e.clientX;
+  }
+
+  function endDrag(e: React.PointerEvent<HTMLUListElement>) {
+    const el = trackRef.current;
+    dragRef.current.down = false;
+    markInteraction();
+    if (el?.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    el?.classList.remove("is-dragging");
+  }
+
+  // A drag shouldn't also open the logo it started on.
+  function onClickCapture(e: React.MouseEvent) {
+    if (dragRef.current.moved) {
+      e.preventDefault();
+      e.stopPropagation();
+      dragRef.current.moved = false;
+    }
+  }
+
   return (
     <div className="sponsor-strip">
       <ul
         className="sponsor-strip-track"
         ref={trackRef}
-        onPointerDown={markInteraction}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onClickCapture={onClickCapture}
+        onDragStart={(e) => e.preventDefault()}
         onTouchStart={markInteraction}
         onScroll={() => {
           if (pausedRef.current) lastInteractionRef.current = performance.now();
@@ -94,7 +142,7 @@ export function SponsorStrip({ sponsors }: { sponsors: Sponsor[] }) {
         {track.map((s, i) => (
           <li key={`${s.id}-${i}`}>
             <a href={s.href} title={s.name}>
-              <span className="sponsor-strip-label">Premium member</span>
+              <span className="sponsor-strip-label">Featured member</span>
               {s.logoUrl ? (
                 <span className="sponsor-strip-logo">
                   <img src={s.logoUrl} alt={s.name} loading="lazy" />

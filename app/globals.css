@@ -7245,6 +7245,10 @@ a.card-category:hover {
   scrollbar-width: none;
 }
 
+.sponsor-strip-track.is-dragging {
+  cursor: grabbing;
+}
+
 .sponsor-strip-track::-webkit-scrollbar {
   display: none;
 }
@@ -8723,6 +8727,7 @@ a.home-comment-author:hover {
 .evl-latest h2::after { content: ""; flex: 1; border-top: 1px solid var(--evx-panel-line); }
 .evl-hscroll { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; scrollbar-width: none; padding-bottom: 4px; }
 .evl-hscroll::-webkit-scrollbar { display: none; }
+.evl-hscroll.is-dragging { cursor: grabbing; scroll-snap-type: none; }
 .evx .evl-mini { flex: 0 0 200px; scroll-snap-align: start; background: var(--evx-charcoal); color: #fff; border-radius: 12px; overflow: hidden; text-decoration: none; min-width: 0; }
 .evl-mini-img { aspect-ratio: 16 / 10; }
 .evl-mini:hover .evx-card-img img { transform: scale(1.06); filter: brightness(.78); }
