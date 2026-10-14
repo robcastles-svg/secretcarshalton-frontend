@@ -40,6 +40,7 @@ export function MasonryGrid({ children }: { children: React.ReactNode }) {
   const [containerHeight, setContainerHeight] = useState<number | null>(null);
 
   const items = Children.toArray(children);
+  itemRefs.current.length = items.length;
 
   useLayoutEffect(() => {
     function recompute() {
@@ -57,13 +58,14 @@ export function MasonryGrid({ children }: { children: React.ReactNode }) {
       const columnHeights = new Array(COLUMNS).fill(0);
       const next: CardPosition[] = [];
 
-      itemRefs.current.forEach((el) => {
+      itemRefs.current.forEach((el, i) => {
         if (!el) return;
         let shortest = 0;
         for (let c = 1; c < COLUMNS; c++) {
           if (columnHeights[c] < columnHeights[shortest]) shortest = c;
         }
-        next.push({ top: columnHeights[shortest], left: shortest * (columnWidth + GAP), width: columnWidth });
+        // By index, so a missing ref can't shift every later card's position.
+        next[i] = { top: columnHeights[shortest], left: shortest * (columnWidth + GAP), width: columnWidth };
         columnHeights[shortest] += el.offsetHeight + GAP;
       });
 
@@ -73,15 +75,24 @@ export function MasonryGrid({ children }: { children: React.ReactNode }) {
 
     recompute();
 
-    let frame: number;
-    function onResize() {
+    // Re-pack whenever anything changes size: the container (window
+    // resize) or any card — a photo or web font arriving after the first
+    // measurement, or a card's text re-wrapping once it's been given its
+    // column width. Measuring once on mount left cards overlapping or
+    // with big gaps until the window was resized (Rob, 2026-10).
+    let frame = 0;
+    function schedule() {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(recompute);
     }
-    window.addEventListener("resize", onResize);
+    const observer = new ResizeObserver(schedule);
+    if (containerRef.current) observer.observe(containerRef.current);
+    itemRefs.current.forEach((el) => el && observer.observe(el));
+    window.addEventListener("resize", schedule);
     return () => {
       cancelAnimationFrame(frame);
-      window.removeEventListener("resize", onResize);
+      observer.disconnect();
+      window.removeEventListener("resize", schedule);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items.length]);
