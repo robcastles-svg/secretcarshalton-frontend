@@ -158,9 +158,22 @@ export default async function HomePage() {
   // separate batched lookup straight against the posts themselves (see
   // getFeaturedImagesForSlugs).
   const mostReadDetails = await getFeaturedImagesForSlugs(topThisWeek.map((p) => p.slug));
+  // The category shown in small pink caps above each title: the post's
+  // area if it has one, else its section (News, Walks…) — same order as
+  // the lead story's place line above.
+  const categoryLabel = (ids: number[]) => {
+    const cats = ids.map((id) => categoriesById.get(id)).filter((c): c is NonNullable<typeof c> => Boolean(c));
+    const pick =
+      cats.find((c) => storiesParent && c.parent === storiesParent.id) ??
+      cats.find((c) => walksCategory && c.parent === walksCategory.id) ??
+      cats.find((c) => c.parent === 0 && c.slug !== "uncategorized") ??
+      cats[0];
+    return pick?.name;
+  };
   const mostReadItems: MostReadItem[] = topThisWeek.map((p) => ({
     slug: p.slug,
     title: p.title,
+    category: categoryLabel(mostReadDetails.get(p.slug)?.categories ?? []),
     imageUrl: mostReadDetails.get(p.slug)?.image?.source_url,
     imageAlt: mostReadDetails.get(p.slug)?.image?.alt_text,
     excerpt: mostReadDetails.get(p.slug)?.excerpt,

@@ -7484,18 +7484,10 @@ a.card-category:hover {
   color: inherit;
 }
 
-.most-read-rank {
-  flex: none;
-  width: 1.3rem;
-  font-weight: 800;
-  color: #cc99a2;
-  font-size: 1.05rem;
-}
-
 .most-read-thumb {
   flex: none;
-  width: 60px;
-  height: 60px;
+  width: 84px;
+  height: 84px;
   border-radius: 4px;
   overflow: hidden;
   background: #ece8e3;
@@ -7512,6 +7504,14 @@ a.card-category:hover {
   flex-direction: column;
   gap: 0.2rem;
   min-width: 0;
+}
+
+.most-read-category {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #cc99a2;
 }
 
 .most-read-title {
