@@ -1291,6 +1291,123 @@ a.ad-slot-text-image img {
   margin-left: auto;
 }
 
+/* Like · comments · share · save (ReactionBar, Rob 2026-10). Outline
+   icons with the number beside them once there is one. */
+.reactions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.reaction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: none;
+  background: none;
+  padding: 0;
+  color: #6b6f76;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.reaction svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.reaction:hover,
+.reaction-open {
+  color: var(--color-active-dark);
+}
+
+.reaction-liked {
+  color: #cc99a2;
+}
+
+.reaction-liked svg {
+  fill: #f6e3e7;
+}
+
+.reactions-article {
+  margin-left: auto;
+  gap: 1.1rem;
+}
+
+.reactions-article .reaction {
+  font-size: 0.95rem;
+}
+
+.reactions-article .reaction svg {
+  width: 22px;
+  height: 22px;
+}
+
+.reaction-share-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Opens upwards on cards (they clip anything outside them), downwards
+   under the article's own row. */
+.reaction-share-pop {
+  position: absolute;
+  right: -0.5rem;
+  bottom: calc(100% + 0.6rem);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+}
+
+.reactions-article .reaction-share-pop {
+  bottom: auto;
+  top: calc(100% + 0.6rem);
+}
+
+.reaction-share-pop .share-row {
+  margin-left: 0;
+}
+
+.reaction-share-more {
+  border: none;
+  background: #f3eff1;
+  border-radius: 999px;
+  padding: 0.35rem 0.8rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #1f1b1e;
+  cursor: pointer;
+}
+
+.reaction-bookmark {
+  display: inline-flex;
+}
+
+.reaction-bookmark .card-bookmark-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+.reactions-article .reaction-bookmark .card-bookmark-button svg {
+  width: 21px;
+  height: 21px;
+}
+
 /* Always visible, unlike the comment count — clicking while logged out
    opens the login popup rather than hiding the button. */
 .card-bookmark-button {

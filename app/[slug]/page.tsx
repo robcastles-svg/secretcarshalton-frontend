@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { AboutMiniNav, ABOUT_PAGE_SLUGS } from "@/app/_components/AboutMiniNav";
 import { SetActiveNavSection } from "@/app/_components/ActiveNavSection";
 import { AdSlot } from "@/app/_components/AdSlot";
-import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSectionAsync } from "@/app/_components/CommentSectionAsync";
 import { HomeComments } from "@/app/_components/home/HomeComments";
 import { HomeCommentsAsync } from "@/app/_components/home/HomeCommentsAsync";
@@ -13,6 +12,7 @@ import { getLatestCommentItems } from "@/app/_components/home/latestComments";
 import { ContentList } from "@/app/_components/ContentList";
 import { PostViewTracker } from "@/app/_components/PostViewTracker";
 import { ShareRow } from "@/app/_components/ShareRow";
+import { ReactionBar } from "@/app/_components/ReactionBar";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { WalkMapBuy } from "@/app/_components/WalkMapBuy";
 import { YopPollScripts } from "@/app/_components/YopPollScripts";
@@ -440,8 +440,8 @@ export default async function ContentPage({
                 <EyeIcon /> {viewCount.toLocaleString("en-GB")}
               </span>
             )}
-            <CommentCountLink count={fullThread.length} />
-            <ShareRow path={`/${post.slug}`} title={shareTitle} label="Share this story" variant="share-row" />
+            {/* Like · comments · share · save — the same row as on the cards (Rob, 2026-10). */}
+            <ReactionBar slug={post.slug} title={shareTitle} commentCount={fullThread.length} bookmarkId={post.id} variant="article" />
           </div>
           <div className="post-content">
             {contentChunks.map((chunk, i) => (
