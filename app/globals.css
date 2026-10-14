@@ -8210,7 +8210,107 @@ a.card-category:hover {
   display: block;
   aspect-ratio: 9 / 16;
   overflow: hidden;
+  border-radius: 6px;
   background: #ece8e3;
+}
+
+/* Click a reel: a bigger view first, with a link through to Instagram. */
+.reels-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(10, 10, 12, 0.88);
+}
+
+.reels-lightbox-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-width: min(520px, 100%);
+  max-height: 100%;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.reels-lightbox-inner img {
+  display: block;
+  width: 100%;
+  max-height: calc(100vh - 13rem);
+  object-fit: contain;
+  background: #111;
+}
+
+.reels-lightbox-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.reels-lightbox-foot p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #333;
+}
+
+.reels-lightbox-foot .button-pill {
+  align-self: flex-start;
+}
+
+.reels-lightbox-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.reels-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #222;
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.reels-lightbox-prev {
+  left: 1rem;
+}
+
+.reels-lightbox-next {
+  right: 1rem;
+}
+
+@media (max-width: 600px) {
+  .reels-lightbox {
+    padding: 0.75rem;
+  }
+
+  .reels-lightbox-nav {
+    top: auto;
+    bottom: 1rem;
+    transform: none;
+  }
 }
 
 .reels-item img {

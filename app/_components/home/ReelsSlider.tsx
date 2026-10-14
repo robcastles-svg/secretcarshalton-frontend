@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface ReelItem {
   id: string;
@@ -21,14 +21,40 @@ function truncate(text: string, max: number): string {
  * first sits right against the left edge of the screen, with four and a
  * half across on desktop (two and a half on a phone) so it's clear there's
  * more. No arrows — drag it sideways with the mouse, or swipe on a phone.
+ * A click opens a bigger view first (with the caption and a link through
+ * to Instagram) rather than leaving the site straight away.
  * Items come from the Instagram feed WordPress already has (see
  * lib/instagram.ts); renders nothing when `items` is empty.
  */
 export function ReelsSlider({ items }: { items: ReelItem[] }) {
   const trackRef = useRef<HTMLUListElement>(null);
   const drag = useRef({ down: false, startX: 0, startLeft: 0, moved: false });
+  const [open, setOpen] = useState<number | null>(null);
+
+  const close = useCallback(() => setOpen(null), []);
+  const step = useCallback(
+    (by: number) => setOpen((i) => (i === null ? i : (i + by + items.length) % items.length)),
+    [items.length]
+  );
+
+  useEffect(() => {
+    if (open === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowRight") step(1);
+      if (e.key === "ArrowLeft") step(-1);
+    };
+    document.addEventListener("keydown", onKey);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+    };
+  }, [open, close, step]);
 
   if (items.length === 0) return null;
+  const current = open === null ? null : items[open];
 
   // Mouse drag only — touch already scrolls the strip natively.
   const onPointerDown = (e: React.PointerEvent<HTMLUListElement>) => {
@@ -76,7 +102,7 @@ export function ReelsSlider({ items }: { items: ReelItem[] }) {
         onPointerCancel={endDrag}
         onClickCapture={onClickCapture}
       >
-        {items.map((item) => (
+        {items.map((item, i) => (
           <li key={item.id}>
             <a
               href={item.videoUrl}
@@ -85,6 +111,12 @@ export function ReelsSlider({ items }: { items: ReelItem[] }) {
               className="reels-item"
               draggable={false}
               title={item.caption ? truncate(item.caption, 120) : undefined}
+              onClick={(e) => {
+                // Bigger view first; the link still works for new-tab clicks.
+                if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+                e.preventDefault();
+                setOpen(i);
+              }}
             >
               <img
                 src={item.thumbnailUrl}
@@ -101,6 +133,49 @@ export function ReelsSlider({ items }: { items: ReelItem[] }) {
           </li>
         ))}
       </ul>
+
+      {current && (
+        <div className="reels-lightbox" role="dialog" aria-modal="true" aria-label="Instagram post" onClick={close}>
+          <div className="reels-lightbox-inner" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="reels-lightbox-close" aria-label="Close" onClick={close}>
+              ×
+            </button>
+            <img src={current.thumbnailUrl} alt={current.caption ? truncate(current.caption, 120) : "Instagram post"} />
+            <div className="reels-lightbox-foot">
+              {current.caption && <p>{truncate(current.caption, 220)}</p>}
+              <a href={current.videoUrl} target="_blank" rel="noopener noreferrer" className="button-pill">
+                {current.isVideo ? "Watch on Instagram →" : "View on Instagram →"}
+              </a>
+            </div>
+          </div>
+          {items.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="reels-lightbox-nav reels-lightbox-prev"
+                aria-label="Previous"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  step(-1);
+                }}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="reels-lightbox-nav reels-lightbox-next"
+                aria-label="Next"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  step(1);
+                }}
+              >
+                ›
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
