@@ -1543,9 +1543,10 @@ a.ad-slot-text-image img {
 }
 
 /* Bigger headlines on the Discover, Walks, Community and Directory
-   grids (Rob, 2026-10) — scoped to those grids so sidebar ad cards and
+   grids and the homepage's three story cards (Rob, 2026-10) — scoped to those grids so sidebar ad cards and
    other .post-list uses keep the standard size. */
 .post-list.post-list-two-column .card-title,
+.post-list.post-list-three-column .card-title,
 .post-list.directory-list .card-title {
   font-size: 1.35rem;
   line-height: 1.25;
