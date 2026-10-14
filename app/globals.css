@@ -4960,6 +4960,18 @@ a.card-category:hover {
   margin-bottom: 1.75rem;
 }
 
+/* Community and Groups: the same keyline under the intro as News & co's
+   .category-header-row. */
+.page-header-row-keyline {
+  padding-bottom: 1.25rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.page-header-row-keyline p {
+  margin-bottom: 0;
+}
+
 /* A section page's title + one-line strapline, ranged right on the same
    row as the title on desktop (Rob's call, 2026-10) rather than stacked
    underneath — Discover, News and Walks only; every other page with a
