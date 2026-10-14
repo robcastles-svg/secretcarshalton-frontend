@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Post Views
  * Description: Our own view-counting store, keyed by post ID with a daily bucket per post — lets the frontend show a real view count plus genuinely time-windowed "top posts today/this week" without the third-party Post Views Counter plugin's REST API, which only ever returns one post's all-time total per request. Runs on staging even though the posts themselves live on the production site — same pattern already used for comments (see sc-membership's submit_comment): the numeric post ID from the production site is just an arbitrary key here, no relationship to any post actually stored on this install.
- * Version: 0.5.1
+ * Version: 0.6.0
  * Author: Secret Carshalton
  * Text Domain: sc-post-views
  */
@@ -11,12 +11,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_POST_VIEWS_VERSION', '0.5.1' );
+define( 'SC_POST_VIEWS_VERSION', '0.6.0' );
 define( 'SC_POST_VIEWS_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_POST_VIEWS_DIR . 'includes/class-sc-post-views-db.php';
 require_once SC_POST_VIEWS_DIR . 'includes/class-sc-post-views-rest.php';
 require_once SC_POST_VIEWS_DIR . 'includes/class-sc-post-views-admin.php';
+require_once SC_POST_VIEWS_DIR . 'includes/class-sc-post-reactions.php';
 
 register_activation_hook( __FILE__, array( 'SC_Post_Views_DB', 'install' ) );
 
@@ -31,12 +32,14 @@ add_action(
 	function () {
 		if ( get_option( 'sc_post_views_db_version' ) !== SC_POST_VIEWS_VERSION ) {
 			SC_Post_Views_DB::install();
+			SC_Post_Reactions::install();
 			update_option( 'sc_post_views_db_version', SC_POST_VIEWS_VERSION );
 		}
 	}
 );
 
 add_action( 'rest_api_init', array( 'SC_Post_Views_REST', 'register_routes' ) );
+add_action( 'rest_api_init', array( 'SC_Post_Reactions', 'register_routes' ) );
 add_action( 'admin_menu', array( 'SC_Post_Views_Admin', 'register_menu' ) );
 add_action( 'admin_post_sc_post_views_backfill_batch', array( 'SC_Post_Views_Admin', 'handle_backfill_batch' ) );
 

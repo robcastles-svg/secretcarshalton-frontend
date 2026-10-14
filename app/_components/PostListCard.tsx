@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { BookmarkButton } from "@/app/_components/BookmarkButton";
-import { categoryHref, getFeaturedImage, type WPCategory, type WPContentItem, type WPTag } from "@/lib/wordpress";
+import { ReactionBar } from "@/app/_components/ReactionBar";
+import { categoryHref, getFeaturedImage, stripHtml, type WPCategory, type WPContentItem, type WPTag } from "@/lib/wordpress";
 
 /** The single card <li> — split out of ContentList so pages that need to interleave post cards with other card types (e.g. Discover's featured-listing cards) in one <ul> can render it directly. */
 export function PostListCard({
@@ -55,19 +55,12 @@ export function PostListCard({
           </time>
         )}
         <div className="card-actions">
-          {commentCount > 0 && (
-            <Link
-              href={`/${item.slug}#comments`}
-              className="card-comment-count"
-              aria-label={`${commentCount} comment${commentCount === 1 ? "" : "s"} — jump to comments`}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                <path d="M21 12a8 8 0 0 1-8 8H7l-4 3 1-5.2A8 8 0 1 1 21 12Z" strokeLinejoin="round" />
-              </svg>
-              {commentCount}
-            </Link>
-          )}
-          <BookmarkButton contentType="post" contentId={item.id} />
+          <ReactionBar
+            slug={item.slug}
+            title={stripHtml(item.title.rendered)}
+            commentCount={commentCount}
+            bookmarkId={item.id}
+          />
         </div>
       </div>
       <div dangerouslySetInnerHTML={{ __html: item.excerpt.rendered }} />
