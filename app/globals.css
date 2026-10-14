@@ -1299,7 +1299,9 @@ a.ad-slot-text-image img {
   gap: 0.85rem;
 }
 
-.reaction,
+/* .reactions-prefixed so it beats the cards' general ".post-list li a
+   { display: block }", which otherwise drops the number under the icon. */
+.reactions .reaction,
 .reaction-bookmark .card-bookmark-button {
   display: inline-flex;
   align-items: center;
