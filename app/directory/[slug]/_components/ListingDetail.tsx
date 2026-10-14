@@ -188,7 +188,11 @@ export async function ListingDetail({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(businessSchema) }}
       />
       <PostViewTracker postId={listing.id} slug={listing.slug} title={stripHtml(listing.title.rendered)} />
-      <div className="post-body directory-listing-card">
+      <div className="post-body">
+        <Link href={section === "community" ? "/community/groups" : "/directory"} className="listing-back">
+          <span aria-hidden="true">&larr;</span> {section === "community" ? "Back to groups" : "Back to directory"}
+        </Link>
+        <div className="directory-listing-card">
         {isFeatured && <DirectoryImageSlider images={sliderImages} />}
         <div className="directory-listing-card-body">
           <div className="page-header-row">
@@ -287,6 +291,7 @@ export async function ListingDetail({
             kind="review"
             canReply={canEdit}
           />
+        </div>
         </div>
       </div>
       <aside className="post-sidebar">
