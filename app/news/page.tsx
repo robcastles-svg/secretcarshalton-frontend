@@ -1,9 +1,9 @@
-import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
+import { PageTitle } from "@/app/_components/PageTitle";
 import {
   getAd,
   getCategories,
@@ -39,9 +39,7 @@ export default async function NewsPage({
   return (
     <main className="container">
       <div className="category-header-row">
-        <h1>
-          <KeyTitle>News</KeyTitle>
-        </h1>
+        <PageTitle eyebrow="News">What&apos;s going on</PageTitle>
         <p className="category-header-description">A round-up of the key news affecting you</p>
       </div>
       <MobileTopAd ad={sidebarAd1} />

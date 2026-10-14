@@ -8,6 +8,7 @@ import { Pagination } from "@/app/_components/Pagination";
 import { PostListCard } from "@/app/_components/PostListCard";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
+import { PageTitle } from "@/app/_components/PageTitle";
 import {
   getAd,
   getCategories,
@@ -188,10 +189,12 @@ export async function DiscoverView({
             <h1>
               <KeyTitle>{activeArea.name}</KeyTitle>
             </h1>
-          ) : (
+          ) : isSpotlight ? (
             <h1>
-              <KeyTitle>{isSpotlight ? "Business Spotlight" : "Discover"}</KeyTitle>
+              <KeyTitle>Business Spotlight</KeyTitle>
             </h1>
+          ) : (
+            <PageTitle eyebrow="Discover">Timeless Stories</PageTitle>
           )}
           <p className="category-header-description">
             {activeArea

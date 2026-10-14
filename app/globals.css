@@ -9887,3 +9887,31 @@ a.card-category:hover {
   opacity: 0.6;
   cursor: default;
 }
+
+/* Section name in small capitals over the section's own headline
+   (News / What's going on…) — the directory category hero's type, on white. */
+.page-title {
+  min-width: 0;
+}
+
+.page-title-eyebrow {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #555;
+}
+
+.page-title h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  line-height: 1.1;
+}
+
+@media (max-width: 600px) {
+  .page-title h1 {
+    font-size: 2.1rem;
+  }
+}

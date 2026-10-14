@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
 import { ContentList } from "@/app/_components/ContentList";
 import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
 import { PromotedGroupSlot } from "@/app/_components/PromotedGroupCard";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
+import { PageTitle } from "@/app/_components/PageTitle";
 import {
   getAd,
   getCategories,
@@ -61,9 +61,7 @@ export default async function CommunityPage({
     <main className="container">
       <div className="page-header-row">
         <div>
-          <h1>
-            <KeyTitle>Community</KeyTitle>
-          </h1>
+          <PageTitle eyebrow="Community">People power</PageTitle>
           <p>Local groups, causes and community-led news from around Carshalton.</p>
         </div>
         <Link href="/community/submit" className="button-pill">

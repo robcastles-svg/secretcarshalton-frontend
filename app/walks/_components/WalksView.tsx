@@ -6,6 +6,7 @@ import { MobileTopAd } from "@/app/_components/MobileTopAd";
 import { Pagination } from "@/app/_components/Pagination";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import { paginate, parsePageParam } from "@/lib/pagination";
+import { PageTitle } from "@/app/_components/PageTitle";
 import {
   getAd,
   getCategories,
@@ -76,9 +77,13 @@ export async function WalksView({ distance, rawPage }: { distance?: WPCategory; 
 
       <main className="container">
         <div className="category-header-row">
-          <h1>
-            <KeyTitle>{activeDistance ? activeDistance.name : "Walks"}</KeyTitle>
-          </h1>
+          {activeDistance ? (
+            <h1>
+              <KeyTitle>{activeDistance.name}</KeyTitle>
+            </h1>
+          ) : (
+            <PageTitle eyebrow="Walks">Get outside</PageTitle>
+          )}
           <p className="category-header-description">
             Great ideas for often FREE places to visit in a day, from Carshalton
           </p>
