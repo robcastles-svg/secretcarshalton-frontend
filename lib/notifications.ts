@@ -26,7 +26,7 @@ export interface MemberMessage {
 /** Something that happened to the member: a reply, a review, an approval, a reminder… */
 export interface ActivityItem {
   id: number;
-  type: "reply" | "review" | "comment" | "live" | "approved" | "featured" | "tier" | "ending" | "info" | "todo" | "new" | "signup" | string;
+  type: "reply" | "review" | "comment" | "live" | "approved" | "featured" | "tier" | "ending" | "info" | "todo" | "new" | "signup" | "payment" | string;
   text: string;
   /** A path on this site, e.g. "/events/autumn-fair#comments". */
   link: string;

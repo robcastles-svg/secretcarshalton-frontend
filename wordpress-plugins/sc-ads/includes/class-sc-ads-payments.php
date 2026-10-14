@@ -202,6 +202,9 @@ class SC_Ads_Payments {
 		$lines[] = 'Refund or unpublish: ' . admin_url( 'admin.php?page=sc-payments' );
 
 		wp_mail( get_option( 'admin_email' ), $headline . ' — ' . get_the_title( $payment_id ), implode( "\n", $lines ) );
+
+		/** Lets sc-membership put the same payment in the admins' notification bell. */
+		do_action( 'sc_payments_admin_notified', $payment_id, $headline );
 	}
 
 	// ------------------------------------------------------------------

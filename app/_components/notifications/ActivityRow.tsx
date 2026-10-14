@@ -14,6 +14,7 @@ const ICONS: Record<string, { tone: "pink" | "green" | "grey"; path: React.React
   // Staff alerts (SC_Membership_Admin_Alerts).
   todo: { tone: "pink", path: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4V3h6v1M9 12l2 2 4-4" /></> },
   new: { tone: "green", path: <path d="M12 5v14M5 12h14" /> },
+  payment: { tone: "green", path: <path d="M17 7.5A4.5 4.5 0 0 0 9 10v9M6 14h8M6 19h12" /> },
   signup: { tone: "green", path: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></> },
 };
 

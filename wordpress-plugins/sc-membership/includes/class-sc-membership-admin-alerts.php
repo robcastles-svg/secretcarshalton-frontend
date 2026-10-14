@@ -5,7 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * The admin side of the notification bell (Rob, 2026-10): new members,
- * comments, events, groups, jobs, ads and anything waiting for approval
+ * comments, events, groups, jobs, ads, payments and anything waiting for approval
  * show up in the bell of every administrator/editor, so there's one place
  * to keep an eye on the site instead of checking each wp-admin screen.
  *
@@ -33,7 +33,10 @@ class SC_Membership_Admin_Alerts {
 		add_action( 'sc_events_event_claim_requested', array( __CLASS__, 'on_event_claim_requested' ), 30, 2 );
 		add_action( 'sc_events_organizer_claim_requested', array( __CLASS__, 'on_organizer_claim_requested' ), 30, 2 );
 		add_action( 'sc_directory_upgrade_requested', array( __CLASS__, 'on_upgrade_requested' ), 30, 3 );
-		add_action( 'sc_events_event_featured', array( __CLASS__, 'on_event_featured' ), 30, 1 );
+		// Every payment (ads, featured events, listings, Featured, jobs,
+		// group promotions, walk maps, donations, renewals) — the same
+		// moment sc-ads emails Rob about it.
+		add_action( 'sc_payments_admin_notified', array( __CLASS__, 'on_payment' ), 30, 2 );
 	}
 
 	/* ------------------------------------------------------------------
@@ -187,10 +190,13 @@ class SC_Membership_Admin_Alerts {
 		self::alert( 'todo', sprintf( '%s asked to upgrade %s', self::name( $user_id ), wp_specialchars_decode( $what, ENT_QUOTES ) ), admin_url( 'admin.php?page=sc-membership' ), $user_id );
 	}
 
-	public static function on_event_featured( $event_id ) {
-		$post = get_post( $event_id );
-		if ( $post ) {
-			self::alert( 'featured', sprintf( 'Paid: “%s” is now a featured event', self::title( $post ) ), '/events/' . $post->post_name, (int) $post->post_author );
+	public static function on_payment( $payment_id, $headline ) {
+		$amount  = get_post_meta( $payment_id, 'amount', true );
+		$sandbox = 'sandbox' === get_post_meta( $payment_id, 'mode', true ) ? ' (test)' : '';
+		$text    = sprintf( '%s: £%s — %s%s', $headline, $amount, wp_specialchars_decode( get_the_title( $payment_id ), ENT_QUOTES ), $sandbox );
+		// Not skipped for staff: a payment is worth seeing whoever paid.
+		foreach ( self::staff_ids() as $staff_id ) {
+			SC_Membership_Activity::add( $staff_id, 'payment', $text, admin_url( 'admin.php?page=sc-payments' ) );
 		}
 	}
 
