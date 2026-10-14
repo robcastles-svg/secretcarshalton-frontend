@@ -1177,8 +1177,8 @@ export function EventForm({
                     <Msg kind="err">That looks like an email address. Choose &ldquo;Contact to book&rdquo; above and put it there instead.</Msg>
                   )}
                   <span className="evf-hint">
-                    Please link to the booking or ticket page if there is one, or the event&apos;s own website. Add your
-                    group&apos;s own details under Organiser above.
+                    An event will be declined if it doesn&apos;t link directly to the booking or ticket page if there is
+                    one. Add your group&apos;s own details under Organiser above.
                   </span>
                 </div>
                 <div className="evf-field">

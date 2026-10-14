@@ -88,7 +88,10 @@ async function AddYourEventPage({ token }: { token: string }) {
           <>
             <section className="evf-intro">
               <h1>Add your event</h1>
-              <p>Adding an event is free. It goes live as soon as you submit it, and you can edit it any time.</p>
+              <p>
+                Adding an event is free. It goes live as soon as you submit it, and you can edit it any time. Only
+                single events can be promoted for £5 (goes to top of listings right until start date)
+              </p>
               <div className="evf-tip">
                 Tip: sharing an event at least a month in advance is the most successful way to gain views.
               </div>
