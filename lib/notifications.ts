@@ -26,7 +26,7 @@ export interface MemberMessage {
 /** Something that happened to the member: a reply, a review, an approval, a reminder… */
 export interface ActivityItem {
   id: number;
-  type: "reply" | "review" | "comment" | "live" | "approved" | "featured" | "tier" | "ending" | "info" | string;
+  type: "reply" | "review" | "comment" | "live" | "approved" | "featured" | "tier" | "ending" | "info" | "todo" | "new" | "signup" | string;
   text: string;
   /** A path on this site, e.g. "/events/autumn-fair#comments". */
   link: string;
@@ -34,10 +34,19 @@ export interface ActivityItem {
   seen: boolean;
 }
 
+/** One line of the staff-only "To approve" box, e.g. { label: "3 comments", link: wp-admin… }. */
+export interface PendingItem {
+  label: string;
+  count: number;
+  link: string;
+}
+
 export interface Notifications {
   unread: number;
   messages: MemberMessage[];
   activity?: ActivityItem[];
+  /** Administrators/editors only: what's waiting for approval right now. */
+  pending?: PendingItem[];
 }
 
 /** "12 minutes ago", "Yesterday", "3 Oct". */

@@ -217,7 +217,12 @@ class SC_Membership_Activity {
 		// Reed's jobs belong to the admin account, so the staff check above skips them.
 		$title = 'sc_ad' === $post->post_type ? ( get_post_meta( $post->ID, 'sc_ad_headline', true ) ?: self::title( $post ) ) : self::title( $post );
 		$link  = 'sc_ad' === $post->post_type ? '/dashboard#advertising' : self::path_for( $post );
-		self::add( $author, 'live', sprintf( $labels[ $post->post_type ], $title ), $link );
+		$label = $labels[ $post->post_type ];
+		if ( 'sc_listing' === $post->post_type && class_exists( 'SC_Directory_Payments' ) && SC_Directory_Payments::is_group( $post->ID ) ) {
+			$label = 'Your group “%s” is now live';
+			$link  = '/community/groups/' . $post->post_name;
+		}
+		self::add( $author, 'live', sprintf( $label, $title ), $link );
 	}
 
 	public static function on_listing_claimed( $user_id, $listing_id ) {

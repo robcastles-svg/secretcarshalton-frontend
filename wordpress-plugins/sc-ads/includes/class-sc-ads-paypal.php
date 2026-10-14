@@ -139,8 +139,17 @@ class SC_Ads_PayPal {
 			'/v2/checkout/orders',
 			$token,
 			array(
-				'intent'         => 'CAPTURE',
-				'purchase_units' => array(
+				'intent'              => 'CAPTURE',
+				// UK English on PayPal's own screens, a "Pay Now" button
+				// (nothing to review afterwards), no delivery address asked
+				// for — nothing here is posted out.
+				'application_context' => array(
+					'brand_name'          => 'Secret Carshalton',
+					'locale'              => 'en-GB',
+					'shipping_preference' => 'NO_SHIPPING',
+					'user_action'         => 'PAY_NOW',
+				),
+				'purchase_units'      => array(
 					array(
 						'custom_id'   => (string) $ad_id,
 						'description' => null !== $description ? $description : 'Secret Carshalton text ad #' . $ad_id,

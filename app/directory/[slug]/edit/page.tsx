@@ -11,6 +11,7 @@ import {
 } from "@/lib/wordpress";
 import { EditListingForm } from "./_components/EditListingForm";
 import { SpotlightEditor } from "./_components/SpotlightEditor";
+import { isGroupListing } from "../_components/ListingDetail";
 
 export const metadata = { title: "Edit listing — Secret Carshalton" };
 
@@ -40,7 +41,8 @@ export default async function EditListingPage({
     redirect(`/directory/${slug}`);
   }
 
-  const spotlight = profile.is_editor
+  const isGroup = isGroupListing(listing, categories);
+  const spotlight = profile.is_editor && !isGroup
     ? await getSpotlightArticles((listing.meta.sc_spotlight_slugs ?? "").split(",").map((x) => x.trim()).filter(Boolean))
     : [];
 
@@ -50,7 +52,7 @@ export default async function EditListingPage({
 
   return (
     <main className="container auth-page">
-      <h1>Edit listing</h1>
+      <h1>{isGroup ? "Edit group" : "Edit listing"}</h1>
       <EditListingForm
         listingId={listing.id}
         listingSlug={listing.slug}
@@ -81,7 +83,8 @@ export default async function EditListingPage({
           featured: Boolean(listing.meta.sc_featured),
         }}
       />
-      {profile.is_editor && (
+      {/* Spotlight articles are for businesses, not community groups. */}
+      {profile.is_editor && !isGroup && (
         <SpotlightEditor
           listingId={listing.id}
           initial={spotlight.map((a) => ({ slug: a.slug, title: stripHtml(a.title) }))}

@@ -11,6 +11,10 @@ const ICONS: Record<string, { tone: "pink" | "green" | "grey"; path: React.React
   tier: { tone: "green", path: <><circle cx="12" cy="8" r="6" /><path d="M8.2 13.2 7 22l5-3 5 3-1.2-8.8" /></> },
   ending: { tone: "grey", path: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></> },
   info: { tone: "grey", path: <><circle cx="12" cy="12" r="9" /><path d="M12 16v-4M12 8h.01" /></> },
+  // Staff alerts (SC_Membership_Admin_Alerts).
+  todo: { tone: "pink", path: <><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4V3h6v1M9 12l2 2 4-4" /></> },
+  new: { tone: "green", path: <path d="M12 5v14M5 12h14" /> },
+  signup: { tone: "green", path: <><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></> },
 };
 
 /** One line of the member's activity in the bell (and on /dashboard/notifications). */

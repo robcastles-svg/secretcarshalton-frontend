@@ -97,7 +97,8 @@ export function NotificationBell({ initial }: { initial: Notifications | null })
     ...messages.filter((m) => !m.pinned).map((m) => ({ kind: "message" as const, date: m.date, message: m })),
     ...activity.map((a) => ({ kind: "activity" as const, date: a.date, item: a })),
   ].sort((a, b) => b.date.localeCompare(a.date));
-  const empty = messages.length === 0 && activity.length === 0;
+  const pending = initial?.pending ?? [];
+  const empty = messages.length === 0 && activity.length === 0 && pending.length === 0;
 
   return (
     <div className="notif-wrap" ref={wrapRef}>
@@ -135,6 +136,18 @@ export function NotificationBell({ initial }: { initial: Notifications | null })
                 </p>
               ) : (
                 <>
+                  {pending.length > 0 && (
+                    <div className="notif-pending">
+                      <strong>To approve</strong>
+                      <ul>
+                        {pending.map((p) => (
+                          <li key={p.link + p.label}>
+                            <a href={p.link}>{p.label}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   {pinned.map((m) => (
                     <MessageCard
                       key={m.id}

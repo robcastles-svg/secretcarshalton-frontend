@@ -44,7 +44,7 @@ class SC_Directory_Payments {
 		add_action( 'sc_payments_daily', array( __CLASS__, 'daily' ) );
 	}
 
-	private static function is_group( $id ) {
+	public static function is_group( $id ) {
 		return has_term( self::GROUPS_CATEGORY, SC_Directory_CPT::TAXONOMY, $id );
 	}
 
