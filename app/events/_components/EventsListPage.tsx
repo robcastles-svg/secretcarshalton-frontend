@@ -443,29 +443,18 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
 
       {slides.length > 0 && <FeaturedSlider slides={slides} />}
 
-      <div className="evl-layout">
-        <div className="evl-main">
-          {main}
-          {monthNav}
-        </div>
-        <aside className="evl-side">
-          <SidebarAds ads={[ad1, ad2, ad3]} />
-        </aside>
-      </div>
-
+      {/* Latest events added: straight under the featured slider, full
+          width, text only so it stays compact (Rob, 2026-10). Swipe
+          sideways on a phone. */}
       {latest.length > 0 && (
         <section className="evl-latest">
           <h2>Latest events added</h2>
           <div className="evl-hscroll">
             {latest.map((event) => {
-              const image = getFeaturedImage(event);
               const next = upcomingOccurrences(event, now)[0] ?? getOccurrences(event)[0];
               const p = next ? dateParts(next.start) : null;
               return (
                 <Link key={event.id} className="evl-mini" href={`/events/${event.slug}`}>
-                  <div className="evx-card-img evl-mini-img">
-                    {image ? <img src={image.source_url} alt="" loading="lazy" /> : <div className="evx-card-noimg" />}
-                  </div>
                   <div className="evl-mini-t">
                     {p && <span className="evl-mini-d">{p.label.replace(/ \d{4}$/, "")}</span>}
                     <h3>{stripHtml(event.title.rendered)}</h3>
@@ -476,6 +465,17 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
           </div>
         </section>
       )}
+
+      <div className="evl-layout">
+        <div className="evl-main">
+          {main}
+          {monthNav}
+        </div>
+        <aside className="evl-side">
+          <SidebarAds ads={[ad1, ad2, ad3]} />
+        </aside>
+      </div>
+
     </main>
   );
 }
