@@ -1854,11 +1854,16 @@ a.card-category:hover {
 }
 
 /* The page you're on, in black so it stands out from the grey links
-   (Rob, 2026-10). The strip is always white, so this reads everywhere. */
+   (Rob, 2026-10). Events' strip is black, so there it's white instead. */
 .secondary-nav a.active,
 .secondary-nav button.active {
   color: #1a1a1a;
   font-weight: 700;
+}
+
+.events-dark .secondary-nav a.active,
+.events-dark .secondary-nav button.active {
+  color: #fff;
 }
 
 /*
@@ -8702,8 +8707,7 @@ a.home-comment-author:hover {
 .evl-main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .evl-side { min-width: 0; }
 .evl-group { display: grid; gap: 12px; }
-.evx .evl-group > h2 { margin: 10px 0 0; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--evx-on-dark-soft); display: flex; gap: 12px; align-items: center; }
-.evl-group > h2::after { content: ""; flex: 1; border-top: 1px solid var(--evx-panel-line); }
+.evx .evl-group > h2 { margin: 10px 0 0; font-size: 22px; font-weight: 900; color: #fff; }
 .evl-load-more { align-self: center; }
 .evl-empty { background: var(--evx-charcoal); border-radius: 14px; padding: 22px; display: grid; gap: 10px; justify-items: start; }
 .evx .evl-empty h2 { margin: 0; font-size: 18px; color: #fff; }
@@ -8712,10 +8716,14 @@ a.home-comment-author:hover {
 .evx-card-dark .evx-date { background: #2b282d; border-color: #3a363c; }
 
 /* latest events added — sideways scroll */
-.evl-latest { max-width: 1180px; margin: 8px auto 0; padding: 0 1.5rem 28px; }
-.evx .evl-latest h2 { margin: 0 0 12px; font-size: 22px; font-weight: 900; color: #fff; }
-.evl-hscroll { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; }
-.evx .evl-mini { flex: 0 0 220px; scroll-snap-align: start; background: var(--evx-charcoal); color: #fff; border-radius: 12px; overflow: hidden; text-decoration: none; min-width: 0; }
+/* Full width under the featured slider: a compact, swipeable strip of
+   text-only cards (Rob, 2026-10). */
+.evl-latest { max-width: 1180px; margin: 20px auto 0; padding: 0 1.5rem 8px; }
+.evx .evl-latest h2 { margin: 0 0 10px; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--evx-on-dark-soft); display: flex; gap: 12px; align-items: center; }
+.evl-latest h2::after { content: ""; flex: 1; border-top: 1px solid var(--evx-panel-line); }
+.evl-hscroll { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; scrollbar-width: none; padding-bottom: 4px; }
+.evl-hscroll::-webkit-scrollbar { display: none; }
+.evx .evl-mini { flex: 0 0 200px; scroll-snap-align: start; background: var(--evx-charcoal); color: #fff; border-radius: 12px; overflow: hidden; text-decoration: none; min-width: 0; }
 .evl-mini-img { aspect-ratio: 16 / 10; }
 .evl-mini:hover .evx-card-img img { transform: scale(1.06); filter: brightness(.78); }
 .evl-mini-t { padding: 10px 12px 12px; display: grid; gap: 4px; }
@@ -8749,7 +8757,7 @@ a.home-comment-author:hover {
   .evl-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 3rem; padding: 16px 32px 32px; align-items: start; }
   .evl-side { box-sizing: border-box; padding-left: 2rem; border-left: 1px solid var(--evx-panel-line); }
   .evl-main .evx-grid { gap: 2rem; }
-  .evl-latest { padding: 0 32px 32px; }
+  .evl-latest { padding: 0 32px 8px; }
 }
 
 /* ==========================================================================
