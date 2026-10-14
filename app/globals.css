@@ -1552,11 +1552,14 @@ a.ad-slot-text-image img {
   line-height: 1.25;
 }
 
-/* News (single column): a bit more room above the headline, under the
-   photo on phones (desktop has its own, larger, in the row layout). */
+/* News (single column) on phones: a bit more room above the headline,
+   under the photo (desktop has its own, larger, in the row layout). */
 @media (max-width: 719px) {
   .post-list.post-list-single-column .card-title {
     margin-top: 0.4rem;
+    /* Same size as the Directory/Discover cards on phones, for consistency. */
+    font-size: 1.35rem;
+    line-height: 1.25;
   }
 }
 
