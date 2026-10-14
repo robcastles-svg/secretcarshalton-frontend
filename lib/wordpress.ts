@@ -2593,6 +2593,14 @@ export interface MyListing {
   featuredTier?: string;
   featuredUntil?: string;
   promotedUntil?: string;
+  /** Featured Plus/Gold checklist (SC_Directory_Campaign::status); null for other packages. */
+  campaign?: CampaignStep[] | null;
+}
+
+export interface CampaignStep {
+  key: "listing" | "ad" | "banner" | "spotlight" | string;
+  label: string;
+  done: boolean;
 }
 
 /** Same reasoning as getMyEvents: views live in sc-post-views, not sc-directory's own /mine response. */

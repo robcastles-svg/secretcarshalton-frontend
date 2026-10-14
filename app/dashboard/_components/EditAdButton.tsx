@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AD_BODY_MAX, AD_HEADLINE_MAX } from "@/lib/pricing";
 import { shrinkFormImages } from "@/lib/shrink-image";
 
 export function EditAdButton({
@@ -52,12 +53,12 @@ export function EditAdButton({
       style={{ display: "flex", flexDirection: "column", gap: "0.4rem", minWidth: "14rem", textAlign: "left" }}
     >
       <label className="dashboard-hint" style={{ margin: 0 }}>
-        Headline
-        <input type="text" name="headline" required defaultValue={headline} style={{ display: "block", width: "100%" }} />
+        Headline (up to {AD_HEADLINE_MAX} characters)
+        <input type="text" name="headline" required maxLength={AD_HEADLINE_MAX} defaultValue={headline} style={{ display: "block", width: "100%" }} />
       </label>
       <label className="dashboard-hint" style={{ margin: 0 }}>
-        Body text
-        <input type="text" name="body" defaultValue={body} style={{ display: "block", width: "100%" }} />
+        Body text (up to {AD_BODY_MAX} characters)
+        <input type="text" name="body" maxLength={AD_BODY_MAX} defaultValue={body} style={{ display: "block", width: "100%" }} />
       </label>
       <label className="dashboard-hint" style={{ margin: 0 }}>
         Link

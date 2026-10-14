@@ -142,6 +142,11 @@ class SC_Directory_Hooks {
 			if ( $tier ) {
 				update_post_meta( $listing_id, 'sc_featured_tier', $tier );
 			}
+			// Approved by hand as Plus/Gold: same text ad as a paid one.
+			if ( in_array( $tier, SC_Directory_Campaign::TIERS, true ) ) {
+				$until = (int) get_post_meta( $listing_id, 'sc_featured_until', true );
+				SC_Directory_Campaign::sync_ad( $listing_id, $until > time() ? $until : strtotime( '+1 month' ) );
+			}
 		}
 		// Rejected: leave the listing as-is — no downgrade, since it likely
 		// wasn't upgraded yet in the first place. Nothing to undo.

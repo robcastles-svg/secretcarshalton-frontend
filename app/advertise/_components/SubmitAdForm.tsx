@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { TEXT_AD_TIERS } from "@/lib/pricing";
+import { AD_BODY_MAX, AD_HEADLINE_MAX, TEXT_AD_TIERS } from "@/lib/pricing";
 import { AdPreview } from "./AdPreview";
 import { PayPalPayButton } from "./PayPalPayButton";
 import { shrinkFormImages } from "@/lib/shrink-image";
@@ -98,20 +98,28 @@ export function SubmitAdForm() {
           type="text"
           name="headline"
           required
+          maxLength={AD_HEADLINE_MAX}
           placeholder="e.g. 20% off this month at…"
           value={headline}
           onChange={(e) => setHeadline(e.target.value)}
         />
+        <small className="dashboard-hint">
+          {headline.length}/{AD_HEADLINE_MAX} characters
+        </small>
       </label>
       <label>
         Body text (optional)
         <input
           type="text"
           name="body"
+          maxLength={AD_BODY_MAX}
           placeholder="A short line under the headline"
           value={body}
           onChange={(e) => setBody(e.target.value)}
         />
+        <small className="dashboard-hint">
+          {body.length}/{AD_BODY_MAX} characters
+        </small>
       </label>
       <label>
         Link

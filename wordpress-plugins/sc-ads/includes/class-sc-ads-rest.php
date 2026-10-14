@@ -127,6 +127,21 @@ class SC_Ads_REST {
 	 */
 	const MEMBER_SUBMITTABLE_PLACEMENTS = array( 'sidebar', 'in_article' );
 
+	/** Text ad limits (Rob, 2026-10). Must match AD_HEADLINE_MAX / AD_BODY_MAX in lib/pricing.ts. */
+	const HEADLINE_MAX = 40;
+	const BODY_MAX     = 110;
+
+	/** An error if a member's headline/body is over the limit, else null. */
+	private static function too_long( $headline, $body ) {
+		if ( mb_strlen( $headline ) > self::HEADLINE_MAX ) {
+			return new WP_Error( 'too_long', 'The headline can be up to ' . self::HEADLINE_MAX . ' characters.', array( 'status' => 400 ) );
+		}
+		if ( mb_strlen( $body ) > self::BODY_MAX ) {
+			return new WP_Error( 'too_long', 'The text under the headline can be up to ' . self::BODY_MAX . ' characters.', array( 'status' => 400 ) );
+		}
+		return null;
+	}
+
 	private static function eligible_ads( $placement ) {
 		$today = current_time( 'Y-m-d' );
 
@@ -292,6 +307,11 @@ class SC_Ads_REST {
 	public static function update_ad( WP_REST_Request $request ) {
 		$id = absint( $request->get_param( 'id' ) );
 
+		$too_long = self::too_long( sanitize_text_field( (string) $request->get_param( 'headline' ) ), sanitize_text_field( (string) $request->get_param( 'body' ) ) );
+		if ( $too_long && ! current_user_can( 'manage_options' ) ) {
+			return $too_long;
+		}
+
 		if ( null !== $request->get_param( 'headline' ) ) {
 			$headline = sanitize_text_field( (string) $request->get_param( 'headline' ) );
 			if ( ! $headline ) {
@@ -349,6 +369,10 @@ class SC_Ads_REST {
 		}
 		if ( ! in_array( $placement, self::MEMBER_SUBMITTABLE_PLACEMENTS, true ) ) {
 			return new WP_Error( 'invalid_placement', 'Choose a valid ad placement.', array( 'status' => 400 ) );
+		}
+		$too_long = self::too_long( $headline, $body );
+		if ( $too_long ) {
+			return $too_long;
 		}
 
 		$post_id = wp_insert_post(

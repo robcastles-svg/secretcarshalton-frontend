@@ -21,6 +21,10 @@ export const TEXT_AD_TIERS = [
   },
 ] as const;
 
+/** Text ad length limits — must match SC_Ads_REST::HEADLINE_MAX / BODY_MAX. */
+export const AD_HEADLINE_MAX = 40;
+export const AD_BODY_MAX = 110;
+
 export interface FeaturedDirectoryTier {
   slug: "featured" | "featured_6mo" | "featured_plus" | "featured_gold";
   label: string;

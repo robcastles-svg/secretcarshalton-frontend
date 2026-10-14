@@ -78,8 +78,8 @@ export default async function AdvertisePage() {
           <div className="adv-how-step">
             <span className="adv-how-number">3</span>
             <div>
-              <div className="adv-how-title">Approved &amp; live</div>
-              <div className="adv-how-text">Once approved it goes live on your start date and expires automatically.</div>
+              <div className="adv-how-title">Live straight away</div>
+              <div className="adv-how-text">It goes live as soon as you pay and ends automatically.</div>
             </div>
           </div>
         </div>
@@ -112,7 +112,7 @@ export default async function AdvertisePage() {
               <li>Create your own text advert</li>
               <li>No design required</li>
               <li>Sidebar placement</li>
-              <li>Choose your start date</li>
+              <li>Goes live as soon as you pay</li>
               <li className="adv-tick-muted">Views are not guaranteed</li>
             </ul>
           </div>
@@ -135,7 +135,7 @@ export default async function AdvertisePage() {
               <li>
                 <strong>Additional placement within articles and features</strong>
               </li>
-              <li>Choose your start date</li>
+              <li>Goes live as soon as you pay</li>
               <li className="adv-tick-muted">Views are not guaranteed</li>
             </ul>
           </div>
@@ -232,7 +232,6 @@ export default async function AdvertisePage() {
               <li>Designed banner</li>
               <li>Banner displayed across the site</li>
               <li>Social Story promotion</li>
-              <li>Choose your start date within a 2-week window</li>
               <li>Choose how many months you want to run</li>
             </ul>
             <Link href={`/directory/featured?tier=${FEATURED_DIRECTORY_TIERS[2].slug}`} className="button-pill adv-card-cta">
@@ -261,7 +260,6 @@ export default async function AdvertisePage() {
               <li>Designed banner displayed across the site</li>
               <li>Written article about your business, organisation or event</li>
               <li>Social media post promoting the article</li>
-              <li>Choose your start date within a 2-week window</li>
               <li>Choose how many months you want to run</li>
             </ul>
             <Link href={`/directory/featured?tier=${FEATURED_DIRECTORY_TIERS[3].slug}`} className="button-pill adv-btn-gold adv-card-cta">
