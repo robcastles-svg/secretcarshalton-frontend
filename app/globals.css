@@ -8141,49 +8141,51 @@ a.card-category:hover {
 }
 
 /* Reels & photos */
+/* Reels: edge to edge, the first tile against the screen's left edge,
+   9:16 like reels, 4.5 across on desktop / 2.5 on phones (Rob, 2026-10).
+   Dragged with the mouse (see ReelsSlider), swiped on touch. */
 .reels-slider {
+  --reel-gap: 6px;
+  --reels-across: 4.5;
   position: relative;
   margin-left: calc(50% - 50vw);
   width: 100vw;
-  padding-left: calc(50vw - 50%);
-  /* This codebase never resets box-sizing globally, so by default
-     (content-box) the padding-left above was being added ON TOP of the
-     100vw width instead of carved out of it — the element rendered
-     wider than the viewport (by exactly that padding), which widened
-     the whole page and pushed fixed-position elements like
-     .back-to-top off-screen on mobile. border-box makes width:100vw
-     actually mean 100vw, padding included. */
   box-sizing: border-box;
 }
 
 .reels-track {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--reel-gap);
   overflow-x: auto;
   scroll-snap-type: x proximity;
   list-style: none;
   margin: 0;
-  padding: 0 1.5rem 0.25rem 0;
+  padding: 0 0 0.25rem;
   scrollbar-width: none;
+  cursor: grab;
+  user-select: none;
 }
 
 .reels-track::-webkit-scrollbar {
   display: none;
 }
 
+/* Snapping would fight the drag; it settles back on when the drag ends. */
+.reels-track.is-dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+
 .reels-track li {
   flex: none;
-  width: 200px;
+  width: calc((100vw - (var(--reels-across) - 0.5) * var(--reel-gap)) / var(--reels-across));
   scroll-snap-align: start;
 }
 
 .reels-item {
   position: relative;
   display: block;
-  /* Instagram's own portrait shape — 9:16 cropped the sides off photo
-     posts and the text on graphics. */
-  aspect-ratio: 4 / 5;
-  border-radius: 8px;
+  aspect-ratio: 9 / 16;
   overflow: hidden;
   background: #ece8e3;
 }
@@ -8192,6 +8194,7 @@ a.card-category:hover {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  pointer-events: none;
 }
 
 .reels-play {
@@ -8201,45 +8204,13 @@ a.card-category:hover {
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   background: rgba(0, 0, 0, 0.15);
 }
 
-.reels-arrow {
-  display: none;
-}
-
-@media (min-width: 760px) {
-  .reels-arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: none;
-    background: #fff;
-    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
-    font-size: 1.3rem;
-    cursor: pointer;
-    z-index: 1;
-  }
-
-  .reels-arrow-prev {
-    left: 0.5rem;
-  }
-
-  .reels-arrow-next {
-    right: 0.5rem;
-  }
-}
-
 @media (max-width: 759px) {
-  .reels-track li {
-    width: 42vw;
+  .reels-slider {
+    --reels-across: 2.5;
   }
 }
 
