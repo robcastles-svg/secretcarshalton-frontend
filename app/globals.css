@@ -3589,6 +3589,22 @@ a.card-category:hover {
 /* Directory listing detail page: white card, soft shadow, image
    full-bleed at the top of the card (rest of the site stays flat/hairline
    by design — this card treatment is scoped to directory listings only). */
+/* Small "← Back to directory" above a listing's box (Rob, 2026-10). */
+.listing-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #cc99a2;
+  text-decoration: none;
+}
+
+.listing-back:hover {
+  color: #b0435a;
+}
+
 .directory-listing-card {
   background: #fff;
   border-radius: 12px;
