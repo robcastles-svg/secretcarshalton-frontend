@@ -137,8 +137,12 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push({ url: `${SITE_URL}${path}`, changeFrequency: "daily", priority: 0.7 });
   }
 
+  // Community groups' pages live under /community/groups.
+  const groupsCategoryId = directoryCategories.find((c) => c.slug === GROUPS_CATEGORY_SLUG)?.id;
   for (const listing of listings) {
-    entries.push({ url: `${SITE_URL}/directory/${listing.slug}`, changeFrequency: "monthly", priority: 0.5 });
+    const isGroup = groupsCategoryId !== undefined && listing.sc_listing_category?.includes(groupsCategoryId);
+    const path = isGroup ? `/community/groups/${listing.slug}` : `/directory/${listing.slug}`;
+    entries.push({ url: `${SITE_URL}${path}`, changeFrequency: "monthly", priority: 0.5 });
   }
 
   // Each directory category's own dedicated page (/directory/{slug}) —

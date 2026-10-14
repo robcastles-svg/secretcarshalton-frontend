@@ -17,7 +17,7 @@ export function PromotedGroupCard({ listing }: { listing: WPListing }) {
 
   return (
     <li className="ad-card-external ad-card-featured-group">
-      <Link href={`/directory/${listing.slug}`} className="ad-card-row">
+      <Link href={`/community/groups/${listing.slug}`} className="ad-card-row">
         {image && <img src={image.source_url} alt={image.alt_text} loading="lazy" />}
         <div className="card-text">
           <span className="ad-card-badge">Featured</span>
