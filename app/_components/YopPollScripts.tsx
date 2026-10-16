@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect } from "react";
+import { CMS_ORIGIN } from "@/lib/cms-hosts.mjs";
 
-const WP_BASE = "https://www.secretcarshalton.com";
+// Straight from the CMS: since go-live www is this site, which doesn't
+// serve WordPress's /wp-includes or /wp-json (the polls broke on that).
+const WP_BASE = CMS_ORIGIN;
 
 /**
- * Exact dependency chain the real /polls/ page on secretcarshalton.com
+ * Exact dependency chain the real /polls/ page on the CMS
  * loads for YOP Poll's frontend.js — WP core's bundled React/ReactDOM,
  * the @wordpress/element, @wordpress/hooks and @wordpress/i18n packages
  * it's built against, then the plugin bundle itself. Order matters:
@@ -90,7 +93,7 @@ export function YopPollScripts() {
             restUrl: `${WP_BASE}/wp-json/yop-poll/v1/`,
             adminAjaxUrl: `${WP_BASE}/wp-admin/admin-ajax.php`,
             wpUserLoggedIn: "",
-            wpLoginUrl: `${WP_BASE}/login/`,
+            wpLoginUrl: "/login",
           };
         }
 
