@@ -19,8 +19,10 @@ is:
    Upload), scripted the same way the staging-site exploration in this
    session was done. Slower than `git push`, but it's the mechanism that
    actually works from here.
-3. Staging (`staging19.secretcarshalton.com`) is always the deploy target
-   until Rob reviews and asks for it to go live.
+3. Since go-live (16 Oct 2026) there is no staging install: staging19
+   became the live CMS at `www.cms.secretcarshalton.com`, so a plugin
+   upload goes straight to the live site. For anything risky, make a
+   SiteGround staging copy of the cms install first and upload there.
 
 If SiteGround's Git feature turns out to support an HTTPS remote (not
 confirmed yet), that would be a straightforward upgrade to step 2 later.
@@ -29,11 +31,11 @@ confirmed yet), that would be a straightforward upgrade to step 2 later.
 
 | Plugin | Status | Purpose |
 |---|---|---|
-| `sc-membership` | live on staging | Central member record: points, tiers, directory-upgrade approval queue, plus a bearer-token auth bridge (`/login`, `/register`) so the Next.js frontend can log members in without a second auth system — same `wp_users` table, same passwords. Also member messages (0.26): Rob's notices for the notification bell, aimed at groups worked out from what members have posted, optionally emailed in batches by WP-Cron with one-click unsubscribe — written on the site at `/admin/messages`, see `class-sc-membership-messages.php`. And member activity (0.27): replies, reviews, approvals, "ends soon" reminders and tier changes logged per member for the same bell (`class-sc-membership-activity.php`, kept 90 days). |
-| `sc-directory` | live on staging, real data migrated | Replaces Sabai Directory. Schema modeled on the real data scraped from staging (see below) — same shape, clean REST-first implementation via a plain CPT. 118 of the 136 real Sabai listings imported (the rest were pending/draft/trashed in the original and weren't migrated); all unclaimed until Rob supplies real owner emails (task pending). |
-| `sc-events` | live on staging, real data migrated | Replaces the EventON data layer. Real REST fields (start/end/venue) instead of scraping schema.org JSON-LD out of HTML, which is what the frontend used to do (and what caused two of this session's build failures). All 257 real events migrated from EventON's live data; the frontend now reads from sc-events end to end — see app/events/, app/page.tsx, lib/wordpress.ts's getScEvents/getUpcomingScEvents. |
-| `sc-ads` | live on staging | Admin-manageable ad slots (billboard/leaderboard/sidebar/in-article) — a plain labelled form (image, link, alt text, placement, active toggle, date range), no code editing needed to change a creative. Replaces the hardcoded Billboard/Leaderboard image URLs that were in `app/layout.tsx`. Also owns the site's PayPal setup (one sandbox/live switch under Ads → PayPal Settings), used by text ads, featured events (`sc-events`) and the £1.50 walk-map downloads (`SC_Ads_Map_Sales` — prices and PDFs still come from the WP Express Checkout products).
-| `sc-revalidate` | live on staging | Tells the frontend to refresh its hourly-cached pages the moment content changes (publish/update/unpublish/delete, approved comments, term edits) — calls `/api/revalidate` with `{ all: true }` once per request, non-blocking. Settings → Site refresh holds the frontend URL and the shared secret (Vercel env `REVALIDATE_SECRET`). Blog posts are read from the **live** WordPress, so it needs installing there too before new posts refresh instantly. |
+| `sc-membership` | live on the CMS | Central member record: points, tiers, directory-upgrade approval queue, plus a bearer-token auth bridge (`/login`, `/register`) so the Next.js frontend can log members in without a second auth system — same `wp_users` table, same passwords. Also member messages (0.26): Rob's notices for the notification bell, aimed at groups worked out from what members have posted, optionally emailed in batches by WP-Cron with one-click unsubscribe — written on the site at `/admin/messages`, see `class-sc-membership-messages.php`. And member activity (0.27): replies, reviews, approvals, "ends soon" reminders and tier changes logged per member for the same bell (`class-sc-membership-activity.php`, kept 90 days). |
+| `sc-directory` | live on the CMS, real data migrated | Replaces Sabai Directory. Schema modeled on the real data scraped from staging (see below) — same shape, clean REST-first implementation via a plain CPT. 118 of the 136 real Sabai listings imported (the rest were pending/draft/trashed in the original and weren't migrated); all unclaimed until Rob supplies real owner emails (task pending). |
+| `sc-events` | live on the CMS, real data migrated | Replaces the EventON data layer. Real REST fields (start/end/venue) instead of scraping schema.org JSON-LD out of HTML, which is what the frontend used to do (and what caused two of this session's build failures). All 257 real events migrated from EventON's live data; the frontend now reads from sc-events end to end — see app/events/, app/page.tsx, lib/wordpress.ts's getScEvents/getUpcomingScEvents. |
+| `sc-ads` | live on the CMS | Admin-manageable ad slots (billboard/leaderboard/sidebar/in-article) — a plain labelled form (image, link, alt text, placement, active toggle, date range), no code editing needed to change a creative. Replaces the hardcoded Billboard/Leaderboard image URLs that were in `app/layout.tsx`. Also owns the site's PayPal setup (one sandbox/live switch under Ads → PayPal Settings), used by text ads, featured events (`sc-events`) and the £1.50 walk-map downloads (`SC_Ads_Map_Sales` — prices and PDFs still come from the WP Express Checkout products).
+| `sc-revalidate` | live on the CMS | Tells the frontend to refresh its hourly-cached pages the moment content changes (publish/update/unpublish/delete, approved comments, term edits) — calls `/api/revalidate` with `{ all: true }` once per request, non-blocking. Settings → Site refresh holds the frontend URL and the shared secret (Vercel env `REVALIDATE_SECRET`). Frontend URL is `https://secretcarshalton-frontend-secret-carshalton.vercel.app` (works whatever the public domain). SiteGround's Dynamic Cache must stay **off** on cms: it cached REST responses, so the frontend kept being served old data after edits. |
 
 ## Directory listings: legacy vs new plans (Rob, 2026-10)
 
@@ -63,9 +65,8 @@ confirmed yet), that would be a straightforward upgrade to step 2 later.
 - `/events`, `/events/[slug]`, and the homepage's Events strip — read
   `sc-events` via `getScEvents`/`getUpcomingScEvents`/`getScEventBySlug`.
 - `app/layout.tsx`'s Billboard/Leaderboard slots read `sc-ads` via `getAd()`.
-- All of the above point at `WP_STAGING_ROOT` (`staging19.secretcarshalton.com`)
-  in `lib/wordpress.ts`, not the live site — these plugins aren't deployed
-  to production yet. Swap that constant once they are.
+- All of the above, and articles/pages, read from the one CMS install set in
+  `lib/cms-hosts.mjs` (`www.cms.secretcarshalton.com`).
 
 ## Real data model this is based on (scraped from staging, 2026-08-21)
 
@@ -136,27 +137,37 @@ just the three action names between them.
 `sc-events` fires `sc_events_rsvp` on RSVP; `sc-membership` has listened
 for it since before `sc-events` existed (5 points per RSVP).
 
-## Before going live
+## Go-live (done 16 Oct 2026)
 
-**Switch-day progress (16 Oct 2026).** Rob is doing the switch step by step
-with Claude. Old site frozen 11:06 UTC: sign-ups, comments on new posts, reviews and
-event submissions off, and nothing published there since. Comments on
-existing posts were left open, so re-check live for new ones just before
-the DNS switch. Sync from live to staging19
-re-run in full, and everything below is current as of then:
-articles (381, all in step), approved comments, Sabai reviews, events,
-listing edits and live-only members all needed nothing new. View counts
-were refreshed in sc-post-views 0.6.1, uploaded to staging19. Staging19's
-4 test accounts are deleted. Its pages were already cut down to 22, and all
-53 live-only page addresses redirect on the new site. The old site was
-copied in SiteGround before the switch. Still open: Rob to choose which
-version of the abandoned pub article to keep (live is private and longer;
-staging19 is published), whether to copy the private live-only
-Mitcham fire article (41284), and whether to copy any of the 19 inactive
-live-only members. Approach changed from "Push to Live": `cms` is a
-subdomain of the live site in SiteGround, so staging19 gets restored onto a
-fresh WordPress there, and the live install is left untouched.
+`www.secretcarshalton.com` has been the Next.js site on Vercel since
+16 Oct 2026, about 17:20 UK time. Where everything is now:
 
+- **CMS:** `https://www.cms.secretcarshalton.com/wp-admin`. This is the old
+  staging19 install, moved there with SiteGround's *Move Application*
+  (Site Tools → WordPress → Install & Manage → ⋮). staging19's address no
+  longer exists. The move doesn't change the stored URLs: a
+  `staging19.secretcarshalton.com` → `cms.secretcarshalton.com` Search &
+  Replace did, but it only showed after a Memcached flush. Yoast's
+  indexables and the Vision image map (swan picture, coat of arms
+  article) still carry staging19 URLs; `cmsImageUrl()` in
+  `app/[slug]/page.tsx` maps Yoast's share images to the CMS.
+- **Old site:** the original WordPress install is untouched on SiteGround,
+  and a staging copy of it is kept as **SC-backup** at
+  `staging21.secretcarshalton.com`. Its www address needs an SSL
+  certificate before it can be browsed.
+- **DNS (SiteGround zone):** the SiteGround CDN is off for the main domain.
+  `secretcarshalton.com` A → `76.76.21.21` (Vercel redirects it to www), and
+  `www` CNAME → `cname.vercel-dns.com`. To undo, point both back at
+  `35.214.56.133`, or turn the CDN back on.
+- **PayPal:** live keys are set in cms → Ads → PayPal Settings, and Rob
+  tested a real purchase and refund.
+- The SiteGround Migrator was tried first and failed: its token timed out
+  after copying 34,927 files for about 2½ hours. Its leftover database for
+  cms can be deleted.
+
+The checklist below is what was done to get there, kept for reference.
+
+### Pre-go-live checklist (history)
 
 - [ ] **Admin access to wp-admin after the domain switch.** Right now
   `www.secretcarshalton.com` points straight at this WordPress hosting, so
@@ -316,7 +327,8 @@ fresh WordPress there, and the live install is left untouched.
 
 Things Rob has asked to do once the new site is live — remind him.
 
-- [ ] **"Edit in WordPress" button for admins** (Rob, 13 Oct 2026). On
+- [x] **"Edit in WordPress" button for admins** (Rob, 13 Oct 2026; done
+  16 Oct: `app/_components/EditInWordPress.tsx`, `/api/auth/is-admin`). On
   articles, events, listings, jobs, groups and pages: a small button,
   shown only when logged in as an admin, opening that item's
   `wp-admin/post.php?post=ID&action=edit` on cms.secretcarshalton.com.
@@ -329,10 +341,23 @@ Things Rob has asked to do once the new site is live — remind him.
   so there are two staging copies: the old site and the new CMS. The
   frontend code is already in GitHub, and Vercel keeps every earlier
   deployment for an instant rollback. staging19 can be deleted after.
-- [ ] **Delete staging21.staging19.secretcarshalton.com** — Rob's backup
-  copy from before the 13 Oct plugin clean-up (~65K inodes). Safe once a
-  few days have passed with nothing missing; staging19's SiteGround daily
-  backups (kept 30 days) cover the same.
+- [x] **Delete staging21.staging19.secretcarshalton.com.** Done
+  16 Oct 2026. (Not the same thing as staging21.secretcarshalton.com,
+  the SC-backup copy of the old site, which is kept.)
+- [x] **`/wp-admin` and `/wp-login.php` on www** redirect to the CMS
+  (`next.config.mjs`).
+- [ ] **Tidy SiteGround:** delete the Migrator's leftover cms database and
+  any old staging copies no longer needed (staging18, staging8 in DNS).
+- [ ] **Change the "Claude" wp-admin password.** It was shared in a chat.
+- [ ] **CMS fixes in wp-admin:** the Vision swan image URL; optionally,
+  reset and rebuild Yoast's indexables so its data uses the cms address.
+- [ ] **Rob's open decisions:** whether to copy the private Mitcham fire
+  article (41284) from the old site, and whether to copy any of the 19
+  inactive live-only members. The abandoned pub article is private on the
+  CMS again, matching the old site.
+- [ ] **Google Search Console:** check the property is still verified
+  (re-verify by DNS TXT if not), and submit
+  `https://www.secretcarshalton.com/sitemap.xml`.
 
 ## Lessons from building this (read before adding a new CPT-based plugin)
 
