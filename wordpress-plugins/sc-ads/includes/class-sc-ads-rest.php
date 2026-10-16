@@ -145,6 +145,10 @@ class SC_Ads_REST {
 	private static function eligible_ads( $placement ) {
 		$today = current_time( 'Y-m-d' );
 
+		// A Premium (in_article) ad is "sidebar plus inside articles", as the
+		// Advertise page sells it — so it's in the sidebar pool too (Rob, 2026-10).
+		$placements = 'sidebar' === $placement ? array( 'sidebar', 'in_article' ) : array( $placement );
+
 		$query = new WP_Query(
 			array(
 				'post_type'      => SC_Ads_CPT::POST_TYPE,
@@ -153,8 +157,9 @@ class SC_Ads_REST {
 				'meta_query'     => array(
 					'relation' => 'AND',
 					array(
-						'key'   => 'sc_ad_placement',
-						'value' => $placement,
+						'key'     => 'sc_ad_placement',
+						'value'   => $placements,
+						'compare' => 'IN',
 					),
 					array(
 						'key'   => 'sc_ad_active',
