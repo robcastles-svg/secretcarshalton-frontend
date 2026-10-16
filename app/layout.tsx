@@ -7,6 +7,7 @@ import { ABOUT_PAGE_SLUGS } from "./_components/AboutMiniNav";
 import { ActiveNavSectionProvider } from "./_components/ActiveNavSection";
 import { AdSlot } from "./_components/AdSlot";
 import { BackToTop } from "./_components/BackToTop";
+import { LinkTargets } from "./_components/LinkTargets";
 import { GoogleAnalytics } from "./_components/GoogleAnalytics";
 import { MemberBenefitsBar } from "./_components/MemberBenefitsBar";
 import { PrimaryNav } from "./_components/PrimaryNav";
@@ -300,6 +301,7 @@ export default async function RootLayout({
           </div>
         </footer>
         <BackToTop />
+        <LinkTargets />
         </ActiveNavSectionProvider>
         <GoogleAnalytics />
       </body>

@@ -112,11 +112,10 @@ export async function DirectoryBrowse({
   // shortest-column placement (odd counts balance fine), just the count
   // Rob's settled on for this page specifically.
   const { items: pageListings, page, totalPages } = paginate(regularListings, parsePageParam(rawPage), 8);
-  // Featured listings aren't paginated — the full set shows on every page
-  // (a paid promotion that only appeared on page 1 wouldn't be worth much)
-  // — concatenated ahead of this page's regular listings into the one
-  // list MasonryGrid packs.
-  const combinedListings = [...featuredListings, ...pageListings];
+  // Featured listings lead page 1 only (Rob, 2026-10) — repeating them at
+  // the top of every page pushed the rest down. They're ahead of this
+  // page's regular listings in the one list MasonryGrid packs.
+  const combinedListings = page === 1 ? [...featuredListings, ...pageListings] : pageListings;
 
   const buildPageHref = (p: number) => {
     const params = new URLSearchParams();
