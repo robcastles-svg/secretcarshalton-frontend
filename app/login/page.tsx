@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LOST_PASSWORD_URL } from "@/lib/cms-hosts.mjs";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PasswordInput } from "@/app/_components/PasswordInput";
@@ -75,7 +76,7 @@ function LoginForm() {
       </form>
       <p className="auth-switch">
         {/* WordPress's own reset-password flow — same account, no separate system to build. */}
-        <a href="https://www.staging19.secretcarshalton.com/wp-login.php?action=lostpassword">
+        <a href={LOST_PASSWORD_URL}>
           Forgot your password?
         </a>
       </p>

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { LOST_PASSWORD_URL } from "@/lib/cms-hosts.mjs";
 import {
   AD_SELF_SERVE_PLACEMENTS,
   getMemberMe,
@@ -331,7 +332,7 @@ export default async function DashboardPage() {
             </div>
             <a
               className="button-pill button-pill-secondary"
-              href="https://www.staging19.secretcarshalton.com/wp-login.php?action=lostpassword"
+              href={LOST_PASSWORD_URL}
             >
               Change password
             </a>
