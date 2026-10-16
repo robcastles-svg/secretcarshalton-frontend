@@ -187,11 +187,11 @@ export default async function DashboardPage() {
                   Campaign progress
                 </a>
               )}
+            </>
+          )}
           <a href="#directory" className="dash-sidebar-link">
             My directory listings
           </a>
-            </>
-          )}
 
           <div className="dash-sidebar-label">Create</div>
           <Link href="/events/submit" className="dash-sidebar-link">
