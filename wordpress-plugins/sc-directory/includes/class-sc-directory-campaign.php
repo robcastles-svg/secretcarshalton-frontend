@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *  - Listing live      — ticked once the listing is published and Featured.
  *  - Premium text ad   — created automatically when the package is paid
  *                        for (headline from the listing name, text from its
- *                        tagline, linking to the listing), running until
+ *                        tagline, the listing's photo, linking to it), running until
  *                        the Featured period ends. The owner can reword it
  *                        from their dashboard like any other ad.
  *  - Banner designed   — Rob ticks this in the listing's wp-admin box once
@@ -29,6 +29,16 @@ class SC_Directory_Campaign {
 	public static function init() {
 		add_action( 'add_meta_boxes', array( __CLASS__, 'register_meta_box' ) );
 		add_action( 'save_post_' . SC_Directory_CPT::POST_TYPE, array( __CLASS__, 'save_meta_box' ) );
+		add_action(
+			'init',
+			function () {
+				if ( get_option( 'sc_directory_campaign_images' ) !== '1' ) {
+					self::backfill_images();
+					update_option( 'sc_directory_campaign_images', '1' );
+				}
+			},
+			30
+		);
 	}
 
 	public static function has_campaign( $listing_id ) {
@@ -56,6 +66,47 @@ class SC_Directory_Campaign {
 		return rtrim( false !== $space && $space > $max / 2 ? mb_substr( $cut, 0, $space ) : $cut, ' ,.;:-' ) . '…';
 	}
 
+	/** The listing's photo for its ad: featured image, else first gallery photo, else logo. */
+	private static function listing_image( $listing_id ) {
+		$ids = array( (int) get_post_thumbnail_id( $listing_id ) );
+		$ids = array_merge( $ids, array_map( 'intval', (array) get_post_meta( $listing_id, 'sc_gallery', true ) ) );
+		$ids[] = (int) get_post_meta( $listing_id, 'sc_logo', true );
+		foreach ( $ids as $id ) {
+			$url = $id ? wp_get_attachment_image_url( $id, 'large' ) : '';
+			if ( $url ) {
+				return $url;
+			}
+		}
+		return '';
+	}
+
+	/** Gives the package's ad the listing's photo if it has none yet. */
+	public static function fill_ad_image( $listing_id ) {
+		$ad_id = self::ad_id( $listing_id );
+		if ( $ad_id && ! get_post_meta( $ad_id, 'sc_ad_image_url', true ) ) {
+			$url = self::listing_image( $listing_id );
+			if ( $url ) {
+				update_post_meta( $ad_id, 'sc_ad_image_url', $url );
+			}
+		}
+	}
+
+	/** One-off for ads created before they carried the listing's photo. */
+	public static function backfill_images() {
+		$listings = get_posts(
+			array(
+				'post_type'      => SC_Directory_CPT::POST_TYPE,
+				'post_status'    => 'any',
+				'posts_per_page' => 200,
+				'fields'         => 'ids',
+				'meta_key'       => 'sc_campaign_ad_id', // phpcs:ignore WordPress.DB.SlowDBQuery
+			)
+		);
+		foreach ( $listings as $listing_id ) {
+			self::fill_ad_image( $listing_id );
+		}
+	}
+
 	/**
 	 * Creates the package's Premium text ad, or extends it on renewal.
 	 * $until is the Featured period's end (a timestamp).
@@ -70,6 +121,7 @@ class SC_Directory_Campaign {
 		if ( $ad_id ) {
 			update_post_meta( $ad_id, 'sc_ad_end', $end );
 			update_post_meta( $ad_id, 'sc_ad_active', true );
+			self::fill_ad_image( $listing_id );
 			return;
 		}
 
@@ -107,6 +159,7 @@ class SC_Directory_Campaign {
 			'sc_ad_weight'          => 1,
 			'sc_ad_payment_status'  => 'paid',
 			'sc_ad_campaign_listing' => $listing_id,
+			'sc_ad_image_url'       => self::listing_image( $listing_id ),
 		);
 		foreach ( $meta as $key => $value ) {
 			update_post_meta( $ad_id, $key, $value );
