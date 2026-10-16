@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { BookmarkButton } from "@/app/_components/BookmarkButton";
 import { ShareRow } from "@/app/_components/ShareRow";
 import {
@@ -76,6 +76,22 @@ export function ReactionBar({
   // A share only counts once someone actually picks an option in the
   // pop-up (Facebook, X, email, copy link, More options) — once per opening.
   const countedRef = useRef(false);
+
+  // Keep the pop-up on screen: on a phone the article's row wraps, so the
+  // arrow can sit near either edge. Nudge it sideways just enough to fit.
+  const popRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const pop = popRef.current;
+    if (!open || !pop) return;
+    pop.style.transform = "";
+    const rect = pop.getBoundingClientRect();
+    const margin = 8;
+    const vw = document.documentElement.clientWidth;
+    let shift = 0;
+    if (rect.left < margin) shift = margin - rect.left;
+    else if (rect.right > vw - margin) shift = vw - margin - rect.right;
+    if (shift) pop.style.transform = `translateX(${Math.round(shift)}px)`;
+  }, [open]);
   function openShare() {
     countedRef.current = false;
     setOpen(!open);
@@ -151,6 +167,7 @@ export function ReactionBar({
           </button>
           {open && (
             <div
+              ref={popRef}
               className="reaction-share-pop"
               onClickCapture={countOnce}
               role="dialog"
