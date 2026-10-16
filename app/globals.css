@@ -10491,3 +10491,7 @@ a.home-comment-author:hover {
 .edit-in-wordpress { display: inline-block; margin: 4px 0 12px; padding: 4px 12px; border: 1px solid currentColor; border-radius: 999px; font-size: 13px; font-weight: 700; text-decoration: none; }
 .edit-in-wordpress:hover { text-decoration: underline; }
 .evx .evx-edit-wp { margin-left: 14px; }
+
+/* Seasonal collection pages (CollectionPage.tsx): finished events stay listed, a little quieter. */
+.evl-collection-past { margin-top: 28px; }
+.evl-collection-past .evx-card { opacity: .8; }

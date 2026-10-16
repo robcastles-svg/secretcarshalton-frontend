@@ -10,7 +10,7 @@ import {
   GROUPS_CATEGORY_SLUG,
   soft,
 } from "@/lib/wordpress";
-import { AREAS, HIDDEN_TOPICS, addMonths, currentMonth, listHref } from "@/lib/event-list";
+import { AREAS, COLLECTIONS, HIDDEN_TOPICS, addMonths, currentMonth, listHref } from "@/lib/event-list";
 import { getOccurrences } from "@/lib/event-view";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://www.secretcarshalton.com";
@@ -132,6 +132,7 @@ async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     listHref({ when: "all", topic: "free" }),
     ...eventTags.filter((t) => !HIDDEN_TOPICS.has(t.slug)).map((t) => listHref({ when: "all", topic: t.slug })),
     ...AREAS.map((a) => listHref({ area: a.slug, when: "all" })),
+    ...COLLECTIONS.map((c) => `/events/${c.slug}`),
   ];
   for (const path of listPaths) {
     entries.push({ url: `${SITE_URL}${path}`, changeFrequency: "daily", priority: 0.7 });
