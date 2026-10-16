@@ -15,7 +15,14 @@ import {
   parseEventDate,
   WP_ADMIN_URL,
 } from "@/lib/wordpress";
-import { EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS, GROUP_PROMOTION_PRICE, featuredTierFeatures, formatUntil } from "@/lib/pricing";
+import {
+  EVENT_UPGRADE_PRICE,
+  FEATURED_DIRECTORY_TIERS,
+  GROUP_PROMOTION_PRICE,
+  STANDARD_LISTING_PRICE,
+  featuredTierFeatures,
+  formatUntil,
+} from "@/lib/pricing";
 import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { ExtendAdButton } from "./_components/ExtendAdButton";
@@ -115,7 +122,7 @@ export default async function DashboardPage() {
 
   const featuredCount = myBusinessListings.filter((l) => l.featured).length;
   const hasAds = myAds.length > 0;
-  const hasSubmissions = myEvents.length > 0 || myJobs.length > 0 || myGroups.length > 0;
+  const hasSubmissions = myEvents.length > 0 || myJobs.length > 0;
 
   return (
     <main className="container dash-page" id="dash-top">
@@ -310,9 +317,6 @@ export default async function DashboardPage() {
                 {profile.is_returning ? "Welcome back" : "Hello"} {profile.display_name}
               </span>
             </div>
-            <p className="dashboard-hint">
-              Username and email aren&apos;t shown here yet — coming soon, once account details are wired up.
-            </p>
             <a
               className="button-pill button-pill-secondary"
               href="https://www.staging19.secretcarshalton.com/wp-login.php?action=lostpassword"
@@ -407,7 +411,7 @@ export default async function DashboardPage() {
             </section>
           </div>
 
-          {/* My submissions — matches the sidebar's "My content" group (events/jobs/community groups) */}
+          {/* My submissions — events and jobs (community groups are under "Share something free") */}
           {hasSubmissions && (
             <section className="dash-submissions" id="submissions" aria-labelledby="submissions-h">
               <h2 id="submissions-h" className="dash-h2">
@@ -507,56 +511,6 @@ export default async function DashboardPage() {
                   )}
                 </div>
 
-                <div className="dash-panel dash-panel-tight" id="submissions-community">
-                  <div className="dash-panel-head">
-                    <h3 className="dash-h3">Community groups</h3>
-                    <Link href="/community/groups/submit" className="dash-manage-link">
-                      Add a group
-                    </Link>
-                  </div>
-                  {myGroups.length === 0 ? (
-                    <p className="dashboard-hint">Nothing submitted yet.</p>
-                  ) : (
-                    <ExpandableList
-                      items={myGroups}
-                      listClassName="dash-row-list"
-                      itemKey={(group) => group.id}
-                      noun="group"
-                      renderItem={(group) => {
-                        const chip = postStatusChip(group.status);
-                        return (
-                          <>
-                            <div>
-                              {group.status === "publish" ? (
-                                <Link href={`/community/groups/${group.slug}`}>{group.title}</Link>
-                              ) : (
-                                <span>{group.title}</span>
-                              )}
-                              <div className="dash-meta">
-                                {group.promotedUntil
-                                  ? `Promoted until ${formatUntil(group.promotedUntil)}`
-                                  : `${group.views} view${group.views === 1 ? "" : "s"}`}
-                                {" · "}
-                                <Link href={`/directory/${group.slug}/edit`} className="dash-manage-link">
-                                  Edit
-                                </Link>
-                                {!group.promotedUntil && group.status === "publish" && (
-                                  <>
-                                    {" · "}
-                                    <Link href={`/payment/pay?kind=group_promotion&id=${group.id}`} className="dash-manage-link">
-                                      Promote
-                                    </Link>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                            <span className={`dash-chip ${chip.cls}`}>{chip.label}</span>
-                          </>
-                        );
-                      }}
-                    />
-                  )}
-                </div>
               </div>
             </section>
           )}
@@ -564,10 +518,105 @@ export default async function DashboardPage() {
           <div className="dash-group">
             <h2 className="dash-group-title">Share something free</h2>
 
+            <section className="dash-panel" id="submissions-community">
+              <div className="dash-panel-head">
+                <h3 className="dash-h3">Your community groups</h3>
+                <Link href="/community/groups/submit" className="dash-manage-link">
+                  Add a group
+                </Link>
+              </div>
+              {myGroups.length === 0 ? (
+                <p className="dashboard-hint">Nothing submitted yet.</p>
+              ) : (
+                <ExpandableList
+                  items={myGroups}
+                  listClassName="dash-row-list"
+                  itemKey={(group) => group.id}
+                  noun="group"
+                  renderItem={(group) => {
+                    const chip = postStatusChip(group.status);
+                    return (
+                      <>
+                        <div>
+                          {group.status === "publish" ? (
+                            <Link href={`/community/groups/${group.slug}`}>{group.title}</Link>
+                          ) : (
+                            <span>{group.title}</span>
+                          )}
+                          <div className="dash-meta">
+                            {group.promotedUntil
+                              ? `Promoted until ${formatUntil(group.promotedUntil)}`
+                              : `${group.views} view${group.views === 1 ? "" : "s"}`}
+                            {" · "}
+                            <Link href={`/directory/${group.slug}/edit`} className="dash-manage-link">
+                              Edit
+                            </Link>
+                            {!group.promotedUntil && group.status === "publish" && (
+                              <>
+                                {" · "}
+                                <Link href={`/payment/pay?kind=group_promotion&id=${group.id}`} className="dash-manage-link">
+                                  Promote
+                                </Link>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <span className={`dash-chip ${chip.cls}`}>{chip.label}</span>
+                      </>
+                    );
+                  }}
+                />
+              )}
+            </section>
+
+            <section className="dash-panel" id="community-posts">
+              <h3 className="dash-h3">Your community post{myCommunityPosts.length === 1 ? "" : "s"}</h3>
+              {myCommunityPosts.length === 0 ? (
+                <p className="dashboard-hint">Nothing shared yet — got some local news worth spreading?</p>
+              ) : (
+                <ExpandableList
+                  items={myCommunityPosts}
+                  listClassName="dashboard-my-list"
+                  itemKey={(post) => post.id}
+                  noun="post"
+                  renderItem={(post) => (
+                    <>
+                      <span className={`dashboard-status-badge dashboard-status-${post.status}`}>
+                        {POST_STATUS_LABEL[post.status] ?? post.status}
+                      </span>
+                      {post.status === "publish" ? (
+                        <Link href={`/${post.slug}`}>{post.title}</Link>
+                      ) : (
+                        <span>{post.title}</span>
+                      )}
+                    </>
+                  )}
+                />
+              )}
+              <div className="dashboard-section-actions">
+                <Link href="/community" className="button-pill button-pill-secondary">
+                  Browse community news
+                </Link>
+                <Link href="/community/submit" className="button-pill">
+                  Share community news
+                </Link>
+              </div>
+            </section>
+          </div>
+
+          <div className="dash-group">
+            <h2 className="dash-group-title">Get more reach</h2>
+            <p className="dash-group-intro">
+              A directory listing for your business, or pay to get an event or group seen further.
+            </p>
+
             <section className="dash-panel" id="directory">
               <h3 className="dash-h3">Your directory listing{myBusinessListings.length === 1 ? "" : "s"}</h3>
               {myBusinessListings.length === 0 ? (
-                <p className="dashboard-hint">Nothing yet — claim an existing listing or add a new one.</p>
+                <p className="dashboard-hint">
+                  Nothing yet — a listing for your business is {STANDARD_LISTING_PRICE}. Claim an existing one or add a
+                  new one.
+                </p>
               ) : (
                 <ExpandableList
                   items={myBusinessListings}
@@ -613,48 +662,6 @@ export default async function DashboardPage() {
                 </Link>
               </div>
             </section>
-
-            <section className="dash-panel" id="community-posts">
-              <h3 className="dash-h3">Your community post{myCommunityPosts.length === 1 ? "" : "s"}</h3>
-              {myCommunityPosts.length === 0 ? (
-                <p className="dashboard-hint">Nothing shared yet — got some local news worth spreading?</p>
-              ) : (
-                <ExpandableList
-                  items={myCommunityPosts}
-                  listClassName="dashboard-my-list"
-                  itemKey={(post) => post.id}
-                  noun="post"
-                  renderItem={(post) => (
-                    <>
-                      <span className={`dashboard-status-badge dashboard-status-${post.status}`}>
-                        {POST_STATUS_LABEL[post.status] ?? post.status}
-                      </span>
-                      {post.status === "publish" ? (
-                        <Link href={`/${post.slug}`}>{post.title}</Link>
-                      ) : (
-                        <span>{post.title}</span>
-                      )}
-                    </>
-                  )}
-                />
-              )}
-              <div className="dashboard-section-actions">
-                <Link href="/community" className="button-pill button-pill-secondary">
-                  Browse community news
-                </Link>
-                <Link href="/community/submit" className="button-pill">
-                  Share community news
-                </Link>
-              </div>
-            </section>
-          </div>
-
-          <div className="dash-group">
-            <h2 className="dash-group-title">Get more reach</h2>
-            <p className="dash-group-intro">
-              Not a business — but if you&apos;re already sharing something here for free, you can pay to get it
-              seen further.
-            </p>
 
             <div className="dash-submissions-grid">
               <section className="dash-panel dash-panel-tight">
@@ -903,7 +910,11 @@ export default async function DashboardPage() {
                 <div className="dash-stat-card">
                   <span className="dash-stat-label">Renewal</span>
                   <span className="dash-stat-value">
-                    {profile.directory_upgrade_expires_at ? formatDate(profile.directory_upgrade_expires_at) : "—"}
+                    {businessListing?.featuredUntil
+                      ? formatUntil(businessListing.featuredUntil)
+                      : profile.directory_upgrade_expires_at
+                        ? formatDate(profile.directory_upgrade_expires_at)
+                        : "—"}
                   </span>
                   <Link href="/dashboard/upgrade" className="dash-stat-link">
                     Manage renewal

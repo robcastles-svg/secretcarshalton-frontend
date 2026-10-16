@@ -6978,7 +6978,7 @@ a.card-category:hover {
   left: 0;
   right: 0;
   top: -1.5rem;
-  border-top: 1px solid var(--ad-border);
+  border-top: 2px solid #d3d8e0;
   pointer-events: none;
 }
 
