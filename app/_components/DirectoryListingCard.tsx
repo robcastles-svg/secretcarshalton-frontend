@@ -86,19 +86,26 @@ export const DirectoryListingCard = forwardRef<
       {excerpt && <p>{excerpt}</p>}
       <div className="card-meta-row">
         <div className="card-actions">
-          {reviewCount > 0 && (
+          {/* Same comment + bookmark row as the article cards (ReactionBar). */}
+          <div className="reactions reactions-card">
             <Link
               href={`${path}#comments`}
-              className="card-comment-count"
-              aria-label={`${reviewCount} review${reviewCount === 1 ? "" : "s"}${reviewAverage !== null ? `, rated ${Number(reviewAverage.toFixed(1))} out of 5` : ""} — jump to reviews`}
+              className="reaction"
+              aria-label={
+                reviewCount > 0
+                  ? `${reviewCount} review${reviewCount === 1 ? "" : "s"}${reviewAverage !== null ? `, rated ${Number(reviewAverage.toFixed(1))} out of 5` : ""} — jump to reviews`
+                  : "Reviews"
+              }
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                <path d="M21 12a8 8 0 0 1-8 8H7l-4 3 1-5.2A8 8 0 1 1 21 12Z" strokeLinejoin="round" />
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
               </svg>
-              {reviewCount}
+              {reviewCount > 0 && <span>{reviewCount}</span>}
             </Link>
-          )}
-          <BookmarkButton contentType="listing" contentId={listing.id} />
+            <span className="reaction-bookmark">
+              <BookmarkButton contentType="listing" contentId={listing.id} />
+            </span>
+          </div>
         </div>
       </div>
     </li>

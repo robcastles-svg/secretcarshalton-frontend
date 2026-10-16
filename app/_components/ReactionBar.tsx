@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { BookmarkButton } from "@/app/_components/BookmarkButton";
 import { ShareRow } from "@/app/_components/ShareRow";
 import {
@@ -20,7 +20,8 @@ import {
  * - Like: anyone can tap it; tapping again takes it back.
  * - Comments: jumps to the article's comments.
  * - Share: opens a small pop-up with the share icons (and the phone's own
- *   share menu where there is one). Each open counts as a share.
+ *   share menu where there is one). It counts as a share once an option
+ *   in the pop-up is picked.
  */
 export function ReactionBar({
   slug,
@@ -72,9 +73,33 @@ export function ReactionBar({
   const shares = r?.shares ?? 0;
   const liked = r?.liked ?? false;
 
+  // A share only counts once someone actually picks an option in the
+  // pop-up (Facebook, X, email, copy link, More options) — once per opening.
+  const countedRef = useRef(false);
+
+  // Keep the pop-up on screen: on a phone the article's row wraps, so the
+  // arrow can sit near either edge. Nudge it sideways just enough to fit.
+  const popRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const pop = popRef.current;
+    if (!open || !pop) return;
+    pop.style.transform = "";
+    const rect = pop.getBoundingClientRect();
+    const margin = 8;
+    const vw = document.documentElement.clientWidth;
+    let shift = 0;
+    if (rect.left < margin) shift = margin - rect.left;
+    else if (rect.right > vw - margin) shift = vw - margin - rect.right;
+    if (shift) pop.style.transform = `translateX(${Math.round(shift)}px)`;
+  }, [open]);
   function openShare() {
-    if (!open) countShare(slug);
+    countedRef.current = false;
     setOpen(!open);
+  }
+  function countOnce(e: React.MouseEvent) {
+    if (countedRef.current || !(e.target as HTMLElement).closest("a, button")) return;
+    countedRef.current = true;
+    countShare(slug);
   }
 
   async function nativeShare() {
@@ -142,7 +167,9 @@ export function ReactionBar({
           </button>
           {open && (
             <div
+              ref={popRef}
               className="reaction-share-pop"
+              onClickCapture={countOnce}
               role="dialog"
               aria-label="Share this story"
             >
