@@ -10440,6 +10440,24 @@ a.home-comment-author:hover {
   gap: 0.5rem;
 }
 
+.listed-badge-actions .button-pill-secondary {
+  display: inline-block;
+  padding: 0.6rem 1.4rem;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: #fff;
+  color: #1a1a1a;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.listed-badge-actions .button-pill-secondary:hover {
+  border-color: #999;
+}
+
 .listed-badge-compact {
   padding: 1rem;
 }

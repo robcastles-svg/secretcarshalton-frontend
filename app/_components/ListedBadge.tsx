@@ -15,7 +15,16 @@ const BADGE = "/listed-on-secret-carshalton.png";
  * `path` is their page on this site ("/directory/acme"); without one the
  * badge links to the homepage.
  */
-export function ListedBadge({ path = "", compact = false }: { path?: string; compact?: boolean }) {
+export function ListedBadge({
+  path = "",
+  compact = false,
+  showTitle = true,
+}: {
+  path?: string;
+  compact?: boolean;
+  /** Off where the page already gives it a heading (the dashboard). */
+  showTitle?: boolean;
+}) {
   const [copied, setCopied] = useState(false);
   const link = SITE_URL + (path || "/");
   const code = `<a href="${link}" target="_blank" rel="noopener"><img src="${SITE_URL}${BADGE}" alt="Listed on Secret Carshalton" width="300" height="74"></a>`;
@@ -34,7 +43,7 @@ export function ListedBadge({ path = "", compact = false }: { path?: string; com
     <div className={compact ? "listed-badge listed-badge-compact" : "listed-badge"}>
       <img src={BADGE} alt="Listed on Secret Carshalton" className="listed-badge-img" width={300} height={74} />
       <div className="listed-badge-text">
-        <strong>Show you&apos;re on Secret Carshalton</strong>
+        {showTitle && <strong>Show you&apos;re on Secret Carshalton</strong>}
         <p>
           Add our badge to your website — it links straight to {path ? "your page" : "Secret Carshalton"}, so people
           can find you here, and it helps more locals discover what&apos;s on.

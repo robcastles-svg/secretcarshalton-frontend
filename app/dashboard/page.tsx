@@ -887,7 +887,7 @@ export default async function DashboardPage() {
               member's main page on the site if they have one. */}
           <section className="dash-group" id="badge">
             <h2 className="dash-group-title">Show you&apos;re on Secret Carshalton</h2>
-            <ListedBadge path={badgePath} />
+            <ListedBadge path={badgePath} showTitle={false} />
           </section>
 
                     {/* Activity quick stats */}
