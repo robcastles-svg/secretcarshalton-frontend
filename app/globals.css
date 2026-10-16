@@ -3778,6 +3778,14 @@ a.card-category:hover {
   height: 320px;
 }
 
+/* Phones: a third taller (Rob, Oct 2026) — the photo is most of what
+   a listing has going for it on a small screen. */
+@media (max-width: 720px) {
+  .directory-listing-card > .directory-image-slider {
+    height: 427px;
+  }
+}
+
 /* Featured image + gallery photos as one slider — see DirectoryImageSlider. */
 .directory-image-slider {
   position: relative;
