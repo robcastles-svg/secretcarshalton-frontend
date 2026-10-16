@@ -8823,6 +8823,10 @@ a.home-comment-author:hover {
 .evx-hero .event-detail-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .evx-hero .event-detail-image-expanded { aspect-ratio: auto; }
 .evx-hero .event-detail-image-expanded img { height: auto; object-fit: contain; }
+/* Phones: a third taller than the desktop crop (Rob, Oct 2026), as on listing pages. */
+@media (max-width: 879px) {
+  .evx-hero .event-detail-image:not(.event-detail-image-expanded) { aspect-ratio: 732 / 496; }
+}
 
 /* buttons */
 .evx-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
