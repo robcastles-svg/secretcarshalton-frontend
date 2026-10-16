@@ -16,7 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   tapping again takes it back. A member is recognised by their account,
  *   a visitor by a random ID their browser keeps (sent as `visitor`).
  *   No made-up starting numbers: everything starts at 0.
- * - A share is counted each time someone opens the share button.
+ * - A share is counted when someone picks an option in the share pop-up
+ *   (the frontend calls /share then — see ReactionBar).
  * - Writes are capped per IP address per hour, so a script can't run the
  *   numbers up.
  */
@@ -199,7 +200,7 @@ class SC_Post_Reactions {
 		);
 	}
 
-	/** POST {slug} → {shares}. Counted each time the share button is opened. */
+	/** POST {slug} → {shares}. Called once someone picks an option in the share pop-up. */
 	public static function share( WP_REST_Request $request ) {
 		$slug = self::slug( $request );
 		if ( ! $slug ) {
