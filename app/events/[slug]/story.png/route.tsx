@@ -144,9 +144,9 @@ async function preparePhotos(url: string | undefined): Promise<{ card: string; b
     const [card, backdrop] = await Promise.all([
       sharp(source).resize(920, 900, { fit: "cover", position: "north" }).jpeg({ quality: 85 }).toBuffer(),
       sharp(source)
-        .resize(270, 480, { fit: "cover" })
-        .blur(12)
-        .modulate({ brightness: 0.38, saturation: 1.2 })
+        .resize(108, 192, { fit: "cover" })
+        .blur(6)
+        .modulate({ brightness: 0.3, saturation: 1.1 })
         .resize(W, H)
         .jpeg({ quality: 80 })
         .toBuffer(),
