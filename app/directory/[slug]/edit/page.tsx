@@ -90,7 +90,7 @@ export default async function EditListingPage({
           featured: Boolean(listing.meta.sc_featured),
         }}
       />
-      {listing.status === "publish" && listing.slug && (
+      {(!byId || (listing as { status?: string }).status === "publish") && listing.slug && (
         <div style={{ marginTop: "2rem" }}>
           <ListedBadge path={isGroup ? `/community/groups/${listing.slug}` : `/directory/${listing.slug}`} />
         </div>
