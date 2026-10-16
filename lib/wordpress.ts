@@ -2315,6 +2315,65 @@ export async function loginMember(
   }
 }
 
+/** Google's answer for someone new: they pick a public username before the account is made. */
+export interface GoogleNeedsUsername {
+  needs_username: true;
+  signup_token: string;
+  suggestion: string;
+  email: string;
+}
+
+/** "Continue with Google": sc-membership checks the ID token with Google itself, then signs in, links or asks for a username. */
+export async function googleSignIn(credential: string): Promise<MemberAuthResponse | GoogleNeedsUsername | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(20_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** Creates the Google member's account with the username they chose. */
+export async function googleComplete(
+  signupToken: string,
+  username: string
+): Promise<(MemberAuthResponse & { created?: boolean }) | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/google/complete`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ signup_token: signupToken, username }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
+/** The member's public name; their username and profile address stay the same. */
+export async function updateDisplayName(token: string, displayName: string): Promise<{ display_name: string } | MemberAuthError> {
+  try {
+    const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/me/display-name`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ display_name: displayName }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.json();
+  } catch {
+    return NETWORK_ERROR;
+  }
+}
+
 export async function registerMember(
   username: string,
   email: string,

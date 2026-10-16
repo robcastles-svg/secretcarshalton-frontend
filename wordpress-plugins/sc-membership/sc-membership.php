@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Membership
  * Description: Central member record (points, tiers, directory-upgrade approvals) shared by the directory, events, and comments. Other Secret Carshalton plugins hook into this rather than keeping their own copy of "who's a member."
- * Version: 0.28.2
+ * Version: 0.29.0
  * Author: Secret Carshalton
  * Text Domain: sc-membership
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_MEMBERSHIP_VERSION', '0.28.2' );
+define( 'SC_MEMBERSHIP_VERSION', '0.29.0' );
 define( 'SC_MEMBERSHIP_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-db.php';
@@ -21,6 +21,7 @@ require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-hooks.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-rest.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-admin.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-auth.php';
+require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-google.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-contact.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-instagram.php';
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-messages.php';
@@ -72,6 +73,8 @@ add_filter(
 	2
 );
 add_action( 'rest_api_init', array( 'SC_Membership_Auth', 'register_routes' ) );
+add_action( 'rest_api_init', array( 'SC_Membership_Google', 'register_routes' ) );
+add_action( 'init', array( 'SC_Membership_Google', 'register_settings' ) );
 add_action( 'rest_api_init', array( 'SC_Membership_Auth', 'init_bearer_auth' ), 5 );
 add_action( 'admin_menu', array( 'SC_Membership_Admin', 'register_menu' ) );
 add_action( 'admin_post_sc_membership_review_upgrade', array( 'SC_Membership_Admin', 'handle_review_upgrade' ) );

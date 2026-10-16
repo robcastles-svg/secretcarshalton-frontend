@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { GoogleSignIn } from "@/app/_components/GoogleSignIn";
 import { LOST_PASSWORD_URL } from "@/lib/cms-hosts.mjs";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -47,6 +48,7 @@ export function LoginModal({ onClose }: { onClose: () => void }) {
           ×
         </button>
         <h2>Log in</h2>
+        <GoogleSignIn onDone={onClose} />
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
             Username or email
