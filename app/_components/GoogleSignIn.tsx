@@ -5,17 +5,20 @@ import { useRouter } from "next/navigation";
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        id: {
-          initialize: (config: { client_id: string; callback: (r: { credential: string }) => void; ux_mode?: string }) => void;
-          renderButton: (el: HTMLElement, options: Record<string, unknown>) => void;
-        };
-      };
+/**
+ * Google Identity Services. Read through gsi() rather than declaring it on
+ * Window: StyledMap already declares the Maps API there, and the two clash.
+ */
+type GoogleIdentity = {
+  accounts: {
+    id: {
+      initialize: (config: { client_id: string; callback: (r: { credential: string }) => void }) => void;
+      renderButton: (el: HTMLElement, options: Record<string, unknown>) => void;
     };
-  }
+  };
+};
+function gsi(): GoogleIdentity | undefined {
+  return (window as unknown as { google?: GoogleIdentity }).google;
 }
 
 let scriptPromise: Promise<void> | null = null;
@@ -80,8 +83,9 @@ export function GoogleSignIn({
     let cancelled = false;
     loadGoogle()
       .then(() => {
-        if (cancelled || !box.current || !window.google) return;
-        window.google.accounts.id.initialize({
+        const google = gsi();
+        if (cancelled || !box.current || !google?.accounts?.id) return;
+        google.accounts.id.initialize({
           client_id: CLIENT_ID,
           callback: async ({ credential }) => {
             setBusy(true);
@@ -98,7 +102,7 @@ export function GoogleSignIn({
             finish();
           },
         });
-        window.google.accounts.id.renderButton(box.current, {
+        google.accounts.id.renderButton(box.current, {
           theme: "outline",
           size: "large",
           shape: "pill",
