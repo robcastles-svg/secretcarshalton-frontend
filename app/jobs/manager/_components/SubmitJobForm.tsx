@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PayNow } from "@/app/_components/PayNow";
 import { SpamTrap } from "@/app/_components/SpamTrap";
 import { annualSalary, formatJobSalary, jobRateBracket, type SalaryPeriod } from "@/lib/pricing";
+import { ListedBadge } from "@/app/_components/ListedBadge";
 
 export function SubmitJobForm() {
   const router = useRouter();
@@ -52,6 +53,7 @@ export function SubmitJobForm() {
           viewPath="/jobs/"
         />
         <p className="dashboard-hint">You can also pay later from your dashboard.</p>
+        <ListedBadge path="/jobs" />
       </>
     );
   }
