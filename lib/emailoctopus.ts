@@ -1,14 +1,17 @@
 /**
- * The "Send me the Insider newsletter" tick box at sign-up: adds the
- * member to the EmailOctopus Insider list as *pending*, so EmailOctopus
- * sends its own double opt-in email and they only join once they click it
- * — the same as signing up on /newsletter. Unticked by default.
+ * The "Send me the Insider newsletter" tick box at sign-up (unticked by
+ * default). Adds them to the EmailOctopus Insider list as *subscribed*,
+ * but only once their email address is proven — when they click the
+ * site's own confirmation link, or straight away for Google sign-ups
+ * (Google has proved it). That confirmation is the double opt-in, so
+ * EmailOctopus doesn't send a second one (Rob, Oct 2026: two confirmation
+ * emails was confusing). The /newsletter page form keeps EmailOctopus's
+ * own double opt-in.
  *
  * Needs EMAILOCTOPUS_API_KEY (secret, Vercel only) and
  * NEXT_PUBLIC_EMAILOCTOPUS_LIST_ID (not secret; it also switches the tick
  * box on). Tries the current API (v2, bearer key) first and falls back
- * to the older v1.6 one, which takes the key in the body and defaults a
- * list with double opt-in to pending. Never throws: a
+ * to the older v1.6 one, which takes the key in the body. Never throws: a
  * newsletter hiccup must not stop someone joining the site.
  */
 export async function addToNewsletter(email: string): Promise<"added" | "already" | "failed" | "off"> {
@@ -20,7 +23,7 @@ export async function addToNewsletter(email: string): Promise<"added" | "already
     const v2 = await fetch(`https://api.emailoctopus.com/lists/${encodeURIComponent(list)}/contacts`, {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ email_address: email, status: "pending" }),
+      body: JSON.stringify({ email_address: email, status: "subscribed" }),
       signal: AbortSignal.timeout(10_000),
     });
     if (v2.ok) return "added";
@@ -30,7 +33,7 @@ export async function addToNewsletter(email: string): Promise<"added" | "already
       const v1 = await fetch(`https://emailoctopus.com/api/1.6/lists/${encodeURIComponent(list)}/contacts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ api_key: key, email_address: email }),
+        body: JSON.stringify({ api_key: key, email_address: email, status: "SUBSCRIBED" }),
         signal: AbortSignal.timeout(10_000),
       });
       if (v1.ok) return "added";

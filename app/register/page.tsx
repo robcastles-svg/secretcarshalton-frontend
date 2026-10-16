@@ -82,8 +82,8 @@ export default function RegisterPage() {
         <label className="auth-newsletter">
           <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
           <span>
-            Send me the <b>Secret Carshalton Insider</b> newsletter. We&rsquo;ll email you to confirm first, and you can
-            unsubscribe any time.
+            Send me the <b>Secret Carshalton Insider</b> newsletter. It starts once you&rsquo;ve confirmed your email, and you
+            can unsubscribe any time.
           </span>
         </label>
         )}

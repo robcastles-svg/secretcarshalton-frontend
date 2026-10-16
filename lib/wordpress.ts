@@ -2377,13 +2377,14 @@ export async function updateDisplayName(token: string, displayName: string): Pro
 export async function registerMember(
   username: string,
   email: string,
-  password: string
+  password: string,
+  newsletter = false
 ): Promise<MemberAuthResponse | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ username, email, password, newsletter }),
       cache: "no-store",
       signal: AbortSignal.timeout(15_000),
     });
@@ -2511,7 +2512,7 @@ export async function getMyCommunityPosts(token: string): Promise<MyCommunityPos
   }
 }
 
-export async function verifyEmail(token: string): Promise<{ status: string } | MemberAuthError> {
+export async function verifyEmail(token: string): Promise<{ status: string; newsletter?: boolean; email?: string } | MemberAuthError> {
   try {
     const res = await fetch(`${WP_STAGING_ROOT}/sc-membership/v1/verify-email`, {
       method: "POST",
