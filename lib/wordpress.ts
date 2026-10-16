@@ -1,13 +1,14 @@
-const WP_BASE = "https://www.secretcarshalton.com/wp-json/wp/v2";
+import { ARTICLES_WP_ORIGIN, CMS_ORIGIN } from "./cms-hosts.mjs";
+
+const WP_BASE = `${ARTICLES_WP_ORIGIN}/wp-json/wp/v2`;
 const REVALIDATE_SECONDS = 3600;
 
 /**
  * The custom sc-membership/sc-directory/sc-events/sc-ads plugins only
- * exist on the staging clone so far, not the live site — they're new
- * (built this session) and not something to push to production without
- * Rob reviewing them first. Once approved, this becomes WP_BASE's host.
+ * exist on the staging clone so far, not the live site. Both hosts are
+ * set in lib/cms-hosts.mjs, which says what to change on switch day.
  */
-export const WP_STAGING_ROOT = "https://www.staging19.secretcarshalton.com/wp-json";
+export const WP_STAGING_ROOT = `${CMS_ORIGIN}/wp-json`;
 
 /**
  * Derived from WP_STAGING_ROOT rather than a second hardcoded URL, so

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LOST_PASSWORD_URL } from "@/lib/cms-hosts.mjs";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordInput } from "@/app/_components/PasswordInput";
@@ -68,7 +69,7 @@ export function LoginModal({ onClose }: { onClose: () => void }) {
           </button>
         </form>
         <p className="auth-switch">
-          <a href="https://www.staging19.secretcarshalton.com/wp-login.php?action=lostpassword">
+          <a href={LOST_PASSWORD_URL}>
             Forgot your password?
           </a>
         </p>
