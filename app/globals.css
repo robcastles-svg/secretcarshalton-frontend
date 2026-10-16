@@ -10530,8 +10530,6 @@ a.home-comment-author:hover {
 .google-username h2 { margin: 0; font-size: 1.15rem; }
 .google-username p { margin: 0; font-size: 0.9rem; color: #555; }
 .google-username label { display: grid; gap: 0.3rem; font-weight: 600; }
-.auth-newsletter { display: flex; gap: 0.6rem; align-items: flex-start; max-width: 400px; margin: 0.75rem 0; font-size: 0.92rem; line-height: 1.4; cursor: pointer; }
-.auth-newsletter input { margin-top: 0.2rem; width: 18px; height: 18px; flex: none; }
 
 /* Dashboard: "Your public name" (DisplayNameForm.tsx). */
 .display-name-row { margin: 0.5rem 0 1rem; }
@@ -10546,10 +10544,10 @@ a.home-comment-author:hover {
 .footer-payments { margin: 1rem 0 0.5rem; }
 .footer-payments img { display: block; width: 220px; max-width: 100%; height: auto; }
 .footer-payments p { margin: 0.35rem 0 0; font-size: 0.68rem; opacity: 0.75; }
-/* The tick box sits inside .auth-form on /register: keep it a row, not the form's stacked label. */
-.auth-form .auth-newsletter { flex-direction: row; gap: 0.6rem; font-weight: 400; font-size: 0.92rem; margin: 0.25rem 0; }
-.auth-form .auth-newsletter input { padding: 0; width: 18px; height: 18px; }
-/* Sign-up newsletter tick box and its double opt-in note, in the style of /newsletter. */
-.auth-newsletter-box { border: 1px solid #ead9de; background: #fbf6f8; border-radius: 10px; padding: 0.75rem 0.85rem; margin: 0.25rem 0; }
-.auth-form .auth-newsletter-box .auth-newsletter { margin: 0; }
-.auth-newsletter-note { margin: 0.5rem 0 0 calc(18px + 0.6rem); font-size: 0.8rem; line-height: 1.45; color: #666; font-weight: 400; }
+/* Sign-up newsletter tick box (/register): the box in its own column, so the
+   double opt-in note lines up under the main text, with a faint line between. */
+.auth-newsletter-box { display: grid; grid-template-columns: 18px 1fr; column-gap: 0.6rem; align-items: start; border: 1px solid #ead9de; background: #fbf6f8; border-radius: 10px; padding: 0.75rem 0.85rem; margin: 0.25rem 0; }
+.auth-form .auth-newsletter-box input { padding: 0; margin: 0.15rem 0 0; width: 18px; height: 18px; cursor: pointer; }
+.auth-form .auth-newsletter-box .auth-newsletter { display: block; margin: 0; padding-bottom: 0.55rem; border-bottom: 1px solid #efe2e6; font-weight: 400; font-size: 0.92rem; line-height: 1.4; cursor: pointer; }
+.auth-newsletter-note { margin: 0.55rem 0 0; font-size: 0.8rem; line-height: 1.45; color: #666; font-weight: 400; }
+.google-signin-newsletter { margin: 0.4rem 0 0; font-size: 0.8rem; color: #666; text-align: center; }
