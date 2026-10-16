@@ -20,6 +20,7 @@ import { replaceHtml5VideoPlayers } from "@/lib/html5-video";
 import { replaceTikTokEmbeds } from "@/lib/tiktok-embed";
 import { tidyElementorAccordions } from "@/lib/elementor-accordion";
 import { STATIC_PAGES } from "@/lib/static-pages";
+import { CMS_ORIGIN } from "@/lib/cms-hosts.mjs";
 import { extractWalkMaps, WALK_MAP_MARKER } from "@/lib/walk-maps";
 import {
   categoryHref,
@@ -73,6 +74,16 @@ export async function generateStaticParams() {
   return Array.from(slugs).map((slug) => ({ slug }));
 }
 
+/**
+ * Yoast keeps its own copy of each image URL, and those still carried the
+ * staging19 address after the CMS moved to cms.secretcarshalton.com (the
+ * database search-and-replace didn't reach them). staging19 no longer
+ * exists, so point them at the CMS instead of serving a dead share image.
+ */
+function cmsImageUrl(url: string | undefined): string | undefined {
+  return url?.replace(/^https?:\/\/(www\.)?staging19\.secretcarshalton\.com/, CMS_ORIGIN);
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -91,13 +102,13 @@ export async function generateMetadata({
   // dropped by generating metadata from scratch instead of reading it.
   const yoast = item.yoast_head_json;
   const image = getFeaturedImage(item);
-  const socialImage = yoast?.og_image?.[0]?.url || image?.source_url;
+  const socialImage = cmsImageUrl(yoast?.og_image?.[0]?.url) || image?.source_url;
 
   const title = yoast?.title || stripHtml(item.title.rendered);
   const description = yoast?.description || stripHtml(item.excerpt.rendered) || undefined;
   const ogTitle = yoast?.og_title || title;
   const ogDescription = yoast?.og_description || description;
-  const twitterImage = yoast?.twitter_image || socialImage;
+  const twitterImage = cmsImageUrl(yoast?.twitter_image) || socialImage;
 
   return {
     title,
