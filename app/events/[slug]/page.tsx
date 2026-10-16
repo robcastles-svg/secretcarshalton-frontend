@@ -1,3 +1,4 @@
+import { HIDDEN_TOPICS, listHref } from "@/lib/event-list";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -335,7 +336,9 @@ export default async function EventPage({
   const booking = getBooking(event);
   const time = shown ? formatTimeRange(shown) : null;
   const venue = venueShort(event);
-  const topic = allTags.find((t) => event.sc_event_tag?.includes(t.id)) ?? null;
+  // A real topic only: not the old EventON "Free Entry" tag (the price
+  // pill already says Free), "Other", or a seasonal collection tag.
+  const topic = allTags.find((t) => event.sc_event_tag?.includes(t.id) && !HIDDEN_TOPICS.has(t.slug)) ?? null;
   const org = event.sc_event_organizer_profile ?? null;
   const organizerHref = org ? `/events/organiser/${org.slug}?from=${encodeURIComponent(event.slug)}` : null;
   // ?from= lets the venue page offer "Back to event", the same as the organiser link.
@@ -425,7 +428,7 @@ export default async function EventPage({
               {topic && (
                 <li className="evx-fact-tag">
                   <TagIcon />
-                  <Link href={`/events?tag=${topic.slug}`}>{topic.name}</Link>
+                  <Link href={listHref({ when: "all", topic: topic.slug })}>{topic.name}</Link>
                 </li>
               )}
             </ul>
