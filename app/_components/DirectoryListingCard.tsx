@@ -77,7 +77,10 @@ export const DirectoryListingCard = forwardRef<
           <b>{reviewAverage.toFixed(1)}</b>
         </Link>
       )}
-      {listing.meta.sc_featured && <span className="directory-badge">Featured</span>}
+      {listing.meta.sc_featured && (
+        // No photo to float over on phones (e.g. a group without one): the badge stays under the title instead of covering it.
+        <span className={image ? "directory-badge" : "directory-badge directory-badge-inline"}>Featured</span>
+      )}
       {categoriesList?.map((category) => (
         <Link key={category.id} href={`/directory/${category.slug}`} className="card-category">
           {category.name}
