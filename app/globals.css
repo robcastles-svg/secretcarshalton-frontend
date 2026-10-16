@@ -10495,3 +10495,6 @@ a.home-comment-author:hover {
 /* Seasonal collection pages (CollectionPage.tsx): finished events stay listed, a little quieter. */
 .evl-collection-past { margin-top: 28px; }
 .evl-collection-past .evx-card { opacity: .8; }
+
+/* Instagram Story button (ShareRow) while it fetches the picture. */
+.evx-icon-btn[aria-busy="true"], .share-row-btn[aria-busy="true"] { opacity: .5; cursor: progress; }
