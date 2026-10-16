@@ -1162,15 +1162,21 @@ a.ad-slot-text-image img {
      too (even though the image itself stays a fixed size within it) so
      align-self: end has the whole card's height to push down against —
      spanning only row 1 would pin it to row 1's bottom, not the card's. */
+  /* Fills the card's whole height (Rob, 2026-10) — taller cards like the
+     interleaved Featured listing used to leave an empty gap above it. */
   .post-list-single-column li > a:first-child {
     grid-column: 1;
     grid-row: 1 / -1;
-    align-self: end;
+    align-self: stretch;
+    display: block;
+    min-height: 180px;
   }
 
   .post-list-single-column li > a:first-child img {
-    height: 180px;
+    height: 100%;
+    min-height: 180px;
     aspect-ratio: auto;
+    object-fit: cover;
     margin-bottom: 0;
   }
 
