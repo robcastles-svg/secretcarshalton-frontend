@@ -1033,6 +1033,11 @@ export interface MyAd {
   views: number;
   daysRequested: number;
   paymentStatus: string;
+  /** YYYY-MM-DD, "" when not set. */
+  start?: string;
+  end?: string;
+  /** Set on the Premium text ad that comes with a Featured Plus/Gold listing. */
+  campaignListing?: number;
 }
 
 /** The dashboard's "Text adverts" section. */

@@ -6961,7 +6961,64 @@ a.card-category:hover {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 1.75rem;
+  gap: 0;
+}
+
+/* A light keyline between each section of the dashboard (Rob, 2026-10). */
+.dash-main > * + * {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ad-border);
+}
+
+/* …except the small "Browse all members" link that belongs to the welcome. */
+.dash-main > .dashboard-members-link {
+  margin-top: 0.5rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.dash-business-name {
+  margin-top: 0.2rem;
+  color: var(--ad-text-muted);
+  font-weight: 600;
+}
+
+/* "What's included" under Current package. */
+.dash-package-details {
+  margin-top: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.dash-package-details summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--ad-gold);
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.dash-package-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.dash-package-details summary::after {
+  content: "▾";
+  transition: transform 0.15s;
+}
+
+.dash-package-details[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.dash-package-details ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.25rem;
+  color: #e6ebf3;
 }
 
 .dash-h1 {

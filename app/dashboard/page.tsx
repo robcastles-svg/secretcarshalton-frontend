@@ -15,7 +15,7 @@ import {
   parseEventDate,
   WP_ADMIN_URL,
 } from "@/lib/wordpress";
-import { EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS, GROUP_PROMOTION_PRICE, formatUntil } from "@/lib/pricing";
+import { EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS, GROUP_PROMOTION_PRICE, featuredTierFeatures, formatUntil } from "@/lib/pricing";
 import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { ExtendAdButton } from "./_components/ExtendAdButton";
@@ -69,7 +69,10 @@ const TIERS = [
   { slug: "carshalton_champion", label: "Carshalton Champion", threshold: 500 },
 ];
 
-function adStatusChip(ad: { active: boolean; paymentStatus: string }) {
+function adStatusChip(ad: { active: boolean; paymentStatus: string; start?: string; end?: string }) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (ad.active && ad.end && ad.end < today) return { label: "Ended", cls: "dash-chip-off" };
+  if (ad.active && ad.start && ad.start > today) return { label: `Starts ${formatUntil(ad.start)}`, cls: "dash-chip-sched" };
   if (ad.active) return { label: "Live", cls: "dash-chip-ok" };
   if (ad.paymentStatus === "paid") return { label: "Paid — going live soon", cls: "dash-chip-sched" };
   return { label: "Awaiting payment", cls: "dash-chip-wait" };
@@ -110,6 +113,7 @@ export default async function DashboardPage() {
   const myGroups = myListings.filter((l) => l.isGroup);
   const myBusinessListings = myListings.filter((l) => !l.isGroup);
 
+  const featuredCount = myBusinessListings.filter((l) => l.featured).length;
   const hasAds = myAds.length > 0;
   const hasSubmissions = myEvents.length > 0 || myJobs.length > 0 || myGroups.length > 0;
 
@@ -159,20 +163,17 @@ export default async function DashboardPage() {
             My community posts
           </a>
 
+          {(hasAds || hasBusiness) && <div className="dash-sidebar-label">My advertising</div>}
           {hasAds && (
-            <>
-              <div className="dash-sidebar-label">My advertising</div>
-              <a href="#advertising" className="dash-sidebar-link">
-                Adverts
-              </a>
-            </>
+            <a href="#advertising" className="dash-sidebar-link">
+              My text ads
+            </a>
           )}
 
           {hasBusiness && (
             <>
-              <div className="dash-sidebar-label">My business</div>
               <a href="#business" className="dash-sidebar-link">
-                Directory listing
+                {featuredCount > 1 ? "Featured listings" : "Featured listing"}
               </a>
               {businessListing?.campaign && businessListing.campaign.length > 0 && (
                 <a href="#business-campaign" className="dash-sidebar-link">
@@ -783,13 +784,17 @@ export default async function DashboardPage() {
             </section>
           )}
 
-          {/* My advertising — matches the sidebar's "My advertising" group */}
+          {/* My advertising — text ads, then the Featured listing, under one
+              heading (matches the sidebar's "My advertising" group). */}
+          {(hasAds || hasBusiness) && (
+          <div className="dash-group" id="my-advertising">
+            <h2 className="dash-group-title">My advertising</h2>
           {hasAds && (
             <section className="dash-panel" id="advertising" aria-labelledby="advertising-h">
               <div className="dash-panel-head">
-                <h2 id="advertising-h" className="dash-h2">
-                  My advertising
-                </h2>
+                <h3 id="advertising-h" className="dash-h2">
+                  My text ads
+                </h3>
                 <Link href="/advertise#text-ads" className="button-pill button-pill-secondary">
                   Advertise again
                 </Link>
@@ -816,11 +821,16 @@ export default async function DashboardPage() {
                             <strong>{ad.headline}</strong>
                             <div className="dash-meta">
                               {AD_SELF_SERVE_PLACEMENTS.find((p) => p.slug === ad.placement)?.label ?? ad.placement}
-                              {" · "}
-                              {ad.daysRequested} day{ad.daysRequested === 1 ? "" : "s"}
+                              {ad.campaignListing
+                                ? " · Included in your Featured package"
+                                : ` · ${ad.daysRequested} day${ad.daysRequested === 1 ? "" : "s"}`}
                             </div>
                           </td>
-                          <td className="dash-meta">—</td>
+                          <td className="dash-meta">
+                            {ad.start || ad.end
+                              ? `${ad.start ? formatUntil(ad.start) : "Now"} – ${ad.end ? formatUntil(ad.end) : "ongoing"}`
+                              : "—"}
+                          </td>
                           <td>
                             <span className={`dash-chip ${chip.cls}`}>{chip.label}</span>
                           </td>
@@ -829,10 +839,11 @@ export default async function DashboardPage() {
                           </td>
                           <td className="dash-table-actions">
                             <span style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem" }}>
-                              {ad.active && <ExtendAdButton adId={ad.id} />}
+                              {/* The package's own ad runs with the Featured listing — no extending or deleting it separately. */}
+                              {ad.active && !ad.campaignListing && <ExtendAdButton adId={ad.id} />}
                               {!ad.active && ad.paymentStatus !== "paid" && <PayAdButton adId={ad.id} />}
                               <EditAdButton adId={ad.id} headline={ad.headline} body={ad.body} link={ad.link} />
-                              <DeleteAdButton adId={ad.id} active={ad.active} />
+                              {!ad.campaignListing && <DeleteAdButton adId={ad.id} active={ad.active} />}
                             </span>
                           </td>
                         </tr>
@@ -841,10 +852,6 @@ export default async function DashboardPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="dashboard-hint">
-                Exact start/end dates for each ad aren&apos;t shown here yet — we&apos;ll add them once that&apos;s
-                wired up.
-              </p>
               <div className="dashboard-section-actions">
                 <Link href="/advertise#text-ads" className="button-pill">
                   Write another ad
@@ -853,15 +860,14 @@ export default async function DashboardPage() {
             </section>
           )}
 
-          {/* My business — matches the sidebar's "My business" group, last */}
           {hasBusiness && (
             <section className="dash-panel" id="business" aria-labelledby="business-h">
               <div className="dash-panel-head">
                 <div>
-                  <div className="dash-eyebrow">My business</div>
-                  <h2 id="business-h" className="dash-h2">
-                    {businessListing ? businessListing.title : "Your business"}
-                  </h2>
+                  <h3 id="business-h" className="dash-h2">
+                    {featuredCount > 1 ? "Featured listings" : "Featured listing"}
+                  </h3>
+                  <div className="dash-business-name">{businessListing ? businessListing.title : "Your business"}</div>
                 </div>
                 {businessListing && (
                   <div className="dash-panel-head-actions">
@@ -884,6 +890,15 @@ export default async function DashboardPage() {
                   <span className="dash-stat-sub">
                     {businessTier ? `${businessTier.price} ${businessTier.per}` : profile.directory_upgrade_amount_paid}
                   </span>
+                  {/* What the package includes, at a glance (Rob, 2026-10). */}
+                  <details className="dash-package-details">
+                    <summary>What&apos;s included</summary>
+                    <ul>
+                      {featuredTierFeatures(businessTier?.slug).map((f) => (
+                        <li key={f}>{f}</li>
+                      ))}
+                    </ul>
+                  </details>
                 </div>
                 <div className="dash-stat-card">
                   <span className="dash-stat-label">Renewal</span>
@@ -927,6 +942,8 @@ export default async function DashboardPage() {
                 </div>
               )}
             </section>
+          )}
+          </div>
           )}
 
           {/* Activity quick stats */}
