@@ -8,7 +8,9 @@ import {
   htmlToPlainText,
   stripHtml,
   soft,
+  type WPListing,
 } from "@/lib/wordpress";
+import { getOwnListing } from "@/lib/owner-edit";
 import { EditListingForm } from "./_components/EditListingForm";
 import { SpotlightEditor } from "./_components/SpotlightEditor";
 import { isGroupListing } from "../_components/ListingDetail";
@@ -25,8 +27,12 @@ export default async function EditListingPage({
   const token = await getSessionToken();
   if (!token) redirect("/login");
 
+  // A listing still waiting for approval or payment has no public page
+  // (and often no slug yet), so the dashboard links to it by its number
+  // and it's read through the owner-only route instead.
+  const byId = /^\d+$/.test(slug);
   const [listing, profile, categories] = await Promise.all([
-    getDirectoryListingBySlug(slug).catch(soft(null)),
+    byId ? getOwnListing<WPListing>(token, Number(slug)) : getDirectoryListingBySlug(slug).catch(soft(null)),
     getMemberMe(token),
     getDirectoryCategories().catch(soft([])),
   ]);

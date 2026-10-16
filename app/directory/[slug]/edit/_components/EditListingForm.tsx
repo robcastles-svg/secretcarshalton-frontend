@@ -118,7 +118,7 @@ export function EditListingForm({
     });
 
     if (res.ok) {
-      router.push(`/directory/${listingSlug}`);
+      router.push(listingSlug ? `/directory/${listingSlug}` : "/dashboard");
       router.refresh();
     } else {
       const body = await res.json().catch(() => ({}));

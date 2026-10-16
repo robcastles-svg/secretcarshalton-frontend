@@ -26,6 +26,26 @@ class SC_Jobs_REST {
 			)
 		);
 
+		// The owner's own job, for the edit form, and saving changes to it.
+		register_rest_route(
+			'sc-jobs/v1',
+			'/(?P<id>\d+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_own_job' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_job' ),
+			)
+		);
+		register_rest_route(
+			'sc-jobs/v1',
+			'/(?P<id>\d+)/update',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'update_job' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_job' ),
+			)
+		);
+
 		register_rest_route(
 			'sc-jobs/v1',
 			'/mine',
@@ -36,6 +56,79 @@ class SC_Jobs_REST {
 					return is_user_logged_in();
 				},
 			)
+		);
+	}
+
+	/** The job's author, or staff. */
+	public static function check_owns_job( WP_REST_Request $request ) {
+		if ( ! is_user_logged_in() ) {
+			return new WP_Error( 'not_logged_in', 'You must be logged in.', array( 'status' => 401 ) );
+		}
+		$job = get_post( (int) $request->get_param( 'id' ) );
+		if ( ! $job || SC_Jobs_CPT::POST_TYPE !== $job->post_type ) {
+			return new WP_Error( 'not_found', 'Job not found.', array( 'status' => 404 ) );
+		}
+		if ( (int) $job->post_author !== get_current_user_id() && ! current_user_can( 'edit_others_posts' ) ) {
+			return new WP_Error( 'not_owner', 'You can only edit your own jobs.', array( 'status' => 403 ) );
+		}
+		return true;
+	}
+
+	public static function get_own_job( WP_REST_Request $request ) {
+		$job   = get_post( (int) $request->get_param( 'id' ) );
+		$apply = (string) get_post_meta( $job->ID, 'external_url', true );
+		return array(
+			'id'            => $job->ID,
+			'title'         => wp_specialchars_decode( get_the_title( $job ), ENT_QUOTES ),
+			'slug'          => $job->post_name,
+			'status'        => $job->post_status,
+			'company'       => (string) get_post_meta( $job->ID, 'job_company', true ),
+			'description'   => wp_strip_all_tags( str_replace( array( '</p>', '<br>', '<br />' ), "\n", $job->post_content ) ),
+			'apply'         => 0 === strpos( $apply, 'mailto:' ) ? substr( $apply, 7 ) : $apply,
+			'salaryAmount'  => (float) get_post_meta( $job->ID, 'job_salary_amount', true ),
+			'salaryPeriod'  => 'year' === get_post_meta( $job->ID, 'job_salary_period', true ) ? 'year' : 'hour',
+			'paymentStatus' => (string) get_post_meta( $job->ID, 'payment_status', true ),
+		);
+	}
+
+	/**
+	 * Saves the owner's changes. The pay can only change before the job is
+	 * paid for — the price depends on it.
+	 */
+	public static function update_job( WP_REST_Request $request ) {
+		$id    = (int) $request->get_param( 'id' );
+		$title = sanitize_text_field( (string) $request->get_param( 'title' ) );
+		if ( ! $title ) {
+			return new WP_Error( 'missing_title', 'A job title is required.', array( 'status' => 400 ) );
+		}
+		wp_update_post(
+			array(
+				'ID'           => $id,
+				'post_title'   => $title,
+				'post_content' => wp_kses_post( (string) $request->get_param( 'description' ) ),
+			)
+		);
+		update_post_meta( $id, 'job_company', sanitize_text_field( (string) $request->get_param( 'company' ) ) );
+
+		$apply_url = trim( (string) $request->get_param( 'apply_url' ) );
+		if ( $apply_url && is_email( $apply_url ) ) {
+			$apply_url = 'mailto:' . $apply_url;
+		}
+		update_post_meta( $id, 'external_url', $apply_url ? esc_url_raw( $apply_url ) : '' );
+
+		if ( 'paid' !== get_post_meta( $id, 'payment_status', true ) && null !== $request->get_param( 'salary_amount' ) ) {
+			$amount = round( (float) $request->get_param( 'salary_amount' ), 2 );
+			$period = 'year' === $request->get_param( 'salary_period' ) ? 'year' : 'hour';
+			if ( $amount > 0 ) {
+				update_post_meta( $id, 'job_salary_amount', $amount );
+				update_post_meta( $id, 'job_salary_period', $period );
+				update_post_meta( $id, 'job_salary_text', self::salary_text( $amount, $period ) );
+				update_post_meta( $id, 'job_rate_bracket', self::rate_bracket( self::annual_salary( $amount, $period ) ) );
+			}
+		}
+		return array(
+			'updated' => true,
+			'slug'    => get_post_field( 'post_name', $id ),
 		);
 	}
 
