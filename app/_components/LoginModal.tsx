@@ -48,7 +48,6 @@ export function LoginModal({ onClose }: { onClose: () => void }) {
           ×
         </button>
         <h2>Log in</h2>
-        <GoogleSignIn onDone={onClose} />
         <form className="auth-form" onSubmit={handleSubmit}>
           <label>
             Username or email
@@ -70,6 +69,7 @@ export function LoginModal({ onClose }: { onClose: () => void }) {
             {submitting ? "Logging in…" : "Log in"}
           </button>
         </form>
+        <GoogleSignIn onDone={onClose} />
         <p className="auth-switch">
           <a href={LOST_PASSWORD_URL}>
             Forgot your password?

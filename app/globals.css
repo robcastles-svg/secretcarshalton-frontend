@@ -10546,3 +10546,6 @@ a.home-comment-author:hover {
 .footer-payments { margin: 1rem 0 0.5rem; }
 .footer-payments img { display: block; width: 220px; max-width: 100%; height: auto; }
 .footer-payments p { margin: 0.35rem 0 0; font-size: 0.68rem; opacity: 0.75; }
+/* The tick box sits inside .auth-form on /register: keep it a row, not the form's stacked label. */
+.auth-form .auth-newsletter { flex-direction: row; gap: 0.6rem; font-weight: 400; font-size: 0.92rem; margin: 0.25rem 0; }
+.auth-form .auth-newsletter input { padding: 0; width: 18px; height: 18px; }
