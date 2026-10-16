@@ -10498,3 +10498,8 @@ a.home-comment-author:hover {
 
 /* Instagram Story button (ShareRow) while it fetches the picture. */
 .evx-icon-btn[aria-busy="true"], .share-row-btn[aria-busy="true"] { opacity: .5; cursor: progress; }
+
+/* Halloween tab at the end of the events date tabs (seasonal, see COLLECTIONS). */
+.evx .evl-chip-halloween { border-color: #e8771e; color: #ffb066; font-weight: 700; }
+.evx .evl-chip-halloween:hover { border-color: #ffb066; background: rgba(232,119,30,.12); }
+.evl-chip-halloween svg { color: #e8771e; width: 17px; height: 17px; }

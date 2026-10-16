@@ -11,6 +11,8 @@ export const revalidate = 3600;
 const W = 1080;
 const H = 1920;
 const PINK = "#cc99a2";
+/** Card photo height. Kept shortish so the bottom third stays free for Instagram's link sticker (Rob, Oct 2026). */
+const PHOTO_H = 740;
 
 /**
  * The event's own Instagram Story picture (1080×1920, 9:16), made on
@@ -47,15 +49,15 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
         {/* The same photo, blurred and darkened, as the backdrop. */}
         {photos && <img src={photos.backdrop} width={W} height={H} style={{ position: "absolute", top: 0, left: 0 }} />}
 
-        <div style={{ position: "relative", width: W, height: H, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingBottom: 40 }}>
+        <div style={{ position: "relative", width: W, height: H, display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 230 }}>
           <div style={{ width: 920, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <img src={`data:image/png;base64,${logo.toString("base64")}`} width={346} height={50} />
             <div style={{ display: "flex", fontSize: 34, fontWeight: 900, letterSpacing: 7, color: PINK }}>/EVENTS</div>
           </div>
 
           {photo && (
-            <div style={{ marginTop: 40, width: 920, height: 900, display: "flex", borderRadius: 36, overflow: "hidden" }}>
-              <img src={photo} width={920} height={900} />
+            <div style={{ marginTop: 40, width: 920, height: PHOTO_H, display: "flex", borderRadius: 36, overflow: "hidden" }}>
+              <img src={photo} width={920} height={PHOTO_H} />
             </div>
           )}
 
@@ -149,7 +151,7 @@ async function preparePhotos(url: string | undefined): Promise<{ card: string; b
       .modulate({ brightness: 0.32, saturation: 1.1 })
       .toBuffer();
     const [card, backdrop] = await Promise.all([
-      sharp(source).resize(920, 900, { fit: "cover", position: "north" }).jpeg({ quality: 85 }).toBuffer(),
+      sharp(source).resize(920, PHOTO_H, { fit: "cover", position: "north" }).jpeg({ quality: 85 }).toBuffer(),
       sharp(small).resize(W, H).blur(20).jpeg({ quality: 80 }).toBuffer(),
     ]);
     return {

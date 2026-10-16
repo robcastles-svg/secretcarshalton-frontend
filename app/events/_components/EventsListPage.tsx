@@ -4,6 +4,7 @@ import { Suspense, type ReactNode } from "react";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import {
+  COLLECTIONS,
   HIDDEN_TOPICS,
   LEGACY_FREE_TAG,
   MONTHS_LONG,
@@ -45,7 +46,7 @@ import {
 } from "@/lib/wordpress";
 import { ShareRow } from "@/app/_components/ShareRow";
 import { CategorySelect } from "./CategorySelect";
-import { ChevronIcon, CalendarIcon, StarIcon } from "./EvIcons";
+import { ChevronIcon, CalendarIcon, PumpkinIcon, StarIcon } from "./EvIcons";
 import { EventCard } from "./EventCard";
 import { FeaturedSlider, type Slide } from "./FeaturedSlider";
 import { LoadMoreGroups } from "./LoadMoreGroups";
@@ -434,6 +435,13 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
               </Link>
             );
           })}
+          {/* Seasonal collection pages (COLLECTIONS) at the end of the tabs, while in season. */}
+          {COLLECTIONS.filter((c) => new Date(`${c.tab.until}T23:59:59`).getTime() >= now).map((c) => (
+            <Link key={c.slug} href={`/events/${c.slug}`} className="evl-chip evl-chip-halloween">
+              <PumpkinIcon />
+              {c.tab.label}
+            </Link>
+          ))}
         </div>
         <CategorySelect
           options={options}

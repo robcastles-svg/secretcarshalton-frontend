@@ -69,6 +69,15 @@ export const StarIcon = () => (
     <path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9l-5.3 2.7 1-5.8-4.2-4.1 5.9-.9z" />
   </Svg>
 );
+/** A pumpkin, for the Halloween tab (coloured by CSS, filled). */
+export const PumpkinIcon = () => (
+  <Svg fill>
+    <ellipse cx="7.6" cy="14" rx="4.6" ry="6" />
+    <ellipse cx="16.4" cy="14" rx="4.6" ry="6" />
+    <ellipse cx="12" cy="14" rx="4.4" ry="6.6" />
+    <path d="M11.2 7.6c-.1-2.1.7-3.6 2.4-4.3l.8 1.2c-1.1.5-1.6 1.5-1.5 3.1z" />
+  </Svg>
+);
 export const MailIcon = () => (
   <Svg>
     <rect x="3" y="5" width="18" height="14" rx="2" />
