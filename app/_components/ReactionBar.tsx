@@ -135,8 +135,8 @@ export function ReactionBar({
             aria-label={`Share${shares ? ` (${shares} shares)` : ""}`}
             onClick={openShare}
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M14 4.5 21 11l-7 6.5V14c-5.5 0-9 1.6-11.5 5.5C3.5 13.6 7 9.6 14 8.6Z" />
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="reaction-share-icon">
+              <path d="M13.5 4.5 21 11.2l-7.5 6.8v-4c-5.2 0-8.6 1.5-11 5.3.8-5.9 4.3-9.8 11-10.6Z" />
             </svg>
             {shares > 0 && <span>{shares}</span>}
           </button>

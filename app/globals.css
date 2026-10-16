@@ -1350,6 +1350,11 @@ a.ad-slot-text-image img {
   stroke-linejoin: round;
 }
 
+/* Bolder outline for the share arrow, like the reference icons (Rob). */
+.reaction svg.reaction-share-icon {
+  stroke-width: 2.3;
+}
+
 .reaction:hover,
 .reaction-open {
   color: var(--color-active-dark);
