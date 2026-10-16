@@ -6964,18 +6964,31 @@ a.card-category:hover {
   gap: 0;
 }
 
-/* A light keyline between each section of the dashboard (Rob, 2026-10). */
+/* A light keyline between each section of the dashboard (Rob, 2026-10) —
+   drawn in the gap above each section rather than as its top border, so
+   it still shows above the white boxes (which have borders of their own). */
 .dash-main > * + * {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
+  position: relative;
+  margin-top: 3rem;
+}
+
+.dash-main > * + *::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -1.5rem;
   border-top: 1px solid var(--ad-border);
+  pointer-events: none;
 }
 
 /* …except the small "Browse all members" link that belongs to the welcome. */
 .dash-main > .dashboard-members-link {
   margin-top: 0.5rem;
-  padding-top: 0;
-  border-top: 0;
+}
+
+.dash-main > .dashboard-members-link::before {
+  content: none;
 }
 
 .dash-business-name {
