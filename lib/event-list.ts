@@ -182,6 +182,8 @@ export const COLLECTIONS = [
   {
     slug: "halloween-2026",
     title: "Halloween Events 2026",
+    /** The tab at the end of the events pages' date tabs, shown until this date (the page stays up). */
+    tab: { label: "Halloween", until: "2026-11-08" },
     intro: "Spooky things to do in and around Carshalton and Sutton this Halloween: parties, trails, quizzes and family fun.",
   },
 ] as const;
