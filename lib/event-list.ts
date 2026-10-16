@@ -171,4 +171,23 @@ export function parseWhenParam(value: string | undefined | null): When {
 /** Old EventON-era tag slug for free events — merged into the price-based "Free" category. */
 export const LEGACY_FREE_TAG = "free-entry";
 /** Topics that don't get a category of their own in the dropdown. */
-export const HIDDEN_TOPICS = new Set([LEGACY_FREE_TAG, "other"]);
+/**
+ * Seasonal collections: an event tag (set by Rob in wp-admin, Event Tags
+ * box) that gets its own page at /events/{slug}. Unlike the normal list
+ * pages, a tagged event stays on its collection page after it has
+ * happened, so the page never suddenly looks empty. Never offered as a
+ * topic, and members can't add or remove it from the event form.
+ */
+export const COLLECTIONS = [
+  {
+    slug: "halloween-2026",
+    title: "Halloween Events 2026",
+    intro: "Spooky things to do in and around Carshalton and Sutton this Halloween: parties, trails, quizzes and family fun.",
+  },
+] as const;
+
+export function findCollection(slug: string) {
+  return COLLECTIONS.find((c) => c.slug === slug) ?? null;
+}
+
+export const HIDDEN_TOPICS = new Set<string>([LEGACY_FREE_TAG, "other", ...COLLECTIONS.map((c) => c.slug)]);
