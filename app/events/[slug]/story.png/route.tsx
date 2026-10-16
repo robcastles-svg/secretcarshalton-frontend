@@ -141,15 +141,16 @@ async function preparePhotos(url: string | undefined): Promise<{ card: string; b
     const res = await fetch(url, { signal: AbortSignal.timeout(10_000), next: { revalidate: 3600 } });
     if (!res.ok) return null;
     const source = Buffer.from(await res.arrayBuffer());
+    // A sharp pipeline keeps only its last resize, so the backdrop is
+    // shrunk and blurred in one pass, then enlarged in a second.
+    const small = await sharp(source)
+      .resize(108, 192, { fit: "cover" })
+      .blur(4)
+      .modulate({ brightness: 0.32, saturation: 1.1 })
+      .toBuffer();
     const [card, backdrop] = await Promise.all([
       sharp(source).resize(920, 900, { fit: "cover", position: "north" }).jpeg({ quality: 85 }).toBuffer(),
-      sharp(source)
-        .resize(108, 192, { fit: "cover" })
-        .blur(6)
-        .modulate({ brightness: 0.3, saturation: 1.1 })
-        .resize(W, H)
-        .jpeg({ quality: 80 })
-        .toBuffer(),
+      sharp(small).resize(W, H).blur(20).jpeg({ quality: 80 }).toBuffer(),
     ]);
     return {
       card: `data:image/jpeg;base64,${card.toString("base64")}`,
