@@ -158,6 +158,26 @@ class SC_Membership_REST {
 			)
 		);
 
+		// The member's own community post, for the edit form, and saving it.
+		register_rest_route(
+			'sc-membership/v1',
+			'/community-posts/(?P<id>\d+)',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_own_community_post' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_community_post' ),
+			)
+		);
+		register_rest_route(
+			'sc-membership/v1',
+			'/community-posts/(?P<id>\d+)/update',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'update_community_post' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_community_post' ),
+			)
+		);
+
 		register_rest_route(
 			'sc-membership/v1',
 			'/mine/community-posts',
@@ -772,6 +792,71 @@ class SC_Membership_REST {
 		}
 
 		return array( 'id' => $post_id, 'status' => 'pending' );
+	}
+
+	/** The post's author (a community post), or staff. */
+	public static function check_owns_community_post( WP_REST_Request $request ) {
+		if ( ! is_user_logged_in() ) {
+			return new WP_Error( 'not_logged_in', 'You must be logged in.', array( 'status' => 401 ) );
+		}
+		$post = get_post( (int) $request->get_param( 'id' ) );
+		if ( ! $post || 'post' !== $post->post_type || ! has_category( 'community', $post ) ) {
+			return new WP_Error( 'not_found', 'Post not found.', array( 'status' => 404 ) );
+		}
+		if ( (int) $post->post_author !== get_current_user_id() && ! current_user_can( 'edit_others_posts' ) ) {
+			return new WP_Error( 'not_owner', 'You can only edit your own posts.', array( 'status' => 403 ) );
+		}
+		return true;
+	}
+
+	public static function get_own_community_post( WP_REST_Request $request ) {
+		$post  = get_post( (int) $request->get_param( 'id' ) );
+		$thumb = get_post_thumbnail_id( $post );
+		return array(
+			'id'     => $post->ID,
+			'title'  => wp_specialchars_decode( get_the_title( $post ), ENT_QUOTES ),
+			'body'   => trim( wp_strip_all_tags( str_replace( array( '</p>', '<br>', '<br />' ), "\n", $post->post_content ) ) ),
+			'status' => $post->post_status,
+			'image'  => $thumb ? (string) wp_get_attachment_image_url( $thumb, 'medium' ) : '',
+		);
+	}
+
+	/**
+	 * Saves a member's changes to their community post. A post that's
+	 * already been published goes back to 'pending' for Rob to look over
+	 * again — community posts are always checked before they're public.
+	 */
+	public static function update_community_post( WP_REST_Request $request ) {
+		$id    = (int) $request->get_param( 'id' );
+		$title = sanitize_text_field( (string) $request->get_param( 'title' ) );
+		$body  = (string) $request->get_param( 'body' );
+		if ( ! $title || ! trim( wp_strip_all_tags( $body ) ) ) {
+			return new WP_Error( 'missing_fields', 'A headline and story text are required.', array( 'status' => 400 ) );
+		}
+		$was    = get_post_status( $id );
+		$status = current_user_can( 'edit_others_posts' ) ? $was : 'pending';
+		wp_update_post(
+			array(
+				'ID'           => $id,
+				'post_title'   => $title,
+				'post_content' => wpautop( wp_kses_post( $body ) ),
+				'post_status'  => $status,
+			)
+		);
+		if ( ! empty( $_FILES['image']['tmp_name'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			require_once ABSPATH . 'wp-admin/includes/image.php';
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+			require_once ABSPATH . 'wp-admin/includes/media.php';
+			$attachment_id = media_handle_upload( 'image', $id );
+			if ( ! is_wp_error( $attachment_id ) ) {
+				set_post_thumbnail( $id, $attachment_id );
+			}
+		}
+		return array(
+			'updated'     => true,
+			'status'      => $status,
+			'backToReview' => 'publish' === $was && 'pending' === $status,
+		);
 	}
 
 	/** The dashboard's "Your community posts" section. */

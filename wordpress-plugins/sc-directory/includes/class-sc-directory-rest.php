@@ -86,6 +86,16 @@ class SC_Directory_REST {
 
 		register_rest_route(
 			'sc-directory/v1',
+			'/(?P<id>\d+)/own',
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_own_listing' ),
+				'permission_callback' => array( __CLASS__, 'check_owns_listing' ),
+			)
+		);
+
+		register_rest_route(
+			'sc-directory/v1',
 			'/mine',
 			array(
 				'methods'             => 'GET',
@@ -498,6 +508,19 @@ class SC_Directory_REST {
 	 * own 'pending' posts through the generic REST controller's status
 	 * filter, only 'publish'.
 	 */
+	/**
+	 * The owner's own listing in the same shape as wp/v2/sc-listings, for
+	 * the edit page — which otherwise can only see published listings, so
+	 * one still waiting for approval or payment opened as a 404.
+	 */
+	public static function get_own_listing( WP_REST_Request $request ) {
+		$post       = get_post( (int) $request->get_param( 'id' ) );
+		$controller = new WP_REST_Posts_Controller( SC_Directory_CPT::POST_TYPE );
+		$inner      = new WP_REST_Request( 'GET' );
+		$inner->set_param( 'context', 'view' );
+		return $controller->prepare_item_for_response( $post, $inner )->get_data();
+	}
+
 	public static function get_my_listings( WP_REST_Request $request ) {
 		$posts = get_posts(
 			array(

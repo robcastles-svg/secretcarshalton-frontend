@@ -494,7 +494,13 @@ export default async function DashboardPage() {
                               ) : (
                                 <span>{stripHtml(job.title)}</span>
                               )}
-                              {job.company && <div className="dash-meta">{job.company}</div>}
+                              <div className="dash-meta">
+                                {job.company}
+                                {job.company && " · "}
+                                <Link href={`/jobs/edit/${job.id}`} className="dash-manage-link">
+                                  Edit
+                                </Link>
+                              </div>
                               {job.status === "publish" && job.expiresOn && (
                                 <div className="dash-meta">Live until {formatUntil(job.expiresOn)}</div>
                               )}
@@ -549,7 +555,7 @@ export default async function DashboardPage() {
                               ? `Promoted until ${formatUntil(group.promotedUntil)}`
                               : `${group.views} view${group.views === 1 ? "" : "s"}`}
                             {" · "}
-                            <Link href={`/directory/${group.slug}/edit`} className="dash-manage-link">
+                            <Link href={`/directory/${group.status === "publish" && group.slug ? group.slug : group.id}/edit`} className="dash-manage-link">
                               Edit
                             </Link>
                             {!group.promotedUntil && group.status === "publish" && (
@@ -590,6 +596,9 @@ export default async function DashboardPage() {
                       ) : (
                         <span>{post.title}</span>
                       )}
+                      <Link href={`/community/edit/${post.id}`} className="dashboard-my-list-edit">
+                        Edit
+                      </Link>
                     </>
                   )}
                 />
@@ -647,7 +656,7 @@ export default async function DashboardPage() {
                           Featured until {formatUntil(listing.featuredUntil)} · Renew
                         </Link>
                       )}
-                      <Link href={`/directory/${listing.slug}/edit`} className="dashboard-my-list-edit">
+                      <Link href={`/directory/${listing.status === "publish" && listing.slug ? listing.slug : listing.id}/edit`} className="dashboard-my-list-edit">
                         Edit
                       </Link>
                     </>
@@ -886,7 +895,7 @@ export default async function DashboardPage() {
                         View listing
                       </Link>
                     )}
-                    <Link href={`/directory/${businessListing.slug}/edit`} className="button-pill">
+                    <Link href={`/directory/${businessListing.status === "publish" && businessListing.slug ? businessListing.slug : businessListing.id}/edit`} className="button-pill">
                       Edit listing
                     </Link>
                   </div>
