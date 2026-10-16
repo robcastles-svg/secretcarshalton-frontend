@@ -177,9 +177,6 @@ export default async function DashboardPage() {
             </a>
           )}
 
-          <a href="#directory" className="dash-sidebar-link">
-            My directory listings
-          </a>
           {hasBusiness && (
             <>
               <a href="#business" className="dash-sidebar-link">
@@ -190,6 +187,9 @@ export default async function DashboardPage() {
                   Campaign progress
                 </a>
               )}
+          <a href="#directory" className="dash-sidebar-link">
+            My directory listings
+          </a>
             </>
           )}
 
