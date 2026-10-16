@@ -10486,3 +10486,8 @@ a.home-comment-author:hover {
   word-break: break-all;
   user-select: all;
 }
+
+/* "Edit in WordPress" — admins only, added in the browser (EditInWordPress.tsx). */
+.edit-in-wordpress { display: inline-block; margin: 4px 0 12px; padding: 4px 12px; border: 1px solid currentColor; border-radius: 999px; font-size: 13px; font-weight: 700; text-decoration: none; }
+.edit-in-wordpress:hover { text-decoration: underline; }
+.evx .evx-edit-wp { margin-left: 14px; }

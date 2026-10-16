@@ -2,8 +2,8 @@
 
 This repo is a Next.js frontend + a suite of custom WordPress plugins
 (`wordpress-plugins/`) for Secret Carshalton, a local-news site. See
-`wordpress-plugins/README.md` for the plugin deploy model (staging,
-HTTPS-only, no SSH) and the plugin contract between them.
+`wordpress-plugins/README.md` for the plugin deploy model (uploads go
+to the live CMS, HTTPS-only, no SSH) and the plugin contract between them.
 
 ## The AI editorial workflow — manual, not the in-app button
 
@@ -23,8 +23,10 @@ two ways that can happen in this codebase:
    tied to a single conversation), Claude drafts the article, and Claude
    **publishes it directly via the WordPress REST API** using the
    Application Password credentials already present in the environment
-   (`WP_SITE_URL`, `WP_USERNAME`, `WP_APP_PASSWORD` — the **live** site,
-   `secretcarshalton.com`, not staging). This costs nothing beyond
+   (`WP_USERNAME`, `WP_APP_PASSWORD`, an administrator on the **CMS**,
+   `https://www.cms.secretcarshalton.com`. Since go-live on 16 Oct 2026,
+   `secretcarshalton.com` is the Next.js site, not WordPress, so don't
+   post there. `WP_SITE_URL` in the environment may still say it.) This costs nothing beyond
    whatever Claude plan the session is already running under — no
    separate API key, no per-draft billing.
 
@@ -36,7 +38,7 @@ two ways that can happen in this codebase:
   tags) rather than improvising a different tone.
 - Never invent facts, quotes, or figures not in what Rob gave you. Flag
   speculation as speculation.
-- Create the post via `POST https://secretcarshalton.com/wp-json/wp/v2/posts`
+- Create the post via `POST https://www.cms.secretcarshalton.com/wp-json/wp/v2/posts`
   with HTTP Basic Auth (`WP_USERNAME` / `WP_APP_PASSWORD` from the
   environment) — Application Passwords are REST-API-only by WP core
   design, which is exactly what this needs (unlike the wp-admin HTML

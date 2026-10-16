@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getJobListingBySlug, stripHtml, soft } from "@/lib/wordpress";
+import { EditInWordPress } from "@/app/_components/EditInWordPress";
 
 export const revalidate = 3600;
 
@@ -51,6 +52,7 @@ export default async function JobDetailPage({
       </p>
 
       <h1 dangerouslySetInnerHTML={{ __html: job.title.rendered }} />
+      <EditInWordPress postId={job.id} />
 
       <div className="job-card-meta job-detail-meta">
         {job.meta.job_company && <span className="job-card-company">{job.meta.job_company}</span>}

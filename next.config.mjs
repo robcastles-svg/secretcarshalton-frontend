@@ -1,5 +1,5 @@
 import { legacyRedirects } from "./lib/legacy-redirects.mjs";
-import { ARTICLES_WP_ORIGIN } from "./lib/cms-hosts.mjs";
+import { ARTICLES_WP_ORIGIN, CMS_ORIGIN } from "./lib/cms-hosts.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -20,7 +20,14 @@ const nextConfig = {
   },
   // Old WordPress addresses that changed — see lib/legacy-redirects.mjs.
   async redirects() {
-    return legacyRedirects;
+    return [
+      // WordPress moved to the CMS hostname; the old admin addresses on
+      // www take Rob there. Not permanent, in case the CMS moves again.
+      { source: "/wp-admin", destination: `${CMS_ORIGIN}/wp-admin/`, permanent: false },
+      { source: "/wp-admin/:path*", destination: `${CMS_ORIGIN}/wp-admin/:path*`, permanent: false },
+      { source: "/wp-login.php", destination: `${CMS_ORIGIN}/wp-login.php`, permanent: false },
+      ...legacyRedirects,
+    ];
   },
   // Articles, pages and the Instagram feed store their images and videos
   // as https://www.secretcarshalton.com/wp-content/... — once www is this

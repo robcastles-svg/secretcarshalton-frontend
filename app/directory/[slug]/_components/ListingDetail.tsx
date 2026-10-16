@@ -25,6 +25,7 @@ import {
   type WPDirectoryCategory,
   type WPListing,
 } from "@/lib/wordpress";
+import { EditInWordPress } from "@/app/_components/EditInWordPress";
 
 function formatListedSince(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { month: "long", year: "numeric" });
@@ -216,6 +217,7 @@ export async function ListingDetail({
                 Edit listing
               </Link>
             )}
+            <EditInWordPress postId={listing.id} className="button-pill button-pill-secondary" />
           </div>
           {averageRating !== null && (
             <a href="#comments" className="directory-rating-summary">

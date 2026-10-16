@@ -46,6 +46,7 @@ import {
   type WPComment,
   soft,
 } from "@/lib/wordpress";
+import { EditInWordPress } from "@/app/_components/EditInWordPress";
 
 export const revalidate = 3600;
 
@@ -212,6 +213,7 @@ export default async function ContentPage({
     const content = (
       <>
         {!isAboutPage && <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />}
+        <EditInWordPress postId={item.id} />
         {!isAboutPage && <time dateTime={item.date}>{formatDate(item.date)}</time>}
         {!isAboutPage && image && <img src={image.source_url} alt={image.alt_text} />}
         <div
@@ -416,6 +418,7 @@ export default async function ContentPage({
                 )}
               </div>
               <h1 dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
+              <EditInWordPress postId={post.id} />
             </div>
           </div>
         </div>
@@ -434,6 +437,7 @@ export default async function ContentPage({
             )}
           </div>
           <h1 dangerouslySetInnerHTML={{ __html: post.title.rendered }} />
+          <EditInWordPress postId={post.id} />
         </div>
       )}
 

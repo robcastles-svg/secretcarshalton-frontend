@@ -57,6 +57,7 @@ import { EventDetailImage } from "./_components/EventDetailImage";
 import { RsvpButton } from "./_components/RsvpButton";
 import { VenueCard } from "../_components/VenueCard";
 import { ShareRow } from "@/app/_components/ShareRow";
+import { EditInWordPress } from "@/app/_components/EditInWordPress";
 
 export const revalidate = 3600;
 
@@ -393,6 +394,7 @@ export default async function EventPage({
                     Edit event
                   </Link>
                 )}
+                <EditInWordPress postId={event.id} className="evx-edit evx-edit-wp" />
               </div>
             </div>
             <ul className="evx-facts">
