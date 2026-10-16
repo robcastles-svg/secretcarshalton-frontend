@@ -51,10 +51,6 @@ function LoginForm() {
   return (
     <main className="container auth-page">
       <h1>Log in</h1>
-      <GoogleSignIn next={(() => {
-        const next = searchParams.get("next");
-        return next && next.startsWith("/") ? next : "/dashboard";
-      })()} />
       <form className="auth-form" onSubmit={handleSubmit}>
         <label>
           Username or email
@@ -79,6 +75,10 @@ function LoginForm() {
           {submitting ? "Logging in…" : "Log in"}
         </button>
       </form>
+      <GoogleSignIn next={(() => {
+        const next = searchParams.get("next");
+        return next && next.startsWith("/") ? next : "/dashboard";
+      })()} />
       <p className="auth-switch">
         {/* WordPress's own reset-password flow — same account, no separate system to build. */}
         <a href={LOST_PASSWORD_URL}>

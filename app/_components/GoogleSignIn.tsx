@@ -110,7 +110,7 @@ export function GoogleSignIn({
           width: Math.min(box.current.offsetWidth || 320, 400),
         });
       })
-      .catch(() => setError("Google sign-in couldn't load. You can still use a username and password."));
+      .catch(() => setError("Google sign-in couldn't load — please use the form above."));
     return () => {
       cancelled = true;
     };
@@ -163,12 +163,12 @@ export function GoogleSignIn({
   if (inAppBrowser) {
     return (
       <div className="google-signin">
-        <p className="google-signin-note">
-          To continue with Google, open this page in your phone&rsquo;s browser — tap <b>⋮</b> or <b>…</b> at the top, then
-          &ldquo;Open in browser&rdquo;. Or use a username and password below.
-        </p>
         <p className="auth-or">
           <span>or</span>
+        </p>
+        <p className="google-signin-note">
+          To continue with Google, open this page in your phone&rsquo;s browser — tap <b>⋮</b> or <b>…</b> at the top, then
+          &ldquo;Open in browser&rdquo;.
         </p>
       </div>
     );
@@ -176,11 +176,11 @@ export function GoogleSignIn({
 
   return (
     <div className="google-signin">
-      <div ref={box} className="google-signin-button" aria-busy={busy} />
-      {error && <p className="auth-error">{error}</p>}
       <p className="auth-or">
         <span>or</span>
       </p>
+      <div ref={box} className="google-signin-button" aria-busy={busy} />
+      {error && <p className="auth-error">{error}</p>}
     </div>
   );
 }

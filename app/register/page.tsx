@@ -47,17 +47,6 @@ export default function RegisterPage() {
         Membership is free, and unlocks comments, event RSVPs, directory listings and more —
         with tiers and badges as you get involved.
       </p>
-      {/* One tick box for both ways of joining: it's above the Google button. Shown once EmailOctopus is set up. */}
-      {NEWSLETTER_ON && (
-      <label className="auth-newsletter">
-        <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
-        <span>
-          Send me the <b>Secret Carshalton Insider</b> newsletter. We&rsquo;ll email you to confirm first, and you can
-          unsubscribe any time.
-        </span>
-      </label>
-      )}
-      <GoogleSignIn newsletter={newsletter} />
       <form className="auth-form" onSubmit={handleSubmit}>
         <label>
           Username <small>(shown publicly)</small>
@@ -88,12 +77,23 @@ export default function RegisterPage() {
             autoComplete="new-password"
           />
         </label>
+        {/* One tick box for both ways of joining (the Google button below reads it too). Shown once EmailOctopus is set up. */}
+        {NEWSLETTER_ON && (
+        <label className="auth-newsletter">
+          <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
+          <span>
+            Send me the <b>Secret Carshalton Insider</b> newsletter. We&rsquo;ll email you to confirm first, and you can
+            unsubscribe any time.
+          </span>
+        </label>
+        )}
         {error && <p className="auth-error">{error}</p>}
         <button type="submit" className="button-pill" disabled={submitting}>
           {submitting ? "Creating account…" : "Create account"}
         </button>
         <SpamTrap />
       </form>
+      <GoogleSignIn newsletter={newsletter} />
       <p className="auth-switch">
         Already a member? <Link href="/login">Log in</Link>
       </p>
