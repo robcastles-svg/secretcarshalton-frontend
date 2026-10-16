@@ -10547,3 +10547,6 @@ a.home-comment-author:hover {
 .auth-form .auth-newsletter-box .auth-newsletter { display: block; margin: 0; padding-bottom: 0.55rem; border-bottom: 1px solid #efe2e6; font-weight: 400; font-size: 0.92rem; line-height: 1.4; cursor: pointer; }
 .auth-newsletter-note { margin: 0.55rem 0 0; font-size: 0.8rem; line-height: 1.45; color: #666; font-weight: 400; }
 .google-signin-newsletter { margin: 0.4rem 0 0; font-size: 0.8rem; color: #666; text-align: center; }
+/* Article sidebar: "Trending today" with its rising-arrow icon. */
+.sidebar-block h3.sidebar-trending-title { display: flex; align-items: center; gap: 0.45rem; }
+.sidebar-trending-title svg { color: #d6293e; flex: none; }

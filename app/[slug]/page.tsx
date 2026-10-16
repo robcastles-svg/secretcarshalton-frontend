@@ -147,6 +147,16 @@ function sameCalendarDay(a: string, b: string) {
   return a.slice(0, 10) === b.slice(0, 10);
 }
 
+/** Rising zigzag with an arrowhead, for the sidebar's "Trending today" (Rob, Oct 2026). */
+function TrendingIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="2 18 9 11 13 15 21 7" />
+      <polyline points="15 7 21 7 21 13" />
+    </svg>
+  );
+}
+
 function EyeIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
@@ -505,7 +515,10 @@ export default async function ContentPage({
         <aside className="post-sidebar">
           {topPostsToday.length > 0 && (
             <div className="sidebar-block">
-              <h3>Top 5 posts today</h3>
+              <h3 className="sidebar-trending-title">
+                <TrendingIcon />
+                Trending today
+              </h3>
               <ol className="most-read-list">
                 {topPostsToday.map((p) => (
                   <li key={p.post_id}>
