@@ -837,15 +837,16 @@ export async function getPostsByCategory(categoryId: number): Promise<WPContentI
 /**
  * Multiple category ids OR'd together (WP REST's comma-separated
  * `categories` param) — Discover's merged feed of every area under
- * Stories in one request, rather than N separate area fetches. Capped at
- * maxResults since this is a browsing feed, not an archive — most
- * recent first (WP's own default order).
+ * Stories in one request, rather than N separate area fetches. Every
+ * story, most recent first (WP's own default order): it used to stop at
+ * the newest 40, which left Discover with 5 pages where the old site's
+ * stories archive had 18 (Rob, Oct 2026).
  */
-export async function getPostsByCategories(categoryIds: number[], maxResults = 40): Promise<WPContentItem[]> {
+export async function getPostsByCategories(categoryIds: number[]): Promise<WPContentItem[]> {
   if (categoryIds.length === 0) return [];
   const posts: WPContentItem[] = [];
   let page = 1;
-  while (posts.length < maxResults) {
+  while (true) {
     const batch = await wpFetch<WPContentItem[]>(
       `/posts?categories=${categoryIds.join(",")}&per_page=100&page=${page}&_fields=id,slug,date,link,title,excerpt,content,featured_media,categories,tags,_links&_embed=wp:featuredmedia`
     );
@@ -853,7 +854,7 @@ export async function getPostsByCategories(categoryIds: number[], maxResults = 4
     if (batch.length < 100) break;
     page++;
   }
-  return attachCommentCounts(posts.slice(0, maxResults));
+  return attachCommentCounts(posts);
 }
 
 /**
