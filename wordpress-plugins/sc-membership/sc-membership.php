@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Membership
  * Description: Central member record (points, tiers, directory-upgrade approvals) shared by the directory, events, and comments. Other Secret Carshalton plugins hook into this rather than keeping their own copy of "who's a member."
- * Version: 0.29.2
+ * Version: 0.29.3
  * Author: Secret Carshalton
  * Text Domain: sc-membership
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_MEMBERSHIP_VERSION', '0.29.2' );
+define( 'SC_MEMBERSHIP_VERSION', '0.29.3' );
 define( 'SC_MEMBERSHIP_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_MEMBERSHIP_DIR . 'includes/class-sc-membership-db.php';
@@ -55,6 +55,18 @@ add_action( 'rest_api_init', array( 'SC_Membership_REST', 'register_routes' ) );
 add_action( 'rest_api_init', array( 'SC_Membership_Contact', 'register_routes' ) );
 add_action( 'rest_api_init', array( 'SC_Membership_Instagram', 'register_routes' ) );
 add_filter( 'get_avatar_url', array( 'SC_Membership_REST', 'filter_default_avatar' ), 20, 3 );
+
+/**
+ * Every email the site sends (sign-up confirmation, password reset, …) comes
+ * from "Secret Carshalton", not WordPress's default "WordPress" (Rob, Oct
+ * 2026). Only replaces the default, so a sender name set elsewhere wins.
+ */
+add_filter(
+	'wp_mail_from_name',
+	function ( $name ) {
+		return 'WordPress' === $name ? 'Secret Carshalton' : $name;
+	}
+);
 
 /**
  * Enforces a ban (see SC_Membership_REST::is_banned) — blocks both wp-admin's cookie
