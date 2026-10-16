@@ -79,13 +79,19 @@ export default function RegisterPage() {
         </label>
         {/* One tick box for both ways of joining (the Google button below reads it too). Shown once EmailOctopus is set up. */}
         {NEWSLETTER_ON && (
-        <label className="auth-newsletter">
-          <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
-          <span>
-            Send me the <b>Secret Carshalton Insider</b> newsletter. It starts once you&rsquo;ve confirmed your email, and you
-            can unsubscribe any time.
-          </span>
-        </label>
+        <div className="auth-newsletter-box">
+          <label className="auth-newsletter">
+            <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
+            <span>
+              📨 Send me the <b>Secret Carshalton Insider</b> newsletter — the latest news and stories, straight to my inbox
+            </span>
+          </label>
+          <p className="auth-newsletter-note">
+            <b>Double opt-in:</b> we&rsquo;ll email you a link to confirm, and you&rsquo;re only added once you click it. We
+            guarantee that everyone who receives our emails wants to receive them, and it&rsquo;s always easy to unsubscribe
+            from within the email itself. <Link href="/privacy-policy">Privacy statement</Link>.
+          </p>
+        </div>
         )}
         {error && <p className="auth-error">{error}</p>}
         <button type="submit" className="button-pill" disabled={submitting}>
