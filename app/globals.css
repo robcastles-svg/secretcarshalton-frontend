@@ -1162,15 +1162,26 @@ a.ad-slot-text-image img {
      too (even though the image itself stays a fixed size within it) so
      align-self: end has the whole card's height to push down against —
      spanning only row 1 would pin it to row 1's bottom, not the card's. */
+  /* Fills the card's whole height (Rob, 2026-10) — taller cards like the
+     interleaved Featured listing used to leave an empty gap above it. */
   .post-list-single-column li > a:first-child {
     grid-column: 1;
     grid-row: 1 / -1;
-    align-self: end;
+    align-self: stretch;
+    display: block;
+    position: relative;
+    min-height: 180px;
   }
 
+  /* Absolutely placed so the photo's own size never makes the card taller
+     — it just fills whatever height the text column gives the card. */
   .post-list-single-column li > a:first-child img {
-    height: 180px;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     aspect-ratio: auto;
+    object-fit: cover;
     margin-bottom: 0;
   }
 
@@ -1203,6 +1214,11 @@ a.ad-slot-text-image img {
      so the row-layout rules above never positioned them. Without this
      they fall back to CSS Grid auto-placement in column 1, under the
      thumbnail, which is the broken layout reported on News desktop. */
+  /* A small tag, not a full-width bar (grid items stretch by default). */
+  .post-list.post-list-single-column .directory-badge {
+    justify-self: start;
+  }
+
   .post-list.post-list-single-column .directory-badge,
   .post-list.post-list-single-column .card-rating,
   .post-list.post-list-single-column li > p,
