@@ -33,6 +33,7 @@ import { LogoutButton } from "./_components/LogoutButton";
 import { VerifyEmailBanner } from "./_components/VerifyEmailBanner";
 import { SidebarNotificationsButton } from "./_components/SidebarNotificationsButton";
 import { EmailSettings } from "./_components/EmailSettings";
+import { ListedBadge } from "@/app/_components/ListedBadge";
 
 export const metadata = { title: "Your dashboard — Secret Carshalton" };
 
@@ -120,6 +121,10 @@ export default async function DashboardPage() {
   const myGroups = myListings.filter((l) => l.isGroup);
   const myBusinessListings = myListings.filter((l) => !l.isGroup);
 
+  // Where the website badge links to: their Featured listing, else any live
+  // listing or group, else the homepage.
+  const firstLive = [businessListing, ...myBusinessListings, ...myGroups].find((l) => l && l.status === "publish" && l.slug);
+  const badgePath = firstLive ? (firstLive.isGroup ? `/community/groups/${firstLive.slug}` : `/directory/${firstLive.slug}`) : "";
   const featuredCount = myBusinessListings.filter((l) => l.featured).length;
   const hasAds = myAds.length > 0;
   const hasSubmissions = myEvents.length > 0 || myJobs.length > 0;
@@ -191,6 +196,10 @@ export default async function DashboardPage() {
           )}
           <a href="#directory" className="dash-sidebar-link">
             My directory listings
+          </a>
+
+          <a href="#badge" className="dash-sidebar-link">
+            Website badge
           </a>
 
           <div className="dash-sidebar-label">Create</div>
@@ -874,7 +883,14 @@ export default async function DashboardPage() {
 
           </div>
 
-          {/* Activity quick stats */}
+          {/* "Listed on Secret Carshalton" badge — always here, linking to the
+              member's main page on the site if they have one. */}
+          <section className="dash-group" id="badge">
+            <h2 className="dash-group-title">Show you&apos;re on Secret Carshalton</h2>
+            <ListedBadge path={badgePath} showTitle={false} />
+          </section>
+
+                    {/* Activity quick stats */}
           <section className="dash-activity-stats" aria-label="My activity">
             <a href="#comments" className="dash-action">
               <span className="dash-action-meta">My comments</span>

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { PayNow } from "@/app/_components/PayNow";
 import { GROUP_PROMOTION_PRICE } from "@/lib/pricing";
 import { GROUPS_CATEGORY_SLUG } from "@/lib/wordpress";
+import { ListedBadge } from "@/app/_components/ListedBadge";
 
 /**
  * Just two states — free, or free + the flat £10/30-day promotion — no
@@ -77,6 +78,7 @@ export function SubmitGroupForm() {
             paidText="Paid — your group is promoted until {until}."
           />
         )}
+        <ListedBadge path={done.slug ? `/community/groups/${done.slug}` : "/community/groups"} />
       </>
     );
   }

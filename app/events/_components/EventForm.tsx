@@ -25,6 +25,7 @@ import { ClockIcon, PinIcon, RepeatIcon } from "./EvIcons";
 import { FeatureEventPay } from "./FeatureEventPay";
 import { SpamTrap, spamFields } from "@/app/_components/SpamTrap";
 import { shrinkImage } from "@/lib/shrink-image";
+import { ListedBadge } from "@/app/_components/ListedBadge";
 
 /** "£5 per event" → "£5" */
 const FEATURE_PRICE = EVENT_UPGRADE_PRICE.split(" ")[0];
@@ -1331,6 +1332,7 @@ export function EventForm({
                 )}
               </div>
             )}
+            {mode === "create" && <ListedBadge path={`/events/${done.slug}`} compact />}
           </div>
         </div>
       )}

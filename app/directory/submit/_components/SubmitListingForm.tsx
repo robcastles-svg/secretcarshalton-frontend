@@ -6,6 +6,7 @@ import { PayNow, SubscribeNow } from "@/app/_components/PayNow";
 import { FEATURED_DIRECTORY_TIERS, STANDARD_LISTING_PRICE } from "@/lib/pricing";
 import type { WPDirectoryCategory } from "@/lib/wordpress";
 import { shrinkFormImages, shrinkImage } from "@/lib/shrink-image";
+import { ListedBadge } from "@/app/_components/ListedBadge";
 
 /** Mirrors SC_Directory_REST's PAID_PHOTO_LIMIT — advisory only, the server enforces the real cap. One category per listing, so that's just the single dropdown. */
 const PHOTO_LIMIT = 3;
@@ -144,6 +145,7 @@ export function SubmitListingForm({
           <SubscribeNow kind="standard_listing" id={created.id} price={STANDARD_LISTING_PRICE} what="standard directory listing" />
         )}
         <p className="dashboard-hint">You can also pay later from your dashboard.</p>
+        <ListedBadge path="/directory" />
       </>
     );
   }

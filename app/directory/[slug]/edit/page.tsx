@@ -14,6 +14,7 @@ import { getOwnListing } from "@/lib/owner-edit";
 import { EditListingForm } from "./_components/EditListingForm";
 import { SpotlightEditor } from "./_components/SpotlightEditor";
 import { isGroupListing } from "../_components/ListingDetail";
+import { ListedBadge } from "@/app/_components/ListedBadge";
 
 export const metadata = { title: "Edit listing — Secret Carshalton" };
 
@@ -89,6 +90,11 @@ export default async function EditListingPage({
           featured: Boolean(listing.meta.sc_featured),
         }}
       />
+      {(!byId || (listing as { status?: string }).status === "publish") && listing.slug && (
+        <div style={{ marginTop: "2rem" }}>
+          <ListedBadge path={isGroup ? `/community/groups/${listing.slug}` : `/directory/${listing.slug}`} />
+        </div>
+      )}
       {/* Spotlight articles are for businesses, not community groups. */}
       {profile.is_editor && !isGroup && (
         <SpotlightEditor

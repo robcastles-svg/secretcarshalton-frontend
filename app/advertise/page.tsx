@@ -4,6 +4,7 @@ import { TEXT_AD_TIERS, EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS, GROUP_PRO
 import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
 import { AdPreview } from "./_components/AdPreview";
 import { SubmitAdForm } from "./_components/SubmitAdForm";
+import { ListedBadge } from "@/app/_components/ListedBadge";
 
 const TITLE = "Advertise on Secret Carshalton";
 const DESCRIPTION =
@@ -366,6 +367,11 @@ export default async function AdvertisePage() {
             </Link>
           </div>
         </div>
+      </section>
+
+      {/* Website badge for anyone listed or advertising here */}
+      <section className="adv-section">
+        <ListedBadge />
       </section>
 
       {/* Footer note */}

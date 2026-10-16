@@ -9254,7 +9254,7 @@ a.home-comment-author:hover {
 
 /* After-submit pop-up */
 .evf-modal-wrap { position: fixed; inset: 0; background: rgba(12, 10, 13, .66); z-index: 100; display: grid; place-items: center; padding: 16px; overflow-y: auto; }
-.evf-modal { width: min(440px, 100%); background: #fff; color: var(--evx-ink); border-radius: 16px; padding: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45); display: grid; gap: 14px; }
+.evf-modal { width: min(440px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; background: #fff; color: var(--evx-ink); border-radius: 16px; padding: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45); display: grid; gap: 14px; }
 .evf-tick { width: 44px; height: 44px; border-radius: 50%; background: #e7f4ed; color: var(--evx-new); display: grid; place-items: center; font-size: 22px; font-weight: 900; }
 .evx .evf-modal h2 { margin: 0; font-size: 22px; letter-spacing: -.01em; color: var(--evx-ink); }
 .evf-modal p { margin: 0; font-size: 14px; color: var(--evx-ink-soft); }
@@ -10394,4 +10394,95 @@ a.home-comment-author:hover {
   .page-title h1 {
     font-size: 2.1rem;
   }
+}
+
+/* "Listed on Secret Carshalton" badge box (ListedBadge). */
+.listed-badge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid #e1e4ea;
+  border-radius: 14px;
+  background: #fff;
+  text-align: left;
+}
+
+.listed-badge-img {
+  width: 260px;
+  max-width: 100%;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.listed-badge-text {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.listed-badge-text strong {
+  display: block;
+  font-size: 1.05rem;
+  margin-bottom: 0.3rem;
+}
+
+.listed-badge-text p {
+  margin: 0 0 0.75rem;
+  color: #555;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.listed-badge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.listed-badge-actions .button-pill-secondary {
+  display: inline-block;
+  padding: 0.6rem 1.4rem;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: #fff;
+  color: #1a1a1a;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.listed-badge-actions .button-pill-secondary:hover {
+  border-color: #999;
+}
+
+.listed-badge-compact {
+  padding: 1rem;
+}
+
+.listed-badge-compact .listed-badge-img {
+  width: 200px;
+}
+
+.listed-badge-code {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.listed-badge-code summary {
+  cursor: pointer;
+  color: #555;
+}
+
+.listed-badge-code code {
+  display: block;
+  margin-top: 0.4rem;
+  padding: 0.6rem;
+  background: #f5f6f8;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  word-break: break-all;
+  user-select: all;
 }
