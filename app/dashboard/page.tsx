@@ -13,6 +13,7 @@ import {
   getMyRsvpdEvents,
   linkForPostType,
   parseEventDate,
+  stripHtml,
   WP_ADMIN_URL,
 } from "@/lib/wordpress";
 import {
@@ -489,9 +490,9 @@ export default async function DashboardPage() {
                           <>
                             <div>
                               {job.status === "publish" ? (
-                                <Link href={`/jobs/${job.slug}`}>{job.title}</Link>
+                                <Link href={`/jobs/${job.slug}`}>{stripHtml(job.title)}</Link>
                               ) : (
-                                <span>{job.title}</span>
+                                <span>{stripHtml(job.title)}</span>
                               )}
                               {job.company && <div className="dash-meta">{job.company}</div>}
                               {job.status === "publish" && job.expiresOn && (
@@ -830,7 +831,9 @@ export default async function DashboardPage() {
                               {AD_SELF_SERVE_PLACEMENTS.find((p) => p.slug === ad.placement)?.label ?? ad.placement}
                               {ad.campaignListing
                                 ? " · Included in your Featured package"
-                                : ` · ${ad.daysRequested} day${ad.daysRequested === 1 ? "" : "s"}`}
+                                : ad.daysRequested > 0
+                                  ? ` · ${ad.daysRequested} day${ad.daysRequested === 1 ? "" : "s"}`
+                                  : ""}
                             </div>
                           </td>
                           <td className="dash-meta">
