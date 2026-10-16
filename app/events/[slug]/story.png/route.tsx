@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import sharp from "sharp";
 import { notFound } from "next/navigation";
 import { dateParts, displayOccurrence, formatTimeRange, venueShort } from "@/lib/event-view";
 import { getFeaturedImage, getScEventBySlug, stripHtml } from "@/lib/wordpress";
@@ -24,13 +25,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const event = await getScEventBySlug(slug).catch(() => null);
   if (!event) notFound();
 
-  const [regular, bold, black, logo, photo] = await Promise.all([
+  const [regular, bold, black, logo, photos] = await Promise.all([
     readFile(join(process.cwd(), "assets/fonts/roboto-latin-400-normal.woff")),
     readFile(join(process.cwd(), "assets/fonts/roboto-latin-700-normal.woff")),
     readFile(join(process.cwd(), "assets/fonts/roboto-latin-900-normal.woff")),
     readFile(join(process.cwd(), "assets/logo-white.png")),
-    photoDataUrl(getFeaturedImage(event)?.source_url),
+    preparePhotos(getFeaturedImage(event)?.source_url),
   ]);
+  const photo = photos?.card ?? null;
 
   const title = stripHtml(event.title.rendered);
   const occurrence = displayOccurrence(event);
@@ -42,11 +44,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   return new ImageResponse(
     (
       <div style={{ width: W, height: H, display: "flex", position: "relative", background: "#1f1d21", fontFamily: "Roboto" }}>
-        {photo && (
-          <img src={photo} width={W} height={H} style={{ position: "absolute", top: 0, left: 0, width: W, height: H, objectFit: "cover" }} />
-        )}
-        {/* Tints the full-bleed photo behind everything, so it reads as a backdrop. */}
-        <div style={{ position: "absolute", top: 0, left: 0, width: W, height: H, background: "rgba(24,21,27,0.86)" }} />
+        {/* The same photo, blurred and darkened, as the backdrop. */}
+        {photos && <img src={photos.backdrop} width={W} height={H} style={{ position: "absolute", top: 0, left: 0 }} />}
 
         <div style={{ position: "relative", width: W, height: H, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingBottom: 40 }}>
           <div style={{ width: 920, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -56,7 +55,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 
           {photo && (
             <div style={{ marginTop: 40, width: 920, height: 900, display: "flex", borderRadius: 36, overflow: "hidden" }}>
-              <img src={photo} width={920} height={900} style={{ width: 920, height: 900, objectFit: "cover", objectPosition: "center 30%" }} />
+              <img src={photo} width={920} height={900} />
             </div>
           )}
 
@@ -129,17 +128,33 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 }
 
 /**
- * The event photo as a data URL, or null. The image renderer reads PNG
- * and JPEG only — a WebP photo (a handful of events) or one that won't
- * load gets the version without a photo rather than a broken image.
+ * The event photo, fetched once and turned into the two versions the
+ * picture uses: the card photo (cropped to the card, focus a little above
+ * centre) and the full-screen backdrop (blurred and darkened). Done with
+ * sharp because the image renderer can't blur, and can't read WebP
+ * photos (a handful of events) — sharp converts those to JPEG too.
+ * A photo that won't load gives the version without a photo.
  */
-async function photoDataUrl(url: string | undefined): Promise<string | null> {
+async function preparePhotos(url: string | undefined): Promise<{ card: string; backdrop: string } | null> {
   if (!url) return null;
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(10_000), next: { revalidate: 3600 } });
-    const type = (res.headers.get("content-type") ?? "").split(";")[0].trim();
-    if (!res.ok || (type !== "image/jpeg" && type !== "image/png")) return null;
-    return `data:${type};base64,${Buffer.from(await res.arrayBuffer()).toString("base64")}`;
+    if (!res.ok) return null;
+    const source = Buffer.from(await res.arrayBuffer());
+    const [card, backdrop] = await Promise.all([
+      sharp(source).resize(920, 900, { fit: "cover", position: "north" }).jpeg({ quality: 85 }).toBuffer(),
+      sharp(source)
+        .resize(270, 480, { fit: "cover" })
+        .blur(12)
+        .modulate({ brightness: 0.38, saturation: 1.2 })
+        .resize(W, H)
+        .jpeg({ quality: 80 })
+        .toBuffer(),
+    ]);
+    return {
+      card: `data:image/jpeg;base64,${card.toString("base64")}`,
+      backdrop: `data:image/jpeg;base64,${backdrop.toString("base64")}`,
+    };
   } catch {
     return null;
   }
