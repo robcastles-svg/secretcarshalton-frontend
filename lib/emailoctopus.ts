@@ -5,14 +5,15 @@
  * — the same as signing up on /newsletter. Unticked by default.
  *
  * Needs EMAILOCTOPUS_API_KEY (secret, Vercel only) and
- * EMAILOCTOPUS_LIST_ID. Tries the current API (v2, bearer key) first and
- * falls back to the older v1.6 one, which takes the key in the body and
- * defaults a list with double opt-in to pending. Never throws: a
+ * NEXT_PUBLIC_EMAILOCTOPUS_LIST_ID (not secret; it also switches the tick
+ * box on). Tries the current API (v2, bearer key) first and falls back
+ * to the older v1.6 one, which takes the key in the body and defaults a
+ * list with double opt-in to pending. Never throws: a
  * newsletter hiccup must not stop someone joining the site.
  */
 export async function addToNewsletter(email: string): Promise<"added" | "already" | "failed" | "off"> {
   const key = process.env.EMAILOCTOPUS_API_KEY;
-  const list = process.env.EMAILOCTOPUS_LIST_ID;
+  const list = process.env.NEXT_PUBLIC_EMAILOCTOPUS_LIST_ID;
   if (!key || !list || !email) return "off";
 
   try {

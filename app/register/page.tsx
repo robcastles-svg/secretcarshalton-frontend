@@ -7,6 +7,9 @@ import { useRouter } from "next/navigation";
 import { PasswordInput } from "@/app/_components/PasswordInput";
 import { SpamTrap, spamFields } from "@/app/_components/SpamTrap";
 
+/** The EmailOctopus list is configured (its ID isn't secret; the API key stays server-only). */
+const NEWSLETTER_ON = Boolean(process.env.NEXT_PUBLIC_EMAILOCTOPUS_LIST_ID);
+
 export default function RegisterPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -44,7 +47,8 @@ export default function RegisterPage() {
         Membership is free, and unlocks comments, event RSVPs, directory listings and more —
         with tiers and badges as you get involved.
       </p>
-      {/* One tick box for both ways of joining: it's above the Google button. */}
+      {/* One tick box for both ways of joining: it's above the Google button. Shown once EmailOctopus is set up. */}
+      {NEWSLETTER_ON && (
       <label className="auth-newsletter">
         <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
         <span>
@@ -52,6 +56,7 @@ export default function RegisterPage() {
           unsubscribe any time.
         </span>
       </label>
+      )}
       <GoogleSignIn newsletter={newsletter} />
       <form className="auth-form" onSubmit={handleSubmit}>
         <label>

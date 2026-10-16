@@ -282,6 +282,16 @@ export default async function RootLayout({
                   <TikTokIcon />
                 </a>
               </div>
+              <div className="footer-payments">
+                <img
+                  src="/payment-methods.gif"
+                  alt="We accept PayPal, Visa, Mastercard and American Express"
+                  width={250}
+                  height={45}
+                  loading="lazy"
+                />
+                <p>Payments will show as Red Onion Design</p>
+              </div>
               <p className="footer-copyright">
                 Secret Carshalton is proudly 100% Independent. Kindly credit Secret Carshalton if
                 you use content from these sections.
