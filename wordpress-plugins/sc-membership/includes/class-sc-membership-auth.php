@@ -218,6 +218,11 @@ class SC_Membership_Auth {
 		// Creates the member row immediately so /me works right after registering.
 		SC_Membership_DB::get_or_create_member( $user_id );
 
+		// The sign-up form's newsletter box: acted on once they confirm their email (verify_email).
+		if ( rest_sanitize_boolean( $request->get_param( 'newsletter' ) ) ) {
+			update_user_meta( $user_id, 'sc_newsletter_wanted', '1' );
+		}
+
 		/**
 		 * A URL-as-username is the single most common shape of spam
 		 * registration this site sees. Flagging it here (rather than
@@ -258,12 +263,15 @@ class SC_Membership_Auth {
 		// booleans). '0' here is unambiguous against "never tracked".
 		update_user_meta( $user_id, 'sc_email_verified', '0' );
 
-		$link = self::FRONTEND_URL . '/verify-email?token=' . rawurlencode( $token );
+		$link       = self::FRONTEND_URL . '/verify-email?token=' . rawurlencode( $token );
+		$newsletter = '1' === get_user_meta( $user_id, 'sc_newsletter_wanted', true )
+			? "This also starts your Secret Carshalton Insider newsletter, as you asked — no separate confirmation needed.\n\n"
+			: '';
 
 		wp_mail(
 			$user->user_email,
 			'Confirm your Secret Carshalton account',
-			"Hi {$user->display_name},\n\nPlease confirm your email address to finish setting up your Secret Carshalton membership:\n\n{$link}\n\nIf you didn't create this account, you can ignore this email."
+			"Hi {$user->display_name},\n\nPlease confirm your email address to finish setting up your Secret Carshalton membership:\n\n{$link}\n\n{$newsletter}If you didn't create this account, you can ignore this email."
 		);
 	}
 
@@ -289,7 +297,17 @@ class SC_Membership_Auth {
 		update_user_meta( $user_id, 'sc_email_verified', '1' );
 		delete_user_meta( $user_id, 'sc_email_verify_token' );
 
-		return array( 'status' => 'verified' );
+		// Ticked the newsletter box at sign-up: the frontend adds them to the
+		// Insider list now, as subscribed — confirming here *is* the double
+		// opt-in, so EmailOctopus doesn't send a second confirmation email.
+		$newsletter = '1' === get_user_meta( $user_id, 'sc_newsletter_wanted', true );
+		delete_user_meta( $user_id, 'sc_newsletter_wanted' );
+
+		return array(
+			'status'     => 'verified',
+			'newsletter' => $newsletter,
+			'email'      => $newsletter ? $users[0]->user_email : '',
+		);
 	}
 
 	public static function resend_verification( WP_REST_Request $request ) {
