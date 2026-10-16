@@ -447,7 +447,7 @@ export default async function EventPage({
                 initialGoing={rsvpStatus?.going ?? false}
                 initialCount={rsvpStatus?.going_count ?? event.sc_event_rsvp_count ?? 0}
               />
-              <ShareRow path={`/events/${event.slug}`} title={title} />
+              <ShareRow path={`/events/${event.slug}`} title={title} storyImage={`/events/${event.slug}/story.png`} />
             </div>
           </article>
 
