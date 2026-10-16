@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { GoogleSignIn } from "@/app/_components/GoogleSignIn";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PasswordInput } from "@/app/_components/PasswordInput";
 import { SpamTrap, spamFields } from "@/app/_components/SpamTrap";
+
+/** The EmailOctopus list is configured (its ID isn't secret; the API key stays server-only). */
+const NEWSLETTER_ON = Boolean(process.env.NEXT_PUBLIC_EMAILOCTOPUS_LIST_ID);
 
 export default function RegisterPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newsletter, setNewsletter] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -22,7 +27,7 @@ export default function RegisterPage() {
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password, ...spamFields(e.currentTarget) }),
+      body: JSON.stringify({ username, email, password, newsletter, ...spamFields(e.currentTarget) }),
     });
 
     if (res.ok) {
@@ -42,9 +47,20 @@ export default function RegisterPage() {
         Membership is free, and unlocks comments, event RSVPs, directory listings and more —
         with tiers and badges as you get involved.
       </p>
+      {/* One tick box for both ways of joining: it's above the Google button. Shown once EmailOctopus is set up. */}
+      {NEWSLETTER_ON && (
+      <label className="auth-newsletter">
+        <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
+        <span>
+          Send me the <b>Secret Carshalton Insider</b> newsletter. We&rsquo;ll email you to confirm first, and you can
+          unsubscribe any time.
+        </span>
+      </label>
+      )}
+      <GoogleSignIn newsletter={newsletter} />
       <form className="auth-form" onSubmit={handleSubmit}>
         <label>
-          Username
+          Username <small>(shown publicly)</small>
           <input
             type="text"
             value={username}

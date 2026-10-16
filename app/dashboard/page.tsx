@@ -34,6 +34,7 @@ import { LogoutButton } from "./_components/LogoutButton";
 import { VerifyEmailBanner } from "./_components/VerifyEmailBanner";
 import { SidebarNotificationsButton } from "./_components/SidebarNotificationsButton";
 import { EmailSettings } from "./_components/EmailSettings";
+import { DisplayNameForm } from "./_components/DisplayNameForm";
 import { ListedBadge } from "@/app/_components/ListedBadge";
 
 export const metadata = { title: "Your dashboard — Secret Carshalton" };
@@ -330,6 +331,7 @@ export default async function DashboardPage() {
                 {profile.is_returning ? "Welcome back" : "Hello"} {profile.display_name}
               </span>
             </div>
+            <DisplayNameForm current={profile.display_name} />
             <a
               className="button-pill button-pill-secondary"
               href={LOST_PASSWORD_URL}

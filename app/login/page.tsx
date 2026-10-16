@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { GoogleSignIn } from "@/app/_components/GoogleSignIn";
 import { LOST_PASSWORD_URL } from "@/lib/cms-hosts.mjs";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -50,6 +51,10 @@ function LoginForm() {
   return (
     <main className="container auth-page">
       <h1>Log in</h1>
+      <GoogleSignIn next={(() => {
+        const next = searchParams.get("next");
+        return next && next.startsWith("/") ? next : "/dashboard";
+      })()} />
       <form className="auth-form" onSubmit={handleSubmit}>
         <label>
           Username or email

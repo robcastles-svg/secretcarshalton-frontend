@@ -10511,3 +10511,30 @@ a.home-comment-author:hover {
 .evx .evl-chip-halloween { border-color: #e8771e; color: #ffb066; font-weight: 700; }
 .evx .evl-chip-halloween:hover { border-color: #ffb066; background: rgba(232,119,30,.12); }
 .evl-chip-halloween svg { color: #e8771e; width: 17px; height: 17px; }
+
+/* "Continue with Google" (GoogleSignIn.tsx) on /login, /register and the login pop-up. */
+.google-signin { margin: 1rem 0 0.5rem; max-width: 400px; }
+.google-signin-button { min-height: 44px; }
+.google-signin-note { font-size: 0.9rem; color: #555; background: #f6f2f4; border-radius: 10px; padding: 0.7rem 0.9rem; margin: 0; }
+.auth-or { display: flex; align-items: center; gap: 0.75rem; color: #888; font-size: 0.85rem; margin: 1rem 0 0.25rem; }
+.auth-or::before, .auth-or::after { content: ""; flex: 1; height: 1px; background: #e2dde0; }
+.google-username { max-width: 400px; margin: 1rem 0; padding: 1rem 1.1rem; border: 2px solid #cc99a2; border-radius: 14px; display: grid; gap: 0.6rem; }
+.google-username h2 { margin: 0; font-size: 1.15rem; }
+.google-username p { margin: 0; font-size: 0.9rem; color: #555; }
+.google-username label { display: grid; gap: 0.3rem; font-weight: 600; }
+.auth-newsletter { display: flex; gap: 0.6rem; align-items: flex-start; max-width: 400px; margin: 0.75rem 0; font-size: 0.92rem; line-height: 1.4; cursor: pointer; }
+.auth-newsletter input { margin-top: 0.2rem; width: 18px; height: 18px; flex: none; }
+
+/* Dashboard: "Your public name" (DisplayNameForm.tsx). */
+.display-name-row { margin: 0.5rem 0 1rem; }
+.display-name-saved { color: #2f7d5b; font-weight: 600; }
+.display-name-form { display: grid; gap: 0.4rem; max-width: 360px; margin: 0.5rem 0 1rem; }
+.display-name-form label { display: grid; gap: 0.3rem; font-weight: 600; }
+.display-name-form small { color: #666; }
+.display-name-actions { display: flex; gap: 0.5rem; }
+.link-button { background: none; border: 0; padding: 0; font: inherit; color: #b3365d; text-decoration: underline; cursor: pointer; }
+
+/* Footer: accepted payment cards, and the name card statements show. */
+.footer-payments { margin: 1rem 0 0.5rem; }
+.footer-payments img { display: block; width: 220px; max-width: 100%; height: auto; }
+.footer-payments p { margin: 0.35rem 0 0; font-size: 0.68rem; opacity: 0.75; }

@@ -23,15 +23,26 @@ class SC_Membership_Auth {
 	const TOKEN_TTL = 30 * DAY_IN_SECONDS;
 
 	/**
-	 * The live Vercel production alias — stable across every deploy to
-	 * main (unlike the per-deployment URL, which changes every push), so
-	 * avatar URLs and email links keep working without this plugin
-	 * needing to know about individual deployments. Was a branch-preview
-	 * alias (...git-claude-v-dd76e4-...) during early development; that
-	 * alias has since gone stale, which is why default avatars across the
-	 * site started 404ing.
+	 * The public site, for avatar URLs and email links (verification and
+	 * so on). The live domain since go-live (16 Oct 2026); before that it
+	 * was the Vercel production alias, and before that a branch-preview
+	 * alias, which went stale and broke every default avatar.
 	 */
-	const FRONTEND_URL = 'https://secretcarshalton-frontend-secret-carshalton.vercel.app';
+	const FRONTEND_URL = 'https://www.secretcarshalton.com';
+
+	/**
+	 * Member actions that publish something, which need a confirmed email
+	 * address (Rob, Oct 2026 — cuts spam sign-ups). POST only; editing or
+	 * deleting what they've already posted is unaffected.
+	 */
+	const POSTING_ROUTES = array(
+		'/sc-membership/v1/comments',
+		'/sc-membership/v1/community-submit',
+		'/sc-events/v1/submit',
+		'/sc-directory/v1/submit',
+		'/sc-jobs/v1/submit',
+		'/sc-ads/v1/submit',
+	);
 
 	public static function register_routes() {
 		register_rest_route(
@@ -66,6 +77,18 @@ class SC_Membership_Auth {
 
 		register_rest_route(
 			'sc-membership/v1',
+			'/me/display-name',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'update_display_name' ),
+				'permission_callback' => function () {
+					return is_user_logged_in();
+				},
+			)
+		);
+
+		register_rest_route(
+			'sc-membership/v1',
 			'/resend-verification',
 			array(
 				'methods'             => 'POST',
@@ -79,6 +102,73 @@ class SC_Membership_Auth {
 
 	public static function init_bearer_auth() {
 		add_filter( 'determine_current_user', array( __CLASS__, 'determine_current_user' ) );
+		add_filter( 'rest_request_before_callbacks', array( __CLASS__, 'require_confirmed_email' ), 10, 3 );
+	}
+
+	/**
+	 * One check for every POSTING_ROUTES route across the sc-* plugins
+	 * (their own permission checks only ask "logged in?"), so turning this
+	 * on needed no change to the other plugins. Accounts from before email
+	 * confirmation existed count as confirmed (is_verified), and Google
+	 * sign-ins are confirmed by Google.
+	 */
+	public static function require_confirmed_email( $response, $handler, WP_REST_Request $request ) {
+		if ( 'POST' !== $request->get_method() || ! in_array( untrailingslashit( $request->get_route() ), self::POSTING_ROUTES, true ) ) {
+			return $response;
+		}
+		$user_id = get_current_user_id();
+		if ( ! $user_id || self::is_verified( $user_id ) || current_user_can( 'manage_options' ) ) {
+			return $response;
+		}
+		return new WP_Error(
+			'email_not_verified',
+			'Please confirm your email address first — click the link we emailed you when you joined. Can\'t find it? Check your spam folder, or send a new link from your dashboard.',
+			array( 'status' => 403 )
+		);
+	}
+
+	/**
+	 * Why a username can't be used, or null if it can — shared by the
+	 * password sign-up and the Google one.
+	 */
+	public static function username_problem( $username ) {
+		if ( strlen( $username ) < 3 || strlen( $username ) > 30 ) {
+			return new WP_Error( 'username_invalid', 'Usernames need to be 3 to 30 characters.', array( 'status' => 400 ) );
+		}
+		if ( username_exists( $username ) ) {
+			return new WP_Error( 'username_taken', 'That username is already taken.', array( 'status' => 409 ) );
+		}
+		return null;
+	}
+
+	/**
+	 * The member's public name (comments, their profile, the members list).
+	 * Their username — and so their profile address — stays the same.
+	 */
+	public static function update_display_name( WP_REST_Request $request ) {
+		$name = trim( preg_replace( '/\s+/', ' ', wp_strip_all_tags( (string) $request->get_param( 'display_name' ) ) ) );
+		if ( mb_strlen( $name ) < 2 || mb_strlen( $name ) > 40 ) {
+			return new WP_Error( 'display_name_invalid', 'Your name needs to be 2 to 40 characters.', array( 'status' => 400 ) );
+		}
+		if ( SC_Membership_DB::username_looks_like_url( $name, $name ) || preg_match( '/https?:|www\.|\.(com|co\.uk|net|org|info)\b/i', $name ) ) {
+			return new WP_Error( 'display_name_invalid', 'Your name can\'t be a web address.', array( 'status' => 400 ) );
+		}
+		if ( preg_match( '/secret\s*carshalton|\badmin\b|moderator/i', $name ) && ! current_user_can( 'manage_options' ) ) {
+			return new WP_Error( 'display_name_invalid', 'Please choose a name that doesn\'t look like the site\'s own.', array( 'status' => 400 ) );
+		}
+
+		$user_id = get_current_user_id();
+		global $wpdb;
+		$taken = (int) $wpdb->get_var( $wpdb->prepare( "SELECT ID FROM {$wpdb->users} WHERE LOWER(display_name) = LOWER(%s) AND ID != %d LIMIT 1", $name, $user_id ) );
+		if ( $taken ) {
+			return new WP_Error( 'display_name_taken', 'Another member already uses that name — try adding an initial.', array( 'status' => 409 ) );
+		}
+
+		$result = wp_update_user( array( 'ID' => $user_id, 'display_name' => $name ) );
+		if ( is_wp_error( $result ) ) {
+			return new WP_Error( 'display_name_failed', $result->get_error_message(), array( 'status' => 400 ) );
+		}
+		return array( 'display_name' => $name );
 	}
 
 	public static function login( WP_REST_Request $request ) {
@@ -103,8 +193,9 @@ class SC_Membership_Auth {
 			return new WP_Error( 'missing_fields', 'Username, email and password are all required.', array( 'status' => 400 ) );
 		}
 
-		if ( username_exists( $username ) ) {
-			return new WP_Error( 'username_taken', 'That username is already taken.', array( 'status' => 409 ) );
+		$problem = self::username_problem( $username );
+		if ( $problem ) {
+			return $problem;
 		}
 
 		if ( email_exists( $email ) ) {
@@ -235,7 +326,7 @@ class SC_Membership_Auth {
 		update_user_meta( $user_id, 'sc_member_login_count', $count + 1 );
 	}
 
-	private static function token_response( WP_User $user ) {
+	public static function token_response( WP_User $user ) {
 		self::record_visit( $user->ID );
 
 		return array(
