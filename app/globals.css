@@ -1214,6 +1214,11 @@ a.ad-slot-text-image img {
      so the row-layout rules above never positioned them. Without this
      they fall back to CSS Grid auto-placement in column 1, under the
      thumbnail, which is the broken layout reported on News desktop. */
+  /* A small tag, not a full-width bar (grid items stretch by default). */
+  .post-list.post-list-single-column .directory-badge {
+    justify-self: start;
+  }
+
   .post-list.post-list-single-column .directory-badge,
   .post-list.post-list-single-column .card-rating,
   .post-list.post-list-single-column li > p,
