@@ -1,26 +1,16 @@
-import Link from "next/link";
-import { KeyTitle } from "@/app/_components/CategoryKeyIcon";
-import { getCategories, getCategoryBySlug, soft } from "@/lib/wordpress";
+import type { Metadata } from "next";
+import { DiscoverView } from "../discover/_components/DiscoverView";
 
 export const revalidate = 3600;
 
-export default async function StoriesPage() {
-  const parent = await getCategoryBySlug("stories").catch(soft(null));
-  const categories = await getCategories().catch(soft([]));
-  const areas = parent ? categories.filter((c) => c.parent === parent.id && c.count > 0) : [];
+// The same feed as /discover, so search engines are pointed there.
+export const metadata: Metadata = {
+  title: "Stories — Secret Carshalton",
+  alternates: { canonical: "/discover" },
+};
 
-  return (
-    <main className="container">
-      <h1>
-        <KeyTitle>Stories</KeyTitle>
-      </h1>
-      <ul className="link-list">
-        {areas.map((area) => (
-          <li key={area.id}>
-            <Link href={`/stories/${area.slug}`}>{area.name}</Link>
-          </li>
-        ))}
-      </ul>
-    </main>
-  );
+/** Every area's stories as cards, exactly as /discover shows them (Rob, Oct 2026), not a list of areas. */
+export default async function StoriesPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  const { page } = await searchParams;
+  return <DiscoverView rawPage={page} basePath="/stories" />;
 }

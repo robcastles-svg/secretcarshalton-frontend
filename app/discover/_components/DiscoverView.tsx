@@ -83,8 +83,11 @@ export async function DiscoverView({
   filter,
   area,
   rawPage,
+  basePath = "/discover",
 }: {
   filter?: string;
+  /** Where the unfiltered feed lives: /discover, or /stories (the same cards). */
+  basePath?: "/discover" | "/stories";
   /** The area page's category, when this is /stories/{area}. */
   area?: WPCategory;
   rawPage?: string;
@@ -154,12 +157,12 @@ export async function DiscoverView({
     const params = new URLSearchParams();
     if (filter) params.set("filter", filter);
     params.set("page", String(p));
-    return `/discover?${params.toString()}`;
+    return `${basePath}?${params.toString()}`;
   };
 
   return (
     <>
-      {(activeArea || isSpotlight) && <SetActiveNavSection section="Discover" />}
+      {(activeArea || isSpotlight || basePath === "/stories") && <SetActiveNavSection section="Discover" />}
       <div className="secondary-nav-bar">
         <nav className="container secondary-nav">
           <Link href="/discover" className={!filter && !activeArea ? "active" : undefined}>
