@@ -302,6 +302,10 @@ class SC_Membership_Auth {
 		// opt-in, so EmailOctopus doesn't send a second confirmation email.
 		$newsletter = '1' === get_user_meta( $user_id, 'sc_newsletter_wanted', true );
 		delete_user_meta( $user_id, 'sc_newsletter_wanted' );
+		if ( $newsletter ) {
+			// Proof of the double opt-in: they ticked the box at sign-up, then confirmed here.
+			update_user_meta( $user_id, 'sc_newsletter_confirmed_at', current_time( 'mysql', true ) );
+		}
 
 		return array(
 			'status'     => 'verified',

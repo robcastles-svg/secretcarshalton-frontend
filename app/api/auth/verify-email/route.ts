@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
   const result = await verifyEmail(token);
   if ("status" in result) {
     // Ticked the newsletter box when joining: confirming their email is the opt-in.
-    if (result.newsletter && result.email) await addToNewsletter(result.email);
+    if (result.newsletter && result.email) await addToNewsletter(result.email, "confirmed");
     return NextResponse.json({ status: result.status });
   }
   return NextResponse.json({ error: result.message }, { status: 400 });

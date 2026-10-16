@@ -10549,3 +10549,7 @@ a.home-comment-author:hover {
 /* The tick box sits inside .auth-form on /register: keep it a row, not the form's stacked label. */
 .auth-form .auth-newsletter { flex-direction: row; gap: 0.6rem; font-weight: 400; font-size: 0.92rem; margin: 0.25rem 0; }
 .auth-form .auth-newsletter input { padding: 0; width: 18px; height: 18px; }
+/* Sign-up newsletter tick box and its double opt-in note, in the style of /newsletter. */
+.auth-newsletter-box { border: 1px solid #ead9de; background: #fbf6f8; border-radius: 10px; padding: 0.75rem 0.85rem; margin: 0.25rem 0; }
+.auth-form .auth-newsletter-box .auth-newsletter { margin: 0; }
+.auth-newsletter-note { margin: 0.5rem 0 0 calc(18px + 0.6rem); font-size: 0.8rem; line-height: 1.45; color: #666; font-weight: 400; }
