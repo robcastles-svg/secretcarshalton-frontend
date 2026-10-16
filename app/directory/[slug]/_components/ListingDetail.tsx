@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { CommentCountLink } from "@/app/_components/CommentCountLink";
 import { CommentSection } from "@/app/_components/CommentSection";
 import { StarRatingDisplay } from "@/app/_components/StarRatingDisplay";
 import { DirectoryImageSlider } from "@/app/_components/DirectoryImageSlider";
@@ -253,11 +252,6 @@ export async function ListingDetail({
                 initialPending={Boolean(listing.sc_claim_pending)}
               />
             </div>
-          )}
-          {fullThread.length > 0 && (
-            <p className="event-meta-row">
-              <CommentCountLink count={fullThread.length} kind="review" />
-            </p>
           )}
           {isFeatured && (
             <div className="post-content" dangerouslySetInnerHTML={{ __html: listing.content.rendered }} />
