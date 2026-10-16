@@ -5908,6 +5908,11 @@ a.card-category:hover {
     margin: 0;
     z-index: 1;
   }
+
+  .post-list .directory-badge.directory-badge-inline {
+    position: static;
+    margin: 0.2rem 1rem 0.4rem;
+  }
 }
 
 .claim-pending-notice {
@@ -9018,7 +9023,10 @@ a.home-comment-author:hover {
 /* featured slider — fixed height so the page never jumps */
 .evl-rot { max-width: 1180px; margin: 16px auto 0; padding: 0 1.5rem; }
 .evl-rot-track { position: relative; border-radius: 16px; overflow: hidden; background: var(--evx-charcoal); color: #fff; touch-action: pan-y; }
-.evx .evl-slide { display: none; grid-template-columns: 1fr; grid-template-rows: auto 1fr; height: 440px; overflow: hidden; text-decoration: none; color: #fff; user-select: none; }
+/* Phones: at least 440px, growing with the text. A fixed height let larger
+   text (Facebook's in-app browser, bigger font settings) push the body up
+   under the photo, covering the Featured pill. */
+.evx .evl-slide { display: none; grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: 440px; overflow: hidden; text-decoration: none; color: #fff; user-select: none; }
 .evx .evl-slide-on { display: grid; animation: evl-fadein .45s ease; }
 @keyframes evl-fadein { from { opacity: .35; } to { opacity: 1; } }
 .evl-s-img { aspect-ratio: 16 / 9; position: relative; overflow: hidden; background: #111; }
@@ -9092,7 +9100,7 @@ a.home-comment-author:hover {
   .evl-frow { flex: 1 1 auto; flex-wrap: wrap; overflow: visible; }
   .evl-cat { flex: 0 0 auto; }
   .evl-rot { margin-top: 20px; padding: 0 32px; }
-  .evx .evl-slide { grid-template-columns: minmax(0, 1fr) 1fr; grid-template-rows: none; height: 300px; }
+  .evx .evl-slide { grid-template-columns: minmax(0, 1fr) 1fr; grid-template-rows: none; min-height: 0; height: 300px; }
   .evl-s-img { aspect-ratio: auto; height: 100%; }
   .evl-slide-date-img { display: block; position: absolute; left: 14px; top: 14px; background: rgba(20, 19, 21, .92) !important; }
   .evl-s-top > .evx-date { display: none; }
