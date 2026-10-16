@@ -3778,14 +3778,6 @@ a.card-category:hover {
   height: 320px;
 }
 
-/* Phones: a third taller (Rob, Oct 2026) — the photo is most of what
-   a listing has going for it on a small screen. */
-@media (max-width: 720px) {
-  .directory-listing-card > .directory-image-slider {
-    height: 427px;
-  }
-}
-
 /* Featured image + gallery photos as one slider — see DirectoryImageSlider. */
 .directory-image-slider {
   position: relative;
@@ -8823,6 +8815,10 @@ a.home-comment-author:hover {
 .evx-hero .event-detail-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .evx-hero .event-detail-image-expanded { aspect-ratio: auto; }
 .evx-hero .event-detail-image-expanded img { height: auto; object-fit: contain; }
+/* Phones: a third taller than the desktop crop (Rob, Oct 2026). */
+@media (max-width: 879px) {
+  .evx-hero .event-detail-image:not(.event-detail-image-expanded) { aspect-ratio: 732 / 496; }
+}
 
 /* buttons */
 .evx-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 16px; }
