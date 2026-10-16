@@ -138,6 +138,26 @@ for it since before `sc-events` existed (5 points per RSVP).
 
 ## Before going live
 
+**Switch-day progress (16 Oct 2026).** Rob is doing the switch step by step
+with Claude. Old site frozen 11:06 UTC: sign-ups, comments on new posts, reviews and
+event submissions off, and nothing published there since. Comments on
+existing posts were left open, so re-check live for new ones just before
+the DNS switch. Sync from live to staging19
+re-run in full, and everything below is current as of then:
+articles (381, all in step), approved comments, Sabai reviews, events,
+listing edits and live-only members all needed nothing new. View counts
+were refreshed in sc-post-views 0.6.1, uploaded to staging19. Staging19's
+4 test accounts are deleted. Its pages were already cut down to 22, and all
+53 live-only page addresses redirect on the new site. The old site was
+copied in SiteGround before the switch. Still open: Rob to choose which
+version of the abandoned pub article to keep (live is private and longer;
+staging19 is published), whether to copy the private live-only
+Mitcham fire article (41284), and whether to copy any of the 19 inactive
+live-only members. Approach changed from "Push to Live": `cms` is a
+subdomain of the live site in SiteGround, so staging19 gets restored onto a
+fresh WordPress there, and the live install is left untouched.
+
+
 - [ ] **Admin access to wp-admin after the domain switch.** Right now
   `www.secretcarshalton.com` points straight at this WordPress hosting, so
   `/wp-admin` just works. Once that domain gets repointed to the Next.js
@@ -260,8 +280,11 @@ for it since before `sc-events` existed (5 points per RSVP).
   - *Off once the frontend replacements are merged:* SiteOrigin Widgets +
     Elementor (About/Welcome/Privacy now in `lib/static-pages.ts`, Donate
     is `app/donate`), Contact Form 7 + WP Armour (`app/contact`),
-    HTML5 Video Player (`lib/html5-video.ts`), Featured Image from URL
+    Featured Image from URL
     (one article's stock image — Rob is replacing it).
+  - *Keep* HTML5 Video Player too (checked 16 Oct 2026): five articles
+    use its `[html5_video id=…]` shortcode, which only becomes the player
+    `<div>` that `lib/html5-video.ts` converts while the plugin is active.
   - Switch off in batches and check the site; delete a week later.
   - **Done on staging19, 13 Oct 2026:** the 50 switched-off plugins' files
     were removed (Rob's backup copy: staging21.staging19). Only the
