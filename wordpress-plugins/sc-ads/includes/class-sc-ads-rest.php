@@ -145,6 +145,10 @@ class SC_Ads_REST {
 	private static function eligible_ads( $placement ) {
 		$today = current_time( 'Y-m-d' );
 
+		// A Premium (in_article) ad is "sidebar plus inside articles", as the
+		// Advertise page sells it — so it's in the sidebar pool too (Rob, 2026-10).
+		$placements = 'sidebar' === $placement ? array( 'sidebar', 'in_article' ) : array( $placement );
+
 		$query = new WP_Query(
 			array(
 				'post_type'      => SC_Ads_CPT::POST_TYPE,
@@ -153,8 +157,9 @@ class SC_Ads_REST {
 				'meta_query'     => array(
 					'relation' => 'AND',
 					array(
-						'key'   => 'sc_ad_placement',
-						'value' => $placement,
+						'key'     => 'sc_ad_placement',
+						'value'   => $placements,
+						'compare' => 'IN',
 					),
 					array(
 						'key'   => 'sc_ad_active',
@@ -442,6 +447,10 @@ class SC_Ads_REST {
 					'views'         => (int) get_post_meta( $post->ID, 'sc_ad_views', true ),
 					'daysRequested' => (int) get_post_meta( $post->ID, 'sc_ad_days_requested', true ),
 					'paymentStatus' => get_post_meta( $post->ID, 'sc_ad_payment_status', true ),
+					'start'         => (string) get_post_meta( $post->ID, 'sc_ad_start', true ),
+					'end'           => (string) get_post_meta( $post->ID, 'sc_ad_end', true ),
+					// The Premium text ad that comes with Featured Plus/Gold (SC_Directory_Campaign).
+					'campaignListing' => (int) get_post_meta( $post->ID, 'sc_ad_campaign_listing', true ),
 				);
 			},
 			$posts

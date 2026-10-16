@@ -13,9 +13,17 @@ import {
   getMyRsvpdEvents,
   linkForPostType,
   parseEventDate,
+  stripHtml,
   WP_ADMIN_URL,
 } from "@/lib/wordpress";
-import { EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS, GROUP_PROMOTION_PRICE, formatUntil } from "@/lib/pricing";
+import {
+  EVENT_UPGRADE_PRICE,
+  FEATURED_DIRECTORY_TIERS,
+  GROUP_PROMOTION_PRICE,
+  STANDARD_LISTING_PRICE,
+  featuredTierFeatures,
+  formatUntil,
+} from "@/lib/pricing";
 import { getSessionToken } from "@/lib/auth";
 import { ExpandableList } from "@/app/_components/ExpandableList";
 import { ExtendAdButton } from "./_components/ExtendAdButton";
@@ -69,7 +77,10 @@ const TIERS = [
   { slug: "carshalton_champion", label: "Carshalton Champion", threshold: 500 },
 ];
 
-function adStatusChip(ad: { active: boolean; paymentStatus: string }) {
+function adStatusChip(ad: { active: boolean; paymentStatus: string; start?: string; end?: string }) {
+  const today = new Date().toISOString().slice(0, 10);
+  if (ad.active && ad.end && ad.end < today) return { label: "Ended", cls: "dash-chip-off" };
+  if (ad.active && ad.start && ad.start > today) return { label: `Starts ${formatUntil(ad.start)}`, cls: "dash-chip-sched" };
   if (ad.active) return { label: "Live", cls: "dash-chip-ok" };
   if (ad.paymentStatus === "paid") return { label: "Paid — going live soon", cls: "dash-chip-sched" };
   return { label: "Awaiting payment", cls: "dash-chip-wait" };
@@ -110,8 +121,9 @@ export default async function DashboardPage() {
   const myGroups = myListings.filter((l) => l.isGroup);
   const myBusinessListings = myListings.filter((l) => !l.isGroup);
 
+  const featuredCount = myBusinessListings.filter((l) => l.featured).length;
   const hasAds = myAds.length > 0;
-  const hasSubmissions = myEvents.length > 0 || myJobs.length > 0 || myGroups.length > 0;
+  const hasSubmissions = myEvents.length > 0 || myJobs.length > 0;
 
   return (
     <main className="container dash-page" id="dash-top">
@@ -159,20 +171,17 @@ export default async function DashboardPage() {
             My community posts
           </a>
 
+          {(hasAds || hasBusiness) && <div className="dash-sidebar-label">My advertising</div>}
           {hasAds && (
-            <>
-              <div className="dash-sidebar-label">My advertising</div>
-              <a href="#advertising" className="dash-sidebar-link">
-                Adverts
-              </a>
-            </>
+            <a href="#advertising" className="dash-sidebar-link">
+              My text ads
+            </a>
           )}
 
           {hasBusiness && (
             <>
-              <div className="dash-sidebar-label">My business</div>
               <a href="#business" className="dash-sidebar-link">
-                Directory listing
+                {featuredCount > 1 ? "Featured listings" : "Featured listing"}
               </a>
               {businessListing?.campaign && businessListing.campaign.length > 0 && (
                 <a href="#business-campaign" className="dash-sidebar-link">
@@ -309,9 +318,6 @@ export default async function DashboardPage() {
                 {profile.is_returning ? "Welcome back" : "Hello"} {profile.display_name}
               </span>
             </div>
-            <p className="dashboard-hint">
-              Username and email aren&apos;t shown here yet — coming soon, once account details are wired up.
-            </p>
             <a
               className="button-pill button-pill-secondary"
               href="https://www.staging19.secretcarshalton.com/wp-login.php?action=lostpassword"
@@ -406,7 +412,7 @@ export default async function DashboardPage() {
             </section>
           </div>
 
-          {/* My submissions — matches the sidebar's "My content" group (events/jobs/community groups) */}
+          {/* My submissions — events and jobs (community groups are under "Share something free") */}
           {hasSubmissions && (
             <section className="dash-submissions" id="submissions" aria-labelledby="submissions-h">
               <h2 id="submissions-h" className="dash-h2">
@@ -484,9 +490,9 @@ export default async function DashboardPage() {
                           <>
                             <div>
                               {job.status === "publish" ? (
-                                <Link href={`/jobs/${job.slug}`}>{job.title}</Link>
+                                <Link href={`/jobs/${job.slug}`}>{stripHtml(job.title)}</Link>
                               ) : (
-                                <span>{job.title}</span>
+                                <span>{stripHtml(job.title)}</span>
                               )}
                               {job.company && <div className="dash-meta">{job.company}</div>}
                               {job.status === "publish" && job.expiresOn && (
@@ -506,56 +512,6 @@ export default async function DashboardPage() {
                   )}
                 </div>
 
-                <div className="dash-panel dash-panel-tight" id="submissions-community">
-                  <div className="dash-panel-head">
-                    <h3 className="dash-h3">Community groups</h3>
-                    <Link href="/community/groups/submit" className="dash-manage-link">
-                      Add a group
-                    </Link>
-                  </div>
-                  {myGroups.length === 0 ? (
-                    <p className="dashboard-hint">Nothing submitted yet.</p>
-                  ) : (
-                    <ExpandableList
-                      items={myGroups}
-                      listClassName="dash-row-list"
-                      itemKey={(group) => group.id}
-                      noun="group"
-                      renderItem={(group) => {
-                        const chip = postStatusChip(group.status);
-                        return (
-                          <>
-                            <div>
-                              {group.status === "publish" ? (
-                                <Link href={`/community/groups/${group.slug}`}>{group.title}</Link>
-                              ) : (
-                                <span>{group.title}</span>
-                              )}
-                              <div className="dash-meta">
-                                {group.promotedUntil
-                                  ? `Promoted until ${formatUntil(group.promotedUntil)}`
-                                  : `${group.views} view${group.views === 1 ? "" : "s"}`}
-                                {" · "}
-                                <Link href={`/directory/${group.slug}/edit`} className="dash-manage-link">
-                                  Edit
-                                </Link>
-                                {!group.promotedUntil && group.status === "publish" && (
-                                  <>
-                                    {" · "}
-                                    <Link href={`/payment/pay?kind=group_promotion&id=${group.id}`} className="dash-manage-link">
-                                      Promote
-                                    </Link>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                            <span className={`dash-chip ${chip.cls}`}>{chip.label}</span>
-                          </>
-                        );
-                      }}
-                    />
-                  )}
-                </div>
               </div>
             </section>
           )}
@@ -563,10 +519,105 @@ export default async function DashboardPage() {
           <div className="dash-group">
             <h2 className="dash-group-title">Share something free</h2>
 
+            <section className="dash-panel" id="submissions-community">
+              <div className="dash-panel-head">
+                <h3 className="dash-h3">Your community groups</h3>
+                <Link href="/community/groups/submit" className="dash-manage-link">
+                  Add a group
+                </Link>
+              </div>
+              {myGroups.length === 0 ? (
+                <p className="dashboard-hint">Nothing submitted yet.</p>
+              ) : (
+                <ExpandableList
+                  items={myGroups}
+                  listClassName="dash-row-list"
+                  itemKey={(group) => group.id}
+                  noun="group"
+                  renderItem={(group) => {
+                    const chip = postStatusChip(group.status);
+                    return (
+                      <>
+                        <div>
+                          {group.status === "publish" ? (
+                            <Link href={`/community/groups/${group.slug}`}>{group.title}</Link>
+                          ) : (
+                            <span>{group.title}</span>
+                          )}
+                          <div className="dash-meta">
+                            {group.promotedUntil
+                              ? `Promoted until ${formatUntil(group.promotedUntil)}`
+                              : `${group.views} view${group.views === 1 ? "" : "s"}`}
+                            {" · "}
+                            <Link href={`/directory/${group.slug}/edit`} className="dash-manage-link">
+                              Edit
+                            </Link>
+                            {!group.promotedUntil && group.status === "publish" && (
+                              <>
+                                {" · "}
+                                <Link href={`/payment/pay?kind=group_promotion&id=${group.id}`} className="dash-manage-link">
+                                  Promote
+                                </Link>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <span className={`dash-chip ${chip.cls}`}>{chip.label}</span>
+                      </>
+                    );
+                  }}
+                />
+              )}
+            </section>
+
+            <section className="dash-panel" id="community-posts">
+              <h3 className="dash-h3">Your community post{myCommunityPosts.length === 1 ? "" : "s"}</h3>
+              {myCommunityPosts.length === 0 ? (
+                <p className="dashboard-hint">Nothing shared yet — got some local news worth spreading?</p>
+              ) : (
+                <ExpandableList
+                  items={myCommunityPosts}
+                  listClassName="dashboard-my-list"
+                  itemKey={(post) => post.id}
+                  noun="post"
+                  renderItem={(post) => (
+                    <>
+                      <span className={`dashboard-status-badge dashboard-status-${post.status}`}>
+                        {POST_STATUS_LABEL[post.status] ?? post.status}
+                      </span>
+                      {post.status === "publish" ? (
+                        <Link href={`/${post.slug}`}>{post.title}</Link>
+                      ) : (
+                        <span>{post.title}</span>
+                      )}
+                    </>
+                  )}
+                />
+              )}
+              <div className="dashboard-section-actions">
+                <Link href="/community" className="button-pill button-pill-secondary">
+                  Browse community news
+                </Link>
+                <Link href="/community/submit" className="button-pill">
+                  Share community news
+                </Link>
+              </div>
+            </section>
+          </div>
+
+          <div className="dash-group">
+            <h2 className="dash-group-title">Get more reach</h2>
+            <p className="dash-group-intro">
+              A directory listing for your business, or pay to get an event or group seen further.
+            </p>
+
             <section className="dash-panel" id="directory">
               <h3 className="dash-h3">Your directory listing{myBusinessListings.length === 1 ? "" : "s"}</h3>
               {myBusinessListings.length === 0 ? (
-                <p className="dashboard-hint">Nothing yet — claim an existing listing or add a new one.</p>
+                <p className="dashboard-hint">
+                  Nothing yet — a listing for your business is {STANDARD_LISTING_PRICE}. Claim an existing one or add a
+                  new one.
+                </p>
               ) : (
                 <ExpandableList
                   items={myBusinessListings}
@@ -612,48 +663,6 @@ export default async function DashboardPage() {
                 </Link>
               </div>
             </section>
-
-            <section className="dash-panel" id="community-posts">
-              <h3 className="dash-h3">Your community post{myCommunityPosts.length === 1 ? "" : "s"}</h3>
-              {myCommunityPosts.length === 0 ? (
-                <p className="dashboard-hint">Nothing shared yet — got some local news worth spreading?</p>
-              ) : (
-                <ExpandableList
-                  items={myCommunityPosts}
-                  listClassName="dashboard-my-list"
-                  itemKey={(post) => post.id}
-                  noun="post"
-                  renderItem={(post) => (
-                    <>
-                      <span className={`dashboard-status-badge dashboard-status-${post.status}`}>
-                        {POST_STATUS_LABEL[post.status] ?? post.status}
-                      </span>
-                      {post.status === "publish" ? (
-                        <Link href={`/${post.slug}`}>{post.title}</Link>
-                      ) : (
-                        <span>{post.title}</span>
-                      )}
-                    </>
-                  )}
-                />
-              )}
-              <div className="dashboard-section-actions">
-                <Link href="/community" className="button-pill button-pill-secondary">
-                  Browse community news
-                </Link>
-                <Link href="/community/submit" className="button-pill">
-                  Share community news
-                </Link>
-              </div>
-            </section>
-          </div>
-
-          <div className="dash-group">
-            <h2 className="dash-group-title">Get more reach</h2>
-            <p className="dash-group-intro">
-              Not a business — but if you&apos;re already sharing something here for free, you can pay to get it
-              seen further.
-            </p>
 
             <div className="dash-submissions-grid">
               <section className="dash-panel dash-panel-tight">
@@ -783,13 +792,17 @@ export default async function DashboardPage() {
             </section>
           )}
 
-          {/* My advertising — matches the sidebar's "My advertising" group */}
+          {/* My advertising — text ads, then the Featured listing, under one
+              heading (matches the sidebar's "My advertising" group). */}
+          {(hasAds || hasBusiness) && (
+          <div className="dash-group" id="my-advertising">
+            <h2 className="dash-group-title">My advertising</h2>
           {hasAds && (
             <section className="dash-panel" id="advertising" aria-labelledby="advertising-h">
               <div className="dash-panel-head">
-                <h2 id="advertising-h" className="dash-h2">
-                  My advertising
-                </h2>
+                <h3 id="advertising-h" className="dash-h2">
+                  My text ads
+                </h3>
                 <Link href="/advertise#text-ads" className="button-pill button-pill-secondary">
                   Advertise again
                 </Link>
@@ -816,11 +829,18 @@ export default async function DashboardPage() {
                             <strong>{ad.headline}</strong>
                             <div className="dash-meta">
                               {AD_SELF_SERVE_PLACEMENTS.find((p) => p.slug === ad.placement)?.label ?? ad.placement}
-                              {" · "}
-                              {ad.daysRequested} day{ad.daysRequested === 1 ? "" : "s"}
+                              {ad.campaignListing
+                                ? " · Included in your Featured package"
+                                : ad.daysRequested > 0
+                                  ? ` · ${ad.daysRequested} day${ad.daysRequested === 1 ? "" : "s"}`
+                                  : ""}
                             </div>
                           </td>
-                          <td className="dash-meta">—</td>
+                          <td className="dash-meta">
+                            {ad.start || ad.end
+                              ? `${ad.start ? formatUntil(ad.start) : "Now"} – ${ad.end ? formatUntil(ad.end) : "ongoing"}`
+                              : "—"}
+                          </td>
                           <td>
                             <span className={`dash-chip ${chip.cls}`}>{chip.label}</span>
                           </td>
@@ -829,10 +849,11 @@ export default async function DashboardPage() {
                           </td>
                           <td className="dash-table-actions">
                             <span style={{ display: "inline-flex", alignItems: "center", gap: "0.6rem" }}>
-                              {ad.active && <ExtendAdButton adId={ad.id} />}
+                              {/* The package's own ad runs with the Featured listing — no extending or deleting it separately. */}
+                              {ad.active && !ad.campaignListing && <ExtendAdButton adId={ad.id} />}
                               {!ad.active && ad.paymentStatus !== "paid" && <PayAdButton adId={ad.id} />}
                               <EditAdButton adId={ad.id} headline={ad.headline} body={ad.body} link={ad.link} />
-                              <DeleteAdButton adId={ad.id} active={ad.active} />
+                              {!ad.campaignListing && <DeleteAdButton adId={ad.id} active={ad.active} />}
                             </span>
                           </td>
                         </tr>
@@ -841,10 +862,6 @@ export default async function DashboardPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="dashboard-hint">
-                Exact start/end dates for each ad aren&apos;t shown here yet — we&apos;ll add them once that&apos;s
-                wired up.
-              </p>
               <div className="dashboard-section-actions">
                 <Link href="/advertise#text-ads" className="button-pill">
                   Write another ad
@@ -853,15 +870,14 @@ export default async function DashboardPage() {
             </section>
           )}
 
-          {/* My business — matches the sidebar's "My business" group, last */}
           {hasBusiness && (
             <section className="dash-panel" id="business" aria-labelledby="business-h">
               <div className="dash-panel-head">
                 <div>
-                  <div className="dash-eyebrow">My business</div>
-                  <h2 id="business-h" className="dash-h2">
-                    {businessListing ? businessListing.title : "Your business"}
-                  </h2>
+                  <h3 id="business-h" className="dash-h2">
+                    {featuredCount > 1 ? "Featured listings" : "Featured listing"}
+                  </h3>
+                  <div className="dash-business-name">{businessListing ? businessListing.title : "Your business"}</div>
                 </div>
                 {businessListing && (
                   <div className="dash-panel-head-actions">
@@ -884,11 +900,24 @@ export default async function DashboardPage() {
                   <span className="dash-stat-sub">
                     {businessTier ? `${businessTier.price} ${businessTier.per}` : profile.directory_upgrade_amount_paid}
                   </span>
+                  {/* What the package includes, at a glance (Rob, 2026-10). */}
+                  <details className="dash-package-details">
+                    <summary>What&apos;s included</summary>
+                    <ul>
+                      {featuredTierFeatures(businessTier?.slug).map((f) => (
+                        <li key={f}>{f}</li>
+                      ))}
+                    </ul>
+                  </details>
                 </div>
                 <div className="dash-stat-card">
                   <span className="dash-stat-label">Renewal</span>
                   <span className="dash-stat-value">
-                    {profile.directory_upgrade_expires_at ? formatDate(profile.directory_upgrade_expires_at) : "—"}
+                    {businessListing?.featuredUntil
+                      ? formatUntil(businessListing.featuredUntil)
+                      : profile.directory_upgrade_expires_at
+                        ? formatDate(profile.directory_upgrade_expires_at)
+                        : "—"}
                   </span>
                   <Link href="/dashboard/upgrade" className="dash-stat-link">
                     Manage renewal
@@ -927,6 +956,8 @@ export default async function DashboardPage() {
                 </div>
               )}
             </section>
+          )}
+          </div>
           )}
 
           {/* Activity quick stats */}

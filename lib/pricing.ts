@@ -65,6 +65,34 @@ export const FEATURED_DIRECTORY_TIERS: FeaturedDirectoryTier[] = [
   },
 ];
 
+/**
+ * What each Featured package includes, for the dashboard's "What's
+ * included" dropdown — same wording as the Advertise / Featured pages.
+ */
+const FEATURED_BASE = [
+  "Featured directory listing",
+  "Prominent exposure within your category",
+  "Category image displayed across the site",
+  "Up to 3 photos",
+  "Title, description & tagline",
+  "Website, address, social links & map",
+];
+const FEATURED_PLUS = [...FEATURED_BASE, "One Premium Text Ad", "Designed banner displayed across the site", "Social Story promotion"];
+const FEATURED_GOLD = [
+  ...FEATURED_BASE,
+  "One Premium Text Ad",
+  "Designed banner displayed across the site",
+  "Written article about your business, organisation or event",
+  "Social media post promoting the article",
+];
+
+export function featuredTierFeatures(slug: string | null | undefined): string[] {
+  if (slug === "featured_gold") return FEATURED_GOLD;
+  if (slug === "featured_plus") return FEATURED_PLUS;
+  if (slug === "featured_6mo") return [...FEATURED_BASE, "Six-month listing"];
+  return FEATURED_BASE;
+}
+
 export function featuredTierLabel(slug: string | null | undefined): string {
   return FEATURED_DIRECTORY_TIERS.find((t) => t.slug === slug)?.label ?? "Featured";
 }

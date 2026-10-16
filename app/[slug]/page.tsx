@@ -308,10 +308,11 @@ export default async function ContentPage({
       // +1: the current post is filtered out below, so ask for one extra
       // to still land on 5 when it would otherwise have been in the list.
       getTopPostsToday(6),
-      // Up to 3 rotating blue ads in the sidebar. in_article ads aren't
-      // included here: they render embedded in the article body instead
-      // (see the two <AdSlot placement="in_article"> below), so a member
-      // who paid for "in-article" isn't also shown in the sidebar for free.
+      // Up to 3 rotating blue ads in the sidebar. The "sidebar" pool also
+      // includes Premium (in_article) ads — Premium is sold as sidebar plus
+      // inside articles: the first in-article slot below gives paid Premium
+      // ads first go (house in_post_1 ads fill it otherwise); the second
+      // keeps house ads first so one paid ad isn't shown twice per article.
       getAd("sidebar", 1),
       getAd("sidebar", 2),
       getAd("sidebar", 3),
@@ -453,7 +454,7 @@ export default async function ContentPage({
                   return map ? <WalkMapBuy key={j} map={map} /> : null;
                 })}
                 {i === inPost1After && (
-                  <AdSlot placement="in_post_1" fallbackPlacement="in_article" className="ad-slot ad-in-post" />
+                  <AdSlot placement="in_article" fallbackPlacement="in_post_1" className="ad-slot ad-in-post" />
                 )}
                 {i === inPost2After && (
                   <AdSlot placement="in_post_2" fallbackPlacement="in_article" className="ad-slot ad-in-post" />
