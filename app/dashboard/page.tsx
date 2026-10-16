@@ -19,7 +19,6 @@ import {
 import {
   EVENT_UPGRADE_PRICE,
   FEATURED_DIRECTORY_TIERS,
-  GROUP_PROMOTION_PRICE,
   STANDARD_LISTING_PRICE,
   featuredTierFeatures,
   formatUntil,
@@ -171,13 +170,16 @@ export default async function DashboardPage() {
             My community posts
           </a>
 
-          {(hasAds || hasBusiness) && <div className="dash-sidebar-label">My advertising</div>}
+          <div className="dash-sidebar-label">My advertising</div>
           {hasAds && (
             <a href="#advertising" className="dash-sidebar-link">
               My text ads
             </a>
           )}
 
+          <a href="#directory" className="dash-sidebar-link">
+            My directory listings
+          </a>
           {hasBusiness && (
             <>
               <a href="#business" className="dash-sidebar-link">
@@ -454,6 +456,18 @@ export default async function DashboardPage() {
                                 <Link href={`/events/${event.slug}/edit`} className="dash-manage-link">
                                   Edit
                                 </Link>
+                                {event.status === "publish" &&
+                                  !event.featured &&
+                                  event.featuredStatus !== "pending" &&
+                                  !event.repeating &&
+                                  event.start.slice(0, 10) >= new Date().toISOString().slice(0, 10) && (
+                                    <>
+                                      {" · "}
+                                      <Link href={`/events/${event.slug}/feature`} className="dash-manage-link">
+                                        Feature for {EVENT_UPGRADE_PRICE.split(" ")[0]}
+                                      </Link>
+                                    </>
+                                  )}
                               </div>
                             </div>
                             <span className={`dash-chip ${chip.cls}`}>{chip.label}</span>
@@ -614,196 +628,11 @@ export default async function DashboardPage() {
             </section>
           </div>
 
-          <div className="dash-group">
-            <h2 className="dash-group-title">Get more reach</h2>
-            <p className="dash-group-intro">
-              A directory listing for your business, or pay to get an event or group seen further.
-            </p>
-
-            <section className="dash-panel" id="directory">
-              <h3 className="dash-h3">Your directory listing{myBusinessListings.length === 1 ? "" : "s"}</h3>
-              {myBusinessListings.length === 0 ? (
-                <p className="dashboard-hint">
-                  Nothing yet — a listing for your business is {STANDARD_LISTING_PRICE}. Claim an existing one or add a
-                  new one.
-                </p>
-              ) : (
-                <ExpandableList
-                  items={myBusinessListings}
-                  listClassName="dashboard-my-list"
-                  itemKey={(listing) => listing.id}
-                  noun="listing"
-                  renderItem={(listing) => (
-                    <>
-                      <span className={`dashboard-status-badge dashboard-status-${listing.status}`}>
-                        {POST_STATUS_LABEL[listing.status] ?? listing.status}
-                      </span>
-                      {listing.status === "publish" ? (
-                        <Link href={`/directory/${listing.slug}`}>{listing.title}</Link>
-                      ) : (
-                        <span>{listing.title}</span>
-                      )}
-                      <span className="dashboard-my-list-views">
-                        {listing.views} view{listing.views === 1 ? "" : "s"}
-                      </span>
-                      {listing.status !== "publish" && !listing.isGroup && !listing.subscribed && !listing.featured && (
-                        <Link href={`/payment/pay?kind=standard_listing&id=${listing.id}`} className="dashboard-my-list-edit">
-                          Pay to publish
-                        </Link>
-                      )}
-                      {listing.featuredUntil && (
-                        <Link href={`/payment/pay?kind=featured&id=${listing.id}`} className="dashboard-my-list-edit">
-                          Featured until {formatUntil(listing.featuredUntil)} · Renew
-                        </Link>
-                      )}
-                      <Link href={`/directory/${listing.status === "publish" && listing.slug ? listing.slug : listing.id}/edit`} className="dashboard-my-list-edit">
-                        Edit
-                      </Link>
-                    </>
-                  )}
-                />
-              )}
-              <div className="dashboard-section-actions">
-                <Link href="/directory" className="button-pill button-pill-secondary">
-                  Browse the directory
-                </Link>
-                <Link href="/directory/submit" className="button-pill">
-                  Add a listing
-                </Link>
-              </div>
-            </section>
-
-            <div className="dash-submissions-grid">
-              <section className="dash-panel dash-panel-tight">
-                <h3 className="dash-h3">Featured event</h3>
-                {(() => {
-                  const featuredEvent = myEvents.find((e) => e.featured);
-                  const pendingEvent = myEvents.find((e) => e.featuredStatus === "pending");
-                  const today = new Date().toISOString().slice(0, 10);
-                  const eligibleEvents = myEvents.filter(
-                    (e) => e.status === "publish" && !e.featured && !e.repeating && e.start.slice(0, 10) >= today
-                  );
-
-                  if (featuredEvent) {
-                    return (
-                      <p>
-                        <Link href={`/events/${featuredEvent.slug}`}>{featuredEvent.title}</Link> is currently
-                        featured until its date.
-                      </p>
-                    );
-                  }
-                  if (pendingEvent) {
-                    return (
-                      <p>
-                        Request pending review for{" "}
-                        <Link href={`/events/${pendingEvent.slug}`}>{pendingEvent.title}</Link>.
-                      </p>
-                    );
-                  }
-                  if (eligibleEvents.length === 0) {
-                    return (
-                      <p className="dashboard-hint">
-                        {myEvents.length === 0
-                          ? "Submit an event first, then you can pay to feature it."
-                          : "None of your events can be featured right now — only single, upcoming events can."}
-                      </p>
-                    );
-                  }
-                  return (
-                    <>
-                      <p className="dashboard-hint">
-                        {EVENT_UPGRADE_PRICE.split(" ")[0]} puts your event in the featured slider on the events pages and the
-                        homepage until its date.
-                      </p>
-                      <ul className="dashboard-my-list">
-                        {eligibleEvents.map((event) => (
-                          <li key={event.id}>
-                            <span>{event.title}</span>
-                            <Link href={`/events/${event.slug}/feature`} className="dashboard-my-list-edit">
-                              Feature for {EVENT_UPGRADE_PRICE.split(" ")[0]}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  );
-                })()}
-              </section>
-
-              <section className="dash-panel dash-panel-tight">
-                <h3 className="dash-h3">Groups &amp; clubs</h3>
-                {myGroups.length > 0 ? (
-                  <ul className="dash-row-list">
-                    {myGroups.map((group) => (
-                      <li key={group.id}>
-                        <div>
-                          {group.status === "publish" ? (
-                            <Link href={`/community/groups/${group.slug}`}>{group.title}</Link>
-                          ) : (
-                            <span>{group.title}</span>
-                          )}
-                          <div className="dash-meta">
-                            {group.promotedUntil ? (
-                              `Promoted until ${formatUntil(group.promotedUntil)}`
-                            ) : group.status === "publish" ? (
-                              <Link href={`/payment/pay?kind=group_promotion&id=${group.id}`} className="dash-manage-link">
-                                Promote for {GROUP_PROMOTION_PRICE.split(" ")[0]}
-                              </Link>
-                            ) : (
-                              "Not live yet"
-                            )}
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="dashboard-hint">
-                    Run a local group? List it free in <Link href="/community/groups">Groups to join</Link> — it goes
-                    live straight away — and promote it in the Community section for {GROUP_PROMOTION_PRICE}.
-                  </p>
-                )}
-                <div className="dashboard-section-actions">
-                  <Link href="/community/groups" className="button-pill button-pill-secondary">
-                    Browse groups
-                  </Link>
-                  <Link href="/community/groups/submit" className="button-pill">
-                    Add your group
-                  </Link>
-                </div>
-              </section>
-            </div>
-          </div>
-
-          {/* Directory upgrade upsell — only when not already an approved Featured business.
-              Sits right where "My business" would be, matching the sidebar's last group. */}
-          {!hasBusiness && (
-            <section className="dash-panel" id="grow">
-              <h2 className="dash-h3">Grow your business</h2>
-              {profile.directory_upgrade_status === "rejected" && (
-                <p className="dashboard-hint">Your last request wasn&apos;t approved — you can try again.</p>
-              )}
-              {profile.directory_upgrade_status === "pending" ? (
-                <p>
-                  Status: <strong>{UPGRADE_STATUS_LABEL.pending}</strong>
-                </p>
-              ) : (
-                <>
-                  <p className="dashboard-hint">
-                    Own a local business? Get the long-form listing — full details, photos and a featured spot at
-                    the top of your category, from £50/month.
-                  </p>
-                  <Link href="/dashboard/upgrade" className="button-pill">
-                    Request directory upgrade
-                  </Link>
-                </>
-              )}
-            </section>
-          )}
-
           {/* My advertising — text ads, then the Featured listing, under one
               heading (matches the sidebar's "My advertising" group). */}
-          {(hasAds || hasBusiness) && (
+          {/* "Get more reach" used to sit here; its group and event boxes
+              repeated the Community groups / Events boxes above, so it's gone
+              and directory listings live here with the other paid things. */}
           <div className="dash-group" id="my-advertising">
             <h2 className="dash-group-title">My advertising</h2>
           {hasAds && (
@@ -966,8 +795,84 @@ export default async function DashboardPage() {
               )}
             </section>
           )}
-          </div>
+            <section className="dash-panel" id="directory">
+              <h3 className="dash-h3">Your directory listing{myBusinessListings.length === 1 ? "" : "s"}</h3>
+              {myBusinessListings.length === 0 ? (
+                <p className="dashboard-hint">
+                  Nothing yet — a listing for your business is {STANDARD_LISTING_PRICE}. Claim an existing one or add a
+                  new one.
+                </p>
+              ) : (
+                <ExpandableList
+                  items={myBusinessListings}
+                  listClassName="dashboard-my-list"
+                  itemKey={(listing) => listing.id}
+                  noun="listing"
+                  renderItem={(listing) => (
+                    <>
+                      <span className={`dashboard-status-badge dashboard-status-${listing.status}`}>
+                        {POST_STATUS_LABEL[listing.status] ?? listing.status}
+                      </span>
+                      {listing.status === "publish" ? (
+                        <Link href={`/directory/${listing.slug}`}>{listing.title}</Link>
+                      ) : (
+                        <span>{listing.title}</span>
+                      )}
+                      <span className="dashboard-my-list-views">
+                        {listing.views} view{listing.views === 1 ? "" : "s"}
+                      </span>
+                      {listing.status !== "publish" && !listing.isGroup && !listing.subscribed && !listing.featured && (
+                        <Link href={`/payment/pay?kind=standard_listing&id=${listing.id}`} className="dashboard-my-list-edit">
+                          Pay to publish
+                        </Link>
+                      )}
+                      {listing.featuredUntil && (
+                        <Link href={`/payment/pay?kind=featured&id=${listing.id}`} className="dashboard-my-list-edit">
+                          Featured until {formatUntil(listing.featuredUntil)} · Renew
+                        </Link>
+                      )}
+                      <Link href={`/directory/${listing.status === "publish" && listing.slug ? listing.slug : listing.id}/edit`} className="dashboard-my-list-edit">
+                        Edit
+                      </Link>
+                    </>
+                  )}
+                />
+              )}
+              <div className="dashboard-section-actions">
+                <Link href="/directory" className="button-pill button-pill-secondary">
+                  Browse the directory
+                </Link>
+                <Link href="/directory/submit" className="button-pill">
+                  Add a listing
+                </Link>
+              </div>
+            </section>
+          {/* Featured upgrade upsell — only when not already a Featured business. */}
+          {!hasBusiness && (
+            <section className="dash-panel" id="grow">
+              <h2 className="dash-h3">Grow your business</h2>
+              {profile.directory_upgrade_status === "rejected" && (
+                <p className="dashboard-hint">Your last request wasn&apos;t approved — you can try again.</p>
+              )}
+              {profile.directory_upgrade_status === "pending" ? (
+                <p>
+                  Status: <strong>{UPGRADE_STATUS_LABEL.pending}</strong>
+                </p>
+              ) : (
+                <>
+                  <p className="dashboard-hint">
+                    Own a local business? Get the long-form listing — full details, photos and a featured spot at
+                    the top of your category, from £50/month.
+                  </p>
+                  <Link href="/dashboard/upgrade" className="button-pill">
+                    Request directory upgrade
+                  </Link>
+                </>
+              )}
+            </section>
           )}
+
+          </div>
 
           {/* Activity quick stats */}
           <section className="dash-activity-stats" aria-label="My activity">
