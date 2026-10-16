@@ -180,6 +180,8 @@ export function GoogleSignIn({
         <span>or</span>
       </p>
       <div ref={box} className="google-signin-button" aria-busy={busy} />
+      {/* So it's clear the tick box above applies to this button too. */}
+      {newsletter && <p className="google-signin-newsletter">Includes the Insider newsletter, as ticked above</p>}
       {error && <p className="auth-error">{error}</p>}
     </div>
   );
