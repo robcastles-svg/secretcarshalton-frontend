@@ -353,9 +353,9 @@ export default async function DashboardPage() {
                         {(() => {
                           const link = linkForPostType(comment.post_type, comment.post_slug);
                           return link ? (
-                            <Link href={link}>{comment.post_title}</Link>
+                            <Link href={link}>{stripHtml(comment.post_title ?? "")}</Link>
                           ) : (
-                            <span>{comment.post_title ?? "A post"}</span>
+                            <span>{comment.post_title ? stripHtml(comment.post_title) : "A post"}</span>
                           );
                         })()}
                         <time>{formatDate(comment.date)}</time>
@@ -406,7 +406,7 @@ export default async function DashboardPage() {
                       <span className={`dashboard-status-badge dashboard-status-${bookmark.content_type}`}>
                         {bookmark.content_type === "listing" ? "Directory" : "Story"}
                       </span>
-                      <Link href={bookmark.link}>{bookmark.title}</Link>
+                      <Link href={bookmark.link}>{stripHtml(bookmark.title)}</Link>
                     </>
                   )}
                 />
@@ -416,8 +416,8 @@ export default async function DashboardPage() {
 
           {/* My submissions — events and jobs (community groups are under "Share something free") */}
           {hasSubmissions && (
-            <section className="dash-submissions" id="submissions" aria-labelledby="submissions-h">
-              <h2 id="submissions-h" className="dash-h2">
+            <section className="dash-group dash-submissions" id="submissions" aria-labelledby="submissions-h">
+              <h2 id="submissions-h" className="dash-group-title">
                 My submissions
               </h2>
               <div className="dash-submissions-grid">
@@ -442,9 +442,9 @@ export default async function DashboardPage() {
                           <>
                             <div>
                               {event.status === "publish" ? (
-                                <Link href={`/events/${event.slug}`}>{event.title}</Link>
+                                <Link href={`/events/${event.slug}`}>{stripHtml(event.title)}</Link>
                               ) : (
-                                <span>{event.title}</span>
+                                <span>{stripHtml(event.title)}</span>
                               )}
                               <div className="dash-meta">
                                 {event.featured
@@ -560,9 +560,9 @@ export default async function DashboardPage() {
                       <>
                         <div>
                           {group.status === "publish" ? (
-                            <Link href={`/community/groups/${group.slug}`}>{group.title}</Link>
+                            <Link href={`/community/groups/${group.slug}`}>{stripHtml(group.title)}</Link>
                           ) : (
-                            <span>{group.title}</span>
+                            <span>{stripHtml(group.title)}</span>
                           )}
                           <div className="dash-meta">
                             {group.promotedUntil
@@ -606,9 +606,9 @@ export default async function DashboardPage() {
                         {POST_STATUS_LABEL[post.status] ?? post.status}
                       </span>
                       {post.status === "publish" ? (
-                        <Link href={`/${post.slug}`}>{post.title}</Link>
+                        <Link href={`/${post.slug}`}>{stripHtml(post.title)}</Link>
                       ) : (
-                        <span>{post.title}</span>
+                        <span>{stripHtml(post.title)}</span>
                       )}
                       <Link href={`/community/edit/${post.id}`} className="dashboard-my-list-edit">
                         Edit
@@ -638,7 +638,7 @@ export default async function DashboardPage() {
           {hasAds && (
             <section className="dash-panel" id="advertising" aria-labelledby="advertising-h">
               <div className="dash-panel-head">
-                <h3 id="advertising-h" className="dash-h2">
+                <h3 id="advertising-h" className="dash-h3">
                   My text ads
                 </h3>
                 <Link href="/advertise#text-ads" className="button-pill button-pill-secondary">
@@ -712,7 +712,7 @@ export default async function DashboardPage() {
             <section className="dash-panel" id="business" aria-labelledby="business-h">
               <div className="dash-panel-head">
                 <div>
-                  <h3 id="business-h" className="dash-h2">
+                  <h3 id="business-h" className="dash-h3">
                     {featuredCount > 1 ? "Featured listings" : "Featured listing"}
                   </h3>
                   <div className="dash-business-name">{businessListing ? businessListing.title : "Your business"}</div>
@@ -814,9 +814,9 @@ export default async function DashboardPage() {
                         {POST_STATUS_LABEL[listing.status] ?? listing.status}
                       </span>
                       {listing.status === "publish" ? (
-                        <Link href={`/directory/${listing.slug}`}>{listing.title}</Link>
+                        <Link href={`/directory/${listing.slug}`}>{stripHtml(listing.title)}</Link>
                       ) : (
-                        <span>{listing.title}</span>
+                        <span>{stripHtml(listing.title)}</span>
                       )}
                       <span className="dashboard-my-list-views">
                         {listing.views} view{listing.views === 1 ? "" : "s"}

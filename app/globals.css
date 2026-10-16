@@ -7074,6 +7074,14 @@ a.card-category:hover {
   margin: 0 0 0.75rem;
 }
 
+/* Box titles: the box's own gap does the spacing below, and beside a
+   "Manage"/"Add a group" link they line up with it (Rob, 2026-10). */
+.dash-panel > .dash-h3,
+.dash-panel-head .dash-h3,
+.dash-panel-head .dash-h3 + * {
+  margin: 0;
+}
+
 .dash-hero {
   display: flex;
   flex-wrap: wrap;
