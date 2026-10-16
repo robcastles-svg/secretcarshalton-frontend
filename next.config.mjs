@@ -15,6 +15,7 @@ const nextConfig = {
       { protocol: "https", hostname: "www.staging19.secretcarshalton.com" },
       { protocol: "https", hostname: "staging19.secretcarshalton.com" },
       { protocol: "https", hostname: "cms.secretcarshalton.com" },
+      { protocol: "https", hostname: "www.cms.secretcarshalton.com" },
     ],
   },
   // Old WordPress addresses that changed — see lib/legacy-redirects.mjs.

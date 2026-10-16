@@ -172,11 +172,13 @@ class SC_Post_Views_DB {
 	}
 
 	/**
-	 * The articles published on live after staging was cloned, re-created on
-	 * staging under new IDs, get the live site's Post Views Counter total as
-	 * their baseline, the same as every other article got from the original
-	 * backfill (SC_Post_Views_Admin). That backfill can't do these: it keys
-	 * rows by live ID, and these articles have different IDs here.
+	 * Every article's live Post Views Counter total as its baseline,
+	 * matched to the staging article by slug — so it also covers the
+	 * articles re-created here under new IDs, which the original backfill
+	 * (SC_Post_Views_Admin, keyed by live ID) can't. Regenerated at the
+	 * go-live freeze (16 Oct 2026) to bring in the views live kept
+	 * counting since that backfill; upsert, so it replaces the old
+	 * baseline rather than adding to it.
 	 */
 	public static function seed_article_live_baselines() {
 		self::seed_baselines_from_file( 'data/article-baselines.json', 'posts', 'post' );

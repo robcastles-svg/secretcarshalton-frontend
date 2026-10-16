@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Secret Carshalton — Post Views
  * Description: Our own view-counting store, keyed by post ID with a daily bucket per post — lets the frontend show a real view count plus genuinely time-windowed "top posts today/this week" without the third-party Post Views Counter plugin's REST API, which only ever returns one post's all-time total per request. Runs on staging even though the posts themselves live on the production site — same pattern already used for comments (see sc-membership's submit_comment): the numeric post ID from the production site is just an arbitrary key here, no relationship to any post actually stored on this install.
- * Version: 0.6.0
+ * Version: 0.6.1
  * Author: Secret Carshalton
  * Text Domain: sc-post-views
  */
@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'SC_POST_VIEWS_VERSION', '0.6.0' );
+define( 'SC_POST_VIEWS_VERSION', '0.6.1' );
 define( 'SC_POST_VIEWS_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once SC_POST_VIEWS_DIR . 'includes/class-sc-post-views-db.php';
@@ -80,7 +80,7 @@ add_action(
  * re-stamps each baseline row with the listing's own slug, so the
  * cleanup can't delete it.
  */
-define( 'SC_POST_VIEWS_LISTING_SEED', '2026-10-11' );
+define( 'SC_POST_VIEWS_LISTING_SEED', '2026-10-16' );
 add_action(
 	'init',
 	function () {
@@ -94,8 +94,8 @@ add_action(
 	20
 );
 
-/** Same pattern for the re-created articles (see seed_article_live_baselines() and data/article-baselines.json). */
-define( 'SC_POST_VIEWS_ARTICLE_SEED', '2026-10-11' );
+/** Same pattern for articles (see seed_article_live_baselines() and data/article-baselines.json). */
+define( 'SC_POST_VIEWS_ARTICLE_SEED', '2026-10-16' );
 add_action(
 	'init',
 	function () {
