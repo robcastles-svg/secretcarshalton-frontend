@@ -4,7 +4,7 @@ import { Fragment, Suspense, type ReactNode } from "react";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import {
-  COLLECTIONS,
+  inSeasonCollections,
   HIDDEN_TOPICS,
   LEGACY_FREE_TAG,
   MONTHS_LONG,
@@ -435,7 +435,7 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
                 </Link>
                 {/* Seasonal collection pages (COLLECTIONS), while in season, straight after "All upcoming" (Rob, Oct 2026). */}
                 {i === 0 &&
-                  COLLECTIONS.filter((c) => new Date(`${c.tab.until}T23:59:59`).getTime() >= now).map((c) => (
+                  inSeasonCollections(now).map((c) => (
                     <Link key={c.slug} href={`/events/${c.slug}`} className={`evl-chip evl-chip-season evl-chip-${c.theme}`}>
                       {c.theme === "christmas" ? <TreeIcon /> : <PumpkinIcon />}
                       {c.tab.label}

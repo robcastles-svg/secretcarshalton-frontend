@@ -201,3 +201,19 @@ export function findCollection(slug: string) {
 }
 
 export const HIDDEN_TOPICS = new Set<string>([LEGACY_FREE_TAG, "other", ...COLLECTIONS.map((c) => c.slug)]);
+
+/** Seasonal collections whose tab is still showing (until its date). */
+export function inSeasonCollections(now = Date.now()) {
+  return COLLECTIONS.filter((c) => new Date(`${c.tab.until}T23:59:59`).getTime() >= now);
+}
+
+/**
+ * The tags the add/edit event form offers as categories: the normal
+ * topics, plus each seasonal collection's tag (Halloween 2026, Christmas
+ * 2026) while it's in season, so members can put their own event on that
+ * page (Rob, Oct 2026). Collection tags stay hidden as topics elsewhere.
+ */
+export function formTopicTags<T extends { slug: string }>(tags: T[], now = Date.now()): T[] {
+  const seasonal = new Set<string>(inSeasonCollections(now).map((c) => c.slug));
+  return tags.filter((t) => !HIDDEN_TOPICS.has(t.slug) || seasonal.has(t.slug));
+}

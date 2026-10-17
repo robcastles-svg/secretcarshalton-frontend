@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
-import { HIDDEN_TOPICS } from "@/lib/event-list";
+import { formTopicTags } from "@/lib/event-list";
 import {
   getEventOrganizers,
   getEventVenues,
@@ -65,6 +65,8 @@ export default async function EditEventPage({
   const m = event.meta;
   const area = areas.find((c) => event.sc_event_category?.includes(c.id));
   const eventTags = tags.filter((t) => event.sc_event_tag?.includes(t.id));
+  // Categories the form offers (incl. in-season Halloween/Christmas); any other tags are kept as they are.
+  const offered = formTopicTags(tags);
   const [date, startTime] = splitDateTime(m.sc_start);
   const [, endTime] = splitDateTime(m.sc_end);
 
@@ -85,8 +87,8 @@ export default async function EditEventPage({
     organizer: m.sc_organizer ?? "",
     organizer_id: own ? String(own.id) : "",
     area: area?.slug ?? "",
-    topics: eventTags.filter((t) => !HIDDEN_TOPICS.has(t.slug)).map((t) => t.slug),
-    otherTags: eventTags.filter((t) => HIDDEN_TOPICS.has(t.slug)).map((t) => t.slug),
+    topics: offered.filter((t) => eventTags.includes(t)).map((t) => t.slug),
+    otherTags: eventTags.filter((t) => !offered.includes(t)).map((t) => t.slug),
     price_type: m.sc_price_type ?? "",
     price_amount: m.sc_price_amount ?? "",
     price_from: Boolean(m.sc_price_from),
@@ -141,7 +143,7 @@ export default async function EditEventPage({
         eventId={event.id}
         eventSlug={event.slug}
         areas={areas}
-        topics={tags.filter((t) => !HIDDEN_TOPICS.has(t.slug))}
+        topics={offered}
         venues={venues}
         organizers={organizers}
         allOrganizers={organizerOptions.concat(allOrganizers)}
