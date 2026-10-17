@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ReachProof } from "@/app/_components/ReachProof";
 import { getSessionToken } from "@/lib/auth";
 import { SubmitCommunityForm } from "./_components/SubmitCommunityForm";
 
@@ -15,6 +16,7 @@ export default async function SubmitCommunityPage() {
         Got something local worth sharing — an event, a cause, a shout-out? Write it up and we&apos;ll review it
         before it goes live on the Community page.
       </p>
+      <ReachProof audience="news" folded />
       <SubmitCommunityForm />
     </main>
   );

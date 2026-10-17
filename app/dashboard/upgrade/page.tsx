@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReachProof } from "@/app/_components/ReachProof";
 import { redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
 import { formatUntil } from "@/lib/pricing";
@@ -36,6 +37,7 @@ export default async function DirectoryUpgradePage() {
         <li>Top ranking, above every Standard listing in your category</li>
         <li>A mention in our Facebook/Instagram stories — we reach {SOCIAL_REACH_BLURB}</li>
       </ul>
+      <ReachProof audience="advertiser" />
 
       {profile.directory_upgrade_status === "pending" ? (
         <>

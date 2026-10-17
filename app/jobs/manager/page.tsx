@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReachProof } from "@/app/_components/ReachProof";
 import { getSessionToken } from "@/lib/auth";
 import { JOB_RATE_BRACKETS } from "@/lib/pricing";
 import { SubmitJobForm } from "./_components/SubmitJobForm";
@@ -37,6 +38,10 @@ export default async function JobsManagerPage() {
           </div>
         </div>
       </section>
+
+      <div className="reach-section">
+        <ReachProof audience="job" />
+      </div>
 
       {/* How it works */}
       <section className="adv-how">

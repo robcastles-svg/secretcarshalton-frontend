@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { ReachProof } from "@/app/_components/ReachProof";
 import { getSessionToken } from "@/lib/auth";
 import { SubmitGroupForm } from "./_components/SubmitGroupForm";
 
@@ -20,6 +21,7 @@ export default async function SubmitGroupPage() {
     <main className="container auth-page">
       <h1>List your group</h1>
       <p>Tell us about your club, society or group — it&apos;s free, and it&apos;s reviewed before it goes live.</p>
+      <ReachProof audience="group" folded />
       <SubmitGroupForm />
     </main>
   );
