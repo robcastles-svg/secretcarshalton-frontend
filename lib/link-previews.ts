@@ -41,7 +41,7 @@ async function fetchPreview(url: URL): Promise<Preview | null> {
     const res = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0 (compatible; SecretCarshaltonPreview/1.0)" },
       signal: AbortSignal.timeout(6000),
-      next: { revalidate: 86400 },
+      next: { revalidate: 3600 },
     });
     if (!res.ok || !(res.headers.get("content-type") ?? "").includes("text/html")) return null;
     const head = (await res.text()).slice(0, 200_000);
