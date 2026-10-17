@@ -9,14 +9,10 @@ const OLD_ADSENSE =
   /(?:<p>|<div align="center">)?\s*<script[^>]*pagead2\.googlesyndication\.com[\s\S]*?adsbygoogle\s*=[\s\S]*?<\/script>\s*(?:<small>[\s\S]*?<\/small>)?\s*(?:<\/p>|<\/div>)?/gi;
 
 /**
- * Splits page HTML at its first old AdSense block, dropping every one.
- * Returns [html] when there's none, or [before, after] so the caller can
- * put the site's own ad where the first one was.
+ * Splits page HTML at every old AdSense block, dropping the blocks, so
+ * the caller can put the site's own ads where they were. One block gives
+ * [before, after]; none gives [html].
  */
-export function splitAtOldAdsense(html: string): [string] | [string, string] {
-  const first = new RegExp(OLD_ADSENSE.source, "i").exec(html);
-  if (!first) return [html];
-  const before = html.slice(0, first.index);
-  const after = html.slice(first.index + first[0].length).replace(OLD_ADSENSE, "");
-  return [before, after];
+export function splitAtOldAdsense(html: string): string[] {
+  return html.replace(OLD_ADSENSE, "\u0000").split("\u0000");
 }

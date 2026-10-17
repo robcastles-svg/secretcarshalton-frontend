@@ -221,7 +221,7 @@ export default async function ContentPage({
     const embeddedImage = isAboutPage && !image ? extractEmbeddedMainImage(item.content.rendered) : null;
     const contentHtml = tidyElementorAccordions(replaceTikTokEmbeds(embeddedImage ? embeddedImage.html : item.content.rendered));
 
-    // Old pasted-in Google AdSense blocks are dropped; the first one's spot gets the site's own ad.
+    // Old pasted-in Google AdSense blocks are dropped, and the site's own ads go in their place.
     const contentParts = splitAtOldAdsense(contentHtml);
     const contentClassName = isAboutPage
       ? // All four pages' embedded headings stay visible now, per
@@ -245,8 +245,12 @@ export default async function ContentPage({
         {!isAboutPage && image && <img src={image.source_url} alt={image.alt_text} />}
         {contentParts.map((html, i) => (
           <Fragment key={i}>
-            {/* The site's own rotating ad, where the page's old Google ad was (Rob, Oct 2026). */}
+            {/* The site's own rotating ads where the page's old Google ads were (Rob, Oct 2026):
+                one in place of each, and two in place of the last, at the foot of the page. */}
             {i > 0 && <AdSlot placement="in_article" fallbackPlacement="in_post_1" className="ad-slot ad-in-post" />}
+            {i > 1 && i === contentParts.length - 1 && (
+              <AdSlot placement="in_post_2" fallbackPlacement="in_article" className="ad-slot ad-in-post" />
+            )}
             <div className={contentClassName} dangerouslySetInnerHTML={{ __html: html }} />
           </Fragment>
         ))}
