@@ -49,7 +49,9 @@ function split(events: WPScEvent[], now: number): { upcoming: Item[]; past: Item
 export async function collectionMetadata(collection: Collection): Promise<Metadata> {
   const events = await taggedEvents(collection);
   const { upcoming, past } = split(events, Date.now());
-  const image = [...upcoming, ...past].map((i) => getFeaturedImage(i.event)).find((img) => img)?.source_url;
+  const image = collection.image
+    ? `${SITE_URL}${collection.image}`
+    : [...upcoming, ...past].map((i) => getFeaturedImage(i.event)).find((img) => img)?.source_url;
   const path = `/events/${collection.slug}`;
   const title = `${collection.title} — Secret Carshalton`;
   return {

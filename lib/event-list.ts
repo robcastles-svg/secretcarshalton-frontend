@@ -185,6 +185,8 @@ export const COLLECTIONS = [
     /** The tab at the end of the events pages' date tabs, shown until this date (the page stays up). */
     tab: { label: "Halloween", until: "2026-11-08" },
     theme: "halloween",
+    /** Share/preview picture (public/collections); null uses the first event's photo. */
+    image: "/collections/halloween-2026.jpg",
     intro: "Spooky things to do in and around Carshalton and Sutton this Halloween: parties, trails, quizzes and family fun.",
   },
   {
@@ -192,6 +194,7 @@ export const COLLECTIONS = [
     title: "Christmas Events 2026",
     tab: { label: "Christmas", until: "2027-01-01" },
     theme: "christmas",
+    image: null,
     intro: "Festive things to do in and around Carshalton and Sutton this Christmas: markets, fairs, carols, pantomimes and family fun.",
   },
 ] as const;
