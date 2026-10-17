@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReachProof } from "@/app/_components/ReachProof";
 import { getSessionToken } from "@/lib/auth";
 import { getOccurrences, upcomingOccurrences, dateParts } from "@/lib/event-view";
 import { EVENT_UPGRADE_PRICE } from "@/lib/pricing";
@@ -96,6 +97,7 @@ async function AddYourEventPage({ token }: { token: string }) {
                 Tip: sharing an event at least a month in advance is the most successful way to gain views.
               </div>
             </section>
+            <ReachProof audience="event" folded />
             <LiveEventsPanel events={live} />
           </>
         }
@@ -130,6 +132,10 @@ function LoggedOutSubmitPage() {
           </div>
         </div>
       </section>
+
+      <div className="reach-section">
+        <ReachProof audience="event" folded />
+      </div>
 
       {/* What you get */}
       <section className="adv-how">

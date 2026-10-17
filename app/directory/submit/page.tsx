@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReachProof } from "@/app/_components/ReachProof";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { STANDARD_LISTING_PRICE } from "@/lib/pricing";
 import { getDirectoryCategories, getDirectoryListingBySlug, getMyListings, type WPListing, soft } from "@/lib/wordpress";
@@ -107,6 +108,10 @@ export default async function DirectorySubmitPage() {
           </div>
         </div>
       </section>
+
+      <div className="reach-section">
+        <ReachProof audience="advertiser" />
+      </div>
 
       {/* What you get */}
       <section className="adv-how">

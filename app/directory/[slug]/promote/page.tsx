@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReachProof } from "@/app/_components/ReachProof";
 import { notFound, redirect } from "next/navigation";
 import { getSessionToken } from "@/lib/auth";
 import { GROUP_PROMOTION_PRICE } from "@/lib/pricing";
@@ -45,6 +46,7 @@ export default async function PromoteListingPage({
         Give <strong dangerouslySetInnerHTML={{ __html: listing.title.rendered }} /> featured placement within
         the Community section for 30 days — more visibility than a standard listing. {GROUP_PROMOTION_PRICE}.
       </p>
+      <ReachProof audience="group" />
 
       {listing.meta.sc_group_promoted ? (
         <>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReachProof } from "@/app/_components/ReachProof";
 import { getSessionToken } from "@/lib/auth";
 import { TEXT_AD_TIERS, EVENT_UPGRADE_PRICE, FEATURED_DIRECTORY_TIERS, GROUP_PROMOTION_PRICE, JOB_RATE_BRACKETS } from "@/lib/pricing";
 import { SOCIAL_REACH_BLURB } from "@/lib/socialStats";
@@ -58,6 +59,10 @@ export default async function AdvertisePage() {
           </div>
         </div>
       </section>
+
+      <div className="reach-section">
+        <ReachProof audience="advertiser" />
+      </div>
 
       {/* How it works */}
       <section className="adv-how">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ReachProof } from "@/app/_components/ReachProof";
 import { DirectoryListingCard } from "@/app/_components/DirectoryListingCard";
 import { getSessionToken } from "@/lib/auth";
 import { FEATURED_DIRECTORY_TIERS, STANDARD_LISTING_PRICE } from "@/lib/pricing";
@@ -63,6 +64,10 @@ export default async function FeaturedListingPage({
           </div>
         </div>
       </section>
+
+      <div className="reach-section">
+        <ReachProof audience="advertiser" />
+      </div>
 
       {/* Packages */}
       <section id="packages" className="adv-section">

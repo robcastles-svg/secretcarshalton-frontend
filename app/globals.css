@@ -9266,7 +9266,7 @@ a.home-comment-author:hover {
 
 /* After-submit pop-up */
 .evf-modal-wrap { position: fixed; inset: 0; background: rgba(12, 10, 13, .66); z-index: 100; display: grid; place-items: center; padding: 16px; overflow-y: auto; }
-.evf-modal { width: min(440px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; background: #fff; color: var(--evx-ink); border-radius: 16px; padding: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45); display: grid; gap: 14px; }
+.evf-modal { position: relative; width: min(440px, 100%); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; background: #fff; color: var(--evx-ink); border-radius: 16px; padding: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45); display: grid; gap: 14px; }
 .evf-tick { width: 44px; height: 44px; border-radius: 50%; background: #e7f4ed; color: var(--evx-new); display: grid; place-items: center; font-size: 22px; font-weight: 900; }
 .evx .evf-modal h2 { margin: 0; font-size: 22px; letter-spacing: -.01em; color: var(--evx-ink); }
 .evf-modal p { margin: 0; font-size: 14px; color: var(--evx-ink-soft); }
@@ -10570,4 +10570,38 @@ a.home-comment-author:hover {
   .link-preview-body { padding: 0.6rem 0.75rem; }
   .link-preview strong { font-size: 0.95rem; }
   .link-preview-desc { -webkit-line-clamp: 2; }
+}
+
+/* "Why Secret Carshalton?" reach tick list (ReachProof.tsx): open on paid pages, folded on free forms. */
+.reach-proof { max-width: 760px; margin: 1.5rem 0; padding: 1.1rem 1.3rem; border: 1px solid #ead9de; border-radius: 14px; background: #fdf8fa; color: #1a1a1a; text-align: left; }
+.reach-proof h2 { margin: 0 0 0.7rem; font-size: 1.15rem; }
+.reach-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.reach-list li { position: relative; padding-left: 1.8rem; font-size: 0.95rem; line-height: 1.45; }
+.reach-list li::before { content: ""; position: absolute; left: 0; top: 0.12rem; width: 1.15rem; height: 1.15rem; border-radius: 50%; background: #2f8f5b url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 72% no-repeat; }
+.reach-list a { color: #8a4f5b; font-weight: 600; }
+.reach-note { margin: 0.8rem 0 0; font-size: 0.75rem; line-height: 1.45; color: #777; }
+.reach-proof-folded { padding: 0; }
+.reach-proof-folded summary { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.7rem 1.1rem; cursor: pointer; list-style: none; font-weight: 700; font-size: 0.95rem; }
+.reach-proof-folded summary::-webkit-details-marker { display: none; }
+.reach-summary-hint { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600; font-size: 0.82rem; color: #8a4f5b; }
+.reach-summary-hint::after { content: ""; width: 0.5rem; height: 0.5rem; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform .15s; }
+.reach-proof-folded[open] .reach-summary-hint::after { transform: rotate(225deg) translateY(-1px); }
+.reach-proof-folded[open] summary { border-bottom: 1px solid #ead9de; }
+.reach-proof-folded > .reach-list { padding: 0.9rem 1.1rem 0; }
+.reach-proof-folded > .reach-note { padding: 0 1.1rem 1rem; }
+/* On the dark events form. */
+.evx .reach-proof { background: #1d1a1c; border-color: #3a3236; color: #f3eef1; }
+.evx .reach-proof-folded[open] summary { border-color: #3a3236; }
+.evx .reach-list a, .evx .reach-summary-hint { color: #e3b6c0; }
+.evx .reach-note { color: #a99fa5; }
+/* On the /advertise-style pages: centred under the hero. */
+.reach-section { padding: 0 1rem; }
+.reach-section .reach-proof { margin: 2rem auto 0.5rem; }
+
+/* The "Your event is live" pop-up's close button: pinned top-right while the pop-up scrolls. */
+.evf-modal-close { position: sticky; top: 0; justify-self: end; z-index: 2; width: 36px; height: 36px; margin: -10px -10px -50px 0; border: 0; border-radius: 50%; background: #f1eaed; color: #1a1a1a; font-size: 24px; line-height: 1; cursor: pointer; }
+.evf-modal-close:hover { background: #e6d9de; }
+@media (max-width: 560px) {
+  .evf-modal-wrap { padding: 10px; }
+  .evf-modal { padding: 18px; gap: 10px; max-height: calc(100dvh - 20px); }
 }
