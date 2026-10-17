@@ -69,7 +69,7 @@ function card(url: URL, p: Preview): string {
   const desc = p.description ? p.description.slice(0, 180) + (p.description.length > 180 ? "…" : "") : "";
   return (
     `<a class="link-preview${p.image ? "" : " link-preview-no-image"}" href="${escape(href)}"${external}>` +
-    (p.image ? `<img src="${escape(p.image)}" alt="" loading="lazy">` : "") +
+    (p.image ? `<span class="link-preview-thumb"><img src="${escape(p.image)}" alt="" loading="lazy"></span>` : "") +
     `<span class="link-preview-body"><span class="link-preview-site">${escape(p.site)}</span>` +
     `<strong>${escape(p.title)}</strong>` +
     (desc ? `<span class="link-preview-desc">${escape(desc)}</span>` : "") +
