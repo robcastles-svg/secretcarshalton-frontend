@@ -17,6 +17,7 @@ import { SidebarAds } from "@/app/_components/SidebarAds";
 import { WalkMapBuy } from "@/app/_components/WalkMapBuy";
 import { YopPollScripts } from "@/app/_components/YopPollScripts";
 import { replaceHtml5VideoPlayers } from "@/lib/html5-video";
+import { splitAtOldAdsense } from "@/lib/old-adsense";
 import { replaceTikTokEmbeds } from "@/lib/tiktok-embed";
 import { tidyElementorAccordions } from "@/lib/elementor-accordion";
 import { STATIC_PAGES } from "@/lib/static-pages";
@@ -220,30 +221,35 @@ export default async function ContentPage({
     const embeddedImage = isAboutPage && !image ? extractEmbeddedMainImage(item.content.rendered) : null;
     const contentHtml = tidyElementorAccordions(replaceTikTokEmbeds(embeddedImage ? embeddedImage.html : item.content.rendered));
 
+    // Old pasted-in Google AdSense blocks are dropped; the first one's spot gets the site's own ad.
+    const contentParts = splitAtOldAdsense(contentHtml);
+    const contentClassName = isAboutPage
+      ? // All four pages' embedded headings stay visible now, per
+        // Rob — except Welcome to Carshalton's first one, which is
+        // genuinely empty (a single &nbsp;, left over from the
+        // original page build) rather than a real heading to show.
+        // The flush-top-image fallback only matters if
+        // extractEmbeddedMainImage above couldn't find the image
+        // to pull out — the normal case renders it as a real
+        // top-level element further down instead.
+        `about-page-content${slug === "welcome-to-carshalton" ? " about-page-content-hide-empty-heading" : ""}${
+          slug === "about-secret-carshalton" && !embeddedImage ? " about-page-content-flush-top-image" : ""
+        }`
+      : undefined;
+
     const content = (
       <>
         {!isAboutPage && <h1 dangerouslySetInnerHTML={{ __html: item.title.rendered }} />}
         <EditInWordPress postId={item.id} />
         {!isAboutPage && <time dateTime={item.date}>{formatDate(item.date)}</time>}
         {!isAboutPage && image && <img src={image.source_url} alt={image.alt_text} />}
-        <div
-          className={
-            isAboutPage
-              ? // All four pages' embedded headings stay visible now, per
-                // Rob — except Welcome to Carshalton's first one, which is
-                // genuinely empty (a single &nbsp;, left over from the
-                // original page build) rather than a real heading to show.
-                // The flush-top-image fallback only matters if
-                // extractEmbeddedMainImage above couldn't find the image
-                // to pull out — the normal case renders it as a real
-                // top-level element further down instead.
-                `about-page-content${slug === "welcome-to-carshalton" ? " about-page-content-hide-empty-heading" : ""}${
-                  slug === "about-secret-carshalton" && !embeddedImage ? " about-page-content-flush-top-image" : ""
-                }`
-              : undefined
-          }
-          dangerouslySetInnerHTML={{ __html: contentHtml }}
-        />
+        {contentParts.map((html, i) => (
+          <Fragment key={i}>
+            {/* The site's own rotating ad, where the page's old Google ad was (Rob, Oct 2026). */}
+            {i > 0 && <AdSlot placement="in_article" fallbackPlacement="in_post_1" className="ad-slot ad-in-post" />}
+            <div className={contentClassName} dangerouslySetInnerHTML={{ __html: html }} />
+          </Fragment>
+        ))}
       </>
     );
 
