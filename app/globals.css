@@ -9266,7 +9266,7 @@ a.home-comment-author:hover {
 
 /* After-submit pop-up */
 .evf-modal-wrap { position: fixed; inset: 0; background: rgba(12, 10, 13, .66); z-index: 100; display: grid; place-items: center; padding: 16px; overflow-y: auto; }
-.evf-modal { width: min(440px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; background: #fff; color: var(--evx-ink); border-radius: 16px; padding: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45); display: grid; gap: 14px; }
+.evf-modal { position: relative; width: min(440px, 100%); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; background: #fff; color: var(--evx-ink); border-radius: 16px; padding: 24px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45); display: grid; gap: 14px; }
 .evf-tick { width: 44px; height: 44px; border-radius: 50%; background: #e7f4ed; color: var(--evx-new); display: grid; place-items: center; font-size: 22px; font-weight: 900; }
 .evx .evf-modal h2 { margin: 0; font-size: 22px; letter-spacing: -.01em; color: var(--evx-ink); }
 .evf-modal p { margin: 0; font-size: 14px; color: var(--evx-ink-soft); }
@@ -10597,3 +10597,11 @@ a.home-comment-author:hover {
 /* On the /advertise-style pages: centred under the hero. */
 .reach-section { padding: 0 1rem; }
 .reach-section .reach-proof { margin: 2rem auto 0.5rem; }
+
+/* The "Your event is live" pop-up's close button: pinned top-right while the pop-up scrolls. */
+.evf-modal-close { position: sticky; top: 0; justify-self: end; z-index: 2; width: 36px; height: 36px; margin: -10px -10px -50px 0; border: 0; border-radius: 50%; background: #f1eaed; color: #1a1a1a; font-size: 24px; line-height: 1; cursor: pointer; }
+.evf-modal-close:hover { background: #e6d9de; }
+@media (max-width: 560px) {
+  .evf-modal-wrap { padding: 10px; }
+  .evf-modal { padding: 18px; gap: 10px; max-height: calc(100dvh - 20px); }
+}

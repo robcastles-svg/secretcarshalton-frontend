@@ -1290,6 +1290,15 @@ export function EventForm({
       {done && (
         <div className="evf-modal-wrap">
           <div className="evf-modal" role="dialog" aria-modal="true" aria-labelledby="evf-modal-title">
+            {/* Always reachable, even on a small phone where the pop-up scrolls (Rob, Oct 2026). */}
+            <button
+              type="button"
+              className="evf-modal-close"
+              aria-label="Close"
+              onClick={() => router.push(`/events/${done.slug}`)}
+            >
+              ×
+            </button>
             <div className="evf-tick" aria-hidden="true">
               ✓
             </div>
