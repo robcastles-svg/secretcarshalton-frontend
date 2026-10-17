@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense, type ReactNode } from "react";
+import { Fragment, Suspense, type ReactNode } from "react";
 import { CategoryKeyIcon } from "@/app/_components/CategoryKeyIcon";
 import { SidebarAds } from "@/app/_components/SidebarAds";
 import {
-  COLLECTIONS,
+  inSeasonCollections,
   HIDDEN_TOPICS,
   LEGACY_FREE_TAG,
   MONTHS_LONG,
@@ -46,7 +46,7 @@ import {
 } from "@/lib/wordpress";
 import { ShareRow } from "@/app/_components/ShareRow";
 import { CategorySelect } from "./CategorySelect";
-import { ChevronIcon, CalendarIcon, PumpkinIcon, StarIcon } from "./EvIcons";
+import { ChevronIcon, CalendarIcon, PumpkinIcon, StarIcon, TreeIcon } from "./EvIcons";
 import { EventCard } from "./EventCard";
 import { FeaturedSlider, type Slide } from "./FeaturedSlider";
 import { LoadMoreGroups } from "./LoadMoreGroups";
@@ -420,28 +420,30 @@ export async function EventsListPage({ filter }: { filter: ListFilter }) {
 
       <div className="evl-fbar" role="navigation" aria-label="Filter events">
         <div className="evl-frow">
-          {pills.map((p) => {
+          {pills.map((p, i) => {
             const on = filter.when === p.when;
             return (
-              <Link
-                key={p.when}
-                href={listHref({ ...filter, when: p.when })}
-                className={`evl-chip${on ? " evl-chip-on" : ""}`}
-                aria-current={on ? "page" : undefined}
-              >
-                {p.icon === "star" && <StarIcon />}
-                {p.icon === "cal" && <CalendarIcon />}
-                {p.label}
-              </Link>
+              <Fragment key={p.when}>
+                <Link
+                  href={listHref({ ...filter, when: p.when })}
+                  className={`evl-chip${on ? " evl-chip-on" : ""}`}
+                  aria-current={on ? "page" : undefined}
+                >
+                  {p.icon === "star" && <StarIcon />}
+                  {p.icon === "cal" && <CalendarIcon />}
+                  {p.label}
+                </Link>
+                {/* Seasonal collection pages (COLLECTIONS), while in season, straight after "All upcoming" (Rob, Oct 2026). */}
+                {i === 0 &&
+                  inSeasonCollections(now).map((c) => (
+                    <Link key={c.slug} href={`/events/${c.slug}`} className={`evl-chip evl-chip-season evl-chip-${c.theme}`}>
+                      {c.theme === "christmas" ? <TreeIcon /> : <PumpkinIcon />}
+                      {c.tab.label}
+                    </Link>
+                  ))}
+              </Fragment>
             );
           })}
-          {/* Seasonal collection pages (COLLECTIONS) at the end of the tabs, while in season. */}
-          {COLLECTIONS.filter((c) => new Date(`${c.tab.until}T23:59:59`).getTime() >= now).map((c) => (
-            <Link key={c.slug} href={`/events/${c.slug}`} className="evl-chip evl-chip-halloween">
-              <PumpkinIcon />
-              {c.tab.label}
-            </Link>
-          ))}
         </div>
         <CategorySelect
           options={options}

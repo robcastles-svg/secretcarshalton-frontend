@@ -100,10 +100,10 @@ export function currentMonth(now = Date.now()): string {
   return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}`;
 }
 
-/** The month pills: this month and the next three. */
+/** The month pills: this month and the next two (Rob, Oct 2026: three months is enough). */
 export function pillMonths(now = Date.now()): string[] {
   const first = currentMonth(now);
-  return [0, 1, 2, 3].map((n) => addMonths(first, n));
+  return [0, 1, 2].map((n) => addMonths(first, n));
 }
 
 /**
@@ -184,7 +184,15 @@ export const COLLECTIONS = [
     title: "Halloween Events 2026",
     /** The tab at the end of the events pages' date tabs, shown until this date (the page stays up). */
     tab: { label: "Halloween", until: "2026-11-08" },
+    theme: "halloween",
     intro: "Spooky things to do in and around Carshalton and Sutton this Halloween: parties, trails, quizzes and family fun.",
+  },
+  {
+    slug: "christmas-2026",
+    title: "Christmas Events 2026",
+    tab: { label: "Christmas", until: "2027-01-01" },
+    theme: "christmas",
+    intro: "Festive things to do in and around Carshalton and Sutton this Christmas: markets, fairs, carols, pantomimes and family fun.",
   },
 ] as const;
 
@@ -193,3 +201,19 @@ export function findCollection(slug: string) {
 }
 
 export const HIDDEN_TOPICS = new Set<string>([LEGACY_FREE_TAG, "other", ...COLLECTIONS.map((c) => c.slug)]);
+
+/** Seasonal collections whose tab is still showing (until its date). */
+export function inSeasonCollections(now = Date.now()) {
+  return COLLECTIONS.filter((c) => new Date(`${c.tab.until}T23:59:59`).getTime() >= now);
+}
+
+/**
+ * The tags the add/edit event form offers as categories: the normal
+ * topics, plus each seasonal collection's tag (Halloween 2026, Christmas
+ * 2026) while it's in season, so members can put their own event on that
+ * page (Rob, Oct 2026). Collection tags stay hidden as topics elsewhere.
+ */
+export function formTopicTags<T extends { slug: string }>(tags: T[], now = Date.now()): T[] {
+  const seasonal = new Set<string>(inSeasonCollections(now).map((c) => c.slug));
+  return tags.filter((t) => !HIDDEN_TOPICS.has(t.slug) || seasonal.has(t.slug));
+}

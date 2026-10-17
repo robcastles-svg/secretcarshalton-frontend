@@ -78,6 +78,12 @@ export const PumpkinIcon = () => (
     <path d="M11.2 7.6c-.1-2.1.7-3.6 2.4-4.3l.8 1.2c-1.1.5-1.6 1.5-1.5 3.1z" />
   </Svg>
 );
+export const TreeIcon = () => (
+  <Svg fill>
+    <path d="M12 2.5l4.2 5.6h-2.3l3.6 4.9h-2.4l4.1 5.5H4.8l4.1-5.5H6.5l3.6-4.9H7.8z" />
+    <rect x="10.6" y="18.5" width="2.8" height="3" />
+  </Svg>
+);
 export const MailIcon = () => (
   <Svg>
     <rect x="3" y="5" width="18" height="14" rx="2" />

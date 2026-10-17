@@ -13,7 +13,7 @@ import {
   type WPScEvent,
   soft,
 } from "@/lib/wordpress";
-import { HIDDEN_TOPICS } from "@/lib/event-list";
+import { formTopicTags } from "@/lib/event-list";
 import { ChevronIcon } from "../_components/EvIcons";
 import { EventForm } from "../_components/EventForm";
 import { LiveEventsPanel, type LiveEventRow } from "./_components/LiveEventsPanel";
@@ -79,7 +79,7 @@ async function AddYourEventPage({ token }: { token: string }) {
       <EventForm
         mode="create"
         areas={areas}
-        topics={tags.filter((t) => !HIDDEN_TOPICS.has(t.slug))}
+        topics={formTopicTags(tags)}
         venues={venues}
         organizers={organizers}
         allOrganizers={allOrganizers}
