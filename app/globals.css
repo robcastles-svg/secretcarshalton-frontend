@@ -10511,10 +10511,13 @@ a.home-comment-author:hover {
 /* Instagram Story button (ShareRow) while it fetches the picture. */
 .evx-icon-btn[aria-busy="true"], .share-row-btn[aria-busy="true"] { opacity: .5; cursor: progress; }
 
-/* Halloween tab at the end of the events date tabs (seasonal, see COLLECTIONS). */
+/* Seasonal tabs next to "All upcoming" on the events pages (see COLLECTIONS). */
 .evx .evl-chip-halloween { border-color: #e8771e; color: #ffb066; font-weight: 700; }
 .evx .evl-chip-halloween:hover { border-color: #ffb066; background: rgba(232,119,30,.12); }
 .evl-chip-halloween svg { color: #e8771e; width: 17px; height: 17px; }
+.evx .evl-chip-christmas { border-color: #e0434f; color: #ff9aa2; font-weight: 700; }
+.evx .evl-chip-christmas:hover { border-color: #ff9aa2; background: rgba(224,67,79,.12); }
+.evl-chip-christmas svg { color: #3fae6a; width: 17px; height: 17px; }
 
 /* "Continue with Google" (GoogleSignIn.tsx) on /login, /register and the login pop-up. */
 .google-signin { margin: 1rem 0 0.5rem; max-width: 400px; }
