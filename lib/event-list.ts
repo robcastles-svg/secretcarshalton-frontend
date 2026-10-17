@@ -100,10 +100,10 @@ export function currentMonth(now = Date.now()): string {
   return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}`;
 }
 
-/** The month pills: this month and the next three. */
+/** The month pills: this month and the next two (Rob, Oct 2026: three months is enough). */
 export function pillMonths(now = Date.now()): string[] {
   const first = currentMonth(now);
-  return [0, 1, 2, 3].map((n) => addMonths(first, n));
+  return [0, 1, 2].map((n) => addMonths(first, n));
 }
 
 /**
